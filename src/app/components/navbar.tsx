@@ -1,57 +1,64 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-} from '@/components/ui/navigation-menu'
+} from "@/components/ui/navigation-menu";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
   SheetHeader,
-  SheetTitle
-} from '@/components/ui/sheet'
-import { ModeToggle } from '@/components/mode-toggle'
-import caftonLengthwise from '@/assets/cafton-lengthwise.png'
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { ModeToggle } from "@/components/mode-toggle";
+import caftonLengthwise from "@/assets/cafton-lengthwise.png";
+import { Logo } from "@/components/logo";
 
 const navigationItems = [
-  { name: 'Home', href: '#hero' },
-  { name: 'Features', href: '#features' },
-  { name: 'About', href: '#about' },
-  { name: 'Pricing', href: '#pricing' },
-  { name: 'FAQ', href: '#faq' },
-]
+  { name: "Home", href: "#hero" },
+  { name: "Features", href: "#features" },
+  { name: "About", href: "#about" },
+  { name: "Pricing", href: "#pricing" },
+  { name: "FAQ", href: "#faq" },
+];
 
 // Smooth scroll function
 const smoothScrollTo = (targetId: string) => {
-  if (targetId.startsWith('#')) {
-    const element = document.querySelector(targetId)
+  if (targetId.startsWith("#")) {
+    const element = document.querySelector(targetId);
     if (element) {
       element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      })
+        behavior: "smooth",
+        block: "start",
+      });
     }
   }
-}
+};
 
 export function LandingNavbar() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-2">
-          <Link href="/" className="flex items-center cursor-pointer">
-            <Image src={caftonLengthwise} alt="CAFTON" height={28} className="w-auto h-7" priority />
+          <Link
+            href="https://shadcnstore.com"
+            className="flex items-center space-x-2 cursor-pointer"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Logo size={32} />
+            <span className="font-bold uppercase">Cafton</span>
           </Link>
         </div>
 
@@ -63,8 +70,8 @@ export function LandingNavbar() {
                 <NavigationMenuLink
                   className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary focus:text-primary focus:outline-none cursor-pointer"
                   onClick={(e: React.MouseEvent) => {
-                    e.preventDefault()
-                    smoothScrollTo(item.href)
+                    e.preventDefault();
+                    smoothScrollTo(item.href);
                   }}
                 >
                   {item.name}
@@ -81,8 +88,8 @@ export function LandingNavbar() {
             <a
               href="#contact"
               onClick={(e) => {
-                e.preventDefault()
-                smoothScrollTo('#contact')
+                e.preventDefault();
+                smoothScrollTo("#contact");
               }}
             >
               Contact Us
@@ -98,16 +105,29 @@ export function LandingNavbar() {
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:w-[400px] p-0 gap-0 [&>button]:hidden overflow-hidden flex flex-col">
+          <SheetContent
+            side="right"
+            className="w-full sm:w-[400px] p-0 gap-0 [&>button]:hidden overflow-hidden flex flex-col"
+          >
             <div className="flex flex-col h-full">
               {/* Header */}
               <SheetHeader className="space-y-0 p-4 pb-2 border-b">
                 <div className="flex items-center gap-2">
-                  <Image src={caftonLengthwise} alt="CAFTON" height={22} className="w-auto h-[22px]" />
+                  <Image
+                    src={caftonLengthwise}
+                    alt="CAFTON"
+                    height={22}
+                    className="w-auto h-[22px]"
+                  />
                   <SheetTitle className="sr-only">CAFTON</SheetTitle>
                   <div className="ml-auto flex items-center gap-2">
                     <ModeToggle variant="ghost" />
-                    <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="cursor-pointer h-8 w-8">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsOpen(false)}
+                      className="cursor-pointer h-8 w-8"
+                    >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
@@ -123,9 +143,9 @@ export function LandingNavbar() {
                       href={item.href}
                       className="flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
                       onClick={(e) => {
-                        e.preventDefault()
-                        setIsOpen(false)
-                        setTimeout(() => smoothScrollTo(item.href), 100)
+                        e.preventDefault();
+                        setIsOpen(false);
+                        setTimeout(() => smoothScrollTo(item.href), 100);
                       }}
                     >
                       {item.name}
@@ -140,9 +160,9 @@ export function LandingNavbar() {
                   <a
                     href="#contact"
                     onClick={(e) => {
-                      e.preventDefault()
-                      setIsOpen(false)
-                      setTimeout(() => smoothScrollTo('#contact'), 100)
+                      e.preventDefault();
+                      setIsOpen(false);
+                      setTimeout(() => smoothScrollTo("#contact"), 100);
                     }}
                   >
                     Contact Us
@@ -154,5 +174,5 @@ export function LandingNavbar() {
         </Sheet>
       </div>
     </header>
-  )
+  );
 }

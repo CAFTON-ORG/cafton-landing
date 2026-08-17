@@ -8,16 +8,6 @@ const nextConfig: NextConfig = {
 
   // Image optimization
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'ui.shadcn.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-    ],
     formats: ['image/webp', 'image/avif'],
   },
 
@@ -40,17 +30,6 @@ const nextConfig: NextConfig = {
             value: 'origin-when-cross-origin',
           },
         ],
-      },
-    ];
-  },
-
-  // Redirects for better SEO
-  async redirects() {
-    return [
-      {
-        source: '/home',
-        destination: '/dashboard',
-        permanent: true,
       },
     ];
   },

@@ -52,9 +52,8 @@ export function LandingNavbar() {
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <Link
-            href="https://shadcnstore.com"
+            href="/"
             className="flex items-center space-x-2 cursor-pointer"
-            target="_blank"
             rel="noopener noreferrer"
           >
             <Logo size={32} />
@@ -113,12 +112,9 @@ export function LandingNavbar() {
               {/* Header */}
               <SheetHeader className="space-y-0 p-4 pb-2 border-b">
                 <div className="flex items-center gap-2">
-                  <Image
-                    src={caftonLengthwise}
-                    alt="CAFTON"
-                    height={22}
-                    className="w-auto h-[22px]"
-                  />
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Logo size={16} />
+                  </div>
                   <SheetTitle className="sr-only">CAFTON</SheetTitle>
                   <div className="ml-auto flex items-center gap-2">
                     <ModeToggle variant="ghost" />

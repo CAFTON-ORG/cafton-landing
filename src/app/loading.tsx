@@ -1,12 +1,11 @@
-import Image from 'next/image'
-import caftonMark from '@/assets/cafton.png'
+import { Logo } from '@/components/logo'
 
 export default function Loading() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <div className="mx-auto h-14 w-14 overflow-hidden rounded-2xl animate-pulse">
-          <Image src={caftonMark} alt="CAFTON" className="h-full w-full object-cover" priority />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border animate-pulse">
+          <Logo size={28} />
         </div>
         <p className="text-muted-foreground mt-4">Loading...</p>
       </div>

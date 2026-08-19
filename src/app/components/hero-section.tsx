@@ -5,7 +5,6 @@ import { ArrowRight, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DotPattern } from '@/components/dot-pattern'
-import caftonMark from '@/assets/cafton.png'
 
 const smoothScrollTo = (targetId: string) => {
   const element = document.querySelector(targetId)
@@ -75,8 +74,10 @@ export function HeroSection() {
             <div className="absolute inset-0 scale-90 rounded-full bg-primary/40 blur-3xl" />
             <div className="relative w-40 sm:w-52 md:w-60 overflow-hidden rounded-3xl border shadow-2xl">
               <Image
-                src={caftonMark}
+                src="/cafton.png"
                 alt="CAFTON"
+                width={600}
+                height={600}
                 className="h-full w-full object-cover"
                 priority
               />

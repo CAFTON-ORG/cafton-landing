@@ -50,8 +50,8 @@ export function CTASection() {
                   <Mail className='me-2 size-5' />
                   Contact Us
                 </Button>
-                <Button variant='outline' size='lg' className='cursor-pointer px-8 py-6 text-lg font-medium group' onClick={() => smoothScrollTo('#pricing')}>
-                  View Pricing
+                <Button variant='outline' size='lg' className='cursor-pointer px-8 py-6 text-lg font-medium group' onClick={() => smoothScrollTo('#features')}>
+                  Explore Features
                   <ArrowRight className='ms-2 size-4 transition-transform group-hover:translate-x-1' />
                 </Button>
               </div>

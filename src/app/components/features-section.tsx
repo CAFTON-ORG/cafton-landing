@@ -94,13 +94,13 @@ export function FeaturesSection() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button size="lg" className="cursor-pointer" asChild>
             <a
-              href="#pricing"
+              href="#faq"
               onClick={(e) => {
                 e.preventDefault()
-                document.querySelector('#pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                document.querySelector('#faq')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
               }}
             >
-              View Pricing
+              Explore FAQ
               <ArrowRight className="ms-2 size-4" aria-hidden="true" />
             </a>
           </Button>

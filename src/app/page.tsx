@@ -3,17 +3,17 @@ import { LandingPageContent } from './landing-page-content'
 
 export const metadata: Metadata = {
   title: 'CAFTON - Modern Software Solutions',
-  description: 'CAFTON builds modern software solutions that help teams work smarter. Explore our platform, pricing, and get in touch with our team.',
+  description: 'CAFTON builds modern software solutions that help teams work smarter. Explore our platform and get in touch with our team.',
   keywords: ['CAFTON', 'software company', 'saas', 'technology'],
   openGraph: {
     title: 'CAFTON - Modern Software Solutions',
-    description: 'CAFTON builds modern software solutions that help teams work smarter.',
+    description: 'CAFTON builds modern software solutions that help teams work smarter. Explore our platform and get in touch with our team.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'CAFTON - Modern Software Solutions',
-    description: 'CAFTON builds modern software solutions that help teams work smarter.',
+    description: 'CAFTON builds modern software solutions that help teams work smarter. Explore our platform and get in touch with our team.',
   },
 }
 

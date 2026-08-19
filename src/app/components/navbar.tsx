@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,15 +18,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/mode-toggle";
-import caftonLengthwise from "@/assets/cafton-lengthwise.png";
 import { Logo } from "@/components/logo";
 
 const navigationItems = [
   { name: "Home", href: "#hero" },
   { name: "Features", href: "#features" },
   { name: "About", href: "#about" },
-  { name: "Pricing", href: "#pricing" },
   { name: "FAQ", href: "#faq" },
+  { name: "Contact", href: "#contact" },
 ];
 
 // Smooth scroll function

@@ -28,7 +28,7 @@ const faqItems: FaqItem[] = [
     value: 'item-3',
     question: 'What kind of support do you offer?',
     answer:
-      'All plans include access to our support team. Professional and Enterprise plans include priority support with faster response times and a dedicated point of contact.',
+      'Every project includes access to our support team. Priority support is available for engagements that need faster response times and a dedicated point of contact.',
   },
   {
     value: 'item-4',
@@ -38,15 +38,15 @@ const faqItems: FaqItem[] = [
   },
   {
     value: 'item-5',
-    question: 'How does pricing work?',
+    question: 'Can you help with custom requests?',
     answer:
-      'We offer simple, transparent pricing that scales with your team. Check out our pricing section above for an overview, or contact our team for a custom quote.',
+      'Yes. Reach out through the contact form and our team will review your needs and follow up with the next steps.',
   },
   {
     value: 'item-6',
     question: 'Can I talk to someone before signing up?',
     answer:
-      'Absolutely. Use the contact form below to reach our team and we\'ll be happy to answer any questions and help you find the right plan.',
+      'Absolutely. Use the contact form below to reach our team and we\'ll be happy to answer any questions and help you find the right fit.',
   },
 ]
 

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+
 import "./globals.css";
 
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import { inter } from "@/lib/fonts";
+import { Navbar } from "@/components/layout/navbar";
+import { Footer } from "@/components/layout/footer";
 
 export const metadata: Metadata = {
   title: "CAFTON",
@@ -18,7 +21,11 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} antialiased`}>
       <body className={inter.className}>
         <ThemeProvider defaultTheme="system" storageKey="nextjs-ui-theme">
-          {children}
+          <Navbar />
+          <div className="min-h-screen bg-background">
+            <main>{children}</main>
+          </div>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

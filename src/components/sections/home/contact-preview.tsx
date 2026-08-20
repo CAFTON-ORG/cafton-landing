@@ -34,7 +34,7 @@ export function ContactPreview() {
                 Send us the problem you&apos;re solving, your timeline, and anything useful for us to know.
               </p>
               <div className="flex flex-wrap items-center gap-3">
-                <Button size="lg" className="cursor-pointer" asChild>
+                <Button className="cursor-pointer" asChild>
                   <a href={mailtoHref}>
                     {contactEmail}
                     <ArrowUpRight className="ms-2 h-4 w-4" />

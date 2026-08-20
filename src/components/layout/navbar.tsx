@@ -2,14 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
 import {
   Sheet,
   SheetContent,
@@ -17,32 +12,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { ModeToggle } from "@/components/mode-toggle";
-import { Logo } from "@/components/logo";
+import { ModeToggle } from "@/components/theme/mode-toggle";
+import { Logo } from "@/components/shared/logo";
 
 const navigationItems = [
-  { name: "Home", href: "#hero" },
-  { name: "Features", href: "#features" },
-  { name: "About", href: "#about" },
-  { name: "FAQ", href: "#faq" },
-  { name: "Contact", href: "#contact" },
+  { name: "Home", href: "/" },
+  { name: "Work", href: "/work" },
+  { name: "About", href: "/about" },
+  { name: "Partnerships", href: "/partnerships" },
+  { name: "Blog", href: "/blog" },
 ];
 
-// Smooth scroll function
-const smoothScrollTo = (targetId: string) => {
-  if (targetId.startsWith("#")) {
-    const element = document.querySelector(targetId);
-    if (element) {
-      element.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  }
-};
-
-export function LandingNavbar() {
+export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
@@ -60,37 +43,31 @@ export function LandingNavbar() {
         </div>
 
         {/* Desktop Navigation */}
-        <NavigationMenu className="hidden xl:flex">
-          <NavigationMenuList>
-            {navigationItems.map((item) => (
-              <NavigationMenuItem key={item.name}>
-                <NavigationMenuLink
-                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary focus:text-primary focus:outline-none cursor-pointer"
-                  onClick={(e: React.MouseEvent) => {
-                    e.preventDefault();
-                    smoothScrollTo(item.href);
-                  }}
-                >
-                  {item.name}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
+        <nav
+          aria-label="Main navigation"
+          className="hidden items-center xl:flex"
+        >
+          {navigationItems.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
+              aria-current={pathname === item.href ? "page" : undefined}
+              className={`inline-flex h-10 items-center justify-center border-b-2 px-4 py-2 text-sm font-medium transition-colors focus:outline-none ${
+                pathname === item.href
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </nav>
 
         {/* Desktop CTA */}
         <div className="hidden xl:flex items-center space-x-2">
           <ModeToggle variant="ghost" />
           <Button asChild className="cursor-pointer">
-            <a
-              href="#contact"
-              onClick={(e) => {
-                e.preventDefault();
-                smoothScrollTo("#contact");
-              }}
-            >
-              Contact Us
-            </a>
+            <Link href="/contact">Start a Project</Link>
           </Button>
         </div>
 
@@ -132,18 +109,19 @@ export function LandingNavbar() {
               <div className="flex-1 overflow-y-auto">
                 <nav className="p-6 space-y-1">
                   {navigationItems.map((item) => (
-                    <a
+                    <Link
                       key={item.name}
                       href={item.href}
-                      className="flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setIsOpen(false);
-                        setTimeout(() => smoothScrollTo(item.href), 100);
-                      }}
+                      aria-current={pathname === item.href ? "page" : undefined}
+                      className={`flex items-center rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                        pathname === item.href
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                      onClick={() => setIsOpen(false)}
                     >
                       {item.name}
-                    </a>
+                    </Link>
                   ))}
                 </nav>
               </div>
@@ -151,16 +129,12 @@ export function LandingNavbar() {
               {/* Footer Actions */}
               <div className="border-t p-6">
                 <Button size="lg" asChild className="w-full cursor-pointer">
-                  <a
-                    href="#contact"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsOpen(false);
-                      setTimeout(() => smoothScrollTo("#contact"), 100);
-                    }}
+                  <Link
+                    href="/contact"
+                    onClick={() => setIsOpen(false)}
                   >
-                    Contact Us
-                  </a>
+                    Start a Project
+                  </Link>
                 </Button>
               </div>
             </div>

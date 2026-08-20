@@ -5,20 +5,19 @@ import { Mail, Clock3, ArrowUpRight } from 'lucide-react'
 
 const contactEmail = 'contact@cafton.net'
 
-export function ContactSection() {
+export function ContactPreview() {
   const mailtoHref = `mailto:${contactEmail}`
 
   return (
-    <section id="contact" className="py-24 sm:py-32">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="contact" className="py-14 sm:py-16 lg:py-20">
+      <div className="container mx-auto px-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center mb-16">
           <Badge variant="outline" className="mb-4">Get In Touch</Badge>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-            Need help or have questions?
+            Start a conversation
           </h2>
           <p className="text-lg text-muted-foreground">
-            Our contact form is coming soon. For now, reach us directly by email and we&apos;ll get back
-            to you as soon as we can.
+            Tell us what you&apos;re trying to accomplish. We&apos;ll help you figure out what technology can do about it.
           </p>
         </div>
 
@@ -32,7 +31,7 @@ export function ContactSection() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                Skip the form for now and send your message straight to our inbox.
+                Send us the problem you&apos;re solving, your timeline, and anything useful for us to know.
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <Button size="lg" className="cursor-pointer" asChild>

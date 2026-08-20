@@ -1,16 +1,15 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import {
   PageHero,
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
 
-const team = [
-  ["Christian", "Project leadership · Full-stack · Stakeholder communication"],
-  ["Averie", "Full-stack · Web & mobile · Geofencing"],
-  ["Felix", "Full-stack · Web & mobile · Database architecture"],
-];
+// Team profiles are intentionally hidden until their content is finalized.
+// const team = [
+//   ["Christian", "Project leadership · Full-stack · Stakeholder communication"],
+//   ["Averie", "Full-stack · Web & mobile · Geofencing"],
+//   ["Felix", "Full-stack · Web & mobile · Database architecture"],
+// ];
 
 const services = [
   [
@@ -86,26 +85,21 @@ export default function About() {
           </div>
         </PageShell>
       </section>
-      <PageSection className="bg-muted/30">
-        <PageShell>
-          <h2 className="text-3xl font-bold">Our team</h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {team.map(([name, role]) => (
-              <article key={name} className="rounded-xl border bg-card p-6">
-                <h3 className="text-xl font-semibold">{name}</h3>
-                <p className="mt-3 text-sm text-muted-foreground">{role}</p>
-              </article>
-            ))}
-          </div>
-          <p className="mt-12 max-w-2xl text-muted-foreground">
-            Our direction is simple: partner with organizations that want
-            practical, resilient technology to move forward.
-          </p>
-          <Button asChild className="mt-6">
-            <Link href="/contact">Start a conversation</Link>
-          </Button>
-        </PageShell>
-      </PageSection>
+      {/*
+        <PageSection className="bg-muted/30">
+          <PageShell>
+            <h2 className="text-3xl font-bold">Our team</h2>
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {team.map(([name, role]) => (
+                <article key={name} className="rounded-xl border bg-card p-6">
+                  <h3 className="text-xl font-semibold">{name}</h3>
+                  <p className="mt-3 text-sm text-muted-foreground">{role}</p>
+                </article>
+              ))}
+            </div>
+          </PageShell>
+        </PageSection>
+      */}
     </>
   );
 }

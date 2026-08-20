@@ -43,8 +43,7 @@ export function HomeHero() {
           {/* CTA Buttons */}
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
             <Button
-              size="lg"
-              className="text-base cursor-pointer"
+              className="cursor-pointer"
               onClick={() => smoothScrollTo("#contact")}
             >
               Start a Project
@@ -52,8 +51,7 @@ export function HomeHero() {
             </Button>
             <Button
               variant="outline"
-              size="lg"
-              className="text-base cursor-pointer"
+              className="cursor-pointer"
               onClick={() => smoothScrollTo("#work")}
             >
               Explore Our Work
@@ -70,7 +68,7 @@ export function HomeHero() {
             <div className="relative rounded-xl border bg-card shadow-2xl">
               {/* Light mode dashboard image */}
               <Image
-                src="/dashboard-light.png"
+                src="/hero-light.png"
                 alt="Dashboard Preview - Light Mode"
                 width={1200}
                 height={800}
@@ -80,7 +78,7 @@ export function HomeHero() {
 
               {/* Dark mode dashboard image */}
               <Image
-                src="/dashboard-dark.png"
+                src="/hero-dark.png"
                 alt="Dashboard Preview - Dark Mode"
                 width={1200}
                 height={800}

@@ -36,7 +36,8 @@ export function ContactForm({
   pageName,
   className = "",
 }: ContactFormProps) {
-  const [formData, setFormData] = useState<ContactFormData>(contactFormDefaults);
+  const [formData, setFormData] =
+    useState<ContactFormData>(contactFormDefaults);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<
     "idle" | "submitting" | "success" | "error"
@@ -76,7 +77,9 @@ export function ContactForm({
 
     if (!turnstileToken) {
       setStatus("error");
-      setErrorMessage("Complete the security verification before sending your message.");
+      setErrorMessage(
+        "Complete the security verification before sending your message.",
+      );
       return;
     }
 
@@ -108,7 +111,9 @@ export function ContactForm({
 
       setStatus("error");
       setErrorMessage(
-        (submission && "message" in submission ? submission.message : undefined) ??
+        (submission && "message" in submission
+          ? submission.message
+          : undefined) ??
           "Something went wrong sending your message. Please try again or email us directly.",
       );
       setTurnstileToken(null);

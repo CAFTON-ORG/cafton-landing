@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DotPattern } from "@/components/shared/dot-pattern";
+import Link from "next/link";
 
 const smoothScrollTo = (targetId: string) => {
   const element = document.querySelector(targetId);
@@ -42,19 +43,17 @@ export function HomeHero() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Button
-              className="cursor-pointer"
-              onClick={() => smoothScrollTo("#contact")}
-            >
-              Start a Project
-              <ArrowRight className="ml-2 h-4 w-4" />
+            <Button className="cursor-pointer group" asChild>
+              <Link href="/contact">
+                Start a Project
+                <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
+              </Link>
             </Button>
-            <Button
-              variant="outline"
-              className="cursor-pointer"
-              onClick={() => smoothScrollTo("#work")}
-            >
-              Explore Our Work
+            <Button variant="outline" className="cursor-pointer group" asChild>
+              <Link href="/work">
+                Explore Our Work
+                <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
+              </Link>
             </Button>
           </div>
         </div>
@@ -87,7 +86,7 @@ export function HomeHero() {
               />
 
               {/* Bottom fade effect - gradient overlay that fades the image to background */}
-              <div className="absolute bottom-0 left-0 w-full h-32 md:h-40 lg:h-48 bg-gradient-to-b from-background/0 via-background/70 to-background rounded-b-xl"></div>
+              <div className="absolute bottom-0 left-0 w-full h-32 md:h-40 lg:h-48 bg-linear-to-b from-background/0 via-background/70 to-background rounded-b-xl"></div>
             </div>
           </div>
         </div>

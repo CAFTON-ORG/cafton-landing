@@ -41,7 +41,11 @@ export function Footer() {
             asChild
             className="mt-7 bg-white text-[oklch(0.145_0_0)] hover:bg-white/90"
           >
-            <Link href="/contact">
+            <Link
+              href="https://calendly.com/cafton-company/consultation"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <CalendarDays className="size-4" />
               Book a call
             </Link>

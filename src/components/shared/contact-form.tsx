@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { z } from "zod";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,58 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { submitToHubspotForm } from "@/lib/hubspot";
-
-const projectTypes = [
-  "Custom Software",
-  "Web Application",
-  "Mobile Application",
-  "SaaS / Product",
-  "System Modernization",
-  "Partnership",
-  "Other",
-];
-
-const initialFormData = {
-  firstName: "",
-  lastName: "",
-  organization: "",
-  email: "",
-  phone: "",
-  projectType: "Custom Software",
-  project: "",
-  budget: "",
-  timeline: "",
-};
-
-type ContactFormData = typeof initialFormData;
-
-const contactSchema = z.object({
-  firstName: z.string().trim().min(1, "First name is required"),
-  lastName: z.string().trim().min(1, "Last name is required"),
-  email: z.string().trim().min(1, "Email is required").email("Enter a valid email"),
-  phone: z.string().trim().optional(),
-  organization: z.string().trim().optional(),
-  projectType: z.string().trim().optional(),
-  project: z.string().trim().min(1, "Tell us a bit about your project"),
-  budget: z.string().trim().optional(),
-  timeline: z.string().trim().optional(),
-});
+import {
+  contactFormDefaults,
+  contactSchema,
+  projectTypes,
+  type ContactFormData,
+} from "@/lib/contact";
+import { Turnstile } from "@/components/shared/turnstile";
 
 type FieldErrors = Partial<Record<keyof ContactFormData, string>>;
-
-function buildMessage(data: ContactFormData) {
-  return [
-    data.organization && `Organization: ${data.organization}`,
-    data.projectType && `Project type: ${data.projectType}`,
-    data.budget && `Budget: ${data.budget}`,
-    data.timeline && `Timeline: ${data.timeline}`,
-    "",
-    data.project,
-  ]
-    .filter((line) => line !== undefined && line !== "")
-    .join("\n");
-}
 
 type ContactFormProps = {
   /** Value sent as the `website_lead_source` HubSpot property, e.g. "Homepage" or "Contact Us Page". */
@@ -75,23 +31,33 @@ type ContactFormProps = {
   className?: string;
 };
 
-export function ContactForm({ leadSource, pageName, className = "" }: ContactFormProps) {
-  const [formData, setFormData] = useState<ContactFormData>(initialFormData);
+export function ContactForm({
+  leadSource,
+  pageName,
+  className = "",
+}: ContactFormProps) {
+  const [formData, setFormData] = useState<ContactFormData>(contactFormDefaults);
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
-    "idle"
-  );
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const handleChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleProjectTypeChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, projectType: value }));
+    if (projectTypes.includes(value as ContactFormData["projectType"])) {
+      setFormData((prev) => ({
+        ...prev,
+        projectType: value as ContactFormData["projectType"],
+      }));
+    }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -108,27 +74,48 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
       return;
     }
 
+    if (!turnstileToken) {
+      setStatus("error");
+      setErrorMessage("Complete the security verification before sending your message.");
+      return;
+    }
+
     setErrors({});
     setStatus("submitting");
 
-    const submission = await submitToHubspotForm(
-      [
-        { name: "firstname", value: result.data.firstName },
-        { name: "lastname", value: result.data.lastName },
-        { name: "email", value: result.data.email },
-        { name: "phone", value: result.data.phone ?? "" },
-        { name: "message", value: buildMessage(result.data as ContactFormData) },
-        { name: "website_lead_source", value: leadSource },
-      ],
-      pageName
-    );
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact: result.data,
+          leadSource,
+          pageName,
+          pagePath: window.location.pathname,
+          turnstileToken,
+        }),
+      });
+      const submission = (await response.json().catch(() => null)) as
+        | { ok: true }
+        | { ok?: false; message?: string }
+        | null;
 
-    if (submission.ok) {
-      setStatus("success");
-      setFormData(initialFormData);
-    } else {
+      if (response.ok && submission?.ok) {
+        setStatus("success");
+        setFormData(contactFormDefaults);
+        return;
+      }
+
       setStatus("error");
-      setErrorMessage(submission.message);
+      setErrorMessage(
+        (submission && "message" in submission ? submission.message : undefined) ??
+          "Something went wrong sending your message. Please try again or email us directly.",
+      );
+      setTurnstileToken(null);
+    } catch {
+      setStatus("error");
+      setErrorMessage("Network error. Please try again or email us directly.");
+      setTurnstileToken(null);
     }
   };
 
@@ -233,7 +220,10 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
       </div>
       <div className="grid gap-2">
         <Label htmlFor="projectType">Project type</Label>
-        <Select value={formData.projectType} onValueChange={handleProjectTypeChange}>
+        <Select
+          value={formData.projectType}
+          onValueChange={handleProjectTypeChange}
+        >
           <SelectTrigger id="projectType" className="w-full">
             <SelectValue placeholder="Select a project type" />
           </SelectTrigger>
@@ -263,7 +253,8 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
       <div className="grid gap-6 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label htmlFor="budget">
-            Budget range <span className="text-muted-foreground">(optional)</span>
+            Budget range{" "}
+            <span className="text-muted-foreground">(optional)</span>
           </Label>
           <Input
             id="budget"
@@ -284,10 +275,15 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
           />
         </div>
       </div>
+      <Turnstile onTokenChange={setTurnstileToken} />
       {status === "error" && (
         <p className="text-sm text-destructive">{errorMessage}</p>
       )}
-      <Button type="submit" disabled={status === "submitting"} className="cursor-pointer">
+      <Button
+        type="submit"
+        disabled={status === "submitting"}
+        className="cursor-pointer"
+      >
         {status === "submitting" && <Loader2 className="animate-spin" />}
         {status === "submitting" ? "Sending..." : "Send Inquiry"}
       </Button>

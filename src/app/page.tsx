@@ -33,7 +33,7 @@ export default function LandingPage() {
       <Differentiators />
       <FeaturedWork />
       <ProjectCta />
-      <ContactPreview />
+      {/* <ContactPreview /> */}
     </>
   );
 }

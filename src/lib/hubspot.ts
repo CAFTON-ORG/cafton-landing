@@ -1,31 +1,32 @@
-export type HubspotField = { name: string; value: string };
+import "server-only";
 
-export type HubspotSubmitResult =
-  | { ok: true }
-  | { ok: false; message: string };
+import { buildHubSpotMessage, type ContactFormData } from "@/lib/contact";
 
-function getHubspotCookie(): string | undefined {
-  if (typeof document === "undefined") return undefined;
-  const match = document.cookie.match(/(?:^|; )hubspotutk=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : undefined;
-}
+type HubSpotSubmissionContext = {
+  hutk?: string;
+  pageName: string;
+  pageUri: string;
+};
 
-/** Submits a set of fields to a HubSpot form via the public Forms Submission API. */
-export async function submitToHubspotForm(
-  fields: HubspotField[],
-  pageName: string
-): Promise<HubspotSubmitResult> {
-  const portalId = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID;
-  const formGuid = process.env.NEXT_PUBLIC_HUBSPOT_FORM_GUID;
+export type HubSpotSubmitResult = { ok: true } | { ok: false; message: string };
+
+/** Sends a verified contact request to HubSpot without exposing its configuration to the browser. */
+export async function submitContactToHubSpot(
+  contact: ContactFormData,
+  leadSource: string,
+  context: HubSpotSubmissionContext,
+): Promise<HubSpotSubmitResult> {
+  const portalId = process.env.HUBSPOT_PORTAL_ID;
+  const formGuid = process.env.HUBSPOT_FORM_GUID;
 
   if (!portalId || !formGuid) {
+    console.error("HubSpot contact form configuration is missing.");
     return {
       ok: false,
-      message: "The contact form isn't configured yet. Please email us directly.",
+      message:
+        "The contact form isn't configured yet. Please email us directly.",
     };
   }
-
-  const hutk = getHubspotCookie();
 
   try {
     const response = await fetch(
@@ -34,27 +35,34 @@ export async function submitToHubspotForm(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fields,
-          context: {
-            pageUri: window.location.href,
-            pageName,
-            ...(hutk ? { hutk } : {}),
-          },
+          fields: [
+            { name: "firstname", value: contact.firstName },
+            { name: "lastname", value: contact.lastName },
+            { name: "email", value: contact.email },
+            { name: "phone", value: contact.phone },
+            { name: "message", value: buildHubSpotMessage(contact) },
+            { name: "website_lead_source", value: leadSource },
+          ],
+          context,
         }),
-      }
+        cache: "no-store",
+      },
     );
 
-    if (response.ok) {
-      return { ok: true };
-    }
+    if (response.ok) return { ok: true };
 
     const data = await response.json().catch(() => null);
-    const message =
-      data?.message ??
-      data?.errors?.[0]?.message ??
-      "Something went wrong sending your message. Please try again or email us directly.";
-    return { ok: false, message };
-  } catch {
+    console.error("HubSpot rejected the contact submission.", {
+      status: response.status,
+      message: data?.message,
+    });
+    return {
+      ok: false,
+      message:
+        "Something went wrong sending your message. Please try again or email us directly.",
+    };
+  } catch (error) {
+    console.error("Unable to submit the contact request to HubSpot.", error);
     return {
       ok: false,
       message: "Network error. Please try again or email us directly.",

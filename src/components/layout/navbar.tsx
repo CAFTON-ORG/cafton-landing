@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -67,7 +67,10 @@ export function Navbar() {
         <div className="hidden xl:flex items-center space-x-2">
           <ModeToggle variant="ghost" />
           <Button asChild className="cursor-pointer">
-            <Link href="/contact">Start a Project</Link>
+            <Link href="/contact">
+              Contact Us
+              <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
+            </Link>
           </Button>
         </div>
 
@@ -129,11 +132,9 @@ export function Navbar() {
               {/* Footer Actions */}
               <div className="border-t p-6">
                 <Button size="lg" asChild className="w-full cursor-pointer">
-                  <Link
-                    href="/contact"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Start a Project
+                  <Link href="/contact" onClick={() => setIsOpen(false)}>
+                    Contact Us
+                    <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </Button>
               </div>

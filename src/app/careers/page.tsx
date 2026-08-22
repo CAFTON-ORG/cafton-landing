@@ -5,6 +5,7 @@ import {
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
+import { ProjectCta } from "@/components/sections/home/project-cta";
 
 export default function CareersPage() {
   return (
@@ -37,6 +38,7 @@ export default function CareersPage() {
           </Button>
         </PageShell>
       </PageSection>
+      <ProjectCta />
     </>
   );
 }

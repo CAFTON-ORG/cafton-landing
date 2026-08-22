@@ -18,13 +18,7 @@ export function ProjectCta() {
         <div className="mx-auto max-w-4xl">
           <div className="text-center">
             <div className="space-y-8">
-              {/* Badge */}
-              <div className="flex flex-col items-center gap-4">
-                <Badge variant="outline" className="flex items-center gap-2">
-                  <Mail className="size-3" />
-                  Get Started
-                </Badge>
-              </div>
+           
 
               {/* Main Content */}
               <div className="space-y-6">

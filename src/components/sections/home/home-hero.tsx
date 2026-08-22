@@ -50,7 +50,7 @@ export function HomeHero() {
               </Link>
             </Button>
             <Button variant="outline" className="cursor-pointer group" asChild>
-              <Link href="/work">
+              <Link href="/portfolio">
                 Explore Our Work
                 <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
               </Link>

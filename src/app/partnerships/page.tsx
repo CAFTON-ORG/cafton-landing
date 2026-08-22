@@ -5,6 +5,7 @@ import {
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
+import { ProjectCta } from "@/components/sections/home/project-cta";
 
 const partnerships = [
   "Technology Partnerships",
@@ -50,6 +51,7 @@ export default function PartnershipsPage() {
           </Button>
         </PageShell>
       </PageSection>
+      <ProjectCta />
     </>
   );
 }

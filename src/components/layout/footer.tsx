@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { CalendarDays, Github, Linkedin } from "lucide-react";
+import {
+  CalendarDays,
+  Facebook,
+  Github,
+  Instagram,
+  Linkedin,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/shared/logo";
 
@@ -16,6 +22,24 @@ const services = [
   "Web Applications",
   "Mobile Applications",
   "SaaS & Digital Products",
+];
+
+const socialLinks = [
+  {
+    href: "https://www.facebook.com/profile.php?id=61593222069389",
+    label: "Facebook",
+    icon: <Facebook className="size-4" />,
+  },
+  {
+    href: "https://www.instagram.com/cafton.official",
+    label: "Instagram",
+    icon: <Instagram className="size-4" />,
+  },
+  {
+    href: "https://www.linkedin.com/company/cafton",
+    label: "LinkedIn",
+    icon: <Linkedin className="size-4" />,
+  },
 ];
 
 export function Footer() {
@@ -55,40 +79,36 @@ export function Footer() {
           <h2 className="text-sm font-semibold uppercase tracking-widest text-white/55">
             Services
           </h2>
-          <nav className="mt-5 flex flex-col gap-3">
+          <ul className="mt-5 flex flex-col gap-3">
             {services.map((service) => (
-              <Link
+              <li
                 key={service}
-                href="/about#services"
                 className="text-sm text-white/70 transition-colors hover:text-white"
               >
                 {service}
-              </Link>
+              </li>
             ))}
-          </nav>
+          </ul>
         </div>
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-widest text-white/55">
             Connect
           </h2>
-          <nav className="mt-5 flex flex-col gap-3">
-            <a
-              href="https://www.facebook.com/profile.php?id=61593222069389"
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-white/70 transition-colors hover:text-white"
-            >
-              Facebook
-            </a>
-            <span className="inline-flex items-center gap-2 text-sm text-white/45">
-              <Linkedin className="size-4" />
-              LinkedIn — coming soon
-            </span>
-            <span className="inline-flex items-center gap-2 text-sm text-white/45">
-              <Github className="size-4" />
-              GitHub — coming soon
-            </span>
-          </nav>
+          <ul className="mt-5 flex flex-col gap-3">
+            {socialLinks.map((link) => (
+              <li key={link.href}>
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-white/70 transition-colors hover:text-white"
+                >
+                  {link.icon}
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 

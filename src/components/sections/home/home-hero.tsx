@@ -42,7 +42,7 @@ export function HomeHero() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+          <div className="flex flex-row gap-4 justify-center">
             <Button className="cursor-pointer group" asChild>
               <Link href="/contact">
                 Start a Project

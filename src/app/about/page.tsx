@@ -3,6 +3,7 @@ import {
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
+import { ProjectCta } from "@/components/sections/home/project-cta";
 
 // Team profiles are intentionally hidden until their content is finalized.
 // const team = [
@@ -85,6 +86,7 @@ export default function About() {
           </div>
         </PageShell>
       </section>
+      <ProjectCta />
       {/*
         <PageSection className="bg-muted/30">
           <PageShell>

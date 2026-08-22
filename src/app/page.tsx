@@ -4,7 +4,6 @@ import { ServicesOverview } from "@/components/sections/home/services-overview";
 import { Differentiators } from "@/components/sections/home/differentiators";
 import { FeaturedWork } from "@/components/sections/home/featured-work";
 import { ProjectCta } from "@/components/sections/home/project-cta";
-import { ContactPreview } from "@/components/sections/home/contact-preview";
 
 export const metadata: Metadata = {
   title: "CAFTON - Modern Software Solutions",

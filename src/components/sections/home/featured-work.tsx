@@ -48,7 +48,7 @@ const FeaturedWork = () => {
             </span>
           </div>
           <Button variant="link" className="mt-5 px-0" asChild>
-            <Link href="/work">
+            <Link href="/portfolio">
               View case study <ArrowRight className="ml-2 size-4" />
             </Link>
           </Button>

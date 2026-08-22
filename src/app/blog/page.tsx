@@ -3,6 +3,7 @@ import {
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
+import { ProjectCta } from "@/components/sections/home/project-cta";
 
 export default function Blog() {
   return (
@@ -26,6 +27,7 @@ export default function Blog() {
           </div>
         </PageShell>
       </PageSection>
+      <ProjectCta />
     </>
   );
 }

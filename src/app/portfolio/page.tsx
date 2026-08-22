@@ -6,6 +6,7 @@ import {
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
+import { ProjectCta } from "@/components/sections/home/project-cta";
 
 export default function WorkPage() {
   return (
@@ -13,14 +14,14 @@ export default function WorkPage() {
       <PageHero>
         <PageShell>
           <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-primary">
-            Work
+            Case Studies
           </p>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Technology we&apos;ve built around real problems.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-            Our work is documented as case studies: the challenge, the thinking,
-            and the outcome—not just a gallery of screens.
+            We engineer custom software, web and mobile applications, and SaaS
+            products around the way organizations actually work.
           </p>
         </PageShell>
       </PageHero>
@@ -62,21 +63,9 @@ export default function WorkPage() {
               </div>
             </div>
           </article>
-          <div className="mt-12 rounded-xl bg-muted p-8 sm:p-10">
-            <h2 className="text-2xl font-bold">
-              Have a problem worth solving?
-            </h2>
-            <p className="mt-3 text-muted-foreground">
-              Let&apos;s explore the right product together.
-            </p>
-            <Button asChild className="mt-6">
-              <Link href="/contact">
-                Start a Project <ArrowRight className="ml-2 size-4" />
-              </Link>
-            </Button>
-          </div>
         </PageShell>
       </PageSection>
+      <ProjectCta />
     </>
   );
 }

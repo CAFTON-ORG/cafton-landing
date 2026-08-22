@@ -3,6 +3,7 @@ import {
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
+import { ProjectCta } from "@/components/sections/home/project-cta";
 
 export default function LegalPage() {
   return (
@@ -35,6 +36,7 @@ export default function LegalPage() {
           </section>
         </PageShell>
       </PageSection>
+      <ProjectCta />
     </>
   );
 }

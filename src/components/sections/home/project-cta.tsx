@@ -4,6 +4,7 @@ import { ArrowRight, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { Reveal } from "@/components/motion/reveal";
 
 const smoothScrollTo = (targetId: string) => {
   document
@@ -15,7 +16,7 @@ export function ProjectCta() {
   return (
     <section className="py-14 sm:py-16 lg:py-20 bg-muted/80">
       <div className="container mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
+        <Reveal className="mx-auto max-w-4xl">
           <div className="text-center">
             <div className="space-y-8">
            
@@ -43,7 +44,7 @@ export function ProjectCta() {
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

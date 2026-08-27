@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { inter } from "@/lib/fonts";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { SmoothScroll } from "@/components/providers/smooth-scroll";
 
 export const metadata: Metadata = {
   title: "CAFTON",
@@ -25,11 +26,13 @@ export default function RootLayout({
     >
       <body className={inter.className}>
         <ThemeProvider defaultTheme="system" storageKey="nextjs-ui-theme">
-          <Navbar />
-          <div className="min-h-screen bg-background">
-            <main>{children}</main>
-          </div>
-          <Footer />
+          <SmoothScroll>
+            <Navbar />
+            <div className="min-h-screen bg-background">
+              <main>{children}</main>
+            </div>
+            <Footer />
+          </SmoothScroll>
         </ThemeProvider>
       </body>
     </html>

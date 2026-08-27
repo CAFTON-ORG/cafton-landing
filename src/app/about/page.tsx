@@ -4,6 +4,7 @@ import {
   PageShell,
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 
 // Team profiles are intentionally hidden until their content is finalized.
 // const team = [
@@ -36,54 +37,64 @@ export default function About() {
     <>
       <PageHero>
         <PageShell>
-          <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-primary">
-            About Cafton
-          </p>
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-            Three teammates, building technology with purpose.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-            Cafton began with three collaborators who spent years engineering
-            software together before turning that shared practice into a
-            company.
-          </p>
+          <RevealGroup>
+            <RevealItem>
+              <p className="mb-3 text-sm font-medium text-muted-foreground">
+                About Cafton
+              </p>
+            </RevealItem>
+            <RevealItem>
+              <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
+                Three teammates, building technology with purpose.
+              </h1>
+            </RevealItem>
+            <RevealItem>
+              <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
+                Cafton began with three collaborators who spent years engineering
+                software together before turning that shared practice into a
+                company.
+              </p>
+            </RevealItem>
+          </RevealGroup>
         </PageShell>
       </PageHero>
       <PageSection>
         <PageShell className="grid gap-12 lg:grid-cols-2">
-          <div>
+          <Reveal>
             <h2 className="text-3xl font-bold">What we believe</h2>
             <p className="mt-5 text-lg text-muted-foreground">
-              We don&apos;t start with software. We start with the problem—how
-              people work today and what could work better tomorrow.
+              We don&apos;t start with software. We start with the problem:
+              how people work today and what could work better tomorrow.
             </p>
-          </div>
-          <div>
+          </Reveal>
+          <Reveal delay={0.1}>
             <h2 className="text-3xl font-bold">How we work</h2>
             <p className="mt-5 text-muted-foreground">
               Understand → Design → Engineer → Deploy → Improve. Clear thinking
               and close collaboration guide every stage.
             </p>
-          </div>
+          </Reveal>
         </PageShell>
       </PageSection>
       <section id="services" className="py-14 sm:py-16 lg:py-20">
         <PageShell>
-          <h2 className="text-3xl font-bold">What we build</h2>
-          <p className="mt-3 max-w-2xl text-muted-foreground">
-            From a focused internal tool to a product used at scale, we tailor
-            the work to the problem.
-          </p>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <Reveal>
+            <h2 className="text-3xl font-bold">What we build</h2>
+            <p className="mt-3 max-w-2xl text-muted-foreground">
+              From a focused internal tool to a product used at scale, we tailor
+              the work to the problem.
+            </p>
+          </Reveal>
+          <RevealGroup className="mt-8 grid gap-x-8 gap-y-6 md:grid-cols-2">
             {services.map(([title, description]) => (
-              <article key={title} className="rounded-xl border bg-card p-6">
-                <h3 className="text-xl font-semibold">{title}</h3>
-                <p className="mt-3 text-sm text-muted-foreground">
+              <RevealItem key={title} className="border-t border-border pt-5">
+                <h3 className="text-lg font-semibold">{title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
                   {description}
                 </p>
-              </article>
+              </RevealItem>
             ))}
-          </div>
+          </RevealGroup>
         </PageShell>
       </section>
       <ProjectCta />

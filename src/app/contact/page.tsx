@@ -36,8 +36,8 @@ export default function ContactPage() {
         </PageShell>
       </PageHero>
       <PageSection>
-        <PageShell className="max-w-3xl">
-          <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[2fr_3fr] lg:items-start ">
+        <PageShell className="max-w-5xl">
+           <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[2fr_3fr] lg:items-start ">
             <Reveal className="flex flex-col gap-8">
               <div>
                 <h2 className="flex items-center gap-2 text-lg font-semibold">

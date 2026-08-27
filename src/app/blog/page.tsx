@@ -8,6 +8,7 @@ import { ProjectCta } from "@/components/sections/home/project-cta";
 import { BlogCard } from "@/components/blog/blog-card";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { blogPosts } from "@/lib/blog";
+import { cardGridClass } from "@/lib/card-grid";
 
 export const metadata: Metadata = {
   title: "Blog - CAFTON",
@@ -21,11 +22,6 @@ export default function Blog() {
       <PageHero>
         <PageShell>
           <RevealGroup>
-            <RevealItem>
-              <p className="mb-3 text-sm font-medium text-muted-foreground">
-                Insights
-              </p>
-            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Notes from Cafton.
@@ -42,15 +38,15 @@ export default function Blog() {
       </PageHero>
       <PageSection>
         <PageShell>
-          <Reveal>
-            <RevealGroup className="mx-auto grid max-w-4xl grid-cols-1 gap-5 sm:grid-cols-2">
-              {blogPosts.map((post) => (
-                <RevealItem key={post.slug}>
-                  <BlogCard post={post} />
-                </RevealItem>
-              ))}
-            </RevealGroup>
-          </Reveal>
+          <RevealGroup
+            className={`grid gap-5 ${cardGridClass(blogPosts.length, 2)}`}
+          >
+            {blogPosts.map((post) => (
+              <RevealItem key={post.slug}>
+                <BlogCard post={post} />
+              </RevealItem>
+            ))}
+          </RevealGroup>
         </PageShell>
       </PageSection>
       <ProjectCta />

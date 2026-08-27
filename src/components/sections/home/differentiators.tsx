@@ -3,6 +3,7 @@
 import { DotPattern } from "@/components/shared/dot-pattern";
 import { Search, Layers3, Users } from "lucide-react";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { PageShell } from "@/components/layout/page-shell";
 
 const values = [
   {
@@ -29,28 +30,32 @@ export function Differentiators() {
   const [lead, ...rest] = values;
 
   return (
-    <section id="services" className="relative py-14 sm:py-16 lg:py-20">
-      {/* Background with transparency */}
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-transparent to-secondary/20" />
+    <section id="why-cafton" className="relative py-14 sm:py-16 lg:py-20">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-linear-to-r from-primary/8 via-transparent to-secondary/20"
+      />
       <DotPattern className="opacity-75" size="md" fadeStyle="circle" />
 
-      {/* Section Header */}
-      <Reveal className="mx-auto max-w-4xl text-center mb-16 relative">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-6">
-          Not just another development team
-        </h2>
-        <p className="text-lg text-muted-foreground mb-8">
-          Software development is easy to describe. Understanding what software
-          should actually be built is harder.
-        </p>
-      </Reveal>
+      <PageShell className="relative">
+        {/* Left-aligned, matching ServicesOverview. The centered treatment
+            was byte-identical to FeaturedWork's directly below it, so the
+            page ran three interchangeable centered headers in a row. */}
+        <Reveal className="mb-12 max-w-2xl">
+          <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+            Not just another development team
+          </h2>
+          <p className="text-lg text-muted-foreground">
+            Software development is easy to describe. Understanding what
+            software should actually be built is harder.
+          </p>
+        </Reveal>
 
-      <div className="container relative mx-auto px-5 sm:px-6 lg:px-8">
-        <RevealGroup className="mx-auto grid max-w-4xl gap-10 sm:grid-cols-2">
+        <RevealGroup className="grid max-w-4xl gap-10 sm:grid-cols-2">
           <RevealItem className="flex flex-col gap-3 border-t border-border pt-6 sm:col-span-2 sm:flex-row sm:items-start sm:gap-6">
             <lead.icon className="size-6 shrink-0 text-foreground" aria-hidden="true" />
             <div className="flex flex-col gap-2">
-              <p className="text-lg font-semibold text-foreground">{lead.title}</p>
+              <h3 className="text-lg font-semibold text-foreground">{lead.title}</h3>
               <p className="max-w-md text-muted-foreground">{lead.description}</p>
             </div>
           </RevealItem>
@@ -60,14 +65,14 @@ export function Differentiators() {
               className="flex flex-col gap-3 border-t border-border pt-6"
             >
               <value.icon className="size-5 text-foreground" aria-hidden="true" />
-              <p className="font-semibold text-foreground">{value.title}</p>
+              <h3 className="font-semibold text-foreground">{value.title}</h3>
               <p className="text-sm text-muted-foreground">
                 {value.description}
               </p>
             </RevealItem>
           ))}
         </RevealGroup>
-      </div>
+      </PageShell>
     </section>
   );
 }

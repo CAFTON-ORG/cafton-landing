@@ -17,7 +17,6 @@ export interface Project {
   imageAlt: string;
   /** Public live URL, if the project has one -- shows a "Visit Live Site" button on the detail page. */
   liveUrl?: string;
-  tags?: string[];
 }
 
 export const projects: Project[] = [
@@ -38,27 +37,25 @@ export const projects: Project[] = [
     imageLight: "/hero-light.png",
     imageDark: "/hero-dark.png",
     imageAlt: "iLigtas live geofencing alerts dashboard",
-    tags: ["Web Platform", "Mobile", "Geofencing"],
   },
   {
     slug: "scanato",
     client: "Scanato",
     title: "Scan the Table. Run the House.",
     summary:
-      "A scan-to-order platform unifying QR ordering, payments, and real-time inventory for restaurants and retail -- from the table to the kitchen to the point of sale.",
+      "A scan-to-order platform unifying QR ordering, payments, and real-time inventory for restaurants and retail, from the table to the kitchen to the point of sale.",
     description:
-      "Scanato is a scan-to-order platform that lets restaurant and retail guests order directly from their phones via table-specific QR codes, while unifying ordering, payment processing, and inventory management in a single system -- removing manual ticket copying and disconnected point-of-sale data entry.",
+      "Scanato is a scan-to-order platform that lets restaurant and retail guests order directly from their phones via table-specific QR codes, while unifying ordering, payment processing, and inventory management in a single system. It removes manual ticket copying and disconnected point-of-sale data entry.",
     problem:
-      "Orders placed at the table, the counter, and online each lived in their own disconnected system -- menus, tickets, and inventory drifted out of sync with each other.",
+      "Orders placed at the table, the counter, and online each lived in their own disconnected system. Menus, tickets, and inventory drifted out of sync with each other.",
     solution:
       "One platform: table-specific QR codes open a live menu, tickets flow straight to the kitchen and floor staff, inventory updates in real time across every channel (including pickup and delivery), and guests can split payment by seat.",
     // Cover image is a placeholder -- the owner asked to reuse an existing
     // asset for now and swap in a real product screenshot later.
     imageLight: "/scanato-light.png",
     imageDark: "/scanato-dark.png",
-    imageAlt: "Scanato brand mark (placeholder cover image)",
+    imageAlt: "Scanato brand mark",
     liveUrl: "https://scanato.cafton.com",
-    tags: ["Web Platform", "Point of Sale", "Ecommerce"],
   },
 ];
 

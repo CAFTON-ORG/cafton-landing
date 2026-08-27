@@ -8,11 +8,12 @@ import { ProjectCta } from "@/components/sections/home/project-cta";
 import { ProjectCard } from "@/components/portfolio/project-card";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { projects } from "@/lib/projects";
+import { cardGridClass } from "@/lib/card-grid";
 
 export const metadata: Metadata = {
   title: "Portfolio - CAFTON",
   description:
-    "Case studies of technology CAFTON has built around real problems -- disaster response, restaurant and retail operations, and more.",
+    "Case studies of technology CAFTON has built around real problems: disaster response, restaurant and retail operations, and more.",
 };
 
 export default function WorkPage() {
@@ -21,11 +22,6 @@ export default function WorkPage() {
       <PageHero>
         <PageShell>
           <RevealGroup>
-            <RevealItem>
-              <p className="mb-3 text-sm font-medium text-muted-foreground">
-                Case Studies
-              </p>
-            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Technology we&apos;ve built around real problems.
@@ -42,15 +38,15 @@ export default function WorkPage() {
       </PageHero>
       <PageSection>
         <PageShell>
-          <Reveal>
-            <RevealGroup className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {projects.map((project) => (
-                <RevealItem key={project.slug}>
-                  <ProjectCard project={project} />
-                </RevealItem>
-              ))}
-            </RevealGroup>
-          </Reveal>
+          <RevealGroup
+            className={`grid gap-6 ${cardGridClass(projects.length)}`}
+          >
+            {projects.map((project) => (
+              <RevealItem key={project.slug}>
+                <ProjectCard project={project} />
+              </RevealItem>
+            ))}
+          </RevealGroup>
         </PageShell>
       </PageSection>
       <ProjectCta />

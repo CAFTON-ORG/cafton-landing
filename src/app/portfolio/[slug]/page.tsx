@@ -58,14 +58,14 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           </Link>
           <RevealGroup>
             <RevealItem>
-              <p className="mb-3 text-sm font-medium text-muted-foreground">
-                {project.client}
-              </p>
-            </RevealItem>
-            <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 {project.title}
               </h1>
+            </RevealItem>
+            <RevealItem>
+              <p className="mt-4 text-sm font-medium text-muted-foreground">
+                Built for {project.client}
+              </p>
             </RevealItem>
             <RevealItem>
               <p className="mt-6 max-w-2xl text-lg text-muted-foreground">

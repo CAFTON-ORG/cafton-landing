@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   PageHero,
   PageSection,
@@ -8,17 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Clock3, Mail } from "lucide-react";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 
+export const metadata: Metadata = {
+  title: "Contact - CAFTON",
+  description:
+    "Tell us what you're building, what isn't working, or what you'd like to improve.",
+};
+
 export default function ContactPage() {
   return (
     <>
       <PageHero>
         <PageShell>
           <RevealGroup>
-            <RevealItem>
-              <p className="mb-3 text-sm font-medium text-muted-foreground">
-                Contact
-              </p>
-            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Have a problem worth solving?

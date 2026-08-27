@@ -44,11 +44,11 @@ export function ServicesOverview() {
             <Reveal>
               <header className="flex flex-col gap-4">
                 <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-                  Why Choose Us
+                  What we build
                 </h2>
                 <p className="text-pretty text-base text-muted-foreground sm:text-lg">
-                  We deliver exceptional quality and service that sets us apart.
-                  Experience the difference with our dedicated approach.
+                  From a focused internal tool to a product used at scale, we
+                  tailor the work to the problem.
                 </p>
               </header>
             </Reveal>

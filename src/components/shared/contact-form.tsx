@@ -127,6 +127,7 @@ export function ContactForm({
   if (status === "success") {
     return (
       <div
+        role="status"
         className={`flex flex-col items-center gap-4 rounded-xl border bg-card p-10 text-center ${className}`}
       >
         <CheckCircle2 className="size-10 text-primary" />
@@ -161,9 +162,12 @@ export function ContactForm({
             value={formData.firstName}
             onChange={handleChange}
             aria-invalid={!!errors.firstName}
+            aria-describedby={errors.firstName ? "firstName-error" : undefined}
           />
           {errors.firstName && (
-            <p className="text-sm text-destructive">{errors.firstName}</p>
+            <p id="firstName-error" className="text-sm text-destructive">
+              {errors.firstName}
+            </p>
           )}
         </div>
         <div className="grid gap-2">
@@ -175,9 +179,12 @@ export function ContactForm({
             value={formData.lastName}
             onChange={handleChange}
             aria-invalid={!!errors.lastName}
+            aria-describedby={errors.lastName ? "lastName-error" : undefined}
           />
           {errors.lastName && (
-            <p className="text-sm text-destructive">{errors.lastName}</p>
+            <p id="lastName-error" className="text-sm text-destructive">
+              {errors.lastName}
+            </p>
           )}
         </div>
       </div>
@@ -192,9 +199,12 @@ export function ContactForm({
             value={formData.email}
             onChange={handleChange}
             aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "email-error" : undefined}
           />
           {errors.email && (
-            <p className="text-sm text-destructive">{errors.email}</p>
+            <p id="email-error" className="text-sm text-destructive">
+              {errors.email}
+            </p>
           )}
         </div>
         <div className="grid gap-2">
@@ -250,9 +260,12 @@ export function ContactForm({
           value={formData.project}
           onChange={handleChange}
           aria-invalid={!!errors.project}
+          aria-describedby={errors.project ? "project-error" : undefined}
         />
         {errors.project && (
-          <p className="text-sm text-destructive">{errors.project}</p>
+          <p id="project-error" className="text-sm text-destructive">
+            {errors.project}
+          </p>
         )}
       </div>
       <div className="grid gap-6 sm:grid-cols-2">
@@ -282,14 +295,18 @@ export function ContactForm({
       </div>
       <Turnstile onTokenChange={setTurnstileToken} />
       {status === "error" && (
-        <p className="text-sm text-destructive">{errorMessage}</p>
+        <p role="alert" className="text-sm text-destructive">
+          {errorMessage}
+        </p>
       )}
       <Button
         type="submit"
         disabled={status === "submitting"}
         className="cursor-pointer"
       >
-        {status === "submitting" && <Loader2 className="animate-spin" />}
+        {status === "submitting" && (
+          <Loader2 className="animate-spin motion-reduce:animate-none" />
+        )}
         {status === "submitting" ? "Sending..." : "Send Inquiry"}
       </Button>
     </form>

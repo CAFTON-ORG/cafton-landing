@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,17 +9,18 @@ import {
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 
+export const metadata: Metadata = {
+  title: "Careers - CAFTON",
+  description:
+    "We're always interested in meeting thoughtful people who care about practical, well-made technology.",
+};
+
 export default function CareersPage() {
   return (
     <>
       <PageHero>
         <PageShell>
           <RevealGroup>
-            <RevealItem>
-              <p className="mb-3 text-sm font-medium text-muted-foreground">
-                Careers
-              </p>
-            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Build useful things with us.

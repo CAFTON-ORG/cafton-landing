@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   PageHero,
   PageSection,
@@ -6,17 +7,18 @@ import {
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 
+export const metadata: Metadata = {
+  title: "Legal - CAFTON",
+  description:
+    "Legal information for Cafton Software Development Services, including registration details and terms of use.",
+};
+
 export default function LegalPage() {
   return (
     <>
       <PageHero>
         <PageShell>
           <RevealGroup>
-            <RevealItem>
-              <p className="mb-3 text-sm font-medium text-muted-foreground">
-                Legal
-              </p>
-            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Legal Information

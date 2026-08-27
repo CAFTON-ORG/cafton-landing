@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   PageHero,
   PageSection,
@@ -5,6 +6,12 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+
+export const metadata: Metadata = {
+  title: "About - CAFTON",
+  description:
+    "Cafton began with three collaborators who spent years engineering software together before turning that shared practice into a company.",
+};
 
 // Team profiles are intentionally hidden until their content is finalized.
 // const team = [
@@ -38,11 +45,6 @@ export default function About() {
       <PageHero>
         <PageShell>
           <RevealGroup>
-            <RevealItem>
-              <p className="mb-3 text-sm font-medium text-muted-foreground">
-                About Cafton
-              </p>
-            </RevealItem>
             <RevealItem>
               <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
                 Three teammates, building technology with purpose.

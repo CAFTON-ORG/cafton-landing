@@ -21,10 +21,7 @@ export function ProjectCta() {
             />
 
             <div className="relative px-6 py-16 text-center sm:px-12 sm:py-20">
-              <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                Let&apos;s build it
-              </p>
-              <h2 className="mx-auto mt-4 max-w-2xl text-balance text-4xl font-bold tracking-tight sm:text-5xl">
+              <h2 className="mx-auto max-w-2xl text-balance text-4xl font-bold tracking-tight sm:text-5xl">
                 Have a problem worth solving?
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-balance text-muted-foreground sm:text-lg">
@@ -35,7 +32,7 @@ export function ProjectCta() {
                 <Magnetic>
                   <Button size="lg" className="cursor-pointer group" asChild>
                     <Link href="/contact">
-                      Start a Project
+                      Contact Us
                       <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>

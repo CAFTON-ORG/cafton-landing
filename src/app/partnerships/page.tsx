@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,6 +8,12 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+
+export const metadata: Metadata = {
+  title: "Partnerships - CAFTON",
+  description:
+    "Cafton works with organizations, technology providers, institutions, and businesses to develop and deploy technology that creates practical value.",
+};
 
 const partnerships = [
   "Technology Partnerships",
@@ -22,11 +29,6 @@ export default function PartnershipsPage() {
       <PageHero>
         <PageShell>
           <RevealGroup>
-            <RevealItem>
-              <p className="mb-3 text-sm font-medium text-muted-foreground">
-                Partnerships
-              </p>
-            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Let&apos;s build something together.
@@ -58,7 +60,7 @@ export default function PartnershipsPage() {
             ))}
           </RevealGroup>
           <Button asChild className="mt-10 cursor-pointer">
-            <Link href="/contact">Discuss a Partnership</Link>
+            <Link href="/contact">Contact Us</Link>
           </Button>
         </PageShell>
       </PageSection>

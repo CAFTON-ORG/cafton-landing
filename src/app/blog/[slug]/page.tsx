@@ -9,7 +9,12 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { blogPosts, formatBlogDate, getBlogPost } from "@/lib/blog";
+import {
+  blogPosts,
+  formatBlogDate,
+  getBlogPost,
+  readingTime,
+} from "@/lib/blog";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -55,7 +60,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
                 <time dateTime={post.date}>{formatBlogDate(post.date)}</time>
                 <span aria-hidden="true">&middot;</span>
-                <span>{post.readingTime}</span>
+                <span>{readingTime(post)}</span>
               </div>
             </RevealItem>
             <RevealItem>

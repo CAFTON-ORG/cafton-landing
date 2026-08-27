@@ -1,77 +1,68 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useLayoutEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Link from "next/link";
+import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DotPattern } from "@/components/shared/dot-pattern";
-import Link from "next/link";
 import { useCanShow3D } from "@/hooks/use-can-show-3d";
-
-gsap.registerPlugin(ScrollTrigger);
+import { useInViewport } from "@/hooks/use-in-viewport";
 
 const HeroScene = dynamic(
   () => import("@/components/three/hero-scene").then((mod) => mod.HeroScene),
   { ssr: false },
 );
 
-const REVEAL_END = 0.6;
+// Display type is sized off the viewport's *shorter* constraint, not just
+// width: on a wide-but-short window (a laptop with browser chrome), pure
+// vw sizing produces type tall enough to collide with the copy below it.
+const DISPLAY_SIZE = "text-[clamp(2.5rem,min(6.5vw,10vh),5.75rem)]";
+
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
+/** Seconds each element takes to settle once it starts. */
+const ENTRANCE_DURATION = 0.95;
+
+/**
+ * When each element starts, in seconds. Spaced widely enough to read as a
+ * deliberate sequence rather than everything arriving at once; the last
+ * item lands just under two seconds in.
+ */
+const ENTRANCE_DELAY = {
+  line1: 0.15,
+  line2: 0.4,
+  subhead: 0.65,
+  tagline: 0.85,
+  cta: 1.05,
+} as const;
+
+/**
+ * Hero copy animates once on entry, not on scroll.
+ *
+ * Explicit per-element delays rather than a stagger container: these
+ * elements live in two separate positioned layers, so variant propagation
+ * would not give a predictable order across them.
+ */
+function entrance(delay: number) {
+  return {
+    initial: { opacity: 0, y: 24 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: ENTRANCE_DURATION, delay, ease: EASE_OUT },
+  } as const;
+}
 
 export function HomeHero() {
   const canShow3D = useCanShow3D();
+  const reduceMotion = useReducedMotion();
+  const [heroRef, heroInViewport] = useInViewport<HTMLElement>();
 
-  const headlineLine1Ref = useRef<HTMLSpanElement>(null);
-  const headlineLine2Ref = useRef<HTMLSpanElement>(null);
-  const subheadRef = useRef<HTMLParagraphElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    if (!canShow3D) return;
-
-    const line1 = headlineLine1Ref.current;
-    const line2 = headlineLine2Ref.current;
-    const subhead = subheadRef.current;
-    const cta = ctaRef.current;
-    if (!line1 || !line2 || !subhead || !cta) return;
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        line1,
-        { opacity: 0, y: 16 },
-        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
-      );
-
-      gsap.set([line2, subhead, cta], { opacity: 0, y: 24 });
-
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: "#hero",
-            start: "top top",
-            end: () => {
-              const heroEl = document.getElementById("hero");
-              const scrollable =
-                (heroEl?.offsetHeight ?? window.innerHeight) -
-                window.innerHeight;
-              return `+=${Math.max(scrollable, 0) * REVEAL_END}`;
-            },
-            scrub: 1,
-            invalidateOnRefresh: true,
-          },
-        })
-        .to(line2, { opacity: 1, y: 0, duration: 0.2 }, 0.15)
-        .to(subhead, { opacity: 1, y: 0, duration: 0.2 }, 0.45)
-        .to(cta, { opacity: 1, y: 0, duration: 0.2 }, 0.75);
-    });
-
-    return () => ctx.revert();
-  }, [canShow3D]);
+  // Reduced motion: render the copy in its final state, no entrance.
+  const anim = (delay: number) => (reduceMotion ? {} : entrance(delay));
 
   return (
-    <section id="hero" className="relative h-[200vh] md:h-[320vh]">
-      <div className="sticky top-16 grid h-[calc(100vh-4rem)] grid-rows-[45%_auto] items-center overflow-hidden bg-linear-to-b from-background to-background/80 md:grid-cols-2 md:grid-rows-1">
+    <section id="hero" ref={heroRef} className="relative h-[200vh] md:h-[320vh]">
+      <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-hidden bg-linear-to-b from-background to-background/80">
         <div className="absolute inset-0">
           <DotPattern className="opacity-100" size="md" fadeStyle="ellipse" />
         </div>
@@ -79,57 +70,78 @@ export function HomeHero() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_75%_65%_at_50%_50%,transparent_45%,var(--background)_100%)]"
         />
-
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-overlay [background-image:url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E')]"
         />
 
-        <div className="relative order-1 h-full w-full md:order-2">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_45%,color-mix(in_oklch,var(--foreground)_16%,transparent)_0%,transparent_65%)]"
-          />
-          {canShow3D && <HeroScene />}
-        </div>
+       
+        <div className="relative grid h-full grid-rows-[auto_1fr_auto] gap-5 px-5 pb-10 pt-6 md:block md:gap-0 md:p-0">
+          <h1
+            className={`pointer-events-none z-20 font-bold uppercase leading-[0.95] tracking-[-0.01em] text-foreground  md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8 ${DISPLAY_SIZE}`}
+          >
+            <motion.span
+              {...anim(ENTRANCE_DELAY.line1)}
+              className="block md:absolute md:left-8 md:top-[10%] md:max-w-[46%]"
+            >
+              We don&apos;t <span className="block">start</span>
+            </motion.span>
+            <motion.span
+              {...anim(ENTRANCE_DELAY.line2)}
+              className="block md:absolute md:right-8 md:top-[40%] md:max-w-[46%] md:text-right"
+            >
+              with <span className="block">software.</span>
+            </motion.span>
+          </h1>
 
-        <div className="order-2 px-4 sm:px-6 lg:px-8 md:order-1 md:px-0">
-          <div className="mx-auto max-w-xl text-center md:mx-0 md:ml-auto md:pl-6 md:text-left lg:pl-12">
-            {/* Main Headline */}
-            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-              <span>We don&apos;t start with software.</span>
-              <span className="bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                {" "}
-                We start with the problem.{" "}
-              </span>
-            </h1>
+          {/* The mark: its own band on mobile, full-bleed and centered from
+              md up, layered beneath the display type. Clickable -- see the
+              spin interaction in hero-scene.tsx. */}
+          <div className="relative z-10 min-h-0 md:absolute md:inset-0">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--foreground)_12%,transparent)_0%,transparent_45%)]"
+            />
+            {canShow3D && <HeroScene active={heroInViewport} />}
+          </div>
 
-            {/* Subheading */}
-            <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground sm:text-xl md:mx-0">
+          {/* Supporting copy and CTAs: always the topmost layer, and kept in
+              the outer thirds from md up so the centered mark never crosses
+              them. */}
+          <div className="pointer-events-none relative z-30 flex flex-col gap-5 md:absolute md:inset-0 md:mx-auto md:block md:max-w-7xl md:px-8">
+            <motion.p
+              {...anim(ENTRANCE_DELAY.subhead)}
+              className="pointer-events-auto max-w-md text-sm leading-6 text-muted-foreground sm:text-base md:absolute md:left-8 md:top-[46%] md:max-w-[17rem]"
+            >
               Cafton engineers custom software, web and mobile applications, and
               SaaS products around the way organizations actually work.
-            </p>
+            </motion.p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-row flex-wrap justify-center gap-4 md:justify-start">
+            <motion.p
+              {...anim(ENTRANCE_DELAY.tagline)}
+              className="pointer-events-auto text-lg font-medium leading-snug text-foreground md:absolute md:right-8 md:bottom-[26%] md:max-w-[20rem] md:text-right md:text-xl"
+            >
+              We start with the problem.
+            </motion.p>
+
+            <motion.div
+              {...anim(ENTRANCE_DELAY.cta)}
+              className="pointer-events-auto flex flex-col flex-wrap gap-2 md:absolute md:flex-row md:right-8 md:bottom-[11%] md:justify-end"
+            >
               <Button className="cursor-pointer group" asChild>
                 <Link href="/contact">
-                  Start a Project
+                  Contact Us
                   <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
 
-              <Button
-                variant="outline"
-                className="cursor-pointer group"
-                asChild
-              >
+              <Button variant="outline" className="cursor-pointer group" asChild>
                 <Link href="/portfolio">
                   Explore Our Work
                   <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

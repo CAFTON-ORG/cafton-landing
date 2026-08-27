@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useMotionValueEvent, useScroll } from "motion/react";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,17 +29,10 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-
-  // A subtle elevation change once the page has scrolled -- the header
-  // reads as "resting on" the page at the very top and "floating above
-  // it" once content is passing underneath, a common cue on premium
-  // sites that a flat, always-on border/blur doesn't give you.
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  // Motion's scroll value rather than a raw window scroll listener, which
+  // runs a main-thread handler on every scroll frame.
+  const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 8));
 
   return (
     <header
@@ -46,15 +40,14 @@ export function Navbar() {
         scrolled ? "shadow-sm" : "shadow-none"
       }`}
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <Link
             href="/"
             className="flex items-center space-x-2 cursor-pointer transition-opacity hover:opacity-80"
-            rel="noopener noreferrer"
           >
-            <Logo size={32} />
+            <Logo size={32} aria-hidden="true" />
             <span className="font-bold uppercase">Cafton</span>
           </Link>
         </div>
@@ -69,7 +62,7 @@ export function Navbar() {
               key={item.name}
               href={item.href}
               aria-current={pathname === item.href ? "page" : undefined}
-              className={`inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium transition-colors focus:outline-none ${
+              className={`inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 pathname === item.href
                   ? "bg-foreground text-background"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -83,7 +76,7 @@ export function Navbar() {
         {/* Desktop CTA */}
         <div className="hidden xl:flex items-center space-x-2">
           <ModeToggle variant="ghost" />
-          <Button asChild className="cursor-pointer">
+          <Button asChild className="group cursor-pointer">
             <Link href="/contact">
               Contact Us
               <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
@@ -108,7 +101,7 @@ export function Navbar() {
               <SheetHeader className="space-y-0 p-4 pb-2 border-b">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-primary/10 rounded-lg">
-                    <Logo size={16} />
+                    <Logo size={16} aria-hidden="true" />
                   </div>
                   <SheetTitle className="sr-only">CAFTON</SheetTitle>
                   <div className="ml-auto flex items-center gap-2">
@@ -148,7 +141,7 @@ export function Navbar() {
 
               {/* Footer Actions */}
               <div className="border-t p-6">
-                <Button size="lg" asChild className="w-full cursor-pointer">
+                <Button size="lg" asChild className="group w-full cursor-pointer">
                   <Link href="/contact" onClick={() => setIsOpen(false)}>
                     Contact Us
                     <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />

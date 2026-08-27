@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Reveal } from "@/components/motion/reveal";
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { ProjectCard } from "@/components/portfolio/project-card";
 import { projects } from "@/lib/projects";
+import { PageShell } from "@/components/layout/page-shell";
+import { cardGridClass } from "@/lib/card-grid";
 
 const featuredProjects = projects.slice(0, 3);
 
@@ -11,24 +13,32 @@ const FeaturedWork = () => {
   if (featuredProjects.length === 0) return null;
 
   return (
-    <section id="work" className="bg-muted/30 py-14 sm:py-16 lg:py-20">
-      <div className="container mx-auto px-5 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <Reveal className="mb-12 flex flex-col justify-between gap-6 border-b pb-8 sm:mb-14 sm:flex-row sm:items-end sm:gap-10">
-          <h2 className="max-w-xl text-3xl font-semibold leading-tight tracking-[-0.03em] sm:text-4xl">
+    <section
+      id="work"
+      className="border-y bg-muted/60 py-14 sm:py-16 lg:py-20"
+    >
+      <PageShell>
+        <Reveal className="mb-12 max-w-2xl">
+          <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
             Built for real problems
           </h2>
-          <p className="max-w-md text-base leading-7 text-muted-foreground sm:text-right">
+          <p className="text-lg text-muted-foreground">
             Work that begins with a real need and ends with technology people
             can use.
           </p>
         </Reveal>
 
-        <Reveal delay={0.1} className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {/* No outer Reveal here: it fades the whole block from opacity 0,
+            which masks RevealGroup's own per-card stagger. */}
+        <RevealGroup
+          className={`grid gap-6 ${cardGridClass(featuredProjects.length)}`}
+        >
           {featuredProjects.map((project) => (
-            <ProjectCard key={project.slug} project={project} />
+            <RevealItem key={project.slug}>
+              <ProjectCard project={project} />
+            </RevealItem>
           ))}
-        </Reveal>
+        </RevealGroup>
 
         <Reveal delay={0.2} className="mt-10 flex justify-center">
           <Button variant="outline" className="group cursor-pointer" asChild>
@@ -38,7 +48,7 @@ const FeaturedWork = () => {
             </Link>
           </Button>
         </Reveal>
-      </div>
+      </PageShell>
     </section>
   );
 };

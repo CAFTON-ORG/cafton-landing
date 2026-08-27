@@ -57,7 +57,7 @@ export function Footer() {
         <div className="max-w-sm">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
-              <Logo size={32} />
+              <Logo size={32} aria-hidden="true" />
               <span className="text-xl font-bold tracking-tight">CAFTON</span>
             </Link>
           </div>
@@ -123,7 +123,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-white/10 px-5 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
           <p>&copy; {new Date().getFullYear()} Cafton. All rights reserved.</p>
           <nav className="flex flex-wrap gap-x-5 gap-y-2">
             {footerLinks.map((link) => (

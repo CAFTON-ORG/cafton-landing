@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { DotPattern } from "@/components/shared/dot-pattern";
+import { cn } from "@/lib/utils";
 
 type PageShellProps = {
   children: ReactNode;
@@ -10,7 +11,7 @@ type PageShellProps = {
 export function PageShell({ children, className = "" }: PageShellProps) {
   return (
     <div
-      className={`mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8 ${className}`}
+      className={cn("mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8", className)}
     >
       {children}
     </div>
@@ -37,7 +38,7 @@ export function PageHero({ children }: { children: ReactNode }) {
 
 export function PageSection({ children, className = "" }: PageShellProps) {
   return (
-    <section className={`py-14 sm:py-16 lg:py-20 ${className}`}>
+    <section className={cn("py-14 sm:py-16 lg:py-20", className)}>
       {children}
     </section>
   );

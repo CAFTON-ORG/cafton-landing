@@ -25,20 +25,24 @@ export function ThemeProvider({
     if (typeof window === "undefined") return
 
     const root = window.document.documentElement
+    const media = window.matchMedia("(prefers-color-scheme: dark)")
 
-    root.classList.remove("light", "dark")
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
-
-      root.classList.add(systemTheme)
-      return
+    const apply = () => {
+      root.classList.remove("light", "dark")
+      root.classList.add(
+        theme === "system" ? (media.matches ? "dark" : "light") : theme
+      )
     }
 
-    root.classList.add(theme)
+    apply()
+
+    // On "system", keep tracking the OS after mount. Without this the class
+    // is only set once, so changing the OS theme mid-session leaves the site
+    // on the theme it happened to load with.
+    if (theme !== "system") return
+
+    media.addEventListener("change", apply)
+    return () => media.removeEventListener("change", apply)
   }, [theme])
 
   const value = {

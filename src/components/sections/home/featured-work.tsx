@@ -1,72 +1,42 @@
-"use client";
-
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/motion/reveal";
-import { getProject } from "@/lib/projects";
+import { ProjectCard } from "@/components/portfolio/project-card";
+import { projects } from "@/lib/projects";
+
+const featuredProjects = projects.slice(0, 3);
 
 const FeaturedWork = () => {
-  const project = getProject("iligtas");
-  if (!project) return null;
+  if (featuredProjects.length === 0) return null;
 
   return (
     <section id="work" className="bg-muted/30 py-14 sm:py-16 lg:py-20">
       <div className="container mx-auto px-5 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <Reveal className="mx-auto max-w-2xl text-center mb-16">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+        <Reveal className="mb-12 flex flex-col justify-between gap-6 border-b pb-8 sm:mb-14 sm:flex-row sm:items-end sm:gap-10">
+          <h2 className="max-w-xl text-3xl font-semibold leading-tight tracking-[-0.03em] sm:text-4xl">
             Built for real problems
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="max-w-md text-base leading-7 text-muted-foreground sm:text-right">
             Work that begins with a real need and ends with technology people
             can use.
           </p>
         </Reveal>
 
-        <Reveal delay={0.1}>
-          <article className="mx-auto grid max-w-4xl overflow-hidden rounded-xl border bg-card sm:grid-cols-2">
-            {/* Real product screenshot (iLigtas's own live geofencing-alerts
-                admin view) -- theme-aware light/dark pair already sitting
-                in /public, previously unused anywhere in the codebase. */}
-            <div className="relative aspect-[4/3] sm:aspect-auto">
-              <Image
-                src={project.imageLight}
-                alt={project.imageAlt}
-                fill
-                sizes="(min-width: 640px) 50vw, 100vw"
-                className="object-cover object-left-top dark:hidden"
-              />
-              <Image
-                src={project.imageDark}
-                alt={project.imageAlt}
-                fill
-                sizes="(min-width: 640px) 50vw, 100vw"
-                className="hidden object-cover object-left-top dark:block"
-              />
-            </div>
+        <Reveal delay={0.1} className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {featuredProjects.map((project) => (
+            <ProjectCard key={project.slug} project={project} />
+          ))}
+        </Reveal>
 
-            <div className="p-7 sm:p-9">
-              <p className="text-sm font-medium text-muted-foreground">
-                {project.client}
-              </p>
-              <h3 className="mt-3 text-2xl font-semibold">{project.title}</h3>
-              <p className="mt-4 max-w-2xl text-muted-foreground">
-                {project.summary}
-              </p>
-              {project.recognition && (
-                <p className="mt-6 text-sm text-muted-foreground">
-                  {project.recognition}
-                </p>
-              )}
-              <Button variant="link" className="mt-5 px-0" asChild>
-                <Link href={`/portfolio/${project.slug}`}>
-                  View case study <ArrowRight className="ml-2 size-4" />
-                </Link>
-              </Button>
-            </div>
-          </article>
+        <Reveal delay={0.2} className="mt-10 flex justify-center">
+          <Button variant="outline" className="group cursor-pointer" asChild>
+            <Link href="/portfolio">
+              View all work
+              <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </Button>
         </Reveal>
       </div>
     </section>

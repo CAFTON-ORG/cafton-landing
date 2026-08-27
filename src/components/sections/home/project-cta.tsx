@@ -11,10 +11,7 @@ export function ProjectCta() {
       <div className="container mx-auto px-5 sm:px-6 lg:px-8">
         <Reveal>
           <div className="relative w-full overflow-hidden rounded-2xl border bg-card">
-            {/* Same monochrome "cinematic" treatment as the hero -- dot
-                texture + a soft ambient glow -- reused here so the site's
-                one other full-bleed moment (the closing CTA) feels like
-                part of the same system, not a separate flat gray band. */}
+         
             <div className="pointer-events-none absolute inset-0">
               <DotPattern size="md" fadeStyle="ellipse" opacity="low" />
             </div>

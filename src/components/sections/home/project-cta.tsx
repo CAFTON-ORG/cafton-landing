@@ -1,49 +1,52 @@
-"use client";
-
-import { ArrowRight, Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-
-const smoothScrollTo = (targetId: string) => {
-  document
-    .querySelector(targetId)
-    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-};
+import { Button } from "@/components/ui/button";
+import { DotPattern } from "@/components/shared/dot-pattern";
+import { Magnetic } from "@/components/motion/magnetic";
+import { Reveal } from "@/components/motion/reveal";
 
 export function ProjectCta() {
   return (
-    <section className="py-14 sm:py-16 lg:py-20 bg-muted/80">
+    <section className="py-14 sm:py-16 lg:py-20">
       <div className="container mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <div className="text-center">
-            <div className="space-y-8">
-           
+        <Reveal>
+          <div className="relative w-full overflow-hidden rounded-2xl border bg-card">
+            {/* Same monochrome "cinematic" treatment as the hero -- dot
+                texture + a soft ambient glow -- reused here so the site's
+                one other full-bleed moment (the closing CTA) feels like
+                part of the same system, not a separate flat gray band. */}
+            <div className="pointer-events-none absolute inset-0">
+              <DotPattern size="md" fadeStyle="ellipse" opacity="low" />
+            </div>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_0%,color-mix(in_oklch,var(--foreground)_10%,transparent)_0%,transparent_65%)]"
+            />
 
-              {/* Main Content */}
-              <div className="space-y-6">
-                <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-                  Have a problem worth solving?
-                </h1>
-
-                <p className="text-muted-foreground mx-auto max-w-2xl text-balance lg:text-xl">
-                  Tell us what you&apos;re trying to accomplish. We&apos;ll help
-                  you figure out what technology can do about it.
-                </p>
-              </div>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col justify-center gap-4 sm:flex-row sm:gap-6">
-                <Button className="cursor-pointer group" asChild>
-                  <Link href="/contact">
-                    Start a Project
-                    <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                </Button>
+            <div className="relative px-6 py-16 text-center sm:px-12 sm:py-20">
+              <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+                Let&apos;s build it
+              </p>
+              <h2 className="mx-auto mt-4 max-w-2xl text-balance text-4xl font-bold tracking-tight sm:text-5xl">
+                Have a problem worth solving?
+              </h2>
+              <p className="mx-auto mt-5 max-w-xl text-balance text-muted-foreground sm:text-lg">
+                Tell us what you&apos;re trying to accomplish. We&apos;ll help
+                you figure out what technology can do about it.
+              </p>
+              <div className="mt-9 flex justify-center">
+                <Magnetic>
+                  <Button size="lg" className="cursor-pointer group" asChild>
+                    <Link href="/contact">
+                      Start a Project
+                      <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
+                </Magnetic>
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

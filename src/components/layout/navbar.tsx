@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu, X } from "lucide-react";
@@ -26,16 +26,32 @@ const navigationItems = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
+  // A subtle elevation change once the page has scrolled -- the header
+  // reads as "resting on" the page at the very top and "floating above
+  // it" once content is passing underneath, a common cue on premium
+  // sites that a flat, always-on border/blur doesn't give you.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={`sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl transition-shadow duration-300 supports-[backdrop-filter]:bg-background/60 ${
+        scrolled ? "shadow-sm" : "shadow-none"
+      }`}
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-2">
           <Link
             href="/"
-            className="flex items-center space-x-2 cursor-pointer"
+            className="flex items-center space-x-2 cursor-pointer transition-opacity hover:opacity-80"
             rel="noopener noreferrer"
           >
             <Logo size={32} />
@@ -46,17 +62,17 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <nav
           aria-label="Main navigation"
-          className="hidden items-center xl:flex"
+          className="hidden items-center gap-1 xl:flex"
         >
           {navigationItems.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               aria-current={pathname === item.href ? "page" : undefined}
-              className={`inline-flex h-10 items-center justify-center border-b-2 px-4 py-2 text-sm font-medium transition-colors focus:outline-none ${
+              className={`inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium transition-colors focus:outline-none ${
                 pathname === item.href
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
               }`}
             >
               {item.name}

@@ -1,0 +1,203 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
+
+jobs:
+  ci:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check
+        run: npm run typecheck
+
+      - name: Run Linter
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+  notify-pr-opened:
+    if: github.event.action == 'opened'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Discord
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL is not set; skipping."
+            exit 0
+          fi
+
+          PAYLOAD=$(jq -n \
+            --arg title "New Pull Request" \
+            --arg description "$PR_TITLE" \
+            --arg url "$PR_URL" \
+            --arg repo "$REPO" \
+            --arg branch "$HEAD_REF → $BASE_REF" \
+            --arg pr "#$PR_NUMBER" \
+            --arg author "$PR_AUTHOR" \
+            --arg footer "Cafton CI" \
+            --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson color 5793266 \
+            '{
+              embeds: [{
+                title: $title,
+                description: $description,
+                url: $url,
+                color: $color,
+                fields: [
+                  { name: "Repository", value: $repo, inline: true },
+                  { name: "Branch", value: $branch, inline: true },
+                  { name: "PR", value: $pr, inline: true },
+                  { name: "Author", value: $author, inline: true }
+                ],
+                footer: { text: $footer },
+                timestamp: $timestamp
+              }]
+            }')
+
+          curl -fsS -H "Content-Type: application/json" -d "$PAYLOAD" "$DISCORD_WEBHOOK_URL"
+
+  notify-ci-result:
+    needs: ci
+    if: always() && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Discord
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          CI_RESULT: ${{ needs.ci.result }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL is not set; skipping."
+            exit 0
+          fi
+
+          if [ "$CI_RESULT" = "success" ]; then
+            TITLE="CI Passed"
+            COLOR=5763719
+          else
+            TITLE="CI Failed"
+            COLOR=15548997
+          fi
+
+          PAYLOAD=$(jq -n \
+            --arg title "$TITLE" \
+            --arg description "$PR_TITLE" \
+            --arg url "$PR_URL" \
+            --arg repo "$REPO" \
+            --arg branch "$HEAD_REF → $BASE_REF" \
+            --arg pr "#$PR_NUMBER" \
+            --arg author "$PR_AUTHOR" \
+            --arg footer "Cafton CI" \
+            --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson color "$COLOR" \
+            '{
+              embeds: [{
+                title: $title,
+                description: $description,
+                url: $url,
+                color: $color,
+                fields: [
+                  { name: "Repository", value: $repo, inline: true },
+                  { name: "Branch", value: $branch, inline: true },
+                  { name: "PR", value: $pr, inline: true },
+                  { name: "Author", value: $author, inline: true }
+                ],
+                footer: { text: $footer },
+                timestamp: $timestamp
+              }]
+            }')
+
+          curl -fsS -H "Content-Type: application/json" -d "$PAYLOAD" "$DISCORD_WEBHOOK_URL"
+
+  notify-pr-merged:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Discord
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL is not set; skipping."
+            exit 0
+          fi
+
+          PAYLOAD=$(jq -n \
+            --arg title "Pull Request Merged" \
+            --arg description "$PR_TITLE" \
+            --arg url "$PR_URL" \
+            --arg repo "$REPO" \
+            --arg branch "$HEAD_REF → $BASE_REF" \
+            --arg pr "#$PR_NUMBER" \
+            --arg author "$PR_AUTHOR" \
+            --arg mergedBy "$MERGED_BY" \
+            --arg footer "Cafton CI" \
+            --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson color 9000933 \
+            '{
+              embeds: [{
+                title: $title,
+                description: $description,
+                url: $url,
+                color: $color,
+                fields: [
+                  { name: "Repository", value: $repo, inline: true },
+                  { name: "Branch", value: $branch, inline: true },
+                  { name: "PR", value: $pr, inline: true },
+                  { name: "Author", value: $author, inline: true },
+                  { name: "Merged by", value: $mergedBy, inline: true }
+                ],
+                footer: { text: $footer },
+                timestamp: $timestamp
+              }]
+            }')
+
+          curl -fsS -H "Content-Type: application/json" -d "$PAYLOAD" "$DISCORD_WEBHOOK_URL"

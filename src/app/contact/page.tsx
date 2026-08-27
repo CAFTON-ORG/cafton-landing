@@ -26,8 +26,8 @@ export default function ContactPage() {
             </RevealItem>
             <RevealItem>
               <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-                Tell us what you&apos;re building, what isn&apos;t working, or what
-                you&apos;d like to improve.
+                Tell us what you&apos;re building, what isn&apos;t working, or
+                what you&apos;d like to improve.
               </p>
             </RevealItem>
           </RevealGroup>
@@ -47,7 +47,7 @@ export default function ContactPage() {
                   anything useful for us to know.
                 </p>
                 <Button className="mt-4 cursor-pointer" asChild>
-                  <a href={`mailto:contact@cafton.net`}>Contact Email</a>
+                  <a href={`mailto:contact@cafton.com`}>Contact Email</a>
                 </Button>
               </div>
 

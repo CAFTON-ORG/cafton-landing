@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DotPattern } from "@/components/shared/dot-pattern";
 
 type PageShellProps = {
   children: ReactNode;
@@ -18,8 +19,18 @@ export function PageShell({ children, className = "" }: PageShellProps) {
 
 export function PageHero({ children }: { children: ReactNode }) {
   return (
-    <section className="border-b bg-muted/30 py-16 sm:py-20 lg:py-24">
-      {children}
+    <section className="relative overflow-hidden border-b bg-muted/30 py-20 sm:py-24 lg:py-28">
+      {/* Same dot-texture + soft ambient glow used by the homepage hero
+          and the closing CTA -- every page opens with the same quiet
+          visual signature instead of a flat gray band. */}
+      <div className="pointer-events-none absolute inset-0">
+        <DotPattern size="md" fadeStyle="ellipse" opacity="low" />
+      </div>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_15%_0%,color-mix(in_oklch,var(--foreground)_8%,transparent)_0%,transparent_55%)]"
+      />
+      <div className="relative">{children}</div>
     </section>
   );
 }

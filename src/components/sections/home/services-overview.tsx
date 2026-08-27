@@ -1,8 +1,8 @@
 "use client";
 
 import { Cloud, Code2, MonitorSmartphone, Smartphone } from "lucide-react";
-import { Image3D } from "@/components/shared/image-3d";
-import { PageSection, PageShell } from "@/components/layout/page-shell";
+import { PageShell } from "@/components/layout/page-shell";
+import { Logo } from "@/components/shared/logo";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 
 const services = [
@@ -34,7 +34,10 @@ const services = [
 
 export function ServicesOverview() {
   return (
-    <section className="relative py-14 sm:py-16 ">
+    <section
+      id="services"
+      className="relative overflow-hidden py-14 sm:py-16"
+    >
       <PageShell>
         <div className="grid grid-cols-1 gap-10 sm:gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="min-w-0">
@@ -73,14 +76,24 @@ export function ServicesOverview() {
             </RevealGroup>
           </div>
 
-          <Reveal delay={0.1} className="order-1 lg:order-2">
-            <Image3D
-              lightSrc="/cafton-light.png"
-              darkSrc="/cafton-dark.png"
-              alt="Performance dashboard"
-              direction="right"
+          {/* The previous occupant here (Image3D) was a generic
+              hover-tilt product-shot component that also happened to
+              hard-code a blue/purple gradient glow -- off the site's
+              monochrome theme regardless. Owner removed its usage;
+              rather than filling the gap with another placeholder
+              graphic (design-taste-frontend's own rule: a real visual
+              earns its place, a gradient blob standing in for one
+              doesn't), this reuses the actual brand mark -- large,
+              faint, grayscale -- as a genuine on-brand watermark. Hidden
+              below lg: not worth the vertical space on narrower
+              viewports where the icon list already reads well on its
+              own. */}
+          <div className="hidden items-center justify-center lg:flex">
+            <Logo
+              aria-hidden="true"
+              className="h-72 w-auto text-foreground/[0.07] xl:h-[26rem]"
             />
-          </Reveal>
+          </div>
         </div>
       </PageShell>
     </section>

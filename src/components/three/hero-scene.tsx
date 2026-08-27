@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Box3, ExtrudeGeometry, Group, Mesh, Vector3 } from "three";
+import { Box3, ExtrudeGeometry, Group, MathUtils, Mesh, Vector3 } from "three";
 import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader.js";
 import { useTheme } from "@/hooks/use-theme";
 import { useHeroScrollStore } from "@/lib/hero-scroll-store";
@@ -24,9 +24,32 @@ const LOGO_PATH_D =
 
 const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 42"><path d="${LOGO_PATH_D}"/></svg>`;
 
-const MARK_SCALE = 1 / 13;
+const MARK_SCALE = 1 / 14;
 const EXTRUDE_DEPTH = 6;
-const BASE_Y = -0.85;
+// Was -0.85 -- pushed the mark low enough that it read as clipped against
+// whatever sits below its grid cell. Centered now that it has its own
+// dedicated column/row instead of sharing space behind the headline.
+const BASE_Y = -0.1;
+
+// How much of the hero's scroll distance the "unresolved -> resolved"
+// reveal takes -- 0.65 means the mark (and, in home-hero.tsx, the text)
+// finish settling by 65% of the way through the pinned scroll, leaving
+// the remaining 35% as a stable, fully-readable hold before the section
+// releases. Previously this ran the full 0-1 range, which left almost no
+// hold time -- the owner's reported "can't finish reading the CTA" bug.
+const REVEAL_END = 0.65;
+
+// Facing rotation (radians) once fully resolved. The owner flagged the
+// mark settling "facing left" when it should read facing right (compare
+// against the flat mark in logo.tsx / the navbar, which is the canonical
+// orientation). This sandbox can't render a live preview to confirm the
+// sign visually -- if it still reads mirrored once seen in the browser,
+// flip this constant's sign first.
+const SCATTER_FACE_Y = -0.5;
+// Confirmed against the brand's own reference art (cafton-light.png):
+// the mark reads as facing right at its natural, unrotated orientation.
+// No offset needed at rest -- 0, not a guess.
+const REST_FACE_Y = 0;
 
 /**
  * Parses the logo's own SVG path into one ExtrudeGeometry per facet,
@@ -79,9 +102,9 @@ interface FacetSeed {
 function randomSeed(): FacetSeed {
   return {
     scatter: new Vector3(
-      (Math.random() - 0.5) * 3.4,
-      (Math.random() - 0.5) * 3.4,
-      (Math.random() - 0.5) * 2.4
+      (Math.random() - 0.5) * 2.2,
+      (Math.random() - 0.5) * 2.2,
+      (Math.random() - 0.5) * 1.6
     ),
     scatterRotation: new Vector3(
       (Math.random() - 0.5) * Math.PI,
@@ -121,19 +144,37 @@ function CaftonMark() {
     if (!group) return;
 
     const progress = useHeroScrollStore.getState().progress;
-    const eased = easeInOutCubic(progress);
+    // Remapped so the reveal itself finishes at REVEAL_END, not at the
+    // very end of the hero's scroll distance -- see REVEAL_END comment.
+    const revealProgress = Math.min(progress / REVEAL_END, 1);
+    const eased = easeInOutCubic(revealProgress);
     const unresolved = 1 - eased;
     const t = state.clock.elapsedTime;
 
     pointer.current.x += (state.pointer.x - pointer.current.x) * Math.min(delta * 2.5, 1);
     pointer.current.y += (state.pointer.y - pointer.current.y) * Math.min(delta * 2.5, 1);
 
-    group.rotation.y =
-      t * 0.12 + progress * Math.PI * 0.4 + pointer.current.x * 0.25;
-    group.rotation.x = -progress * Math.PI * 0.15 - pointer.current.y * 0.15;
+    // Settle rotation is driven by `eased` (0 -> 1 once, then holds),
+    // not by elapsed time -- the old version added a continuous t*0.12
+    // spin, which meant the mark's final facing direction was whatever
+    // angle it happened to be at when the user stopped scrolling, i.e.
+    // effectively random. That's what the owner saw as "facing left"
+    // when it should read facing right: it wasn't consistently either,
+    // it was unresolved. Now it deterministically settles at
+    // REST_FACE_Y and stays there (plus a small idle sway) once resolved.
+    const settleY = MathUtils.lerp(SCATTER_FACE_Y, REST_FACE_Y, eased);
+    const idleSway = Math.sin(t * 0.25) * 0.05 * unresolved;
+    const pointerInfluenceY = pointer.current.x * 0.2 * (1 - eased * 0.4);
+
+    group.rotation.y = settleY + idleSway + pointerInfluenceY;
+    group.rotation.x = -eased * Math.PI * 0.08 - pointer.current.y * 0.12 * (1 - eased * 0.3);
     group.position.y = BASE_Y;
-    group.position.z = progress * 0.6;
-    group.scale.setScalar(1 + progress * 0.15);
+    // Driven by `eased`, not raw `progress`: once the mark has resolved
+    // it stops drifting for the rest of the (now much longer) hold
+    // period, instead of continuing to creep toward the camera while
+    // the owner is trying to read the CTA.
+    group.position.z = eased * 0.6;
+    group.scale.setScalar(1 + eased * 0.15);
 
     facetRefs.current.forEach((mesh, i) => {
       if (!mesh) return;
@@ -195,13 +236,15 @@ export function HeroScene() {
   return (
     // Not pointer-events-none: R3F reads the pointer position straight off
     // this element for the cursor-tilt effect. Safe to leave interactive --
-    // the headline/CTAs are later siblings in the DOM, so they still paint
-    // (and receive clicks) above this canvas regardless.
+    // the headline/CTAs live in their own grid column now (see
+    // home-hero.tsx), not stacked on top of this canvas, so there's no
+    // click-target conflict either.
     <div className="absolute inset-0" aria-hidden="true">
       <Canvas
-        camera={{ position: [0, 0, 6.5], fov: 45 }}
+        camera={{ position: [0, 0, 9], fov: 36 }}
         dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: true }}
+        performance={{ min: 0.5 }}
       >
         <ambientLight intensity={0.6} />
         <directionalLight position={[3, 3, 3]} intensity={0.9} />

@@ -1,13 +1,19 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import type { Metadata } from "next";
 import {
   PageHero,
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
+import { ProjectCard } from "@/components/portfolio/project-card";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { projects } from "@/lib/projects";
+
+export const metadata: Metadata = {
+  title: "Portfolio - CAFTON",
+  description:
+    "Case studies of technology CAFTON has built around real problems -- disaster response, restaurant and retail operations, and more.",
+};
 
 export default function WorkPage() {
   return (
@@ -37,42 +43,13 @@ export default function WorkPage() {
       <PageSection>
         <PageShell>
           <Reveal>
-            <article className="rounded-xl border bg-card p-7 sm:p-10">
-              <p className="text-sm font-medium text-muted-foreground">
-                iLigtas
-              </p>
-              <h2 className="mt-3 text-3xl font-bold">
-                Disaster Preparedness & Emergency Response
-              </h2>
-              <p className="mt-5 max-w-3xl text-muted-foreground">
-                A platform designed to support disaster preparedness and emergency
-                response through mobile technology, geofencing, location-based
-                services, and web-based administration.
-              </p>
-              <RevealGroup className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <RevealItem>
-                  <h3 className="font-semibold">Problem</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Preparedness and response information need to reach people
-                    where they are.
-                  </p>
+            <RevealGroup className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {projects.map((project) => (
+                <RevealItem key={project.slug}>
+                  <ProjectCard project={project} />
                 </RevealItem>
-                <RevealItem>
-                  <h3 className="font-semibold">Solution</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    A connected mobile and web platform for location-aware
-                    coordination.
-                  </p>
-                </RevealItem>
-                <RevealItem>
-                  <h3 className="font-semibold">Recognition</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Regional Finalist, Philippine Startup Challenge 9, Cordillera;
-                    Finalist, Baguio Smart City Challenge.
-                  </p>
-                </RevealItem>
-              </RevealGroup>
-            </article>
+              ))}
+            </RevealGroup>
           </Reveal>
         </PageShell>
       </PageSection>

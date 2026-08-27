@@ -56,7 +56,7 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-semibold">Your choices</h2>
               <p className="mt-3 text-muted-foreground">
                 You may ask us about, correct, or request deletion of your contact
-                information by emailing contact@cafton.net.
+                information by emailing contact@cafton.com.
               </p>
             </section>
           </Reveal>

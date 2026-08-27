@@ -7,10 +7,39 @@ import { inter } from "@/lib/fonts";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { SmoothScroll } from "@/components/providers/smooth-scroll";
+import { SITE_URL } from "@/lib/site";
+
+const SITE_TITLE = "CAFTON";
+const SITE_DESCRIPTION = "CAFTON - Modern software solutions for growing teams.";
 
 export const metadata: Metadata = {
-  title: "CAFTON",
-  description: "CAFTON - Modern software solutions for growing teams.",
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: SITE_TITLE,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: "/cafton-lengthwise.png",
+        width: 2000,
+        height: 675,
+        alt: "CAFTON",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ["/cafton-lengthwise.png"],
+  },
 };
 
 export default function RootLayout({

@@ -42,7 +42,7 @@ export default function CareersPage() {
               your work or portfolio.
             </p>
             <Button asChild className="mt-6 cursor-pointer">
-              <Link href="mailto:contact@cafton.net?subject=Careers%20at%20Cafton">
+              <Link href="mailto:contact@cafton.com?subject=Careers%20at%20Cafton">
                 Introduce yourself
               </Link>
             </Button>

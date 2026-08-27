@@ -31,8 +31,8 @@ export default function LegalPage() {
             <section>
               <h2 className="text-2xl font-semibold">Company Information</h2>
               <p className="mt-3 text-muted-foreground">
-                Cafton Software Development Services was registered on 21 Aug 2026
-                with BNN 8436511. Its current status is DTI-Registered.
+                Cafton Software Development Services was registered on 21 Aug
+                2026 with BNN 8436511. Its current status is DTI-Registered.
               </p>
             </section>
           </Reveal>
@@ -41,7 +41,8 @@ export default function LegalPage() {
             <section>
               <h2 className="text-2xl font-semibold">Contact</h2>
               <p className="mt-3 text-muted-foreground">
-                For questions about these terms, contact us at contact@cafton.net.
+                For questions about these terms, contact us at
+                contact@cafton.com.
               </p>
             </section>
           </Reveal>

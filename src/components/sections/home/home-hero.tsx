@@ -37,7 +37,6 @@ export function HomeHero() {
     if (!line1 || !line2 || !subhead || !cta) return;
 
     const ctx = gsap.context(() => {
-
       gsap.fromTo(
         line1,
         { opacity: 0, y: 16 },
@@ -71,9 +70,7 @@ export function HomeHero() {
   }, [canShow3D]);
 
   return (
-  
     <section id="hero" className="relative h-[200vh] md:h-[320vh]">
-   
       <div className="sticky top-16 grid h-[calc(100vh-4rem)] grid-rows-[45%_auto] items-center overflow-hidden bg-linear-to-b from-background to-background/80 md:grid-cols-2 md:grid-rows-1">
         <div className="absolute inset-0">
           <DotPattern className="opacity-100" size="md" fadeStyle="ellipse" />
@@ -88,9 +85,7 @@ export function HomeHero() {
           className="pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-overlay [background-image:url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E')]"
         />
 
-
         <div className="relative order-1 h-full w-full md:order-2">
-       
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_45%,color-mix(in_oklch,var(--foreground)_16%,transparent)_0%,transparent_65%)]"
@@ -102,32 +97,21 @@ export function HomeHero() {
           <div className="mx-auto max-w-xl text-center md:mx-0 md:ml-auto md:pl-6 md:text-left lg:pl-12">
             {/* Main Headline */}
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-              <span ref={headlineLine1Ref}>
-                We don&apos;t start with software.
-              </span>
-              <span
-                ref={headlineLine2Ref}
-                className="bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent"
-              >
+              <span>We don&apos;t start with software.</span>
+              <span className="bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 {" "}
                 We start with the problem.{" "}
               </span>
             </h1>
 
             {/* Subheading */}
-            <p
-              ref={subheadRef}
-              className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground sm:text-xl md:mx-0"
-            >
+            <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground sm:text-xl md:mx-0">
               Cafton engineers custom software, web and mobile applications, and
               SaaS products around the way organizations actually work.
             </p>
 
             {/* CTA Buttons */}
-            <div
-              ref={ctaRef}
-              className="flex flex-row flex-wrap justify-center gap-4 md:justify-start"
-            >
+            <div className="flex flex-row flex-wrap justify-center gap-4 md:justify-start">
               <Button className="cursor-pointer group" asChild>
                 <Link href="/contact">
                   Start a Project

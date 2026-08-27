@@ -7,7 +7,7 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <Link
       href={`/portfolio/${project.slug}`}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-colors hover:border-foreground/20"
+      className="group flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-colors duration-300 hover:bg-muted/35"
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
@@ -26,17 +26,19 @@ export function ProjectCard({ project }: { project: Project }) {
         />
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-6">
-        <p className="text-sm font-medium text-muted-foreground">
+      <div className="flex flex-1 flex-col p-6 sm:p-7">
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
           {project.client}
         </p>
-        <h3 className="text-lg font-semibold leading-snug">{project.title}</h3>
-        <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+        <h3 className="mt-3 text-xl font-semibold leading-tight tracking-[-0.02em]">
+          {project.title}
+        </h3>
+        <p className="mt-4 line-clamp-3 text-sm leading-6 text-muted-foreground">
           {project.summary}
         </p>
-        <span className="mt-auto inline-flex items-center pt-2 text-sm font-medium text-foreground">
+        <span className="mt-auto inline-flex items-center pt-8 text-sm font-medium text-foreground">
           View case study
-          <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
+          <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
         </span>
       </div>
     </Link>

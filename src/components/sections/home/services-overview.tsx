@@ -75,19 +75,6 @@ export function ServicesOverview() {
               ))}
             </RevealGroup>
           </div>
-
-          {/* The previous occupant here (Image3D) was a generic
-              hover-tilt product-shot component that also happened to
-              hard-code a blue/purple gradient glow -- off the site's
-              monochrome theme regardless. Owner removed its usage;
-              rather than filling the gap with another placeholder
-              graphic (design-taste-frontend's own rule: a real visual
-              earns its place, a gradient blob standing in for one
-              doesn't), this reuses the actual brand mark -- large,
-              faint, grayscale -- as a genuine on-brand watermark. Hidden
-              below lg: not worth the vertical space on narrower
-              viewports where the icon list already reads well on its
-              own. */}
           <div className="hidden items-center justify-center lg:flex">
             <Logo
               aria-hidden="true"

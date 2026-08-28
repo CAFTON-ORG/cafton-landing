@@ -2,48 +2,39 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DotPattern } from "@/components/shared/dot-pattern";
 import { useCanShow3D } from "@/hooks/use-can-show-3d";
 import { useInViewport } from "@/hooks/use-in-viewport";
 
+gsap.registerPlugin(ScrollTrigger);
+
 const HeroScene = dynamic(
   () => import("@/components/three/hero-scene").then((mod) => mod.HeroScene),
   { ssr: false },
 );
 
-// Display type is sized off the viewport's *shorter* constraint, not just
-// width: on a wide-but-short window (a laptop with browser chrome), pure
-// vw sizing produces type tall enough to collide with the copy below it.
 const DISPLAY_SIZE = "text-[clamp(2.5rem,min(6.5vw,10vh),5.75rem)]";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
-/** Seconds each element takes to settle once it starts. */
 const ENTRANCE_DURATION = 0.95;
-
-/**
- * When each element starts, in seconds. Spaced widely enough to read as a
- * deliberate sequence rather than everything arriving at once; the last
- * item lands just under two seconds in.
- */
 const ENTRANCE_DELAY = {
-  line1: 0.15,
+  line1: 0.1,
   line2: 0.4,
   subhead: 0.65,
-  tagline: 0.85,
   cta: 1.05,
 } as const;
 
-/**
- * Hero copy animates once on entry, not on scroll.
- *
- * Explicit per-element delays rather than a stagger container: these
- * elements live in two separate positioned layers, so variant propagation
- * would not give a predictable order across them.
- */
+const HEADLINE_SWAP_THRESHOLD = 0.08;
+
+const SWAP_DELAY = { line1: 0, line2: 0.12 } as const;
+
 function entrance(delay: number) {
   return {
     initial: { opacity: 0, y: 24 },
@@ -56,12 +47,36 @@ export function HomeHero() {
   const canShow3D = useCanShow3D();
   const reduceMotion = useReducedMotion();
   const [heroRef, heroInViewport] = useInViewport<HTMLElement>();
+  const [showPayoff, setShowPayoff] = useState(false);
+  const lastShowPayoff = useRef(false);
 
-  // Reduced motion: render the copy in its final state, no entrance.
   const anim = (delay: number) => (reduceMotion ? {} : entrance(delay));
 
+  useEffect(() => {
+    const trigger = ScrollTrigger.create({
+      trigger: "#hero",
+      start: "top top",
+      end: "bottom top",
+      onUpdate: (self) => {
+        const next = self.progress > HEADLINE_SWAP_THRESHOLD;
+        if (next !== lastShowPayoff.current) {
+          lastShowPayoff.current = next;
+          setShowPayoff(next);
+        }
+      },
+    });
+
+    return () => {
+      trigger.kill();
+    };
+  }, []);
+
   return (
-    <section id="hero" ref={heroRef} className="relative h-[200vh] md:h-[320vh]">
+    <section
+      id="hero"
+      ref={heroRef}
+      className="relative h-[200vh] md:h-[320vh]"
+    >
       <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-hidden bg-linear-to-b from-background to-background/80">
         <div className="absolute inset-0">
           <DotPattern className="opacity-100" size="md" fadeStyle="ellipse" />
@@ -75,28 +90,64 @@ export function HomeHero() {
           className="pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-overlay [background-image:url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E')]"
         />
 
-       
         <div className="relative grid h-full grid-rows-[auto_1fr_auto] gap-5 px-5 pb-10 pt-6 md:block md:gap-0 md:p-0">
           <h1
-            className={`pointer-events-none z-20 font-bold uppercase leading-[0.95] tracking-[-0.01em] text-foreground  md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8 ${DISPLAY_SIZE}`}
+            className={`pointer-events-none z-20 font-black uppercase leading-[0.95] tracking-[-0.01em] text-foreground  md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8 ${DISPLAY_SIZE}`}
           >
-            <motion.span
-              {...anim(ENTRANCE_DELAY.line1)}
-              className="block md:absolute md:left-8 md:top-[10%] md:max-w-[46%]"
-            >
-              We don&apos;t <span className="block">start</span>
-            </motion.span>
-            <motion.span
-              {...anim(ENTRANCE_DELAY.line2)}
-              className="block md:absolute md:right-8 md:top-[40%] md:max-w-[46%] md:text-right"
-            >
-              with <span className="block bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">software.</span>
-            </motion.span>
+            <span className="block md:absolute md:left-8 md:top-[10%] md:max-w-[46%]">
+              <AnimatePresence mode="wait" initial={!reduceMotion}>
+                {showPayoff ? (
+                  <motion.span
+                    key="line1-payoff"
+                    {...(reduceMotion ? {} : entrance(SWAP_DELAY.line1))}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -24 }}
+                    className="block"
+                  >
+                    We <span className="block">start</span>
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="line1-opening"
+                    {...anim(ENTRANCE_DELAY.line1)}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -24 }}
+                    className="block"
+                  >
+                    We don&apos;t <span className="block">start</span>
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </span>
+            <span className="block md:absolute md:right-8 md:top-[40%] md:max-w-[46%] md:text-right">
+              <AnimatePresence mode="wait" initial={!reduceMotion}>
+                {showPayoff ? (
+                  <motion.span
+                    key="line2-payoff"
+                    {...(reduceMotion ? {} : entrance(SWAP_DELAY.line2))}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -24 }}
+                    className="block"
+                  >
+                    with the{" "}
+                    <span className="block bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                      problem.
+                    </span>
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="line2-opening"
+                    {...anim(ENTRANCE_DELAY.line2)}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -24 }}
+                    className="block"
+                  >
+                    with{" "}
+                    <span className="block bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                      software.
+                    </span>
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </span>
           </h1>
 
-          {/* The mark: its own band on mobile, full-bleed and centered from
-              md up, layered beneath the display type. Click and drag to
-              spin it -- see the drag interaction in hero-scene.tsx. */}
           <div className="relative z-10 min-h-0 md:absolute md:inset-0">
             <div
               aria-hidden="true"
@@ -105,9 +156,6 @@ export function HomeHero() {
             {canShow3D && <HeroScene active={heroInViewport} />}
           </div>
 
-          {/* Supporting copy and CTAs: always the topmost layer, and kept in
-              the outer thirds from md up so the centered mark never crosses
-              them. */}
           <div className="pointer-events-none relative z-30 flex flex-col gap-5 md:absolute md:inset-0 md:mx-auto md:block md:max-w-7xl md:px-8">
             <motion.p
               {...anim(ENTRANCE_DELAY.subhead)}
@@ -115,13 +163,6 @@ export function HomeHero() {
             >
               Cafton engineers custom software, web and mobile applications, and
               SaaS products around the way organizations actually work.
-            </motion.p>
-
-            <motion.p
-              {...anim(ENTRANCE_DELAY.tagline)}
-              className="pointer-events-auto text-lg font-medium leading-snug text-foreground md:absolute md:right-8 md:bottom-[26%] md:max-w-[20rem] md:text-right md:text-xl"
-            >
-              We start with the problem.
             </motion.p>
 
             <motion.div
@@ -135,7 +176,11 @@ export function HomeHero() {
                 </Link>
               </Button>
 
-              <Button variant="outline" className="cursor-pointer group" asChild>
+              <Button
+                variant="outline"
+                className="cursor-pointer group"
+                asChild
+              >
                 <Link href="/portfolio">
                   Explore Our Work
                   <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />

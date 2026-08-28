@@ -15,14 +15,14 @@ export function ProjectCard({ project }: { project: Project }) {
           alt={project.imageAlt}
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover object-top transition-transform duration-500 group-hover:scale-105 dark:hidden"
+          className="object-cover object-top grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 dark:hidden"
         />
         <Image
           src={project.imageDark}
           alt={project.imageAlt}
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="hidden object-cover object-top transition-transform duration-500 group-hover:scale-105 dark:block"
+          className="hidden object-cover object-top grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 dark:block"
         />
       </div>
 

@@ -44,20 +44,12 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="relative overflow-hidden border-t border-white/10 bg-[oklch(0.145_0_0)] text-[oklch(0.985_0_0)]">
-      {/* A hairline of light along the top edge -- the same restrained,
-          grayscale "glow" language used by the hero and the closing CTA,
-          scaled down to a footer-appropriate accent rather than a full
-          section treatment. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/25 to-transparent"
-      />
+    <footer className="border-t border-white/10 bg-[oklch(0.145_0_0)] text-[oklch(0.985_0_0)]">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr] lg:px-8">
         <div className="max-w-sm">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
-              <Logo size={32} aria-hidden="true" />
+              <Logo size={32} />
               <span className="text-xl font-bold tracking-tight">CAFTON</span>
             </Link>
           </div>
@@ -71,7 +63,7 @@ export function Footer() {
           </p>
           <Button
             asChild
-            className="mt-7 cursor-pointer bg-white text-[oklch(0.145_0_0)] hover:bg-white/90"
+            className="mt-7 bg-white text-[oklch(0.145_0_0)] hover:bg-white/90"
           >
             <Link
               href="https://calendly.com/cafton-company/consultation"
@@ -89,13 +81,11 @@ export function Footer() {
           </h2>
           <ul className="mt-5 flex flex-col gap-3">
             {services.map((service) => (
-              <li key={service}>
-                <Link
-                  href="/#services"
-                  className="text-sm text-white/70 transition-colors hover:text-white"
-                >
-                  {service}
-                </Link>
+              <li
+                key={service}
+                className="text-sm text-white/70 transition-colors hover:text-white"
+              >
+                {service}
               </li>
             ))}
           </ul>
@@ -123,7 +113,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-white/10 px-5 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
           <p>&copy; {new Date().getFullYear()} Cafton. All rights reserved.</p>
           <nav className="flex flex-wrap gap-x-5 gap-y-2">
             {footerLinks.map((link) => (

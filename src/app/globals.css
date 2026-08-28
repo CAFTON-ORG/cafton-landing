@@ -30,6 +30,10 @@
 }
 
 :root {
+  /* Without this, the browser renders native chrome (scrollbar, form
+     control defaults) in light mode regardless of --background/.dark,
+     since those aren't CSS custom properties the browser reads. */
+  color-scheme: light;
   --radius: 0.625rem;
   /* Off-white, not pure #fff: keeps a real surface step between the page
      and --card, so cards read as raised rather than borderless. */
@@ -55,6 +59,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

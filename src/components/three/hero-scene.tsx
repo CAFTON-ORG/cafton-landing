@@ -31,8 +31,16 @@ const SCATTER_FACE_Y = -0.5;
 
 const REST_FACE_Y = 0;
 
-/** Seconds for one full click-triggered revolution. */
-const SPIN_DURATION = 1.1;
+/** Radians of rotation per pixel of pointer drag. */
+const DRAG_ROTATE_SPEED = 0.008;
+
+/** Clamp on the drag-driven tilt so the mark can't be dragged upside down. */
+const DRAG_TILT_CLAMP = 0.9;
+
+/** Per-frame velocity decay once the pointer is released, for a coasting spin. */
+const INERTIA_DAMPING = 0.94;
+
+const INERTIA_MIN_VELOCITY = 0.0002;
 
 /**
  * Light mode uses a mid grey, not the brand's near-black. At near-zero
@@ -127,11 +135,62 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
   }, [geometries]);
 
   const pointer = useRef({ x: 0, y: 0 });
-  const spin = useRef({ elapsed: 0, running: false });
+  const hovering = useRef(false);
+  const hoverScale = useRef(1);
+
+  /**
+   * Click-drag rotation. `rotationX/Y` are the accumulated offset applied
+   * on top of the scroll-driven resolve rotation; `velocityX/Y` is the
+   * last frame's drag speed, which keeps driving `rotationX/Y` after
+   * release (decayed by `INERTIA_DAMPING`) so a flick coasts to a stop
+   * instead of halting the instant the pointer lifts.
+   */
+  const drag = useRef({
+    active: false,
+    lastX: 0,
+    lastY: 0,
+    velocityX: 0,
+    velocityY: 0,
+    rotationX: 0,
+    rotationY: 0,
+  });
 
   useEffect(() => {
     return () => {
       document.body.style.cursor = "";
+    };
+  }, []);
+
+  // Registered on window (not the mesh) so the drag keeps tracking even
+  // when the pointer moves off the mark mid-gesture.
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      const d = drag.current;
+      if (!d.active) return;
+      const dx = event.clientX - d.lastX;
+      const dy = event.clientY - d.lastY;
+      d.lastX = event.clientX;
+      d.lastY = event.clientY;
+      d.velocityY = dx * DRAG_ROTATE_SPEED;
+      d.velocityX = dy * DRAG_ROTATE_SPEED;
+      d.rotationY += d.velocityY;
+      d.rotationX = MathUtils.clamp(
+        d.rotationX + d.velocityX,
+        -DRAG_TILT_CLAMP,
+        DRAG_TILT_CLAMP
+      );
+    };
+
+    const handlePointerUp = () => {
+      drag.current.active = false;
+      document.body.style.cursor = hovering.current ? "grab" : "";
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
     };
   }, []);
 
@@ -148,25 +207,40 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
     pointer.current.x += (state.pointer.x - pointer.current.x) * Math.min(delta * 2.5, 1);
     pointer.current.y += (state.pointer.y - pointer.current.y) * Math.min(delta * 2.5, 1);
 
-    // One full revolution on click, eased in and out so it starts and ends
-    // at the mark's resting orientation rather than snapping.
-    let spinY = 0;
-    if (spin.current.running) {
-      spin.current.elapsed += delta;
-      const spinProgress = Math.min(spin.current.elapsed / SPIN_DURATION, 1);
-      spinY = easeInOutCubic(spinProgress) * Math.PI * 2;
-      if (spinProgress >= 1) spin.current.running = false;
+    // Coast once released: keep applying the last drag velocity, decaying
+    // it toward zero, rather than snapping to a stop.
+    if (!drag.current.active) {
+      const d = drag.current;
+      d.rotationY += d.velocityY;
+      d.rotationX = MathUtils.clamp(
+        d.rotationX + d.velocityX,
+        -DRAG_TILT_CLAMP,
+        DRAG_TILT_CLAMP
+      );
+      d.velocityX *= INERTIA_DAMPING;
+      d.velocityY *= INERTIA_DAMPING;
+      if (Math.abs(d.velocityX) < INERTIA_MIN_VELOCITY) d.velocityX = 0;
+      if (Math.abs(d.velocityY) < INERTIA_MIN_VELOCITY) d.velocityY = 0;
     }
+
+    hoverScale.current = MathUtils.lerp(
+      hoverScale.current,
+      hovering.current || drag.current.active ? 1.04 : 1,
+      Math.min(delta * 6, 1)
+    );
 
     const settleY = MathUtils.lerp(SCATTER_FACE_Y, REST_FACE_Y, eased);
     const idleSway = Math.sin(t * 0.25) * 0.05 * unresolved;
     const pointerInfluenceY = pointer.current.x * 0.2 * (1 - eased * 0.4);
 
-    group.rotation.y = settleY + idleSway + pointerInfluenceY + spinY;
-    group.rotation.x = -eased * Math.PI * 0.08 - pointer.current.y * 0.12 * (1 - eased * 0.3);
+    group.rotation.y = settleY + idleSway + pointerInfluenceY + drag.current.rotationY;
+    group.rotation.x =
+      -eased * Math.PI * 0.08 -
+      pointer.current.y * 0.12 * (1 - eased * 0.3) +
+      drag.current.rotationX;
     group.position.y = BASE_Y;
     group.position.z = eased * 0.6;
-    group.scale.setScalar(1 + eased * 0.15);
+    group.scale.setScalar((1 + eased * 0.15) * hoverScale.current);
 
     facetRefs.current.forEach((mesh, i) => {
       if (!mesh) return;
@@ -189,15 +263,23 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
   return (
     <group
       ref={groupRef}
-      onClick={() => {
-        if (spin.current.running) return;
-        spin.current = { elapsed: 0, running: true };
+      onPointerDown={(event) => {
+        event.stopPropagation();
+        const d = drag.current;
+        d.active = true;
+        d.lastX = event.clientX;
+        d.lastY = event.clientY;
+        d.velocityX = 0;
+        d.velocityY = 0;
+        document.body.style.cursor = "grabbing";
       }}
       onPointerOver={() => {
-        document.body.style.cursor = "pointer";
+        hovering.current = true;
+        if (!drag.current.active) document.body.style.cursor = "grab";
       }}
       onPointerOut={() => {
-        document.body.style.cursor = "";
+        hovering.current = false;
+        if (!drag.current.active) document.body.style.cursor = "";
       }}
     >
       {geometries.map((geometry, i) => (
@@ -273,6 +355,10 @@ export function HeroScene({ active }: HeroSceneProps) {
         performance={{ min: 0.5 }}
         frameloop={active ? "always" : "never"}
         onCreated={handleCreated}
+        // Reserves vertical pan for page scroll; horizontal drag on the
+        // mark still reaches the pointer handlers instead of being
+        // swallowed by the browser's default touch scrolling.
+        style={{ touchAction: "pan-y" }}
       >
         <SceneLighting isDark={isDark} />
         <CaftonMark isDark={isDark} />

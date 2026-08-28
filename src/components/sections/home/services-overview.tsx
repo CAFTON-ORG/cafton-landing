@@ -33,10 +33,7 @@ const services = [
 
 export function ServicesOverview() {
   return (
-    <section
-      id="services"
-      className="relative overflow-hidden py-14 sm:py-16"
-    >
+    <section id="services" className="relative overflow-hidden py-14 sm:py-16 ">
       <PageShell>
         <Reveal className="max-w-2xl">
           <header className="flex flex-col gap-4">
@@ -44,18 +41,12 @@ export function ServicesOverview() {
               What we build
             </h2>
             <p className="text-pretty text-base text-muted-foreground sm:text-lg">
-              From a focused internal tool to a product used at scale, we
-              tailor the work to the problem.
+              From a focused internal tool to a product used at scale, we tailor
+              the work to the problem.
             </p>
           </header>
         </Reveal>
 
-        {/* A responsive grid rather than the previous single stacked
-            column: with no decorative element to fill a second column,
-            the section now uses its full width the same way at every
-            breakpoint instead of needing a distinct wide-desktop
-            composition. `border-t` dividers carry over the plain,
-            no-card-chrome treatment from the original list. */}
         <RevealGroup className="mt-10 grid grid-cols-1 gap-x-10 gap-y-8 sm:mt-12 sm:grid-cols-2">
           {services.map(({ icon: Icon, title, description }) => (
             <RevealItem

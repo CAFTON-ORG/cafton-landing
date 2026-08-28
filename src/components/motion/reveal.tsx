@@ -3,16 +3,13 @@
 import type { ReactNode } from "react";
 import { motion, useReducedMotion, type Variants } from "motion/react";
 
-/**
- * Shared, quiet scroll-reveal building blocks for general page/section
- * animation (not the 3D hero -- that stays on its own GSAP timeline).
- *
- * Respects prefers-reduced-motion: falls back to plain elements with no
- * animation, consistent with how the 3D hero already treats reduced motion
- * (see `useCanShow3D`).
- */
+// Shared scroll-reveal blocks for general page sections. The 3D hero has
+// its own timeline. Reduced motion falls back to plain elements.
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+const DURATION = 0.9;
+const ITEM_DURATION = 0.8;
+const STAGGER = 0.14;
 
 interface RevealProps {
   children: ReactNode;
@@ -37,7 +34,7 @@ export function Reveal({ children, className, delay = 0, y = 16 }: RevealProps) 
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, delay, ease: EASE_OUT }}
+      transition={{ duration: DURATION, delay, ease: EASE_OUT }}
     >
       {children}
     </motion.div>
@@ -47,13 +44,13 @@ export function Reveal({ children, className, delay = 0, y = 16 }: RevealProps) 
 const staggerContainer: Variants = {
   hidden: {},
   show: {
-    transition: { staggerChildren: 0.08 },
+    transition: { staggerChildren: STAGGER },
   },
 };
 
 const staggerItem: Variants = {
   hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_OUT } },
+  show: { opacity: 1, y: 0, transition: { duration: ITEM_DURATION, ease: EASE_OUT } },
 };
 
 interface RevealGroupProps {

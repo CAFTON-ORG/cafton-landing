@@ -21,9 +21,6 @@ export function PageShell({ children, className = "" }: PageShellProps) {
 export function PageHero({ children }: { children: ReactNode }) {
   return (
     <section className="relative overflow-hidden border-b bg-muted/30 py-20 sm:py-24 lg:py-28">
-      {/* Same dot-texture + soft ambient glow used by the homepage hero
-          and the closing CTA -- every page opens with the same quiet
-          visual signature instead of a flat gray band. */}
       <div className="pointer-events-none absolute inset-0">
         <DotPattern size="md" fadeStyle="ellipse" opacity="low" />
       </div>

@@ -23,17 +23,17 @@ const DISPLAY_SIZE = "text-[clamp(2.5rem,min(6.5vw,10vh),5.75rem)]";
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
-const ENTRANCE_DURATION = 0.95;
+const ENTRANCE_DURATION = 0.4;
 const ENTRANCE_DELAY = {
   line1: 0.1,
-  line2: 0.4,
+  line2: 0.1,
   subhead: 0.65,
   cta: 1.05,
 } as const;
 
 const HEADLINE_SWAP_THRESHOLD = 0.08;
 
-const SWAP_DELAY = { line1: 0, line2: 0.12 } as const;
+const SWAP_DELAY = { line1: 0.1, line2: 0.1 } as const;
 
 function entrance(delay: number) {
   return {

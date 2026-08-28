@@ -90,13 +90,13 @@ export function HomeHero() {
               {...anim(ENTRANCE_DELAY.line2)}
               className="block md:absolute md:right-8 md:top-[40%] md:max-w-[46%] md:text-right"
             >
-              with <span className="block">software.</span>
+              with <span className="block bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">software.</span>
             </motion.span>
           </h1>
 
           {/* The mark: its own band on mobile, full-bleed and centered from
-              md up, layered beneath the display type. Clickable -- see the
-              spin interaction in hero-scene.tsx. */}
+              md up, layered beneath the display type. Click and drag to
+              spin it -- see the drag interaction in hero-scene.tsx. */}
           <div className="relative z-10 min-h-0 md:absolute md:inset-0">
             <div
               aria-hidden="true"

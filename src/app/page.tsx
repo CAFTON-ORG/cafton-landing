@@ -3,6 +3,7 @@ import { HomeHero } from "@/components/sections/home/home-hero";
 import { ServicesOverview } from "@/components/sections/home/services-overview";
 import { Differentiators } from "@/components/sections/home/differentiators";
 import { FeaturedWork } from "@/components/sections/home/featured-work";
+import { LatestWriting } from "@/components/sections/home/latest-writing";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 
 // Only title/description/keywords are overridden here. Next.js merges
@@ -23,6 +24,7 @@ export default function LandingPage() {
       <ServicesOverview />
       <Differentiators />
       <FeaturedWork />
+      <LatestWriting />
       <ProjectCta />
     </>
   );

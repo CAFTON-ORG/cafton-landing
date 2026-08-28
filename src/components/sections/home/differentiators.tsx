@@ -27,41 +27,6 @@ const NUMBER_SIZE = "text-[clamp(4.5rem,min(20vw,36vh),12rem)]";
 
 const TITLE_SIZE = "text-[clamp(2rem,6vw,4.5rem)]";
 
-const TITLE_HALO =
-  "[text-shadow:0_0_20px_var(--background),0_0_20px_var(--background),0_0_20px_var(--background)]";
-
-const FLOATERS = [
-  { className: "right-[10%] top-[10%]", size: 14, duration: 7, delay: 0 },
-  { className: "right-[6%] top-[42%]", size: 10, duration: 9, delay: 1.1 },
-  { className: "left-[8%] bottom-[16%]", size: 18, duration: 8, delay: 0.5 },
-  { className: "left-[4%] bottom-[38%]", size: 12, duration: 6.5, delay: 1.8 },
-  { className: "right-[16%] top-[58%]", size: 9, duration: 10, delay: 0.3 },
-] as const;
-
-function Floaters() {
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 hidden md:block"
-    >
-      {FLOATERS.map((floater, index) => (
-        <motion.span
-          key={index}
-          className={`absolute rotate-45 border border-foreground/15 ${floater.className}`}
-          style={{ width: floater.size, height: floater.size }}
-          animate={{ y: [0, -16, 0], opacity: [0.35, 0.85, 0.35] }}
-          transition={{
-            duration: floater.duration,
-            delay: floater.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 const values = [
   {
     icon: Search,
@@ -178,13 +143,6 @@ function ScrollDifferentiators() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--foreground)_10%,transparent)_0%,transparent_55%)]"
         />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-0 top-1/2 h-px w-[140%] -translate-y-1/2 -rotate-2 border-t border-dashed border-foreground/15"
-        />
-
-        <Floaters />
-
         <div className="relative grid h-full grid-rows-[auto_1fr_auto] gap-6 px-5 pb-14 pt-8 md:block md:gap-0 md:p-0">
           <div className="pointer-events-none z-20 md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground md:absolute md:left-8 md:top-[2%]">
@@ -206,7 +164,7 @@ function ScrollDifferentiators() {
                   {number}
                 </span>
                 <h3
-                  className={`mt-3 flex items-center gap-3 font-black uppercase leading-[0.95] tracking-tight text-foreground ${TITLE_SIZE} ${TITLE_HALO}`}
+                  className={`mt-3 flex items-center gap-3 font-black uppercase leading-[0.95] tracking-tight ${TITLE_SIZE}`}
                 >
                   <active.icon className="size-8 shrink-0 md:size-10" aria-hidden="true" />
                   {active.title}

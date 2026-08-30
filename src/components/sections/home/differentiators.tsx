@@ -135,7 +135,7 @@ function ScrollDifferentiators() {
     <section id="why-cafton" ref={sectionRef} className="relative h-[400vh]">
       <h2 className="sr-only">Not just another development team</h2>
 
-      <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-hidden border-y">
+      <div className="sticky top-16 h-[calc(100dvh-4rem)] overflow-hidden border-y">
         <div className="pointer-events-none absolute inset-0">
           <DotPattern className="opacity-60" size="md" fadeStyle="ellipse" />
         </div>

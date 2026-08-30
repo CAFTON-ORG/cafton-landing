@@ -10,6 +10,7 @@ import { DotPattern } from "@/components/shared/dot-pattern";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { PageShell } from "@/components/layout/page-shell";
 import { useCanShow3D } from "@/hooks/use-can-show-3d";
+import { CanvasErrorBoundary } from "@/components/three/canvas-error-boundary";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -174,7 +175,9 @@ function ScrollDifferentiators() {
           </div>
 
           <div className="relative z-10 min-h-0 md:absolute md:inset-0">
-            <DifferentiatorsMark progressRef={progress} />
+            <CanvasErrorBoundary fallback={null}>
+              <DifferentiatorsMark progressRef={progress} />
+            </CanvasErrorBoundary>
           </div>
 
           <div className="pointer-events-none relative z-30 md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8">

@@ -29,8 +29,6 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  // Motion's scroll value rather than a raw window scroll listener, which
-  // runs a main-thread handler on every scroll frame.
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 8));
 

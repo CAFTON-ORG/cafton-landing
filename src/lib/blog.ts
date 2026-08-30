@@ -49,13 +49,6 @@ export function formatBlogDate(iso: string): string {
   });
 }
 
-/**
- * Reading time derived from the post's own words, at 200 wpm.
- *
- * Previously this was a hand-written string on each post and both were
- * roughly three times the real figure, which is exactly the kind of
- * invented-precision number the design skills flag.
- */
 export function readingTime(post: BlogPost): string {
   const words = post.content.join(" ").trim().split(/\s+/).length;
   return `${Math.max(1, Math.round(words / 200))} min read`;

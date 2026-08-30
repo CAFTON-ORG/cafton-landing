@@ -42,9 +42,6 @@ export const contactSchema = z.object({
     .trim()
     .min(1, "Tell us a bit about your project")
     .max(5_000),
-  // The type stays `<option> | ""` so an unselected dropdown (the
-  // default state) is representable at all, but `.refine` rejects that
-  // empty state at validation time -- both are now required.
   budget: z
     .enum(budgetRanges)
     .or(z.literal(""))
@@ -55,11 +52,7 @@ export const contactSchema = z.object({
     .refine((value) => value !== "", { message: "Select a timeline" }),
 });
 
-// `z.input`, not `z.output`/`z.infer`: the budget/timeline refinements
-// below narrow their *output* type to exclude "" (a real improvement --
-// a successful parse now genuinely guarantees a selection was made), but
-// the form's own state needs "" representable as the pre-selection
-// default, which only the input type still allows.
+
 export type ContactFormData = z.input<typeof contactSchema>;
 
 export const contactFormDefaults: ContactFormData = {

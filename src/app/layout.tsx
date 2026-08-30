@@ -57,7 +57,7 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="system" storageKey="nextjs-ui-theme">
           <SmoothScroll>
             <Navbar />
-            <div className="min-h-[100dvh] bg-background">
+            <div className="min-h-dvh bg-background">
               <main>{children}</main>
             </div>
             <Footer />

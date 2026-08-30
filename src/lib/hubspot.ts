@@ -10,7 +10,6 @@ type HubSpotSubmissionContext = {
 
 export type HubSpotSubmitResult = { ok: true } | { ok: false; message: string };
 
-/** Sends a verified contact request to HubSpot without exposing its configuration to the browser. */
 export async function submitContactToHubSpot(
   contact: ContactFormData,
   leadSource: string,

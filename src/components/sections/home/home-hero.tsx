@@ -10,6 +10,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DotPattern } from "@/components/shared/dot-pattern";
 import { useCanShow3D } from "@/hooks/use-can-show-3d";
+import { CanvasErrorBoundary } from "@/components/three/canvas-error-boundary";
 import { useInViewport } from "@/hooks/use-in-viewport";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -153,7 +154,11 @@ export function HomeHero() {
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--foreground)_12%,transparent)_0%,transparent_45%)]"
             />
-            {canShow3D && <HeroScene active={heroInViewport} />}
+            {canShow3D && (
+              <CanvasErrorBoundary fallback={null}>
+                <HeroScene active={heroInViewport} />
+              </CanvasErrorBoundary>
+            )}
           </div>
 
           <div className="pointer-events-none relative z-30 flex flex-col gap-5 md:absolute md:inset-0 md:mx-auto md:block md:max-w-7xl md:px-8">

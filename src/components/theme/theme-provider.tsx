@@ -1,25 +1,34 @@
 "use client"
 
 import * as React from "react"
-import { ThemeProviderContext } from "@/contexts/theme-context"
-
-type Theme = "dark" | "light" | "system"
+import { ThemeProviderContext, type Theme } from "@/contexts/theme-context"
 
 type ThemeProviderProps = {
   children: React.ReactNode
   defaultTheme?: Theme
+  /**
+   * Pins the site to one theme and ignores both the stored preference and
+   * the OS. Set this and the toggle becomes inert -- which is the point
+   * while the toggle is commented out of the navbar: a visitor who picked
+   * "light" on an earlier visit would otherwise stay stuck there with no
+   * way back. Remove the prop to restore normal switching.
+   */
+  forcedTheme?: Theme
   storageKey?: string
 }
 
 export function ThemeProvider({
   children,
   defaultTheme = "system",
+  forcedTheme,
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = React.useState<Theme>(
+  const [preference, setPreference] = React.useState<Theme>(
     () => (typeof window !== "undefined" && localStorage.getItem(storageKey) as Theme) || defaultTheme
   )
+
+  const theme = forcedTheme ?? preference
 
   React.useEffect(() => {
     if (typeof window === "undefined") return
@@ -47,11 +56,11 @@ export function ThemeProvider({
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
+    setTheme: (next: Theme) => {
       if (typeof window !== "undefined") {
-        localStorage.setItem(storageKey, theme)
+        localStorage.setItem(storageKey, next)
       }
-      setTheme(theme)
+      setPreference(next)
     },
   }
 

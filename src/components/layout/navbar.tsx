@@ -13,7 +13,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { ModeToggle } from "@/components/theme/mode-toggle";
+// Theme toggle disabled for now -- the site is pinned to dark in layout.tsx.
+// import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Logo } from "@/components/shared/logo";
 
 const navigationItems = [
@@ -73,7 +74,7 @@ export function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden xl:flex items-center space-x-2">
-          <ModeToggle variant="ghost" />
+          {/* <ModeToggle variant="ghost" /> */}
           <Button asChild className="group cursor-pointer">
             <Link href="/contact">
               Contact Us
@@ -103,7 +104,7 @@ export function Navbar() {
                   </div>
                   <SheetTitle className="sr-only">CAFTON</SheetTitle>
                   <div className="ml-auto flex items-center gap-2">
-                    <ModeToggle variant="ghost" />
+                    {/* <ModeToggle variant="ghost" /> */}
                     <Button
                       variant="ghost"
                       size="icon"

@@ -45,6 +45,10 @@ export async function submitContactToHubSpot(
           context,
         }),
         cache: "no-store",
+        // Without this a stalled HubSpot connection holds the request
+        // open indefinitely -- one slow dependency shouldn't be able to
+        // pin server resources.
+        signal: AbortSignal.timeout(10_000),
       },
     );
 

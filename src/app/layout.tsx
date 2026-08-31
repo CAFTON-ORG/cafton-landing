@@ -50,11 +50,22 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} antialiased`}
+      // "dark" is rendered server-side so the first paint is already dark --
+      // the provider only applies the class after mount, which would flash
+      // light first. Remove alongside forcedTheme when the toggle returns.
+      className={`dark ${inter.variable} antialiased`}
+      style={{ colorScheme: "dark" }}
       data-scroll-behavior="smooth"
     >
       <body className={inter.className}>
-        <ThemeProvider defaultTheme="system" storageKey="nextjs-ui-theme">
+        {/* Theme toggle is commented out of the navbar for now -- forcedTheme pins
+            the site to dark and ignores any previously stored preference.
+            Drop `forcedTheme` (and restore the navbar toggle) to re-enable. */}
+        <ThemeProvider
+          defaultTheme="dark"
+          forcedTheme="dark"
+          storageKey="nextjs-ui-theme"
+        >
           <SmoothScroll>
             <Navbar />
             <div className="min-h-dvh bg-background">

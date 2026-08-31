@@ -11,6 +11,7 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { PageShell } from "@/components/layout/page-shell";
 import { useCanShow3D } from "@/hooks/use-can-show-3d";
 import { CanvasErrorBoundary } from "@/components/three/canvas-error-boundary";
+import { ScrollScrubVideo } from "@/components/sections/home/scroll-scrub-video";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -137,6 +138,11 @@ function ScrollDifferentiators() {
       <h2 className="sr-only">Not just another development team</h2>
 
       <div className="sticky top-16 h-[calc(100dvh-4rem)] overflow-hidden border-y">
+        <ScrollScrubVideo
+          progressRef={progress}
+          className="absolute inset-0 h-full w-full"
+        />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-background/70" />
         <div className="pointer-events-none absolute inset-0">
           <DotPattern className="opacity-60" size="md" fadeStyle="ellipse" />
         </div>

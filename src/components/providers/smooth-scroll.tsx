@@ -45,7 +45,7 @@ interface SmoothScrollProps {
 // real `window` (via window.scrollTo under the hood, not a transformed
 // wrapper div) -- this is what keeps it compatible with the hero's
 // `position: sticky` pinning. Skipped entirely for prefers-reduced-motion,
-// same convention as Magnetic and Reveal: those users get plain native
+// same convention as Reveal: those users get plain native
 // scroll rather than a disabled-but-still-mounted smoothing layer.
 export function SmoothScroll({ children }: SmoothScrollProps) {
   const reduceMotion = useReducedMotion();

@@ -1,35 +1,8 @@
 "use client";
 
-import { Cloud, Code2, MonitorSmartphone, Smartphone } from "lucide-react";
 import { PageShell } from "@/components/layout/page-shell";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-
-const services = [
-  {
-    icon: Code2,
-    title: "Custom Software",
-    description:
-      "Purpose-built systems designed around your organization's workflows.",
-  },
-  {
-    icon: MonitorSmartphone,
-    title: "Web Applications",
-    description:
-      "Platforms, dashboards, portals, and business systems accessible from the web.",
-  },
-  {
-    icon: Smartphone,
-    title: "Mobile Applications",
-    description:
-      "Mobile experiences for customers, employees, field teams, and communities.",
-  },
-  {
-    icon: Cloud,
-    title: "SaaS & Digital Products",
-    description:
-      "Scalable software products designed to solve recurring problems.",
-  },
-];
+import { services } from "@/lib/services";
 
 export function ServicesOverview() {
   return (

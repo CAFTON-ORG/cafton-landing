@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { Check, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,8 +24,35 @@ import {
   type ContactFormData,
 } from "@/lib/contact";
 import { Turnstile } from "@/components/shared/turnstile";
+import { cn } from "@/lib/utils";
 
 type FieldErrors = Partial<Record<keyof ContactFormData, string>>;
+
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
+const STEPS = [
+  { id: "details", label: "Your details" },
+  { id: "project", label: "Your project" },
+  { id: "budget", label: "Budget & timeline" },
+] as const;
+
+const stepFields: (keyof ContactFormData)[][] = [
+  ["firstName", "lastName", "email", "phone", "organization"],
+  ["projectType", "project"],
+  ["budget", "timeline"],
+];
+
+const stepSchemas = [
+  contactSchema.pick({
+    firstName: true,
+    lastName: true,
+    email: true,
+    phone: true,
+    organization: true,
+  }),
+  contactSchema.pick({ projectType: true, project: true }),
+  contactSchema.pick({ budget: true, timeline: true }),
+];
 
 type ContactFormProps = {
   /** Value sent as the `website_lead_source` HubSpot property, e.g. "Homepage" or "Contact Us Page". */
@@ -38,8 +67,22 @@ export function ContactForm({
   pageName,
   className = "",
 }: ContactFormProps) {
-  const [formData, setFormData] =
-    useState<ContactFormData>(contactFormDefaults);
+  const searchParams = useSearchParams();
+  const reduceMotion = useReducedMotion();
+
+  // Arriving from the hero's build-and-pick flow -- a chosen service
+  // (?type=...) is pre-selected outright, computed as the initial state
+  // itself (searchParams is already available on first render) rather
+  // than corrected afterward in an effect. The form always still opens on
+  // step 1 at the top of the page -- no jumping ahead or scrolling down.
+  const [formData, setFormData] = useState<ContactFormData>(() => {
+    const type = searchParams.get("type");
+    if (type && projectTypes.includes(type as ContactFormData["projectType"])) {
+      return { ...contactFormDefaults, projectType: type as ContactFormData["projectType"] };
+    }
+    return contactFormDefaults;
+  });
+  const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<
     "idle" | "submitting" | "success" | "error"
@@ -81,8 +124,41 @@ export function ContactForm({
     }
   };
 
+  const validateStep = (index: number): boolean => {
+    const result = stepSchemas[index].safeParse(formData);
+    if (result.success) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        for (const field of stepFields[index]) delete next[field];
+        return next;
+      });
+      return true;
+    }
+    const stepErrors: FieldErrors = {};
+    for (const issue of result.error.issues) {
+      const key = issue.path[0] as keyof ContactFormData;
+      if (!stepErrors[key]) stepErrors[key] = issue.message;
+    }
+    setErrors((prev) => ({ ...prev, ...stepErrors }));
+    return false;
+  };
+
+  const handleNext = () => {
+    if (validateStep(step)) setStep((current) => current + 1);
+  };
+
+  const handleBack = () => setStep((current) => Math.max(0, current - 1));
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // Enter pressed inside an earlier step's field submits the form
+    // natively -- treat that the same as pressing "Next" instead of
+    // attempting a real submission before the later steps are filled.
+    if (step < STEPS.length - 1) {
+      handleNext();
+      return;
+    }
 
     const result = contactSchema.safeParse(formData);
     if (!result.success) {
@@ -126,6 +202,7 @@ export function ContactForm({
       if (response.ok && submission?.ok) {
         setStatus("success");
         setFormData(contactFormDefaults);
+        setStep(0);
         return;
       }
 
@@ -166,196 +243,279 @@ export function ContactForm({
     );
   }
 
+  const stepAnim = (direction: 1 | -1) =>
+    reduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, x: 16 * direction },
+          animate: { opacity: 1, x: 0 },
+          exit: { opacity: 0, x: -16 * direction },
+          transition: { duration: 0.3, ease: EASE_OUT },
+        };
+
   return (
     <form
       className={`grid gap-6 rounded-xl border bg-card p-6 sm:p-8 ${className}`}
       onSubmit={handleSubmit}
       noValidate
     >
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="firstName">First name</Label>
-          <Input
-            id="firstName"
-            name="firstName"
-            autoComplete="given-name"
-            value={formData.firstName}
-            onChange={handleChange}
-            aria-invalid={!!errors.firstName}
-            aria-describedby={errors.firstName ? "firstName-error" : undefined}
-          />
-          {errors.firstName && (
-            <p id="firstName-error" className="text-sm text-destructive">
-              {errors.firstName}
-            </p>
-          )}
+      <div>
+        <div className="mb-3 flex items-center">
+          {STEPS.map((s, index) => (
+            <div key={s.id} className="flex flex-1 items-center last:flex-initial">
+              <div
+                className={cn(
+                  "flex size-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors",
+                  index === step
+                    ? "border-foreground bg-foreground text-background"
+                    : index < step
+                      ? "border-foreground/40 text-foreground"
+                      : "border-border text-muted-foreground",
+                )}
+              >
+                {index < step ? <Check className="size-4" aria-hidden="true" /> : index + 1}
+              </div>
+              {index < STEPS.length - 1 && (
+                <div
+                  className={cn(
+                    "mx-2 h-px flex-1 transition-colors",
+                    index < step ? "bg-foreground/40" : "bg-border",
+                  )}
+                />
+              )}
+            </div>
+          ))}
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="lastName">Last name</Label>
-          <Input
-            id="lastName"
-            name="lastName"
-            autoComplete="family-name"
-            value={formData.lastName}
-            onChange={handleChange}
-            aria-invalid={!!errors.lastName}
-            aria-describedby={errors.lastName ? "lastName-error" : undefined}
-          />
-          {errors.lastName && (
-            <p id="lastName-error" className="text-sm text-destructive">
-              {errors.lastName}
-            </p>
-          )}
-        </div>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Step {step + 1} of {STEPS.length} &mdash; {STEPS[step].label}
+        </p>
       </div>
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            name="email"
-            autoComplete="email"
-            value={formData.email}
-            onChange={handleChange}
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? "email-error" : undefined}
-          />
-          {errors.email && (
-            <p id="email-error" className="text-sm text-destructive">
-              {errors.email}
-            </p>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="phone">
-            Phone <span className="text-muted-foreground">(optional)</span>
-          </Label>
-          <Input
-            id="phone"
-            type="tel"
-            name="phone"
-            autoComplete="tel"
-            value={formData.phone}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="organization">
-          Organization <span className="text-muted-foreground">(optional)</span>
-        </Label>
-        <Input
-          id="organization"
-          name="organization"
-          autoComplete="organization"
-          value={formData.organization}
-          onChange={handleChange}
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="projectType">Project type</Label>
-        <Select
-          value={formData.projectType}
-          onValueChange={handleProjectTypeChange}
-        >
-          <SelectTrigger id="projectType" className="w-full">
-            <SelectValue placeholder="Select a project type" />
-          </SelectTrigger>
-          <SelectContent>
-            {projectTypes.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="project">Tell us about your project</Label>
-        <Textarea
-          id="project"
-          name="project"
-          rows={6}
-          value={formData.project}
-          onChange={handleChange}
-          aria-invalid={!!errors.project}
-          aria-describedby={errors.project ? "project-error" : undefined}
-        />
-        {errors.project && (
-          <p id="project-error" className="text-sm text-destructive">
-            {errors.project}
-          </p>
+
+      <AnimatePresence mode="wait" initial={false}>
+        {step === 0 && (
+          <motion.div key="step-details" {...stepAnim(1)} className="grid gap-6">
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="firstName">First name</Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  autoComplete="given-name"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  aria-invalid={!!errors.firstName}
+                  aria-describedby={errors.firstName ? "firstName-error" : undefined}
+                />
+                {errors.firstName && (
+                  <p id="firstName-error" className="text-sm text-destructive">
+                    {errors.firstName}
+                  </p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="lastName">Last name</Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  autoComplete="family-name"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  aria-invalid={!!errors.lastName}
+                  aria-describedby={errors.lastName ? "lastName-error" : undefined}
+                />
+                {errors.lastName && (
+                  <p id="lastName-error" className="text-sm text-destructive">
+                    {errors.lastName}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? "email-error" : undefined}
+                />
+                {errors.email && (
+                  <p id="email-error" className="text-sm text-destructive">
+                    {errors.email}
+                  </p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="phone">
+                  Phone <span className="text-muted-foreground">(optional)</span>
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  name="phone"
+                  autoComplete="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="organization">
+                Organization <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                id="organization"
+                name="organization"
+                autoComplete="organization"
+                value={formData.organization}
+                onChange={handleChange}
+              />
+            </div>
+          </motion.div>
         )}
-      </div>
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="grid gap-2">
-          <Label htmlFor="budget">Budget range</Label>
-          <Select value={formData.budget} onValueChange={handleBudgetChange}>
-            <SelectTrigger
-              id="budget"
-              className="w-full"
-              aria-invalid={!!errors.budget}
-              aria-describedby={errors.budget ? "budget-error" : undefined}
-            >
-              <SelectValue placeholder="Select a budget range" />
-            </SelectTrigger>
-            <SelectContent>
-              {budgetRanges.map((range) => (
-                <SelectItem key={range} value={range}>
-                  {range}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.budget && (
-            <p id="budget-error" className="text-sm text-destructive">
-              {errors.budget}
-            </p>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="timeline">Timeline</Label>
-          <Select value={formData.timeline} onValueChange={handleTimelineChange}>
-            <SelectTrigger
-              id="timeline"
-              className="w-full"
-              aria-invalid={!!errors.timeline}
-              aria-describedby={errors.timeline ? "timeline-error" : undefined}
-            >
-              <SelectValue placeholder="Select a timeline" />
-            </SelectTrigger>
-            <SelectContent>
-              {timelines.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.timeline && (
-            <p id="timeline-error" className="text-sm text-destructive">
-              {errors.timeline}
-            </p>
-          )}
-        </div>
-      </div>
-      <Turnstile onTokenChange={setTurnstileToken} />
+
+        {step === 1 && (
+          <motion.div key="step-project" {...stepAnim(1)} className="grid gap-6">
+            <div className="grid gap-2">
+              <Label htmlFor="projectType">
+                What service would you like to inquire?
+              </Label>
+              <Select
+                value={formData.projectType}
+                onValueChange={handleProjectTypeChange}
+              >
+                <SelectTrigger id="projectType" className="w-full">
+                  <SelectValue placeholder="Select a project type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="project">Tell us about your project</Label>
+              <Textarea
+                id="project"
+                name="project"
+                rows={6}
+                value={formData.project}
+                onChange={handleChange}
+                aria-invalid={!!errors.project}
+                aria-describedby={errors.project ? "project-error" : undefined}
+              />
+              {errors.project && (
+                <p id="project-error" className="text-sm text-destructive">
+                  {errors.project}
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {step === 2 && (
+          <motion.div key="step-budget" {...stepAnim(1)} className="grid gap-6">
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="budget">Budget range</Label>
+                <Select value={formData.budget} onValueChange={handleBudgetChange}>
+                  <SelectTrigger
+                    id="budget"
+                    className="w-full"
+                    aria-invalid={!!errors.budget}
+                    aria-describedby={errors.budget ? "budget-error" : undefined}
+                  >
+                    <SelectValue placeholder="Select a budget range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {budgetRanges.map((range) => (
+                      <SelectItem key={range} value={range}>
+                        {range}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.budget && (
+                  <p id="budget-error" className="text-sm text-destructive">
+                    {errors.budget}
+                  </p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="timeline">Timeline</Label>
+                <Select value={formData.timeline} onValueChange={handleTimelineChange}>
+                  <SelectTrigger
+                    id="timeline"
+                    className="w-full"
+                    aria-invalid={!!errors.timeline}
+                    aria-describedby={errors.timeline ? "timeline-error" : undefined}
+                  >
+                    <SelectValue placeholder="Select a timeline" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timelines.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.timeline && (
+                  <p id="timeline-error" className="text-sm text-destructive">
+                    {errors.timeline}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Turnstile onTokenChange={setTurnstileToken} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {status === "error" && (
         <p role="alert" className="text-sm text-destructive">
           {errorMessage}
         </p>
       )}
-      <Button
-        type="submit"
-        disabled={status === "submitting"}
-        className="cursor-pointer"
-      >
-        {status === "submitting" && (
-          <Loader2 className="animate-spin motion-reduce:animate-none" />
+
+      <div className="flex items-center justify-between gap-3">
+        {step > 0 ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="cursor-pointer"
+            onClick={handleBack}
+          >
+            Back
+          </Button>
+        ) : (
+          <span />
         )}
-        {status === "submitting" ? "Sending..." : "Send Inquiry"}
-      </Button>
+
+        {step < STEPS.length - 1 ? (
+          <Button type="button" className="cursor-pointer" onClick={handleNext}>
+            Next
+          </Button>
+        ) : (
+          <Button
+            type="submit"
+            disabled={status === "submitting"}
+            className="cursor-pointer"
+          >
+            {status === "submitting" && (
+              <Loader2 className="animate-spin motion-reduce:animate-none" />
+            )}
+            {status === "submitting" ? "Sending..." : "Send Inquiry"}
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

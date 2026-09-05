@@ -1,26 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Group, MathUtils, Mesh, Vector3 } from "three";
+import { Group, MathUtils, Mesh, MeshStandardMaterial, PointLight, Vector3 } from "three";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
-import { useHeroScrollStore } from "@/lib/hero-scroll-store";
 import { buildCaftonMarkFacets, MARK_COLOR } from "@/lib/cafton-mark-geometry";
-
-gsap.registerPlugin(ScrollTrigger);
-
-function easeInOutCubic(t: number) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
 
 const MARK_SCALE = 1 / 14;
 const EXTRUDE_DEPTH = 6;
 
 const BASE_Y = -0.1;
-
-const REVEAL_END = 0.65;
 
 const SCATTER_FACE_Y = -0.5;
 
@@ -37,6 +27,16 @@ const INERTIA_DAMPING = 0.94;
 
 const INERTIA_MIN_VELOCITY = 0.0002;
 
+/** Movement/time budget for a pointer-down+up pair to still count as a click rather than a drag. */
+const CLICK_MOVE_TOLERANCE_PX = 6;
+const CLICK_TIME_TOLERANCE_MS = 450;
+
+const BUILD_DURATION = 1.1;
+const GLOW_PEAK_DURATION = 0.45;
+const GLOW_SETTLE_DURATION = 0.65;
+const GLOW_REST_INTENSITY = 0.18;
+const POST_BUILD_HOLD_MS = 550;
+
 interface FacetSeed {
   scatter: Vector3;
   scatterRotation: Vector3;
@@ -44,20 +44,27 @@ interface FacetSeed {
   wobbleOffset: number;
 }
 
-function randomSeed(): FacetSeed {
+/**
+ * Fixed per-facet scatter, keyed only by the facet's own index -- the
+ * same arrangement every load, rather than a fresh `Math.random()` roll
+ * each mount. The mark is meant to read as one deliberately-designed
+ * "shattered" resting state, not a different random pile every visit.
+ */
+function seededScatter(index: number, total: number): FacetSeed {
+  const angle = (index / total) * Math.PI * 2;
   return {
     scatter: new Vector3(
-      (Math.random() - 0.5) * 2.2,
-      (Math.random() - 0.5) * 2.2,
-      (Math.random() - 0.5) * 1.6
+      Math.cos(angle) * 1.7,
+      Math.sin(angle * 1.3) * 1.4,
+      Math.sin(angle) * 1.0
     ),
     scatterRotation: new Vector3(
-      (Math.random() - 0.5) * Math.PI,
-      (Math.random() - 0.5) * Math.PI,
-      (Math.random() - 0.5) * Math.PI
+      Math.sin(angle) * Math.PI * 0.6,
+      Math.cos(angle * 0.7) * Math.PI * 0.6,
+      Math.sin(angle * 1.5) * Math.PI * 0.6
     ),
-    wobbleSpeed: 0.3 + Math.random() * 0.5,
-    wobbleOffset: Math.random() * Math.PI * 2,
+    wobbleSpeed: 0.3 + (index % 3) * 0.12,
+    wobbleOffset: angle,
   };
 }
 
@@ -71,16 +78,25 @@ function SceneLighting({ isDark }: { isDark: boolean }) {
   );
 }
 
-function CaftonMark({ isDark }: { isDark: boolean }) {
+interface CaftonMarkProps {
+  isDark: boolean;
+  /** Fired the instant a click is recognized, before the build tween starts. */
+  onBuildStart?: () => void;
+  /** Fired once the build has finished and held for a beat. */
+  onBuildComplete?: () => void;
+}
+
+function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) {
   const groupRef = useRef<Group>(null);
   const facetRefs = useRef<(Mesh | null)[]>([]);
+  const glowLightRef = useRef<PointLight>(null);
 
   const geometries = useMemo(
     () => buildCaftonMarkFacets(MARK_SCALE, EXTRUDE_DEPTH),
     []
   );
   const seeds = useMemo<FacetSeed[]>(
-    () => geometries.map(() => randomSeed()),
+    () => geometries.map((_, i) => seededScatter(i, geometries.length)),
     [geometries]
   );
 
@@ -97,17 +113,26 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
   const hovering = useRef(false);
   const hoverScale = useRef(1);
 
+  const built = useRef(false);
+  const building = useRef(false);
+  /** Tweened by GSAP on click -- read directly in the frame loop, not via React state. */
+  const build = useRef({ progress: 0, glow: 0 });
+
   /**
-   * Click-drag rotation. `rotationX/Y` are the accumulated offset applied
-   * on top of the scroll-driven resolve rotation; `velocityX/Y` is the
-   * last frame's drag speed, which keeps driving `rotationX/Y` after
-   * release (decayed by `INERTIA_DAMPING`) so a flick coasts to a stop
-   * instead of halting the instant the pointer lifts.
+   * Click-drag rotation, plus the click-vs-drag disambiguation for the
+   * build trigger below. `rotationX/Y` are the accumulated offset applied
+   * on top of the mark's own settle rotation; `velocityX/Y` is the last
+   * frame's drag speed, which keeps driving `rotationX/Y` after release
+   * (decayed by `INERTIA_DAMPING`) so a flick coasts to a stop instead of
+   * halting the instant the pointer lifts.
    */
   const drag = useRef({
     active: false,
     lastX: 0,
     lastY: 0,
+    downX: 0,
+    downY: 0,
+    downTime: 0,
     velocityX: 0,
     velocityY: 0,
     rotationX: 0,
@@ -119,6 +144,28 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
       document.body.style.cursor = "";
     };
   }, []);
+
+  const triggerBuild = useCallback(() => {
+    if (built.current || building.current) return;
+    building.current = true;
+    onBuildStart?.();
+
+    gsap
+      .timeline({
+        onComplete: () => {
+          built.current = true;
+          building.current = false;
+          window.setTimeout(() => onBuildComplete?.(), POST_BUILD_HOLD_MS);
+        },
+      })
+      .to(build.current, { progress: 1, duration: BUILD_DURATION, ease: "power3.inOut" }, 0)
+      .to(build.current, { glow: 1, duration: GLOW_PEAK_DURATION, ease: "power2.out" }, 0)
+      .to(
+        build.current,
+        { glow: GLOW_REST_INTENSITY, duration: GLOW_SETTLE_DURATION, ease: "power2.inOut" },
+        GLOW_PEAK_DURATION
+      );
+  }, [onBuildStart, onBuildComplete]);
 
   // Registered on window (not the mesh) so the drag keeps tracking even
   // when the pointer moves off the mark mid-gesture.
@@ -140,9 +187,16 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
       );
     };
 
-    const handlePointerUp = () => {
-      drag.current.active = false;
-      document.body.style.cursor = hovering.current ? "grab" : "";
+    const handlePointerUp = (event: PointerEvent) => {
+      const d = drag.current;
+      const moved = Math.hypot(event.clientX - d.downX, event.clientY - d.downY);
+      const elapsed = performance.now() - d.downTime;
+      d.active = false;
+      document.body.style.cursor = hovering.current ? (built.current ? "grab" : "pointer") : "";
+
+      if (moved < CLICK_MOVE_TOLERANCE_PX && elapsed < CLICK_TIME_TOLERANCE_MS) {
+        triggerBuild();
+      }
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -151,15 +205,13 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, []);
+  }, [triggerBuild]);
 
   useFrame((state, delta) => {
     const group = groupRef.current;
     if (!group) return;
 
-    const progress = useHeroScrollStore.getState().progress;
-    const revealProgress = Math.min(progress / REVEAL_END, 1);
-    const eased = easeInOutCubic(revealProgress);
+    const eased = build.current.progress;
     const unresolved = 1 - eased;
     const t = state.clock.elapsedTime;
 
@@ -201,6 +253,10 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
     group.position.z = eased * 0.6;
     group.scale.setScalar((1 + eased * 0.15) * hoverScale.current);
 
+    if (glowLightRef.current) {
+      glowLightRef.current.intensity = build.current.glow * 3;
+    }
+
     facetRefs.current.forEach((mesh, i) => {
       if (!mesh) return;
       const seed = seeds[i];
@@ -216,6 +272,8 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
         seed.scatterRotation.y * magnitude,
         seed.scatterRotation.z * magnitude
       );
+      const material = mesh.material as MeshStandardMaterial;
+      material.emissiveIntensity = build.current.glow;
     });
   });
 
@@ -228,19 +286,25 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
         d.active = true;
         d.lastX = event.clientX;
         d.lastY = event.clientY;
+        d.downX = event.clientX;
+        d.downY = event.clientY;
+        d.downTime = performance.now();
         d.velocityX = 0;
         d.velocityY = 0;
         document.body.style.cursor = "grabbing";
       }}
       onPointerOver={() => {
         hovering.current = true;
-        if (!drag.current.active) document.body.style.cursor = "grab";
+        if (!drag.current.active) {
+          document.body.style.cursor = built.current ? "grab" : "pointer";
+        }
       }}
       onPointerOut={() => {
         hovering.current = false;
         if (!drag.current.active) document.body.style.cursor = "";
       }}
     >
+      <pointLight ref={glowLightRef} position={[0, 0, 3]} intensity={0} distance={9} color="#ffffff" />
       {geometries.map((geometry, i) => (
         <mesh
           key={i}
@@ -251,6 +315,8 @@ function CaftonMark({ isDark }: { isDark: boolean }) {
         >
           <meshStandardMaterial
             color={isDark ? MARK_COLOR.dark : MARK_COLOR.light}
+            emissive="#ffffff"
+            emissiveIntensity={0}
             flatShading
             roughness={isDark ? 0.4 : 0.32}
             metalness={isDark ? 0.05 : 0.15}
@@ -267,27 +333,13 @@ interface HeroSceneProps {
    * the Canvas itself stays mounted.
    */
   active: boolean;
+  onBuildStart?: () => void;
+  onBuildComplete?: () => void;
 }
 
-export function HeroScene({ active }: HeroSceneProps) {
+export function HeroScene({ active, onBuildStart, onBuildComplete }: HeroSceneProps) {
   const theme = useResolvedTheme();
   const isDark = theme === "dark";
-
-  useEffect(() => {
-    const trigger = ScrollTrigger.create({
-      trigger: "#hero",
-      start: "top top",
-      end: "bottom top",
-      scrub: 1,
-      onUpdate: (self) => {
-        useHeroScrollStore.getState().setProgress(self.progress);
-      },
-    });
-
-    return () => {
-      trigger.kill();
-    };
-  }, []);
 
   const handleCreated = ({ gl }: { gl: { domElement: HTMLCanvasElement } }) => {
     gl.domElement.addEventListener(
@@ -320,7 +372,7 @@ export function HeroScene({ active }: HeroSceneProps) {
         style={{ touchAction: "pan-y" }}
       >
         <SceneLighting isDark={isDark} />
-        <CaftonMark isDark={isDark} />
+        <CaftonMark isDark={isDark} onBuildStart={onBuildStart} onBuildComplete={onBuildComplete} />
       </Canvas>
     </div>
   );

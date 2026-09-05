@@ -2,7 +2,6 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DotPattern } from "@/components/shared/dot-pattern";
-import { Magnetic } from "@/components/motion/magnetic";
 import { Reveal } from "@/components/motion/reveal";
 
 export function ProjectCta() {
@@ -29,14 +28,12 @@ export function ProjectCta() {
                 you figure out what technology can do about it.
               </p>
               <div className="mt-9 flex justify-center">
-                <Magnetic>
-                  <Button size="lg" className="cursor-pointer group" asChild>
-                    <Link href="/contact">
-                      Contact Us
-                      <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
-                    </Link>
-                  </Button>
-                </Magnetic>
+                <Button size="lg" className="cursor-pointer group" asChild>
+                  <Link href="/contact">
+                    Contact Us
+                    <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>

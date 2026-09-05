@@ -2,9 +2,8 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,8 +11,7 @@ import { DotPattern } from "@/components/shared/dot-pattern";
 import { useCanShow3D } from "@/hooks/use-can-show-3d";
 import { CanvasErrorBoundary } from "@/components/three/canvas-error-boundary";
 import { useInViewport } from "@/hooks/use-in-viewport";
-
-gsap.registerPlugin(ScrollTrigger);
+import { ServiceSelectOverlay } from "@/components/sections/home/service-select-overlay";
 
 const HeroScene = dynamic(
   () => import("@/components/three/hero-scene").then((mod) => mod.HeroScene),
@@ -32,8 +30,6 @@ const ENTRANCE_DELAY = {
   cta: 1.05,
 } as const;
 
-const HEADLINE_SWAP_THRESHOLD = 0.08;
-
 const SWAP_DELAY = { line1: 0.1, line2: 0.1 } as const;
 
 function entrance(delay: number) {
@@ -45,40 +41,37 @@ function entrance(delay: number) {
 }
 
 export function HomeHero() {
+  const router = useRouter();
   const canShow3D = useCanShow3D();
   const reduceMotion = useReducedMotion();
   const [heroRef, heroInViewport] = useInViewport<HTMLElement>();
-  const [showPayoff, setShowPayoff] = useState(false);
-  const lastShowPayoff = useRef(false);
+  const [built, setBuilt] = useState(false);
+  const [showServiceSelect, setShowServiceSelect] = useState(false);
 
   const anim = (delay: number) => (reduceMotion ? {} : entrance(delay));
 
-  useEffect(() => {
-    const trigger = ScrollTrigger.create({
-      trigger: "#hero",
-      start: "top top",
-      end: "bottom top",
-      onUpdate: (self) => {
-        const next = self.progress > HEADLINE_SWAP_THRESHOLD;
-        if (next !== lastShowPayoff.current) {
-          lastShowPayoff.current = next;
-          setShowPayoff(next);
-        }
-      },
-    });
-
-    return () => {
-      trigger.kill();
-    };
+  const handleBuildComplete = useCallback(() => {
+    setShowServiceSelect(true);
   }, []);
 
+  const handleServiceProceed = useCallback(
+    (projectType: string) => {
+      router.push(`/contact?type=${encodeURIComponent(projectType)}`);
+    },
+    [router],
+  );
+
+  const handleServiceSkip = useCallback(() => {
+    router.push("/contact");
+  }, [router]);
+
   return (
-    <section
-      id="hero"
-      ref={heroRef}
-      className="relative h-[200vh] md:h-[320vh]"
-    >
-      <div className="sticky top-16 h-[calc(100dvh-4rem)] overflow-hidden bg-linear-to-b from-background to-background/80">
+    <>
+      <section
+        id="hero"
+        ref={heroRef}
+        className="relative h-[calc(100dvh-4rem)] overflow-hidden bg-linear-to-b from-background to-background/80"
+      >
         <div className="absolute inset-0">
           <DotPattern className="opacity-100" size="md" fadeStyle="ellipse" />
         </div>
@@ -97,7 +90,7 @@ export function HomeHero() {
           >
             <span className="block md:absolute md:left-8 md:top-[10%] md:max-w-[46%]">
               <AnimatePresence mode="wait" initial={!reduceMotion}>
-                {showPayoff ? (
+                {built ? (
                   <motion.span
                     key="line1-payoff"
                     {...(reduceMotion ? {} : entrance(SWAP_DELAY.line1))}
@@ -120,7 +113,7 @@ export function HomeHero() {
             </span>
             <span className="block md:absolute md:right-8 md:top-[40%] md:max-w-[46%] md:text-right">
               <AnimatePresence mode="wait" initial={!reduceMotion}>
-                {showPayoff ? (
+                {built ? (
                   <motion.span
                     key="line2-payoff"
                     {...(reduceMotion ? {} : entrance(SWAP_DELAY.line2))}
@@ -156,7 +149,11 @@ export function HomeHero() {
             />
             {canShow3D && (
               <CanvasErrorBoundary fallback={null}>
-                <HeroScene active={heroInViewport} />
+                <HeroScene
+                  active={heroInViewport}
+                  onBuildStart={() => setBuilt(true)}
+                  onBuildComplete={handleBuildComplete}
+                />
               </CanvasErrorBoundary>
             )}
           </div>
@@ -194,7 +191,10 @@ export function HomeHero() {
             </motion.div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+      {showServiceSelect && (
+        <ServiceSelectOverlay onProceed={handleServiceProceed} onSkip={handleServiceSkip} />
+      )}
+    </>
   );
 }

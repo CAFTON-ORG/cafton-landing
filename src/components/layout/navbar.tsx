@@ -18,11 +18,8 @@ import {
 import { Logo } from "@/components/shared/logo";
 
 const navigationItems = [
-  { name: "Home", href: "/" },
-
   { name: "About", href: "/about" },
   { name: "Portfolio", href: "/portfolio" },
-  { name: "Partnerships", href: "/partnerships" },
   { name: "Blog", href: "/blog" },
 ];
 

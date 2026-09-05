@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import {
   PageHero,
   PageSection,
@@ -68,7 +69,16 @@ export default function ContactPage() {
               </div>
             </Reveal>
             <Reveal delay={0.1}>
-              <ContactForm leadSource="Contact Us Page" pageName="Contact Us" />
+              <Suspense
+                fallback={
+                  <div
+                    aria-hidden="true"
+                    className="h-168 animate-pulse rounded-xl border bg-card"
+                  />
+                }
+              >
+                <ContactForm leadSource="Contact Us Page" pageName="Contact Us" />
+              </Suspense>
             </Reveal>
           </div>
         </PageShell>

@@ -13,7 +13,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-// Theme toggle disabled for now -- the site is pinned to dark in layout.tsx.
+// Theme toggle removed -- the site is pinned to dark only (forcedTheme in
+// layout.tsx). Restoring it is a two-line change: uncomment this import and
+// its two usages below.
 // import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Logo } from "@/components/shared/logo";
 
@@ -22,6 +24,18 @@ const navigationItems = [
   { name: "Portfolio", href: "/portfolio" },
   { name: "Blog", href: "/blog" },
 ];
+
+/** Corner-bracket hover accent, the same game-UI-reticle nod `ServiceSelectOverlay`'s tiles use -- fades in on hover/focus of the parent `group`. */
+function CornerBrackets() {
+  return (
+    <>
+      <span className="pointer-events-none absolute left-0.5 top-0.5 size-1.5 border-l border-t border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
+      <span className="pointer-events-none absolute right-0.5 top-0.5 size-1.5 border-r border-t border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
+      <span className="pointer-events-none absolute bottom-0.5 left-0.5 size-1.5 border-b border-l border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
+      <span className="pointer-events-none absolute bottom-0.5 right-0.5 size-1.5 border-b border-r border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
+    </>
+  );
+}
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -58,12 +72,13 @@ export function Navbar() {
               key={item.name}
               href={item.href}
               aria-current={pathname === item.href ? "page" : undefined}
-              className={`inline-flex h-9 items-center justify-center rounded-full px-4 text-sm font-medium transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+              className={`group relative inline-flex h-9 items-center justify-center rounded-md px-4 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 pathname === item.href
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  ? "font-semibold text-foreground"
+                  : "font-medium text-muted-foreground hover:text-foreground"
               }`}
             >
+              {pathname !== item.href && <CornerBrackets />}
               {item.name}
             </Link>
           ))}
@@ -122,13 +137,14 @@ export function Navbar() {
                       key={item.name}
                       href={item.href}
                       aria-current={pathname === item.href ? "page" : undefined}
-                      className={`flex items-center rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                      className={`group relative flex items-center rounded-lg px-4 py-3 text-base transition-colors ${
                         pathname === item.href
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-accent hover:text-accent-foreground"
+                          ? "font-semibold text-foreground"
+                          : "font-medium hover:bg-accent hover:text-accent-foreground"
                       }`}
                       onClick={() => setIsOpen(false)}
                     >
+                      {pathname !== item.href && <CornerBrackets />}
                       {item.name}
                     </Link>
                   ))}

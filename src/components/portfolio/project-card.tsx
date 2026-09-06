@@ -9,7 +9,7 @@ export function ProjectCard({ project }: { project: Project }) {
       href={`/portfolio/${project.slug}`}
       className="group flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-colors duration-300 hover:bg-muted/35"
     >
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-video overflow-hidden">
         <Image
           src={project.imageLight}
           alt={project.imageAlt}
@@ -26,17 +26,17 @@ export function ProjectCard({ project }: { project: Project }) {
         />
       </div>
 
-      <div className="flex flex-1 flex-col p-6 sm:p-7">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <p className="text-[0.65rem] font-medium uppercase tracking-[0.14em] text-muted-foreground">
           {project.client}
         </p>
-        <h3 className="mt-3 text-xl font-semibold leading-tight tracking-[-0.02em]">
+        <h3 className="mt-2 text-base font-semibold leading-tight tracking-[-0.02em] sm:text-lg">
           {project.title}
         </h3>
-        <p className="mt-4 line-clamp-3 text-sm leading-6 text-muted-foreground">
+        <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground sm:text-sm">
           {project.summary}
         </p>
-        <span className="mt-auto inline-flex items-center pt-8 text-sm font-medium text-foreground">
+        <span className="mt-auto inline-flex items-center pt-4 text-xs font-medium text-foreground sm:text-sm">
           View case study
           <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
         </span>

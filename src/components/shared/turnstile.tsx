@@ -43,12 +43,15 @@ export function Turnstile({ onTokenChange }: TurnstileProps) {
           setLoadError(true);
         },
       });
+      // Widget is up -- stop polling instead of ticking a no-op forever
+      // for as long as the form stays mounted.
+      window.clearInterval(intervalId);
     };
 
+    const intervalId = window.setInterval(render, 100);
     render();
-    const interval = window.setInterval(render, 100);
     return () => {
-      window.clearInterval(interval);
+      window.clearInterval(intervalId);
       if (widgetIdRef.current && window.turnstile)
         window.turnstile.remove(widgetIdRef.current);
       widgetIdRef.current = undefined;

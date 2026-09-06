@@ -111,3 +111,24 @@
 main {
   min-height: calc(100dvh - 4rem);
 }
+
+/* LogoCarousel: the track renders its logo list twice back to back, so
+   translating exactly -50% always lands on the start of the duplicate
+   set for a seamless loop -- robust to however many logos there are,
+   unlike animating to a hardcoded pixel width tied to one exact count. */
+@keyframes logo-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-logo-scroll {
+  animation: logo-scroll 28s linear infinite;
+}
+
+.animate-logo-scroll:hover {
+  animation-play-state: paused;
+}

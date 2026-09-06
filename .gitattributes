@@ -1,0 +1,7 @@
+# Agent-tooling skills (design-taste-frontend, impeccable, ui-ux-pro-max) are
+# vendored third-party tooling kept in the repo on purpose (DEC-006/007) so
+# any AI-assisted work on this project has them available -- they are not
+# this project's own code. Their .mjs/.py/.csv files otherwise outweigh the
+# actual TypeScript source in GitHub's language stats, making the repo show
+# as JavaScript instead of TypeScript.
+.claude/** linguist-vendored

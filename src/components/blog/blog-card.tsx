@@ -14,7 +14,7 @@ export function BlogCard({ post }: { post: BlogPost }) {
       {/* No cover photography exists per post yet, so the card reuses the
           site's own dot/glow-and-mark visual language (the hero, the CTA
           band) rather than a fabricated screenshot. */}
-      <div className="relative aspect-[4/3] overflow-hidden border-b bg-muted/40">
+      <div className="relative aspect-video overflow-hidden border-b bg-muted/40">
         <DotPattern size="sm" opacity="low" fadeStyle="ellipse" />
         <div
           aria-hidden="true"
@@ -22,23 +22,23 @@ export function BlogCard({ post }: { post: BlogPost }) {
         />
         <Logo
           aria-hidden="true"
-          className="absolute inset-0 m-auto h-16 w-auto text-foreground/10 transition-transform duration-500 group-hover:scale-110"
+          className="absolute inset-0 m-auto h-12 w-auto text-foreground/10 transition-transform duration-500 group-hover:scale-110"
         />
       </div>
 
-      <div className="flex flex-1 flex-col p-6 sm:p-7">
-        <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <div className="flex items-center gap-2 text-[0.65rem] font-medium uppercase tracking-[0.14em] text-muted-foreground">
           <time dateTime={post.date}>{formatBlogDate(post.date)}</time>
           <span aria-hidden="true">&middot;</span>
           <span>{readingTime(post)}</span>
         </div>
-        <h3 className="mt-3 text-xl font-semibold leading-tight tracking-[-0.02em]">
+        <h3 className="mt-2 text-base font-semibold leading-tight tracking-[-0.02em] sm:text-lg">
           {post.title}
         </h3>
-        <p className="mt-4 line-clamp-3 text-sm leading-6 text-muted-foreground">
+        <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground sm:text-sm">
           {post.excerpt}
         </p>
-        <span className="mt-auto inline-flex items-center pt-8 text-sm font-medium text-foreground">
+        <span className="mt-auto inline-flex items-center pt-4 text-xs font-medium text-foreground sm:text-sm">
           Read more
           <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
         </span>

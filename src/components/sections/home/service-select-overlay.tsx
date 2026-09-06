@@ -62,7 +62,7 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
             if (event.target !== event.currentTarget) return;
             if (!open) finish();
           }}
-          className="fixed inset-0 z-90 flex flex-col items-center justify-center overflow-y-auto bg-background px-5 py-14 focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:duration-300 data-[state=open]:duration-400"
+          className="fixed inset-0 z-90 flex flex-col items-center justify-center overflow-y-auto bg-background px-4 py-8 focus:outline-none sm:px-5 sm:py-14 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:duration-300 data-[state=open]:duration-400"
         >
           <div
             aria-hidden="true"
@@ -79,14 +79,14 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
           </Dialog.Close>
 
           <div className="relative flex w-full max-w-3xl flex-col items-center text-center">
-            <Dialog.Description className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+            <Dialog.Description className="mb-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground sm:mb-2">
               Choose one to continue
             </Dialog.Description>
-            <Dialog.Title className="mb-8 max-w-2xl text-balance text-2xl font-black uppercase leading-[0.95] tracking-tight sm:mb-10 sm:text-4xl md:text-5xl">
+            <Dialog.Title className="mb-5 max-w-2xl text-balance text-xl font-black uppercase leading-[0.95] tracking-tight sm:mb-10 sm:text-4xl md:text-5xl">
               What service would you like to inquire?
             </Dialog.Title>
 
-            <div className="grid w-full grid-cols-2 gap-2 sm:gap-4">
+            <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-4">
               {services.map((service, index) => {
                 const isPicked = pickedTitle === service.title;
                 const isOtherPicked = pickedTitle !== null && !isPicked;
@@ -97,7 +97,7 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
                     disabled={pickedTitle !== null}
                     onClick={() => handlePick(service.title, service.projectType)}
                     className={cn(
-                      "group relative flex flex-col items-start gap-1 overflow-hidden rounded-lg border p-3 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default sm:gap-2 sm:rounded-xl sm:p-6",
+                      "group relative flex flex-col items-start gap-1.5 overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default sm:gap-2 sm:p-6",
                       isPicked
                         ? "border-foreground bg-foreground text-background"
                         : "border-border hover:-translate-y-0.5 hover:border-foreground/50",
@@ -117,24 +117,24 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
                     <span
                       aria-hidden="true"
                       className={cn(
-                        "text-[0.65rem] font-semibold tracking-[0.2em] sm:text-xs",
+                        "text-xs font-semibold tracking-[0.2em]",
                         isPicked ? "text-background/70" : "text-muted-foreground",
                       )}
                     >
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <service.icon className="mt-1 size-5 sm:size-7" aria-hidden="true" />
-                    <h3 className="text-sm font-semibold sm:text-lg">
+                    <service.icon className="mt-1 size-6 sm:size-7" aria-hidden="true" />
+                    <h3 className="text-lg font-semibold">
                       {service.title}
                       {isPicked && (
-                        <span className="ml-2 hidden align-middle text-xs font-semibold uppercase tracking-[0.2em] sm:inline">
+                        <span className="ml-2 align-middle text-xs font-semibold uppercase tracking-[0.2em]">
                           Selected
                         </span>
                       )}
                     </h3>
                     <p
                       className={cn(
-                        "hidden text-sm leading-6 sm:block",
+                        "text-sm leading-5 sm:leading-6",
                         isPicked ? "text-background/80" : "text-muted-foreground",
                       )}
                     >

@@ -6,7 +6,8 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { BlogCard } from "@/components/blog/blog-card";
-import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Pagination } from "@/components/shared/pagination";
+import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { blogPosts } from "@/lib/blog";
 import { cardGridClass } from "@/lib/card-grid";
 
@@ -16,7 +17,24 @@ export const metadata: Metadata = {
     "Notes from Cafton on building useful technology: process, engineering, and lessons from real projects.",
 };
 
-export default function Blog() {
+const PAGE_SIZE = 6;
+
+interface BlogPageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function Blog({ searchParams }: BlogPageProps) {
+  const { page: pageParam } = await searchParams;
+  const totalPages = Math.max(1, Math.ceil(blogPosts.length / PAGE_SIZE));
+  const currentPage = Math.min(
+    totalPages,
+    Math.max(1, Number(pageParam) || 1),
+  );
+  const pagePosts = blogPosts.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
   return (
     <>
       <PageHero>
@@ -39,14 +57,19 @@ export default function Blog() {
       <PageSection>
         <PageShell>
           <RevealGroup
-            className={`grid gap-5 ${cardGridClass(blogPosts.length, 2)}`}
+            className={`grid gap-5 ${cardGridClass(pagePosts.length, 2)}`}
           >
-            {blogPosts.map((post) => (
+            {pagePosts.map((post) => (
               <RevealItem key={post.slug}>
                 <BlogCard post={post} />
               </RevealItem>
             ))}
           </RevealGroup>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath="/blog"
+          />
         </PageShell>
       </PageSection>
       <ProjectCta />

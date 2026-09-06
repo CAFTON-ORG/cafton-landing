@@ -48,7 +48,7 @@ export function Footer() {
             </Link>
           </div>
           <p className="mt-5 text-sm font-medium text-white/70">
-            Software Engineering &amp; Technology
+            Software Development Services
           </p>
           <p className="mt-5 text-lg font-medium leading-relaxed">
             We don&apos;t start with software.

@@ -45,6 +45,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
     project.recognition && { label: "Recognition", body: project.recognition },
   ].filter(Boolean) as { label: string; body: string }[];
 
+  const fitClass =
+    project.imageFit === "contain" ? "object-contain p-12" : "object-cover object-top";
+
   return (
     <>
       <PageHero>
@@ -102,7 +105,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                   alt={project.imageAlt}
                   fill
                   sizes="100vw"
-                  className="object-cover object-top dark:hidden"
+                  className={`${fitClass} dark:hidden`}
                   priority
                 />
                 <Image
@@ -110,7 +113,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                   alt={project.imageAlt}
                   fill
                   sizes="100vw"
-                  className="hidden object-cover object-top dark:block"
+                  className={`hidden ${fitClass} dark:block`}
                   priority
                 />
               </div>

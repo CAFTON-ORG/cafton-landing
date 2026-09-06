@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -80,8 +81,28 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <PageSection>
         <PageShell>
           <Reveal>
+            <div className="relative mx-auto aspect-video max-w-2xl overflow-hidden rounded-xl border">
+              <Image
+                src={post.imageLight}
+                alt={post.imageAlt}
+                fill
+                sizes="(min-width: 640px) 42rem, 100vw"
+                className="object-cover object-top dark:hidden"
+                priority
+              />
+              <Image
+                src={post.imageDark}
+                alt={post.imageAlt}
+                fill
+                sizes="(min-width: 640px) 42rem, 100vw"
+                className="hidden object-cover object-top dark:block"
+                priority
+              />
+            </div>
+          </Reveal>
+          <Reveal delay={0.1}>
             <div className="mx-auto max-w-2xl">
-              <RevealGroup className="flex flex-col gap-6">
+              <RevealGroup className="mt-10 flex flex-col gap-6">
                 {post.content.map((paragraph, index) => (
                   <RevealItem key={index}>
                     <p className="text-base leading-7 text-foreground/90 sm:text-lg sm:leading-8">

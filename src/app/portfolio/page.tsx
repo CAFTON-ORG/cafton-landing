@@ -7,6 +7,7 @@ import {
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { ProjectCard } from "@/components/portfolio/project-card";
 import { Pagination } from "@/components/shared/pagination";
+import { CategoryFilter } from "@/components/shared/category-filter";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { projects } from "@/lib/projects";
 import { cardGridClass } from "@/lib/card-grid";
@@ -20,17 +21,24 @@ export const metadata: Metadata = {
 const PAGE_SIZE = 6;
 
 interface WorkPageProps {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; category?: string }>;
 }
 
 export default async function WorkPage({ searchParams }: WorkPageProps) {
-  const { page: pageParam } = await searchParams;
-  const totalPages = Math.max(1, Math.ceil(projects.length / PAGE_SIZE));
+  const { page: pageParam, category: categoryParam } = await searchParams;
+
+  const categories = Array.from(new Set(projects.map((project) => project.category)));
+  const category = categoryParam && categories.includes(categoryParam) ? categoryParam : undefined;
+  const filteredProjects = category
+    ? projects.filter((project) => project.category === category)
+    : projects;
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PAGE_SIZE));
   const currentPage = Math.min(
     totalPages,
     Math.max(1, Number(pageParam) || 1),
   );
-  const pageProjects = projects.slice(
+  const pageProjects = filteredProjects.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
@@ -56,19 +64,28 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
       </PageHero>
       <PageSection>
         <PageShell>
-          <RevealGroup
-            className={`grid gap-6 ${cardGridClass(pageProjects.length)}`}
-          >
-            {pageProjects.map((project) => (
-              <RevealItem key={project.slug}>
-                <ProjectCard project={project} />
-              </RevealItem>
-            ))}
-          </RevealGroup>
+          <CategoryFilter categories={categories} active={category} basePath="/portfolio" />
+          {pageProjects.length > 0 ? (
+            <RevealGroup
+              key={`${category ?? "all"}-${currentPage}`}
+              className={`mt-8 grid gap-6 ${cardGridClass(pageProjects.length)}`}
+            >
+              {pageProjects.map((project) => (
+                <RevealItem key={project.slug}>
+                  <ProjectCard project={project} />
+                </RevealItem>
+              ))}
+            </RevealGroup>
+          ) : (
+            <p className="mt-8 text-center text-muted-foreground">
+              No projects in this category yet.
+            </p>
+          )}
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             basePath="/portfolio"
+            query={category ? { category } : undefined}
           />
         </PageShell>
       </PageSection>

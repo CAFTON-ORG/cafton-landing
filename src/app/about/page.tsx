@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import {
@@ -21,23 +22,34 @@ export const metadata: Metadata = {
 export default function About() {
   return (
     <>
-      <PageHero>
-        <PageShell>
-          <RevealGroup>
-            <RevealItem>
-              <h1 className="max-w-xl text-4xl font-bold tracking-tight sm:text-5xl">
-                Three teammates, building technology with purpose.
-              </h1>
-            </RevealItem>
-            <RevealItem>
-              <p className="mt-6 max-w-xl text-lg text-muted-foreground">
-                Cafton began with three collaborators who spent years
-                engineering software together before turning that shared
-                practice into a company.
-              </p>
-            </RevealItem>
-          </RevealGroup>
-        </PageShell>
+      <PageHero
+        image={
+          <div className="group relative h-full w-full overflow-hidden rounded-xl border">
+            <Image
+              src="/cafton-team.png"
+              alt="The Cafton team"
+              fill
+              sizes="(min-width: 1024px) 40vw, 100vw"
+              className="object-cover grayscale transition-all duration-500 group-hover:grayscale-0"
+              priority
+            />
+          </div>
+        }
+      >
+        <RevealGroup>
+          <RevealItem>
+            <h1 className="max-w-xl text-4xl font-bold tracking-tight sm:text-5xl">
+              Three teammates, building technology with purpose.
+            </h1>
+          </RevealItem>
+          <RevealItem>
+            <p className="mt-6 max-w-xl text-lg text-muted-foreground">
+              Cafton began with three collaborators who spent years
+              engineering software together before turning that shared
+              practice into a company.
+            </p>
+          </RevealItem>
+        </RevealGroup>
       </PageHero>
       <PageSection>
         <PageShell className="grid gap-12 lg:grid-cols-2">

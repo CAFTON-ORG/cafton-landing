@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { PageShell } from "@/components/layout/page-shell";
-import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { services } from "@/lib/services";
+import { Reveal, RevealGroup } from "@/components/motion/reveal";
+import { PillarGrid } from "@/components/services/pillar-grid";
 
 export function ServicesOverview() {
   return (
@@ -14,33 +16,25 @@ export function ServicesOverview() {
               What we build
             </h2>
             <p className="text-pretty text-base text-muted-foreground sm:text-lg">
-              From a focused internal tool to a product used at scale, we tailor
-              the work to the problem.
+              From a focused internal tool to a full operating system for the
+              business, we tailor the work to the problem.
             </p>
           </header>
         </Reveal>
 
-        <RevealGroup className="mt-10 grid grid-cols-1 gap-x-10 gap-y-8 sm:mt-12 sm:grid-cols-2">
-          {services.map(({ icon: Icon, title, description }) => (
-            <RevealItem
-              key={title}
-              className="flex min-w-0 items-start gap-4 border-t border-border pt-6"
-            >
-              <Icon
-                className="mt-0.5 size-5 shrink-0 text-foreground"
-                aria-hidden="true"
-              />
-              <div className="flex flex-col gap-1.5">
-                <h3 className="text-base font-semibold text-foreground sm:text-lg">
-                  {title}
-                </h3>
-                <p className="text-pretty text-sm leading-6 text-muted-foreground">
-                  {description}
-                </p>
-              </div>
-            </RevealItem>
-          ))}
+        <RevealGroup className="mt-10 sm:mt-12">
+          <PillarGrid compact />
         </RevealGroup>
+
+        <Reveal delay={0.1}>
+          <Link
+            href="/services"
+            className="group mt-8 inline-flex items-center text-sm font-medium text-foreground sm:mt-10"
+          >
+            View all services
+            <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
+        </Reveal>
       </PageShell>
     </section>
   );

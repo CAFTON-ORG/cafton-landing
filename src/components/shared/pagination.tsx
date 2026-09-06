@@ -8,13 +8,20 @@ interface PaginationProps {
   totalPages: number;
   /** Route the list lives at, e.g. "/portfolio" -- page 1 links back to the bare path. */
   basePath: string;
+  /** Extra query params (e.g. an active category filter) to preserve across page links. */
+  query?: Record<string, string>;
 }
 
 /** Shared numbered pager for any list page (portfolio, blog, ...). Renders nothing for a single page. */
-export function Pagination({ currentPage, totalPages, basePath }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, basePath, query }: PaginationProps) {
   if (totalPages <= 1) return null;
 
-  const pageHref = (page: number) => (page <= 1 ? basePath : `${basePath}?page=${page}`);
+  const pageHref = (page: number) => {
+    const params = new URLSearchParams(query);
+    if (page > 1) params.set("page", String(page));
+    const qs = params.toString();
+    return qs ? `${basePath}?${qs}` : basePath;
+  };
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (

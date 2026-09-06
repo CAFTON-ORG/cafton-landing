@@ -5,14 +5,15 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { services } from "@/lib/services";
+import { servicePillars } from "@/lib/services";
+import { CornerBrackets } from "@/components/shared/corner-brackets";
 
 /** Hold time on the picked tile before closing, so the pick reads as confirmed rather than instant. */
 const CONFIRM_HOLD_MS = 420;
 
 interface ServiceSelectOverlayProps {
-  /** Called once the overlay has fully closed after a tile was picked. */
-  onProceed: (projectType: string) => void;
+  /** Called once the overlay has fully closed after a pillar was picked, with that pillar's slug. */
+  onProceed: (categorySlug: string) => void;
   /** Called once the overlay has fully closed via Esc, the backdrop, the close button, or "Skip". */
   onSkip: () => void;
 }
@@ -28,10 +29,10 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
   const reduceMotion = useReducedMotion();
   const [open, setOpen] = useState(true);
   const [pickedTitle, setPickedTitle] = useState<string | null>(null);
-  const chosenType = useRef<string | null>(null);
+  const chosenSlug = useRef<string | null>(null);
 
   const finish = () => {
-    if (chosenType.current) onProceed(chosenType.current);
+    if (chosenSlug.current) onProceed(chosenSlug.current);
     else onSkip();
   };
 
@@ -42,10 +43,10 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
     if (!next && reduceMotion) finish();
   };
 
-  const handlePick = (title: string, projectType: string) => {
+  const handlePick = (title: string, slug: string) => {
     if (pickedTitle) return;
     setPickedTitle(title);
-    chosenType.current = projectType;
+    chosenSlug.current = slug;
     if (reduceMotion) {
       handleOpenChange(false);
       return;
@@ -83,19 +84,19 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
               Choose one to continue
             </Dialog.Description>
             <Dialog.Title className="mb-5 max-w-2xl text-balance text-xl font-black uppercase leading-[0.95] tracking-tight sm:mb-10 sm:text-4xl md:text-5xl">
-              What service would you like to inquire?
+              What are you looking to build?
             </Dialog.Title>
 
             <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-4">
-              {services.map((service, index) => {
-                const isPicked = pickedTitle === service.title;
+              {servicePillars.map((pillar, index) => {
+                const isPicked = pickedTitle === pillar.title;
                 const isOtherPicked = pickedTitle !== null && !isPicked;
                 return (
                   <button
-                    key={service.title}
+                    key={pillar.title}
                     type="button"
                     disabled={pickedTitle !== null}
-                    onClick={() => handlePick(service.title, service.projectType)}
+                    onClick={() => handlePick(pillar.title, pillar.slug)}
                     className={cn(
                       "group relative flex flex-col items-start gap-1.5 overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default sm:gap-2 sm:p-6",
                       isPicked
@@ -104,15 +105,7 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
                       isOtherPicked && "opacity-30",
                     )}
                   >
-                    {/* Corner brackets, a small nod to a game-UI selection reticle -- fades in on hover/focus. */}
-                    {!isPicked && (
-                      <>
-                        <span className="pointer-events-none absolute left-2 top-2 size-3 border-l border-t border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
-                        <span className="pointer-events-none absolute right-2 top-2 size-3 border-r border-t border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
-                        <span className="pointer-events-none absolute bottom-2 left-2 size-3 border-b border-l border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
-                        <span className="pointer-events-none absolute bottom-2 right-2 size-3 border-b border-r border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
-                      </>
-                    )}
+                    {!isPicked && <CornerBrackets />}
 
                     <span
                       aria-hidden="true"
@@ -123,9 +116,9 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
                     >
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <service.icon className="mt-1 size-6 sm:size-7" aria-hidden="true" />
+                    <pillar.icon className="mt-1 size-6 sm:size-7" aria-hidden="true" />
                     <h3 className="text-lg font-semibold">
-                      {service.title}
+                      {pillar.title}
                       {isPicked && (
                         <span className="ml-2 align-middle text-xs font-semibold uppercase tracking-[0.2em]">
                           Selected
@@ -138,7 +131,7 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
                         isPicked ? "text-background/80" : "text-muted-foreground",
                       )}
                     >
-                      {service.description}
+                      {pillar.tagline}
                     </p>
                   </button>
                 );

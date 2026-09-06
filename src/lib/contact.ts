@@ -1,14 +1,71 @@
 import { z } from "zod";
+import { servicePillars } from "@/lib/services";
 
-export const projectTypes = [
-  "Custom Software",
-  "Web Application",
-  "Mobile Application",
-  "SaaS / Product",
-  "System Modernization",
-  "Partnership",
+export const buildingForOptions = [
+  "An existing business",
+  "A new idea or startup",
+  "A personal or side project",
+] as const;
+
+export const industries = [
+  "Retail",
+  "Technology",
+  "Food & Beverage",
+  "Health & Wellness",
+  "Education",
+  "Real Estate & Property",
+  "Construction & Field Services",
   "Other",
 ] as const;
+
+export const positions = [
+  "Owner / Founder",
+  "C-level (CEO, COO, CTO, etc.)",
+  "Manager / Team Lead",
+  "Employee",
+  "Other",
+] as const;
+
+export const businessSizes = [
+  "Just me",
+  "2-10 employees",
+  "11-50 employees",
+  "51-200 employees",
+  "200+ employees",
+] as const;
+
+export const yearsOperating = [
+  "Not yet operating",
+  "Less than 1 year",
+  "1-3 years",
+  "3-5 years",
+  "5-10 years",
+  "10+ years",
+] as const;
+
+export const challengeOptions = [
+  "We still rely on spreadsheets, paper, or group chats",
+  "Our tools don't talk to each other",
+  "Day-to-day operations take longer than they should",
+  "We're not converting enough leads into sales",
+  "Stock, orders, or fulfillment keep slipping through the cracks",
+  "We can't see what's actually happening across the business",
+  "Something else",
+] as const;
+
+export const referralSources = [
+  "Search engine",
+  "Social media",
+  "Referral from someone",
+  "Existing client",
+  "Event or community",
+  "Other",
+] as const;
+
+/** Every system across every pillar, flattened, for the Goals step's checkbox validation. */
+export const goalOptions = servicePillars.flatMap((pillar) =>
+  pillar.systems.map((system) => system.title),
+);
 
 export const budgetRanges = [
   "Not sure yet",
@@ -25,7 +82,8 @@ export const timelines = [
   "Just exploring for now",
 ] as const;
 
-export const contactSchema = z.object({
+const baseContactSchema = z.object({
+  // Step 1 -- Personal Information
   firstName: z.string().trim().min(1, "First name is required").max(100),
   lastName: z.string().trim().min(1, "Last name is required").max(100),
   email: z
@@ -35,13 +93,29 @@ export const contactSchema = z.object({
     .email("Enter a valid email")
     .max(254),
   phone: z.string().trim().max(50),
-  organization: z.string().trim().max(200),
-  projectType: z.enum(projectTypes),
-  project: z
-    .string()
-    .trim()
-    .min(1, "Tell us a bit about your project")
-    .max(5_000),
+  buildingFor: z
+    .enum(buildingForOptions)
+    .or(z.literal(""))
+    .refine((value) => value !== "", { message: "Let us know what this is for" }),
+
+  // Step 2 -- Business Information (only required when buildingFor is "An existing business")
+  businessName: z.string().trim().max(200),
+  industry: z.enum(industries).or(z.literal("")),
+  industryOther: z.string().trim().max(120),
+  position: z.enum(positions).or(z.literal("")),
+  positionOther: z.string().trim().max(120),
+  businessSize: z.enum(businessSizes).or(z.literal("")),
+  yearsOperating: z.enum(yearsOperating).or(z.literal("")),
+  officeAddress: z.string().trim().max(300),
+
+  // Step 3 -- Your Challenges
+  challenges: z.array(z.enum(challengeOptions)),
+  challengesOther: z.string().trim().max(300),
+
+  // Step 4 -- Your Goals
+  goals: z.array(z.string()),
+
+  // Step 5 -- Final Details
   budget: z
     .enum(budgetRanges)
     .or(z.literal(""))
@@ -50,31 +124,167 @@ export const contactSchema = z.object({
     .enum(timelines)
     .or(z.literal(""))
     .refine((value) => value !== "", { message: "Select a timeline" }),
+  referralSource: z.enum(referralSources).or(z.literal("")),
+  notes: z.string().trim().max(5_000),
 });
 
+/** Plain object schema (unlike `contactSchema` below) -- supports `.pick()` for per-step validation. */
+export { baseContactSchema };
 
-export type ContactFormData = z.input<typeof contactSchema>;
+/** Step schema for "Business Information" -- only shown when `buildingFor` is "An existing business", so every field here is unconditionally required within that step. */
+export const businessInfoStepSchema = z
+  .object({
+    businessName: z.string().trim().min(1, "Business name is required").max(200),
+    industry: z
+      .enum(industries)
+      .or(z.literal(""))
+      .refine((value) => value !== "", { message: "Select an industry" }),
+    industryOther: z.string().trim().max(120).default(""),
+    position: z
+      .enum(positions)
+      .or(z.literal(""))
+      .refine((value) => value !== "", { message: "Select your role" }),
+    positionOther: z.string().trim().max(120).default(""),
+    businessSize: z
+      .enum(businessSizes)
+      .or(z.literal(""))
+      .refine((value) => value !== "", { message: "Select a business size" }),
+    yearsOperating: z
+      .enum(yearsOperating)
+      .or(z.literal(""))
+      .refine((value) => value !== "", {
+        message: "Select how long you've been operating",
+      }),
+    officeAddress: z.string().trim().max(300).default(""),
+  })
+  .superRefine((data, ctx) => {
+    if (data.industry === "Other" && !data.industryOther) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["industryOther"],
+        message: "Specify your industry",
+      });
+    }
+    if (data.position === "Other" && !data.positionOther) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["positionOther"],
+        message: "Specify your role",
+      });
+    }
+  });
+
+/** Step schema for "Your Goals" -- requires at least one pick. */
+export const goalsStepSchema = z.object({
+  goals: z.array(z.string()).min(1, "Pick at least one"),
+});
+
+export const contactSchema = baseContactSchema.superRefine((data, ctx) => {
+  if (data.buildingFor === "An existing business") {
+    if (!data.businessName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["businessName"],
+        message: "Business name is required",
+      });
+    }
+    if (!data.industry) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["industry"],
+        message: "Select an industry",
+      });
+    }
+    if (data.industry === "Other" && !data.industryOther) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["industryOther"],
+        message: "Specify your industry",
+      });
+    }
+    if (!data.position) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["position"],
+        message: "Select your role",
+      });
+    }
+    if (data.position === "Other" && !data.positionOther) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["positionOther"],
+        message: "Specify your role",
+      });
+    }
+    if (!data.businessSize) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["businessSize"],
+        message: "Select a business size",
+      });
+    }
+    if (!data.yearsOperating) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["yearsOperating"],
+        message: "Select how long you've been operating",
+      });
+    }
+  }
+
+  if (data.goals.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["goals"],
+      message: "Pick at least one",
+    });
+  }
+});
+
+export type ContactFormData = z.input<typeof baseContactSchema>;
 
 export const contactFormDefaults: ContactFormData = {
   firstName: "",
   lastName: "",
-  organization: "",
   email: "",
   phone: "",
-  projectType: "Custom Software",
-  project: "",
+  buildingFor: "",
+  businessName: "",
+  industry: "",
+  industryOther: "",
+  position: "",
+  positionOther: "",
+  businessSize: "",
+  yearsOperating: "",
+  officeAddress: "",
+  challenges: [],
+  challengesOther: "",
+  goals: [],
   budget: "",
   timeline: "",
+  referralSource: "",
+  notes: "",
 };
 
 export function buildHubSpotMessage(data: ContactFormData) {
   return [
-    data.organization && `Organization: ${data.organization}`,
-    `Project type: ${data.projectType}`,
+    data.buildingFor && `This project is for: ${data.buildingFor}`,
+    data.businessName && `Business: ${data.businessName}`,
+    data.industry &&
+      `Industry: ${data.industry === "Other" ? data.industryOther : data.industry}`,
+    data.position &&
+      `Role: ${data.position === "Other" ? data.positionOther : data.position}`,
+    data.businessSize && `Business size: ${data.businessSize}`,
+    data.yearsOperating && `Years operating: ${data.yearsOperating}`,
+    data.officeAddress && `Office address: ${data.officeAddress}`,
+    data.challenges.length > 0 && `Challenges: ${data.challenges.join("; ")}`,
+    data.challengesOther && `Other challenge: ${data.challengesOther}`,
+    data.goals.length > 0 && `Goals: ${data.goals.join("; ")}`,
     data.budget && `Budget: ${data.budget}`,
     data.timeline && `Timeline: ${data.timeline}`,
+    data.referralSource && `Heard about us via: ${data.referralSource}`,
     "",
-    data.project,
+    data.notes,
   ]
     .filter(Boolean)
     .join("\n");

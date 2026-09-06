@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import {
   PageHero,
   PageSection,
@@ -8,7 +11,7 @@ import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { ImagePlaceholder } from "@/components/shared/image-placeholder";
 import { LogoCarousel } from "@/components/shared/logo-carousel";
-import { services } from "@/lib/services";
+import { servicePillars } from "@/lib/services";
 
 export const metadata: Metadata = {
   title: "About - CAFTON",
@@ -16,33 +19,37 @@ export const metadata: Metadata = {
     "Cafton began with three collaborators who spent years engineering software together before turning that shared practice into a company.",
 };
 
-// Team profiles are intentionally hidden until we're ready to reveal them.
-// const team = [
-//   ["Christian", "Project leadership · Full-stack · Stakeholder communication"],
-//   ["Averie", "Full-stack · Web & mobile · Geofencing"],
-//   ["Felix", "Full-stack · Web & mobile · Database architecture"],
-// ];
-
 export default function About() {
   return (
     <>
-      <PageHero>
-        <PageShell>
-          <RevealGroup>
-            <RevealItem>
-              <h1 className="max-w-xl text-4xl font-bold tracking-tight sm:text-5xl">
-                Three teammates, building technology with purpose.
-              </h1>
-            </RevealItem>
-            <RevealItem>
-              <p className="mt-6 max-w-xl text-lg text-muted-foreground">
-                Cafton began with three collaborators who spent years
-                engineering software together before turning that shared
-                practice into a company.
-              </p>
-            </RevealItem>
-          </RevealGroup>
-        </PageShell>
+      <PageHero
+        image={
+          <div className="group relative h-full w-full overflow-hidden rounded-xl border">
+            <Image
+              src="/cafton-team.png"
+              alt="The Cafton team"
+              fill
+              sizes="(min-width: 1024px) 40vw, 100vw"
+              className="object-cover grayscale transition-all duration-500 group-hover:grayscale-0"
+              priority
+            />
+          </div>
+        }
+      >
+        <RevealGroup>
+          <RevealItem>
+            <h1 className="max-w-xl text-4xl font-bold tracking-tight sm:text-5xl">
+              Three teammates, building technology with purpose.
+            </h1>
+          </RevealItem>
+          <RevealItem>
+            <p className="mt-6 max-w-xl text-lg text-muted-foreground">
+              Cafton began with three collaborators who spent years
+              engineering software together before turning that shared
+              practice into a company.
+            </p>
+          </RevealItem>
+        </RevealGroup>
       </PageHero>
       <PageSection>
         <PageShell className="grid gap-12 lg:grid-cols-2">
@@ -65,31 +72,47 @@ export default function About() {
       <section id="services" className="py-14 sm:py-16 lg:py-20">
         <PageShell>
           <Reveal>
-            <h2 className="text-3xl font-bold">What we build</h2>
+            <h2 className="text-3xl font-bold">Where we can help</h2>
             <p className="mt-3 max-w-2xl text-muted-foreground">
-              From a focused internal tool to a product used at scale, we tailor
-              the work to the problem.
+              Four areas we build in, from the back office to a product that
+              doesn&apos;t exist yet.
             </p>
           </Reveal>
-          <RevealGroup className="mt-8 grid gap-x-8 gap-y-6 md:grid-cols-2">
-            {services.map(({ icon: Icon, title, description }) => (
+          <RevealGroup className="mt-8 flex flex-col">
+            {servicePillars.map(({ icon: Icon, title, tagline, slug }) => (
               <RevealItem
-                key={title}
-                className="flex items-start gap-4 border-t border-border pt-5"
+                key={slug}
+                className="border-t border-border py-5 first:border-t-0 first:pt-0"
               >
-                <Icon
-                  className="mt-0.5 size-5 shrink-0 text-foreground"
-                  aria-hidden="true"
-                />
-                <div>
-                  <h3 className="text-lg font-semibold">{title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {description}
-                  </p>
-                </div>
+                <Link
+                  href={`/services/${slug}`}
+                  className="group flex items-start gap-4"
+                >
+                  <Icon
+                    className="mt-0.5 size-5 shrink-0 text-foreground"
+                    aria-hidden="true"
+                  />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold transition-colors group-hover:text-muted-foreground">
+                      {title}
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {tagline}
+                    </p>
+                  </div>
+                </Link>
               </RevealItem>
             ))}
           </RevealGroup>
+          <Reveal delay={0.1}>
+            <Link
+              href="/services"
+              className="group mt-8 inline-flex items-center text-sm font-medium text-foreground"
+            >
+              View all services
+              <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </Reveal>
         </PageShell>
       </section>
       {/*

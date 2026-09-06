@@ -6,6 +6,7 @@ import {
   PageShell,
 } from "@/components/layout/page-shell";
 import { ContactForm } from "@/components/shared/contact-form";
+import { Faq } from "@/components/shared/faq";
 import { Button } from "@/components/ui/button";
 import { Clock3, Mail } from "lucide-react";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
@@ -81,6 +82,18 @@ export default function ContactPage() {
               </Suspense>
             </Reveal>
           </div>
+        </PageShell>
+      </PageSection>
+      <PageSection className="border-t border-border">
+        <PageShell className="max-w-3xl">
+          <Reveal>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              Questions people ask before reaching out
+            </h2>
+          </Reveal>
+          <Reveal delay={0.1} className="mt-8">
+            <Faq />
+          </Reveal>
         </PageShell>
       </PageSection>
     </>

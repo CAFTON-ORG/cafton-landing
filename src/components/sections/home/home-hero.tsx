@@ -55,8 +55,8 @@ export function HomeHero() {
   }, []);
 
   const handleServiceProceed = useCallback(
-    (projectType: string) => {
-      router.push(`/contact?type=${encodeURIComponent(projectType)}`);
+    (categorySlug: string) => {
+      router.push(`/contact?category=${encodeURIComponent(categorySlug)}`);
     },
     [router],
   );

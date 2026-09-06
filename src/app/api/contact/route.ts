@@ -7,8 +7,21 @@ import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
 import { SITE_URL } from "@/lib/site";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
-/** Generous for a human filling in a contact form, useless for a flood. */
-const RATE_LIMIT = { limit: 5, windowMs: 10 * 60 * 1000 };
+/**
+ * Generous for a human filling in a contact form, useless for a flood.
+ *
+ * Locally there's no reverse proxy setting a real client-IP header, so
+ * `getClientKey` falls back to the literal string "unknown" for every
+ * request from the dev machine -- every manual test submission shares one
+ * bucket. A multi-step wizard invites more repeated test-submits than a
+ * one-page form did, so the production limit self-blocks local QA almost
+ * immediately. Raised outside production only; the production limit is
+ * unchanged.
+ */
+const RATE_LIMIT =
+  process.env.NODE_ENV === "production"
+    ? { limit: 5, windowMs: 10 * 60 * 1000 }
+    : { limit: 100, windowMs: 10 * 60 * 1000 };
 
 /** The form's own worst case is a few KB; anything larger isn't a form post. */
 const MAX_BODY_BYTES = 32 * 1024;

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/shared/logo";
+import { servicePillars } from "@/lib/services";
 
 const footerLinks = [
   { href: "/", label: "Home" },
@@ -15,13 +16,6 @@ const footerLinks = [
   { href: "/privacy", label: "Privacy" },
   { href: "/legal", label: "Legal" },
   { href: "/careers", label: "Careers" },
-];
-
-const services = [
-  "Custom Software",
-  "Web Applications",
-  "Mobile Applications",
-  "SaaS & Digital Products",
 ];
 
 const socialLinks = [
@@ -54,7 +48,7 @@ export function Footer() {
             </Link>
           </div>
           <p className="mt-5 text-sm font-medium text-white/70">
-            Software Engineering &amp; Technology
+            Software Development Services
           </p>
           <p className="mt-5 text-lg font-medium leading-relaxed">
             We don&apos;t start with software.
@@ -80,12 +74,14 @@ export function Footer() {
             Services
           </h2>
           <ul className="mt-5 flex flex-col gap-3">
-            {services.map((service) => (
-              <li
-                key={service}
-                className="text-sm text-white/70 transition-colors hover:text-white"
-              >
-                {service}
+            {servicePillars.map((pillar) => (
+              <li key={pillar.slug}>
+                <Link
+                  href={`/services/${pillar.slug}`}
+                  className="text-sm text-white/70 transition-colors hover:text-white"
+                >
+                  {pillar.title}
+                </Link>
               </li>
             ))}
           </ul>

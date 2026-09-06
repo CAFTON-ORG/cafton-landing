@@ -4,6 +4,9 @@ import { ArrowRight } from "lucide-react";
 import type { Project } from "@/lib/projects";
 
 export function ProjectCard({ project }: { project: Project }) {
+  const fitClass =
+    project.imageFit === "contain" ? "object-contain p-8" : "object-cover object-top";
+
   return (
     <Link
       href={`/portfolio/${project.slug}`}
@@ -15,14 +18,14 @@ export function ProjectCard({ project }: { project: Project }) {
           alt={project.imageAlt}
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover object-top grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 dark:hidden"
+          className={`${fitClass} grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 dark:hidden`}
         />
         <Image
           src={project.imageDark}
           alt={project.imageAlt}
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="hidden object-cover object-top grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 dark:block"
+          className={`hidden ${fitClass} grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 dark:block`}
         />
       </div>
 

@@ -4,6 +4,11 @@ export interface BlogPost {
   excerpt: string;
   content: string[];
   date: string;
+  /** Drives the blog grid's category filter tabs. */
+  category: string;
+  imageLight: string;
+  imageDark: string;
+  imageAlt: string;
 }
 
 export const blogPosts: BlogPost[] = [
@@ -13,6 +18,14 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "Why every engagement at Cafton begins with a conversation about the problem, not a list of features.",
     date: "2026-08-20",
+    category: "Process",
+    // No dedicated photography exists for this post -- reusing the
+    // existing brand-pattern asset (already used elsewhere as a
+    // deliberate placeholder, e.g. Scanato's portfolio cover) rather
+    // than fabricating a screenshot for a piece that isn't about one.
+    imageLight: "/cafton-light.png",
+    imageDark: "/cafton-dark.png",
+    imageAlt: "Cafton brand mark pattern",
     content: [
       "Most software gets built backwards. Someone decides a mobile app is the answer before anyone has written down what question it's supposed to answer. A dashboard gets specced because dashboards are what software companies build, not because anyone checked whether a dashboard is what the situation actually needs.",
       "We've built systems for disaster response teams, restaurant floors, and organizations that had never worked with a software company before. The pattern that holds across all of it: the first meeting is never about frameworks or timelines. It's about what's actually going wrong, for whom, and how they're coping with it right now, today, without any of our help.",
@@ -27,6 +40,12 @@ export const blogPosts: BlogPost[] = [
     excerpt:
       "Notes from building a disaster-preparedness platform where the cost of a bug isn't a support ticket, it's someone not getting an alert in time.",
     date: "2026-08-05",
+    category: "Case Study",
+    // The actual iLigtas admin dashboard -- same asset used on its
+    // portfolio case study, genuinely relevant to this post's subject.
+    imageLight: "/hero-light.png",
+    imageDark: "/hero-dark.png",
+    imageAlt: "iLigtas live geofencing alerts dashboard",
     content: [
       "iLigtas started as a straightforward-sounding request: help coordinate emergency response and preparedness information across a region prone to earthquakes and landslides. It didn't stay straightforward for long, and that turned out to be the useful part.",
       "The first real design decision wasn't technical. It was about who the system actually serves. A geofenced alert is only useful if it reaches someone who can act on it in the next few minutes, on a phone that might have weak signal, in a moment when they're not thinking about how to use an app. That constraint shaped almost everything downstream: how aggressively we cached data locally, how little we asked of the user interface during an active alert, and how much we tested on low-end devices rather than whatever hardware was sitting on our own desks.",

@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 import { projects } from "@/lib/projects";
 import { blogPosts } from "@/lib/blog";
+import { servicePillars } from "@/lib/services";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes: {
@@ -14,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }[] = [
     { path: "", changeFrequency: "weekly", priority: 1 },
     { path: "/about", changeFrequency: "monthly", priority: 0.8 },
+    { path: "/services", changeFrequency: "monthly", priority: 0.9 },
     { path: "/portfolio", changeFrequency: "monthly", priority: 0.8 },
     { path: "/contact", changeFrequency: "monthly", priority: 0.9 },
     { path: "/blog", changeFrequency: "weekly", priority: 0.6 },
@@ -28,6 +30,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
+  const serviceRoutes = servicePillars.map((pillar) => ({
+    path: `/services/${pillar.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  }));
+
   const blogRoutes = blogPosts.map((post) => ({
     path: `/blog/${post.slug}`,
     changeFrequency: "yearly" as const,
@@ -36,7 +44,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const lastModified = new Date();
 
-  return [...routes, ...projectRoutes, ...blogRoutes].map(
+  return [...routes, ...serviceRoutes, ...projectRoutes, ...blogRoutes].map(
     ({ path, changeFrequency, priority }) => ({
       url: `${SITE_URL}${path}`,
       lastModified,

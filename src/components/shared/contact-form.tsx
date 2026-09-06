@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -16,43 +18,87 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  baseContactSchema,
   budgetRanges,
+  buildingForOptions,
+  businessInfoStepSchema,
+  businessSizes,
+  challengeOptions,
   contactFormDefaults,
   contactSchema,
-  projectTypes,
+  goalsStepSchema,
+  industries,
+  positions,
+  referralSources,
   timelines,
+  yearsOperating,
   type ContactFormData,
 } from "@/lib/contact";
+import { getServicePillar, servicePillars } from "@/lib/services";
 import { Turnstile } from "@/components/shared/turnstile";
 import { cn } from "@/lib/utils";
+import type { ZodType } from "zod";
 
 type FieldErrors = Partial<Record<keyof ContactFormData, string>>;
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
-const STEPS = [
-  { id: "details", label: "Your details" },
-  { id: "project", label: "Your project" },
-  { id: "budget", label: "Budget & timeline" },
-] as const;
+type StepId = "personal" | "business" | "challenges" | "goals" | "final";
 
-const stepFields: (keyof ContactFormData)[][] = [
-  ["firstName", "lastName", "email", "phone", "organization"],
-  ["projectType", "project"],
-  ["budget", "timeline"],
-];
+interface Step {
+  id: StepId;
+  label: string;
+}
 
-const stepSchemas = [
-  contactSchema.pick({
+/** "Business Information" only appears when the project is for a business that already exists -- see the standing plan doc for why this is gated rather than always shown or optional-field-by-field. */
+function buildSteps(buildingFor: ContactFormData["buildingFor"]): Step[] {
+  const steps: Step[] = [{ id: "personal", label: "Personal Information" }];
+  if (buildingFor === "An existing business") {
+    steps.push({ id: "business", label: "Business Information" });
+  }
+  steps.push(
+    { id: "challenges", label: "Your Challenges" },
+    { id: "goals", label: "Your Goals" },
+    { id: "final", label: "Final Details" },
+  );
+  return steps;
+}
+
+const STEP_SCHEMAS: Record<StepId, ZodType> = {
+  personal: baseContactSchema.pick({
     firstName: true,
     lastName: true,
     email: true,
     phone: true,
-    organization: true,
+    buildingFor: true,
   }),
-  contactSchema.pick({ projectType: true, project: true }),
-  contactSchema.pick({ budget: true, timeline: true }),
-];
+  business: businessInfoStepSchema,
+  challenges: baseContactSchema.pick({ challenges: true, challengesOther: true }),
+  goals: goalsStepSchema,
+  final: baseContactSchema.pick({
+    budget: true,
+    timeline: true,
+    referralSource: true,
+    notes: true,
+  }),
+};
+
+const STEP_FIELDS: Record<StepId, (keyof ContactFormData)[]> = {
+  personal: ["firstName", "lastName", "email", "phone", "buildingFor"],
+  business: [
+    "businessName",
+    "industry",
+    "industryOther",
+    "position",
+    "positionOther",
+    "businessSize",
+    "yearsOperating",
+    "officeAddress",
+  ],
+  challenges: ["challenges", "challengesOther"],
+  goals: ["goals"],
+  final: ["budget", "timeline", "referralSource", "notes"],
+};
 
 type ContactFormProps = {
   /** Value sent as the `website_lead_source` HubSpot property, e.g. "Homepage" or "Contact Us Page". */
@@ -70,15 +116,16 @@ export function ContactForm({
   const searchParams = useSearchParams();
   const reduceMotion = useReducedMotion();
 
-  // Arriving from the hero's build-and-pick flow -- a chosen service
-  // (?type=...) is pre-selected outright, computed as the initial state
-  // itself (searchParams is already available on first render) rather
-  // than corrected afterward in an effect. The form always still opens on
-  // step 1 at the top of the page -- no jumping ahead or scrolling down.
+  // Arriving from the hero's build-and-pick flow -- a chosen service area
+  // (?category=<pillar slug>) pre-checks that pillar's systems in the Goals
+  // step, computed as the initial state itself (searchParams is already
+  // available on first render). The form always still opens on step 1 at
+  // the top of the page -- no jumping ahead or scrolling down.
   const [formData, setFormData] = useState<ContactFormData>(() => {
-    const type = searchParams.get("type");
-    if (type && projectTypes.includes(type as ContactFormData["projectType"])) {
-      return { ...contactFormDefaults, projectType: type as ContactFormData["projectType"] };
+    const category = searchParams.get("category");
+    const pillar = category ? getServicePillar(category) : undefined;
+    if (pillar) {
+      return { ...contactFormDefaults, goals: pillar.systems.map((s) => s.title) };
     }
     return contactFormDefaults;
   });
@@ -90,6 +137,9 @@ export function ContactForm({
   const [errorMessage, setErrorMessage] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
+  const steps = buildSteps(formData.buildingFor);
+  const currentStep = steps[step];
+
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -97,39 +147,42 @@ export function ContactForm({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleProjectTypeChange = (value: string) => {
-    if (projectTypes.includes(value as ContactFormData["projectType"])) {
-      setFormData((prev) => ({
-        ...prev,
-        projectType: value as ContactFormData["projectType"],
-      }));
-    }
+  function handleSelectChange<K extends keyof ContactFormData>(
+    field: K,
+    options: readonly string[],
+  ) {
+    return (value: string) => {
+      if (options.includes(value)) {
+        setFormData((prev) => ({ ...prev, [field]: value as ContactFormData[K] }));
+      }
+    };
+  }
+
+  const handleChallengeToggle = (
+    option: (typeof challengeOptions)[number],
+    checked: boolean,
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      challenges: checked
+        ? [...prev.challenges, option]
+        : prev.challenges.filter((c) => c !== option),
+    }));
   };
 
-  const handleBudgetChange = (value: string) => {
-    if (budgetRanges.includes(value as (typeof budgetRanges)[number])) {
-      setFormData((prev) => ({
-        ...prev,
-        budget: value as ContactFormData["budget"],
-      }));
-    }
+  const handleGoalToggle = (title: string, checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      goals: checked ? [...prev.goals, title] : prev.goals.filter((g) => g !== title),
+    }));
   };
 
-  const handleTimelineChange = (value: string) => {
-    if (timelines.includes(value as (typeof timelines)[number])) {
-      setFormData((prev) => ({
-        ...prev,
-        timeline: value as ContactFormData["timeline"],
-      }));
-    }
-  };
-
-  const validateStep = (index: number): boolean => {
-    const result = stepSchemas[index].safeParse(formData);
+  const validateStep = (stepId: StepId): boolean => {
+    const result = STEP_SCHEMAS[stepId].safeParse(formData);
     if (result.success) {
       setErrors((prev) => {
         const next = { ...prev };
-        for (const field of stepFields[index]) delete next[field];
+        for (const field of STEP_FIELDS[stepId]) delete next[field];
         return next;
       });
       return true;
@@ -144,7 +197,7 @@ export function ContactForm({
   };
 
   const handleNext = () => {
-    if (validateStep(step)) setStep((current) => current + 1);
+    if (validateStep(currentStep.id)) setStep((current) => current + 1);
   };
 
   const handleBack = () => setStep((current) => Math.max(0, current - 1));
@@ -155,7 +208,7 @@ export function ContactForm({
     // Enter pressed inside an earlier step's field submits the form
     // natively -- treat that the same as pressing "Next" instead of
     // attempting a real submission before the later steps are filled.
-    if (step < STEPS.length - 1) {
+    if (step < steps.length - 1) {
       handleNext();
       return;
     }
@@ -232,6 +285,14 @@ export function ContactForm({
         <p className="max-w-md text-muted-foreground">
           Thanks for reaching out. We usually reply within 1 business day.
         </p>
+        {/*
+          Scheduling plan (not integrated yet -- no CRM/booking tool is wired
+          up on this project): once one is chosen, this is where a "pick a
+          time" step would go. The footer already links out to a working
+          Calendly (https://calendly.com/cafton-company/consultation) for
+          "Book a call" -- that's the natural thing to reuse here rather than
+          adding a second, different scheduling tool.
+        */}
         <Button
           variant="outline"
           className="mt-2 cursor-pointer"
@@ -261,7 +322,7 @@ export function ContactForm({
     >
       <div>
         <div className="mb-3 flex items-center">
-          {STEPS.map((s, index) => (
+          {steps.map((s, index) => (
             <div key={s.id} className="flex flex-1 items-center last:flex-initial">
               <div
                 className={cn(
@@ -275,7 +336,7 @@ export function ContactForm({
               >
                 {index < step ? <Check className="size-4" aria-hidden="true" /> : index + 1}
               </div>
-              {index < STEPS.length - 1 && (
+              {index < steps.length - 1 && (
                 <div
                   className={cn(
                     "mx-2 h-px flex-1 transition-colors",
@@ -287,13 +348,13 @@ export function ContactForm({
           ))}
         </div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Step {step + 1} of {STEPS.length} &mdash; {STEPS[step].label}
+          Step {step + 1} of {steps.length} - {currentStep.label}
         </p>
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
-        {step === 0 && (
-          <motion.div key="step-details" {...stepAnim(1)} className="grid gap-6">
+        {currentStep.id === "personal" && (
+          <motion.div key="step-personal" {...stepAnim(1)} className="grid gap-6">
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="firstName">First name</Label>
@@ -363,69 +424,268 @@ export function ContactForm({
                 />
               </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="organization">
-                Organization <span className="text-muted-foreground">(optional)</span>
-              </Label>
-              <Input
-                id="organization"
-                name="organization"
-                autoComplete="organization"
-                value={formData.organization}
-                onChange={handleChange}
-              />
-            </div>
-          </motion.div>
-        )}
-
-        {step === 1 && (
-          <motion.div key="step-project" {...stepAnim(1)} className="grid gap-6">
-            <div className="grid gap-2">
-              <Label htmlFor="projectType">
-                What service would you like to inquire?
-              </Label>
-              <Select
-                value={formData.projectType}
-                onValueChange={handleProjectTypeChange}
+            <div className="grid gap-3">
+              <Label htmlFor="buildingFor-0">This project is for</Label>
+              <RadioGroup
+                value={formData.buildingFor}
+                onValueChange={handleSelectChange("buildingFor", buildingForOptions)}
               >
-                <SelectTrigger id="projectType" className="w-full">
-                  <SelectValue placeholder="Select a project type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projectTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="project">Tell us about your project</Label>
-              <Textarea
-                id="project"
-                name="project"
-                rows={6}
-                value={formData.project}
-                onChange={handleChange}
-                aria-invalid={!!errors.project}
-                aria-describedby={errors.project ? "project-error" : undefined}
-              />
-              {errors.project && (
-                <p id="project-error" className="text-sm text-destructive">
-                  {errors.project}
-                </p>
+                {buildingForOptions.map((option, index) => (
+                  <label
+                    key={option}
+                    htmlFor={`buildingFor-${index}`}
+                    className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 text-sm transition-colors hover:border-foreground/50"
+                  >
+                    <RadioGroupItem value={option} id={`buildingFor-${index}`} />
+                    {option}
+                  </label>
+                ))}
+              </RadioGroup>
+              {errors.buildingFor && (
+                <p className="text-sm text-destructive">{errors.buildingFor}</p>
               )}
             </div>
           </motion.div>
         )}
 
-        {step === 2 && (
-          <motion.div key="step-budget" {...stepAnim(1)} className="grid gap-6">
+        {currentStep.id === "business" && (
+          <motion.div key="step-business" {...stepAnim(1)} className="grid gap-6">
+            <div className="grid gap-2">
+              <Label htmlFor="businessName">Business name</Label>
+              <Input
+                id="businessName"
+                name="businessName"
+                value={formData.businessName}
+                onChange={handleChange}
+                aria-invalid={!!errors.businessName}
+                aria-describedby={errors.businessName ? "businessName-error" : undefined}
+              />
+              {errors.businessName && (
+                <p id="businessName-error" className="text-sm text-destructive">
+                  {errors.businessName}
+                </p>
+              )}
+            </div>
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label htmlFor="budget">Budget range</Label>
-                <Select value={formData.budget} onValueChange={handleBudgetChange}>
+                <Label htmlFor="industry">Industry</Label>
+                <Select
+                  value={formData.industry}
+                  onValueChange={handleSelectChange("industry", industries)}
+                >
+                  <SelectTrigger
+                    id="industry"
+                    className="w-full"
+                    aria-invalid={!!errors.industry}
+                  >
+                    <SelectValue placeholder="Select an industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {industries.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.industry && (
+                  <p className="text-sm text-destructive">{errors.industry}</p>
+                )}
+                {formData.industry === "Other" && (
+                  <Input
+                    name="industryOther"
+                    placeholder="Please specify your industry"
+                    value={formData.industryOther}
+                    onChange={handleChange}
+                    aria-invalid={!!errors.industryOther}
+                  />
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="position">Your role</Label>
+                <Select
+                  value={formData.position}
+                  onValueChange={handleSelectChange("position", positions)}
+                >
+                  <SelectTrigger
+                    id="position"
+                    className="w-full"
+                    aria-invalid={!!errors.position}
+                  >
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {positions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.position && (
+                  <p className="text-sm text-destructive">{errors.position}</p>
+                )}
+                {formData.position === "Other" && (
+                  <Input
+                    name="positionOther"
+                    placeholder="Please specify your role"
+                    value={formData.positionOther}
+                    onChange={handleChange}
+                    aria-invalid={!!errors.positionOther}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="businessSize">Business size</Label>
+                <Select
+                  value={formData.businessSize}
+                  onValueChange={handleSelectChange("businessSize", businessSizes)}
+                >
+                  <SelectTrigger
+                    id="businessSize"
+                    className="w-full"
+                    aria-invalid={!!errors.businessSize}
+                  >
+                    <SelectValue placeholder="Select a business size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {businessSizes.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.businessSize && (
+                  <p className="text-sm text-destructive">{errors.businessSize}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="yearsOperating">Years operating</Label>
+                <Select
+                  value={formData.yearsOperating}
+                  onValueChange={handleSelectChange("yearsOperating", yearsOperating)}
+                >
+                  <SelectTrigger
+                    id="yearsOperating"
+                    className="w-full"
+                    aria-invalid={!!errors.yearsOperating}
+                  >
+                    <SelectValue placeholder="Select a range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearsOperating.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.yearsOperating && (
+                  <p className="text-sm text-destructive">{errors.yearsOperating}</p>
+                )}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="officeAddress">
+                Office address <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                id="officeAddress"
+                name="officeAddress"
+                value={formData.officeAddress}
+                onChange={handleChange}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {currentStep.id === "challenges" && (
+          <motion.div key="step-challenges" {...stepAnim(1)} className="grid gap-6">
+            <p className="text-sm text-muted-foreground">
+              Pick everything that applies. It shapes what we recommend.
+            </p>
+            <div className="grid gap-2">
+              {challengeOptions.map((option) => {
+                const checked = formData.challenges.includes(option);
+                return (
+                  <label
+                    key={option}
+                    className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 text-sm transition-colors hover:border-foreground/50"
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(next) =>
+                        handleChallengeToggle(option, next === true)
+                      }
+                      className="mt-0.5"
+                    />
+                    {option}
+                  </label>
+                );
+              })}
+            </div>
+            {formData.challenges.includes("Something else") && (
+              <div className="grid gap-2">
+                <Label htmlFor="challengesOther">Tell us more</Label>
+                <Input
+                  id="challengesOther"
+                  name="challengesOther"
+                  value={formData.challengesOther}
+                  onChange={handleChange}
+                />
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {currentStep.id === "goals" && (
+          <motion.div key="step-goals" {...stepAnim(1)} className="grid gap-6">
+            <p className="text-sm text-muted-foreground">
+              Select the systems that matter most to you right now.
+            </p>
+            {servicePillars.map((pillar) => (
+              <div key={pillar.slug} className="grid gap-2">
+                <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  {pillar.title}
+                </h3>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {pillar.systems.map((system) => {
+                    const checked = formData.goals.includes(system.title);
+                    return (
+                      <label
+                        key={system.title}
+                        className="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3 text-sm transition-colors hover:border-foreground/50"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(next) =>
+                            handleGoalToggle(system.title, next === true)
+                          }
+                          className="mt-0.5"
+                        />
+                        {system.title}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            {errors.goals && <p className="text-sm text-destructive">{errors.goals}</p>}
+          </motion.div>
+        )}
+
+        {currentStep.id === "final" && (
+          <motion.div key="step-final" {...stepAnim(1)} className="grid gap-6">
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="budget">Estimated budget</Label>
+                <Select
+                  value={formData.budget}
+                  onValueChange={handleSelectChange("budget", budgetRanges)}
+                >
                   <SelectTrigger
                     id="budget"
                     className="w-full"
@@ -449,8 +709,11 @@ export function ContactForm({
                 )}
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="timeline">Timeline</Label>
-                <Select value={formData.timeline} onValueChange={handleTimelineChange}>
+                <Label htmlFor="timeline">Desired timeline</Label>
+                <Select
+                  value={formData.timeline}
+                  onValueChange={handleSelectChange("timeline", timelines)}
+                >
                   <SelectTrigger
                     id="timeline"
                     className="w-full"
@@ -473,6 +736,40 @@ export function ContactForm({
                   </p>
                 )}
               </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="referralSource">
+                How did you hear about us?{" "}
+                <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Select
+                value={formData.referralSource}
+                onValueChange={handleSelectChange("referralSource", referralSources)}
+              >
+                <SelectTrigger id="referralSource" className="w-full">
+                  <SelectValue placeholder="Select an option" />
+                </SelectTrigger>
+                <SelectContent>
+                  {referralSources.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="notes">
+                Anything else about your project?{" "}
+                <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                rows={5}
+                value={formData.notes}
+                onChange={handleChange}
+              />
             </div>
             <Turnstile onTokenChange={setTurnstileToken} />
           </motion.div>
@@ -499,7 +796,7 @@ export function ContactForm({
           <span />
         )}
 
-        {step < STEPS.length - 1 ? (
+        {step < steps.length - 1 ? (
           <Button type="button" className="cursor-pointer" onClick={handleNext}>
             Next
           </Button>

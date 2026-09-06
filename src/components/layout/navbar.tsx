@@ -18,9 +18,11 @@ import {
 // its two usages below.
 // import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Logo } from "@/components/shared/logo";
+import { ServicesNavMenu } from "@/components/layout/services-nav-menu";
 
 const navigationItems = [
   { name: "About", href: "/about" },
+  { name: "Services", href: "/services" },
   { name: "Portfolio", href: "/portfolio" },
   { name: "Blog", href: "/blog" },
 ];
@@ -67,21 +69,25 @@ export function Navbar() {
           aria-label="Main navigation"
           className="hidden items-center gap-1 xl:flex"
         >
-          {navigationItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              aria-current={pathname === item.href ? "page" : undefined}
-              className={`group relative inline-flex h-9 items-center justify-center rounded-md px-4 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                pathname === item.href
-                  ? "font-semibold text-foreground"
-                  : "font-medium text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {pathname !== item.href && <CornerBrackets />}
-              {item.name}
-            </Link>
-          ))}
+          {navigationItems.map((item) =>
+            item.name === "Services" ? (
+              <ServicesNavMenu key={item.name} />
+            ) : (
+              <Link
+                key={item.name}
+                href={item.href}
+                aria-current={pathname === item.href ? "page" : undefined}
+                className={`group relative inline-flex h-9 items-center justify-center rounded-md px-4 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                  pathname === item.href
+                    ? "font-semibold text-foreground"
+                    : "font-medium text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {pathname !== item.href && <CornerBrackets />}
+                {item.name}
+              </Link>
+            ),
+          )}
         </nav>
 
         {/* Desktop CTA */}

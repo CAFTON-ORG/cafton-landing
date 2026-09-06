@@ -52,15 +52,15 @@ export default function RootLayout({
       lang="en"
       // "dark" is rendered server-side so the first paint is already dark --
       // the provider only applies the class after mount, which would flash
-      // light first. Remove alongside forcedTheme when the toggle returns.
+      // light first. Remove alongside forcedTheme if the toggle ever returns.
       className={`dark ${inter.variable} antialiased`}
       style={{ colorScheme: "dark" }}
       data-scroll-behavior="smooth"
     >
       <body className={inter.className}>
-        {/* Theme toggle is commented out of the navbar for now -- forcedTheme pins
-            the site to dark and ignores any previously stored preference.
-            Drop `forcedTheme` (and restore the navbar toggle) to re-enable. */}
+        {/* Site is pinned to dark only -- forcedTheme ignores any stored
+            preference so a visitor can't get stuck on a since-removed
+            light mode. Restoring the toggle needs this prop dropped too. */}
         <ThemeProvider
           defaultTheme="dark"
           forcedTheme="dark"

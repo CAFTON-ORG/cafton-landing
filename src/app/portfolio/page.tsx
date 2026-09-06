@@ -6,7 +6,8 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { ProjectCard } from "@/components/portfolio/project-card";
-import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Pagination } from "@/components/shared/pagination";
+import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { projects } from "@/lib/projects";
 import { cardGridClass } from "@/lib/card-grid";
 
@@ -16,7 +17,24 @@ export const metadata: Metadata = {
     "Case studies of technology CAFTON has built around real problems: disaster response, restaurant and retail operations, and more.",
 };
 
-export default function WorkPage() {
+const PAGE_SIZE = 6;
+
+interface WorkPageProps {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function WorkPage({ searchParams }: WorkPageProps) {
+  const { page: pageParam } = await searchParams;
+  const totalPages = Math.max(1, Math.ceil(projects.length / PAGE_SIZE));
+  const currentPage = Math.min(
+    totalPages,
+    Math.max(1, Number(pageParam) || 1),
+  );
+  const pageProjects = projects.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
   return (
     <>
       <PageHero>
@@ -39,14 +57,19 @@ export default function WorkPage() {
       <PageSection>
         <PageShell>
           <RevealGroup
-            className={`grid gap-6 ${cardGridClass(projects.length)}`}
+            className={`grid gap-6 ${cardGridClass(pageProjects.length)}`}
           >
-            {projects.map((project) => (
+            {pageProjects.map((project) => (
               <RevealItem key={project.slug}>
                 <ProjectCard project={project} />
               </RevealItem>
             ))}
           </RevealGroup>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath="/portfolio"
+          />
         </PageShell>
       </PageSection>
       <ProjectCta />

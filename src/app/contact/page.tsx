@@ -5,7 +5,8 @@ import {
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
-import { ContactForm } from "@/components/shared/contact-form";
+import { ContactForm } from "@/components/contact/contact-form";
+import { SystemGraphic } from "@/components/contact/system-graphic";
 import { Faq } from "@/components/shared/faq";
 import { Button } from "@/components/ui/button";
 import { Clock3, Mail } from "lucide-react";
@@ -38,9 +39,12 @@ export default function ContactPage() {
         </PageShell>
       </PageHero>
       <PageSection>
-        <PageShell className="max-w-5xl">
-           <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[2fr_3fr] lg:items-start ">
+        <PageShell>
+          <div className="grid gap-8 lg:grid-cols-[1fr_2fr] lg:items-start">
             <Reveal className="flex flex-col gap-8">
+              <div className="mx-auto aspect-square w-full max-w-80">
+                <SystemGraphic />
+              </div>
               <div>
                 <h2 className="flex items-center gap-2 text-lg font-semibold">
                   <Mail className="h-5 w-5 text-foreground" />
@@ -84,7 +88,7 @@ export default function ContactPage() {
           </div>
         </PageShell>
       </PageSection>
-      <PageSection className="border-t border-border">
+      <PageSection className="border-t border-border bg-muted/30">
         <PageShell className="max-w-3xl">
           <Reveal>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">

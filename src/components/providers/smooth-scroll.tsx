@@ -1,12 +1,28 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { ReactLenis, useLenis } from "lenis/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "motion/react";
 
 gsap.registerPlugin(ScrollTrigger);
+
+// Next's router resets the native scroll position on navigation, but Lenis
+// virtualizes scroll on top of that -- left alone, it keeps rendering at its
+// own last position (e.g. still showing the homepage's CTA band after
+// navigating to /about), since nothing ever told ITS position to reset.
+function ScrollResetOnNavigate() {
+  const pathname = usePathname();
+  const lenis = useLenis();
+
+  useEffect(() => {
+    lenis?.scrollTo(0, { immediate: true });
+  }, [pathname, lenis]);
+
+  return null;
+}
 
 // Keeps GSAP's ticker and Lenis's virtual scroll in lockstep: Lenis drives
 // the raf loop (autoRaf disabled below), GSAP's ticker drives Lenis, and
@@ -57,6 +73,7 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
   return (
     <ReactLenis root options={{ autoRaf: false }}>
       <LenisGsapBridge />
+      <ScrollResetOnNavigate />
       {children}
     </ReactLenis>
   );

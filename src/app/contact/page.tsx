@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   title: "Contact - CAFTON",
   description:
     "Tell us what you're building, what isn't working, or what you'd like to improve.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {

@@ -87,7 +87,7 @@ const baseContactSchema = z.object({
     .min(1, "Email is required")
     .email("Enter a valid email")
     .max(254),
-  phone: z.string().trim().max(50),
+  phone: z.string().trim().min(1, "Phone number is required").max(50),
   buildingFor: z
     .enum(buildingForOptions)
     .or(z.literal(""))

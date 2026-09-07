@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   title: "Portfolio - CAFTON",
   description:
     "Case studies of technology CAFTON has built around real problems: disaster response, restaurant and retail operations, and more.",
+  alternates: { canonical: "/portfolio" },
 };
 
 const PAGE_SIZE = 6;

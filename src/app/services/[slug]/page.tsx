@@ -30,6 +30,7 @@ export async function generateMetadata({
   return {
     title: `${pillar.title} - CAFTON`,
     description: pillar.tagline,
+    alternates: { canonical: `/services/${pillar.slug}` },
   };
 }
 

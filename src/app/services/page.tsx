@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: "Services - CAFTON",
   description:
     "Operations, growth, industry, and product-build systems, built around the way your organization actually works.",
+  alternates: { canonical: "/services" },
 };
 
 export default function ServicesPage() {

@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   title: "Blog - CAFTON",
   description:
     "Notes from Cafton on building useful technology: process, engineering, and lessons from real projects.",
+  alternates: { canonical: "/blog" },
 };
 
 const PAGE_SIZE = 6;

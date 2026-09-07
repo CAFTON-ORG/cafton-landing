@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import gsap from "gsap";
 import { Group, MathUtils, Mesh, MeshStandardMaterial, PointLight, Vector3 } from "three";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
+import { useWebglContextRecovery } from "@/hooks/use-webgl-context-recovery";
 import { buildCaftonMarkFacets, MARK_COLOR } from "@/lib/cafton-mark-geometry";
 
 const MARK_SCALE = 1 / 14;
@@ -340,14 +341,7 @@ interface HeroSceneProps {
 export function HeroScene({ active, onBuildStart, onBuildComplete }: HeroSceneProps) {
   const theme = useResolvedTheme();
   const isDark = theme === "dark";
-
-  const handleCreated = ({ gl }: { gl: { domElement: HTMLCanvasElement } }) => {
-    gl.domElement.addEventListener(
-      "webglcontextlost",
-      (event) => event.preventDefault(),
-      false
-    );
-  };
+  const { canvasKey, handleCreated } = useWebglContextRecovery();
 
   return (
     <div className="absolute inset-0" aria-hidden="true">
@@ -360,6 +354,7 @@ export function HeroScene({ active, onBuildStart, onBuildComplete }: HeroScenePr
         and resumes instantly.
       */}
       <Canvas
+        key={canvasKey}
         camera={{ position: [0, 0, 9], fov: 36 }}
         dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: true }}

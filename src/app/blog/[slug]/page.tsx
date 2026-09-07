@@ -10,12 +10,14 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { JsonLd } from "@/components/shared/json-ld";
 import {
   blogPosts,
   formatBlogDate,
   getBlogPost,
   readingTime,
 } from "@/lib/blog";
+import { SITE_URL } from "@/lib/site";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -35,6 +37,7 @@ export async function generateMetadata({
   return {
     title: `${post.title} - CAFTON Blog`,
     description: post.excerpt,
+    alternates: { canonical: `/blog/${post.slug}` },
   };
 }
 
@@ -43,8 +46,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const post = getBlogPost(slug);
   if (!post) notFound();
 
+  const blogPostingJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.date,
+    url: `${SITE_URL}/blog/${post.slug}`,
+    author: { "@type": "Organization", name: "Cafton" },
+  };
+
   return (
     <>
+      <JsonLd data={blogPostingJsonLd} />
       <PageHero>
         <PageShell>
           <RevealGroup>

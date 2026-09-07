@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import type { Group } from "three";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
 import { useInViewport } from "@/hooks/use-in-viewport";
+import { useWebglContextRecovery } from "@/hooks/use-webgl-context-recovery";
 import { buildCaftonMarkFacets, MARK_COLOR } from "@/lib/cafton-mark-geometry";
 
 // Same proven camera/fov/scale as the hero and Differentiators placements.
@@ -68,15 +69,18 @@ export function ContactMark() {
   const theme = useResolvedTheme();
   const isDark = theme === "dark";
   const [containerRef, inViewport] = useInViewport<HTMLDivElement>();
+  const { canvasKey, handleCreated } = useWebglContextRecovery();
 
   return (
     <div ref={containerRef} className="h-full w-full" aria-hidden="true">
       <Canvas
+        key={canvasKey}
         camera={{ position: [0, 0, 9], fov: 36 }}
         dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: true }}
         performance={{ min: 0.5 }}
         frameloop={inViewport ? "always" : "never"}
+        onCreated={handleCreated}
       >
         <ambientLight intensity={isDark ? 0.6 : 0.95} />
         <directionalLight position={[3, 3, 3]} intensity={isDark ? 0.9 : 1.7} />

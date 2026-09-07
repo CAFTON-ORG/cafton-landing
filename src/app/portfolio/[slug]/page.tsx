@@ -31,6 +31,7 @@ export async function generateMetadata({
   return {
     title: `${project.client} - CAFTON Portfolio`,
     description: project.summary,
+    alternates: { canonical: `/portfolio/${project.slug}` },
   };
 }
 

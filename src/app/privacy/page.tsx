@@ -10,6 +10,7 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 export const metadata: Metadata = {
   title: "Privacy Policy - CAFTON",
   description: "How Cafton handles the information you share with us.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

@@ -1,9 +1,30 @@
 import type { ChangeEvent } from "react";
+import { Building2, Lightbulb, User, type LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { buildingForOptions, type ContactFormData } from "@/lib/contact";
 import type { FieldErrors } from "@/components/contact/types";
+import { cn } from "@/lib/utils";
+
+/** Icon + one-line description per option, matching the Goals-area step's card-tile treatment. */
+const BUILDING_FOR_DETAILS: Record<
+  (typeof buildingForOptions)[number],
+  { icon: LucideIcon; description: string }
+> = {
+  "An existing business": {
+    icon: Building2,
+    description: "We already have an operating business.",
+  },
+  "A new idea or startup": {
+    icon: Lightbulb,
+    description: "We're building something new from scratch.",
+  },
+  "A personal or side project": {
+    icon: User,
+    description: "This is a personal or smaller-scale project.",
+  },
+};
 
 interface PersonalInfoStepProps {
   formData: ContactFormData;
@@ -76,9 +97,7 @@ export function PersonalInfoStep({
           )}
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="phone">
-            Phone <span className="text-muted-foreground">(optional)</span>
-          </Label>
+          <Label htmlFor="phone">Phone</Label>
           <Input
             id="phone"
             type="tel"
@@ -86,22 +105,51 @@ export function PersonalInfoStep({
             autoComplete="tel"
             value={formData.phone}
             onChange={onChange}
+            aria-invalid={!!errors.phone}
+            aria-describedby={errors.phone ? "phone-error" : undefined}
           />
+          {errors.phone && (
+            <p id="phone-error" className="text-sm text-destructive">
+              {errors.phone}
+            </p>
+          )}
         </div>
       </div>
       <div className="grid gap-3">
         <Label htmlFor="buildingFor-0">This project is for</Label>
-        <RadioGroup value={formData.buildingFor} onValueChange={onBuildingForChange}>
-          {buildingForOptions.map((option, index) => (
-            <label
-              key={option}
-              htmlFor={`buildingFor-${index}`}
-              className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 text-sm transition-colors hover:border-foreground/50"
-            >
-              <RadioGroupItem value={option} id={`buildingFor-${index}`} />
-              {option}
-            </label>
-          ))}
+        <RadioGroup
+          value={formData.buildingFor}
+          onValueChange={onBuildingForChange}
+          className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+        >
+          {buildingForOptions.map((option, index) => {
+            const isSelected = formData.buildingFor === option;
+            const { icon: Icon, description } = BUILDING_FOR_DETAILS[option];
+            return (
+              <label
+                key={option}
+                htmlFor={`buildingFor-${index}`}
+                className={cn(
+                  "flex cursor-pointer flex-col items-start gap-2 rounded-lg border p-4 text-left transition-colors",
+                  isSelected
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border hover:border-foreground/50",
+                )}
+              >
+                <RadioGroupItem value={option} id={`buildingFor-${index}`} className="sr-only" />
+                <Icon className="size-5" aria-hidden="true" />
+                <span className="text-sm font-semibold">{option}</span>
+                <span
+                  className={cn(
+                    "text-xs leading-5",
+                    isSelected ? "text-background/80" : "text-muted-foreground",
+                  )}
+                >
+                  {description}
+                </span>
+              </label>
+            );
+          })}
         </RadioGroup>
         {errors.buildingFor && (
           <p className="text-sm text-destructive">{errors.buildingFor}</p>

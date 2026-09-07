@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   title: "About - CAFTON",
   description:
     "Cafton began with three collaborators who spent years engineering software together before turning that shared practice into a company.",
+  alternates: { canonical: "/about" },
 };
 
 export default function About() {

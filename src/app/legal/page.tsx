@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: "Legal - CAFTON",
   description:
     "Legal information for Cafton Software Development Services, including registration details and terms of use.",
+  alternates: { canonical: "/legal" },
 };
 
 export default function LegalPage() {

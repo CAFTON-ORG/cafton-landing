@@ -7,10 +7,24 @@ import { inter } from "@/lib/fonts";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { SmoothScroll } from "@/components/providers/smooth-scroll";
+import { JsonLd } from "@/components/shared/json-ld";
 import { SITE_URL } from "@/lib/site";
 
 const SITE_TITLE = "CAFTON";
 const SITE_DESCRIPTION = "CAFTON - Modern software solutions for growing teams.";
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: SITE_TITLE,
+  url: SITE_URL,
+  logo: `${SITE_URL}/cafton.png`,
+  sameAs: [
+    "https://www.facebook.com/profile.php?id=61593222069389",
+    "https://www.instagram.com/cafton.official",
+    "https://www.linkedin.com/company/cafton",
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -58,6 +72,7 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
     >
       <body className={inter.className}>
+        <JsonLd data={organizationJsonLd} />
         {/* Site is pinned to dark only -- forcedTheme ignores any stored
             preference so a visitor can't get stuck on a since-removed
             light mode. Restoring the toggle needs this prop dropped too. */}

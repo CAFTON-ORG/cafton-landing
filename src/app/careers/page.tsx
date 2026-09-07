@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   title: "Careers - CAFTON",
   description:
     "We're always interested in meeting thoughtful people who care about practical, well-made technology.",
+  alternates: { canonical: "/careers" },
 };
 
 export default function CareersPage() {

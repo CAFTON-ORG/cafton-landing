@@ -11,6 +11,7 @@ import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { ImagePlaceholder } from "@/components/shared/image-placeholder";
 import { LogoCarousel } from "@/components/shared/logo-carousel";
+import { ProcessGraphic } from "@/components/about/process-graphic";
 import { servicePillars } from "@/lib/services";
 
 export const metadata: Metadata = {
@@ -66,6 +67,11 @@ export default function About() {
               Understand → Design → Engineer → Deploy → Improve. Clear thinking
               and close collaboration guide every stage.
             </p>
+          </Reveal>
+          <Reveal delay={0.2} className="lg:col-span-2">
+            <div className="border-t border-border pt-8">
+              <ProcessGraphic />
+            </div>
           </Reveal>
         </PageShell>
       </PageSection>

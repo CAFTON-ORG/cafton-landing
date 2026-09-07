@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { servicePillars } from "@/lib/services";
+import { getServicePillar } from "@/lib/services";
 
 export const buildingForOptions = [
   "An existing business",
@@ -62,11 +62,6 @@ export const referralSources = [
   "Other",
 ] as const;
 
-/** Every system across every pillar, flattened, for the Goals step's checkbox validation. */
-export const goalOptions = servicePillars.flatMap((pillar) =>
-  pillar.systems.map((system) => system.title),
-);
-
 export const budgetRanges = [
   "Not sure yet",
   "Under ₱100,000",
@@ -112,7 +107,9 @@ const baseContactSchema = z.object({
   challenges: z.array(z.enum(challengeOptions)),
   challengesOther: z.string().trim().max(300),
 
-  // Step 4 -- Your Goals
+  // Step 4a -- Your Goals: which of the 4 service pillars fits (holds a pillar slug)
+  goalsCategory: z.string(),
+  // Step 4b -- Your Goals: which systems within that pillar
   goals: z.array(z.string()),
 
   // Step 5 -- Final Details
@@ -174,8 +171,13 @@ export const businessInfoStepSchema = z
     }
   });
 
-/** Step schema for "Your Goals" -- requires at least one pick. */
-export const goalsStepSchema = z.object({
+/** Step schema for "Your Goals" (area pick) -- one of the 4 service pillars. */
+export const goalsAreaStepSchema = z.object({
+  goalsCategory: z.string().min(1, "Choose an area to continue"),
+});
+
+/** Step schema for "Your Goals" (systems pick) -- requires at least one, scoped to the chosen area. */
+export const goalsSystemsStepSchema = z.object({
   goals: z.array(z.string()).min(1, "Pick at least one"),
 });
 
@@ -232,6 +234,14 @@ export const contactSchema = baseContactSchema.superRefine((data, ctx) => {
     }
   }
 
+  if (!data.goalsCategory) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["goalsCategory"],
+      message: "Choose an area to continue",
+    });
+  }
+
   if (data.goals.length === 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -259,6 +269,7 @@ export const contactFormDefaults: ContactFormData = {
   officeAddress: "",
   challenges: [],
   challengesOther: "",
+  goalsCategory: "",
   goals: [],
   budget: "",
   timeline: "",
@@ -267,6 +278,8 @@ export const contactFormDefaults: ContactFormData = {
 };
 
 export function buildHubSpotMessage(data: ContactFormData) {
+  const goalsArea = getServicePillar(data.goalsCategory)?.title ?? data.goalsCategory;
+
   return [
     data.buildingFor && `This project is for: ${data.buildingFor}`,
     data.businessName && `Business: ${data.businessName}`,
@@ -279,6 +292,7 @@ export function buildHubSpotMessage(data: ContactFormData) {
     data.officeAddress && `Office address: ${data.officeAddress}`,
     data.challenges.length > 0 && `Challenges: ${data.challenges.join("; ")}`,
     data.challengesOther && `Other challenge: ${data.challengesOther}`,
+    goalsArea && `Goals area: ${goalsArea}`,
     data.goals.length > 0 && `Goals: ${data.goals.join("; ")}`,
     data.budget && `Budget: ${data.budget}`,
     data.timeline && `Timeline: ${data.timeline}`,

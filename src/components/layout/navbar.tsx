@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLenis } from "lenis/react";
 import { useMotionValueEvent, useScroll } from "motion/react";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,8 +44,19 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const lenis = useLenis();
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 8));
+
+  // There's no separate "Home" nav item -- clicking the logo while already
+  // on "/" is otherwise a no-op (Link doesn't navigate to the current
+  // route), which reads as broken if you're scrolled down. Scroll to top
+  // instead in that one case; everywhere else this is a normal Link.
+  const handleLogoClick = () => {
+    if (pathname !== "/") return;
+    if (lenis) lenis.scrollTo(0);
+    else window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <header
@@ -57,6 +69,7 @@ export function Navbar() {
         <div className="flex items-center space-x-2">
           <Link
             href="/"
+            onClick={handleLogoClick}
             className="flex items-center space-x-2 cursor-pointer transition-opacity hover:opacity-80"
           >
             <Logo size={32} aria-hidden="true" />

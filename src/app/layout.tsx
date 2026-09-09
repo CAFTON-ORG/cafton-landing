@@ -11,7 +11,7 @@ import { JsonLd } from "@/components/shared/json-ld";
 import { SITE_URL } from "@/lib/site";
 
 const SITE_TITLE = "CAFTON";
-const SITE_DESCRIPTION = "CAFTON - Modern software solutions for growing teams.";
+const SITE_DESCRIPTION = "CAFTON - Modern Software Solutions";
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
@@ -53,6 +53,9 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     images: ["/cafton-lengthwise.png"],
+  },
+  other: {
+    "facebook-domain-verification": "i90eakb2wnfw34xea0iyyagoqp8nvz",
   },
 };
 

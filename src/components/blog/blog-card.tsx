@@ -1,29 +1,38 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { BlogPost } from "@/lib/blog";
 import { formatBlogDate, readingTime } from "@/lib/blog";
+import { ImageSkeleton } from "@/components/shared/image-skeleton";
 
 export function BlogCard({ post }: { post: BlogPost }) {
+  const [loaded, setLoaded] = useState(false);
+
   return (
     <Link
       href={`/blog/${post.slug}`}
       className="group flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-colors duration-300 hover:bg-muted/35"
     >
       <div className="relative aspect-video overflow-hidden">
+        {!loaded && <ImageSkeleton />}
         <Image
           src={post.imageLight}
           alt={post.imageAlt}
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover object-top grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 dark:hidden"
+          onLoad={() => setLoaded(true)}
+          className={`object-cover object-top grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 dark:hidden ${loaded ? "opacity-100" : "opacity-0"}`}
         />
         <Image
           src={post.imageDark}
           alt={post.imageAlt}
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="hidden object-cover object-top grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 dark:block"
+          onLoad={() => setLoaded(true)}
+          className={`hidden object-cover object-top grayscale transition-all duration-500 group-hover:scale-105 group-hover:grayscale-0 dark:block ${loaded ? "opacity-100" : "opacity-0"}`}
         />
       </div>
 

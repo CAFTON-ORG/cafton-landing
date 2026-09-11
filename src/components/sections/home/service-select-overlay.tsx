@@ -74,7 +74,14 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
             className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_70%_60%_at_50%_35%,color-mix(in_oklch,var(--foreground)_8%,transparent)_0%,transparent_60%)]"
           />
 
-          <Dialog.Close className="absolute right-5 top-5 cursor-pointer rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          {/*
+            `fixed`, not `absolute` -- Dialog.Content scrolls internally
+            (overflow-y-auto) once its content is taller than the viewport,
+            and an `absolute` child scrolls away with that content instead
+            of staying put. `fixed` anchors to the viewport itself, so the
+            close button stays reachable regardless of scroll position.
+          */}
+          <Dialog.Close className="fixed right-5 top-5 z-10 cursor-pointer rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <X className="size-5" aria-hidden="true" />
             <span className="sr-only">Close</span>
           </Dialog.Close>
@@ -87,7 +94,17 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
               What are you looking to build?
             </Dialog.Title>
 
-            <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-4">
+            {/*
+              Flat grid-cols-2 (not grid-cols-1 sm:grid-cols-2): stays two
+              columns even on phone widths rather than stacking to one --
+              standing owner preference (DEC-048), regressed by a later
+              rebuild and restored here. Padding/gaps/icon/text sizes all
+              step down at the same `sm:` breakpoint so a phone-width tile
+              stays legible rather than just shrinking proportionally, and
+              the description is hidden below `sm:` since two columns at
+              phone width leaves too little room for a full sentence.
+            */}
+            <div className="grid w-full grid-cols-2 gap-2 sm:gap-4">
               {servicePillars.map((pillar, index) => {
                 const isPicked = pickedTitle === pillar.title;
                 const isOtherPicked = pickedTitle !== null && !isPicked;
@@ -98,7 +115,7 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
                     disabled={pickedTitle !== null}
                     onClick={() => handlePick(pillar.title, pillar.slug)}
                     className={cn(
-                      "group relative flex flex-col items-start gap-1.5 overflow-hidden rounded-xl border p-4 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default sm:gap-2 sm:p-6",
+                      "group relative flex flex-col items-start gap-1 overflow-hidden rounded-xl border p-3 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default sm:gap-2 sm:p-6",
                       isPicked
                         ? "border-foreground bg-foreground text-background"
                         : "border-border hover:-translate-y-0.5 hover:border-foreground/50",
@@ -110,14 +127,14 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
                     <span
                       aria-hidden="true"
                       className={cn(
-                        "text-xs font-semibold tracking-[0.2em]",
+                        "text-[0.65rem] font-semibold tracking-[0.2em] sm:text-xs",
                         isPicked ? "text-background/70" : "text-muted-foreground",
                       )}
                     >
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <pillar.icon className="mt-1 size-6 sm:size-7" aria-hidden="true" />
-                    <h3 className="text-lg font-semibold">
+                    <pillar.icon className="mt-1 size-5 sm:size-7" aria-hidden="true" />
+                    <h3 className="text-sm font-semibold sm:text-lg">
                       {pillar.title}
                       {isPicked && (
                         <span className="ml-2 align-middle text-xs font-semibold uppercase tracking-[0.2em]">
@@ -127,7 +144,7 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
                     </h3>
                     <p
                       className={cn(
-                        "text-sm leading-5 sm:leading-6",
+                        "hidden text-sm leading-6 sm:block",
                         isPicked ? "text-background/80" : "text-muted-foreground",
                       )}
                     >

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import {
@@ -12,6 +11,7 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { ImagePlaceholder } from "@/components/shared/image-placeholder";
 import { LogoCarousel } from "@/components/shared/logo-carousel";
 import { ProcessGraphic } from "@/components/about/process-graphic";
+import { TeamPhoto } from "@/components/about/team-photo";
 import { servicePillars } from "@/lib/services";
 
 export const metadata: Metadata = {
@@ -25,18 +25,7 @@ export default function About() {
   return (
     <>
       <PageHero
-        image={
-          <div className="group relative h-full w-full overflow-hidden rounded-xl border">
-            <Image
-              src="/cafton-team.png"
-              alt="The Cafton team"
-              fill
-              sizes="(min-width: 1024px) 40vw, 100vw"
-              className="object-cover grayscale transition-all duration-500 group-hover:grayscale-0"
-              priority
-            />
-          </div>
-        }
+        image={<TeamPhoto />}
       >
         <RevealGroup>
           <RevealItem>

@@ -7,6 +7,7 @@ import { inter } from "@/lib/fonts";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { SmoothScroll } from "@/components/providers/smooth-scroll";
+import { SiteLoader } from "@/components/motion/site-loader";
 import { JsonLd } from "@/components/shared/json-ld";
 import { SITE_URL } from "@/lib/site";
 
@@ -75,6 +76,7 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
     >
       <body className={inter.className}>
+        <SiteLoader />
         <JsonLd data={organizationJsonLd} />
         {/* Site is pinned to dark only -- forcedTheme ignores any stored
             preference so a visitor can't get stuck on a since-removed

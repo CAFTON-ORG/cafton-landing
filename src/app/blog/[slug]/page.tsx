@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -9,6 +8,7 @@ import {
   PageShell,
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
+import { BlogHeroImage } from "@/components/blog/blog-hero-image";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { JsonLd } from "@/components/shared/json-ld";
 import {
@@ -95,24 +95,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <PageSection>
         <PageShell>
           <Reveal>
-            <div className="relative mx-auto aspect-video max-w-2xl overflow-hidden rounded-xl border">
-              <Image
-                src={post.imageLight}
-                alt={post.imageAlt}
-                fill
-                sizes="(min-width: 640px) 42rem, 100vw"
-                className="object-cover object-top dark:hidden"
-                priority
-              />
-              <Image
-                src={post.imageDark}
-                alt={post.imageAlt}
-                fill
-                sizes="(min-width: 640px) 42rem, 100vw"
-                className="hidden object-cover object-top dark:block"
-                priority
-              />
-            </div>
+            <BlogHeroImage post={post} />
           </Reveal>
           <Reveal delay={0.1}>
             <div className="mx-auto max-w-2xl">

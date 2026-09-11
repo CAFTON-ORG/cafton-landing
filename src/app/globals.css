@@ -132,3 +132,60 @@ main {
 .animate-logo-scroll:hover {
   animation-play-state: paused;
 }
+
+/* SiteLoader: the Cafton mark draws itself in (SVG stroke-dashoffset, using
+   pathLength="1" so the dash math works regardless of the path's real
+   length), then the filled mark fades in with a soft pulsing glow, while
+   two rings pulse outward behind it. Purely a CSS animation, entirely
+   decoupled from the loader's own dismiss timing (see site-loader.tsx) --
+   that separation is deliberate: the visuals can be as elaborate as
+   wanted without risking that logic again. */
+@keyframes loader-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes loader-fill-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes loader-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0px color-mix(in oklch, var(--foreground) 55%, transparent));
+  }
+  50% {
+    filter: drop-shadow(0 0 22px color-mix(in oklch, var(--foreground) 55%, transparent));
+  }
+}
+
+@keyframes loader-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+.animate-loader-draw {
+  animation: loader-draw 1.1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.animate-loader-fill-in {
+  animation:
+    loader-fill-in 0.5s ease forwards 0.95s,
+    loader-glow 2.4s ease-in-out 1.45s infinite;
+}
+
+.animate-loader-ring {
+  animation: loader-ring 2.4s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}

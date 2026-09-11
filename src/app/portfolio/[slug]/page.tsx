@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
@@ -10,6 +9,7 @@ import {
   PageShell,
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
+import { ProjectHeroImage } from "@/components/portfolio/project-hero-image";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { getProject, projects } from "@/lib/projects";
 
@@ -45,9 +45,6 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
     project.solution && { label: "Solution", body: project.solution },
     project.recognition && { label: "Recognition", body: project.recognition },
   ].filter(Boolean) as { label: string; body: string }[];
-
-  const fitClass =
-    project.imageFit === "contain" ? "object-contain p-12" : "object-cover object-top";
 
   return (
     <>
@@ -100,24 +97,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         <PageShell>
           <Reveal>
             <article className="overflow-hidden rounded-xl border bg-card">
-              <div className="relative aspect-[16/9]">
-                <Image
-                  src={project.imageLight}
-                  alt={project.imageAlt}
-                  fill
-                  sizes="100vw"
-                  className={`${fitClass} dark:hidden`}
-                  priority
-                />
-                <Image
-                  src={project.imageDark}
-                  alt={project.imageAlt}
-                  fill
-                  sizes="100vw"
-                  className={`hidden ${fitClass} dark:block`}
-                  priority
-                />
-              </div>
+              <ProjectHeroImage project={project} />
 
               {details.length > 0 && (
                 <div className="p-7 sm:p-10">

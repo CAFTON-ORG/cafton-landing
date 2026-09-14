@@ -9,6 +9,7 @@ import { BlogCard } from "@/components/blog/blog-card";
 import { Pagination } from "@/components/shared/pagination";
 import { CategoryFilter } from "@/components/shared/category-filter";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Badge } from "@/components/ui/badge";
 import { blogPosts } from "@/lib/blog";
 import { cardGridClass } from "@/lib/card-grid";
 
@@ -49,6 +50,9 @@ export default async function Blog({ searchParams }: BlogPageProps) {
       <PageHero>
         <PageShell>
           <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline">Blog</Badge>
+            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Notes from Cafton.

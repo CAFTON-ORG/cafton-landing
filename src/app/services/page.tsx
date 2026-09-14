@@ -7,6 +7,7 @@ import {
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { PillarGrid } from "@/components/services/pillar-grid";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "Services - CAFTON",
@@ -21,6 +22,9 @@ export default function ServicesPage() {
       <PageHero>
         <PageShell>
           <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline">Services</Badge>
+            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Software for the whole business, not just one corner of it.

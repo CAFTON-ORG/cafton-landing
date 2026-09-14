@@ -10,6 +10,7 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Badge } from "@/components/ui/badge";
 import { getServicePillar, servicePillars } from "@/lib/services";
 
 interface ServicePageProps {
@@ -51,6 +52,9 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
             Back to Services
           </Link>
           <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline">Services</Badge>
+            </RevealItem>
             <RevealItem>
               <pillar.icon className="size-8 text-foreground" aria-hidden="true" />
             </RevealItem>

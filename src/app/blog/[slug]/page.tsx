@@ -10,6 +10,7 @@ import {
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { BlogHeroImage } from "@/components/blog/blog-hero-image";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Badge } from "@/components/ui/badge";
 import { JsonLd } from "@/components/shared/json-ld";
 import {
   blogPosts,
@@ -70,6 +71,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <ArrowLeft className="me-2 size-4" />
                 Back to Blog
               </Link>
+            </RevealItem>
+            <RevealItem className="mb-4">
+              <Badge variant="outline">{post.category}</Badge>
             </RevealItem>
             <RevealItem>
               <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">

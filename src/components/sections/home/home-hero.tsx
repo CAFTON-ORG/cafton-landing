@@ -164,7 +164,7 @@ export function HomeHero() {
                 <motion.div
                   {...anim(ENTRANCE_DELAY.subhead)}
                   exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-                  className="flex items-center gap-2 text-sm text-muted-foreground md:absolute md:left-8 md:bottom-[11%]"
+                  className="flex items-center justify-center gap-2 text-center text-sm text-muted-foreground md:absolute md:left-8 md:bottom-[11%] md:justify-start md:text-left"
                 >
                   <motion.span
                     animate={reduceMotion ? undefined : { scale: [1, 1.18, 1] }}

@@ -49,11 +49,18 @@ export function useWebglContextRecovery() {
     canvas.addEventListener("webglcontextrestored", handleRestored, false);
   }, []);
 
+  // Empty deps deliberately -- this must fire exactly once, on the
+  // component's true final unmount (navigating away from the page), not
+  // on every recovery-triggered `canvasKey` bump. R3F creates the new
+  // renderer (via a layout effect) before this passive effect's cleanup
+  // runs, so a `[canvasKey]` dependency would read the *new* renderer
+  // out of `rendererRef` and force-lose the context that was just
+  // restored, undoing the recovery it's meant to support.
   useEffect(() => {
     return () => {
       rendererRef.current?.forceContextLoss();
     };
-  }, [canvasKey]);
+  }, []);
 
   return { canvasKey, handleCreated };
 }

@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   CalendarDays,
   Facebook,
-  Github,
   Instagram,
   Linkedin,
 } from "lucide-react";

@@ -101,15 +101,6 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
     [geometries]
   );
 
-  // R3F auto-disposes JSX-declared geometries/materials on unmount, but
-  // these are built imperatively via useMemo -- dispose them explicitly
-  // too, as cheap defense-in-depth against GPU memory pressure.
-  useEffect(() => {
-    return () => {
-      geometries.forEach((geometry) => geometry.dispose());
-    };
-  }, [geometries]);
-
   const pointer = useRef({ x: 0, y: 0 });
   const hovering = useRef(false);
   const hoverScale = useRef(1);
@@ -357,7 +348,7 @@ export function HeroScene({ active, onBuildStart, onBuildComplete }: HeroScenePr
         key={canvasKey}
         camera={{ position: [0, 0, 9], fov: 36 }}
         dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: false, alpha: true, powerPreference: "low-power" }}
         performance={{ min: 0.5 }}
         frameloop={active ? "always" : "never"}
         onCreated={handleCreated}

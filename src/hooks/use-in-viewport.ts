@@ -32,7 +32,7 @@ export function useInViewport<T extends HTMLElement>(
     observer.observe(el);
 
     return () => observer.disconnect();
-  }, []);
+  }, [rootMargin]);
 
   return [ref, inViewport];
 }

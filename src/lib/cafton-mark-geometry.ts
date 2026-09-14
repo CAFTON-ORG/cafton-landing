@@ -8,10 +8,29 @@ const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 42"><p
 
 export const MARK_COLOR = { dark: "#e5e5e5", light: "#5a5a5a" } as const;
 
+/**
+ * Every placement of the mark (hero, Differentiators, contact) calls this
+ * with the same `scale`/`extrudeDepth`, each independently re-parsing the
+ * SVG and rebuilding the extrude geometry on its own mount. Cached by
+ * those two values so repeat calls -- notably the hero and Differentiators
+ * mounting together on the homepage -- reuse one set of geometries instead
+ * of tripling the parse/extrude/bounding-box work. A `BufferGeometry`'s
+ * CPU-side attribute data is safe to share across multiple `<mesh>`
+ * instances and across separate Canvases/renderers, so nothing here is
+ * ever disposed -- the handful of small geometries live for the page
+ * session, which costs negligible memory against the cost of rebuilding
+ * them.
+ */
+const facetCache = new Map<string, ExtrudeGeometry[]>();
+
 export function buildCaftonMarkFacets(
   scale: number,
   extrudeDepth = 6
 ): ExtrudeGeometry[] {
+  const cacheKey = `${scale}:${extrudeDepth}`;
+  const cached = facetCache.get(cacheKey);
+  if (cached) return cached;
+
   const loader = new SVGLoader();
   const { paths } = loader.parse(LOGO_SVG);
   const shapes = paths.flatMap((path) => path.toShapes());
@@ -38,5 +57,6 @@ export function buildCaftonMarkFacets(
     geometry.computeVertexNormals();
   });
 
+  facetCache.set(cacheKey, geometries);
   return geometries;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import type { Group } from "three";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
@@ -22,12 +22,6 @@ function RotatingMark({ isDark }: { isDark: boolean }) {
     () => buildCaftonMarkFacets(MARK_SCALE, EXTRUDE_DEPTH),
     [],
   );
-
-  useEffect(() => {
-    return () => {
-      geometries.forEach((geometry) => geometry.dispose());
-    };
-  }, [geometries]);
 
   useFrame((state, delta) => {
     const group = groupRef.current;
@@ -77,7 +71,7 @@ export function ContactMark() {
         key={canvasKey}
         camera={{ position: [0, 0, 9], fov: 36 }}
         dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: false, alpha: true, powerPreference: "low-power" }}
         performance={{ min: 0.5 }}
         frameloop={inViewport ? "always" : "never"}
         onCreated={handleCreated}

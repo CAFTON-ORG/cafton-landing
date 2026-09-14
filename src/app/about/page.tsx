@@ -8,8 +8,6 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { ImagePlaceholder } from "@/components/shared/image-placeholder";
-import { LogoCarousel } from "@/components/shared/logo-carousel";
 import { ProcessGraphic } from "@/components/about/process-graphic";
 import { TeamPhoto } from "@/components/about/team-photo";
 import { servicePillars } from "@/lib/services";

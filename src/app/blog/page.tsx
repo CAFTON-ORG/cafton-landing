@@ -16,7 +16,7 @@ import { cardGridClass } from "@/lib/card-grid";
 export const metadata: Metadata = {
   title: "Blog - CAFTON",
   description:
-    "Notes from Cafton on building useful technology: process, engineering, and lessons from real projects.",
+    "Insights from Cafton on building useful technology: process, engineering, and lessons from real projects.",
   alternates: { canonical: "/blog" },
 };
 
@@ -55,7 +55,7 @@ export default async function Blog({ searchParams }: BlogPageProps) {
             </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Notes from Cafton.
+                Insights from Cafton.
               </h1>
             </RevealItem>
             <RevealItem>

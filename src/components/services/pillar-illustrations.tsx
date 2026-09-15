@@ -15,7 +15,7 @@ import type { SVGProps } from "react";
 
 type IllustrationProps = SVGProps<SVGSVGElement>;
 
-/** Operations Systems: a small workflow board -- task nodes wired together, one already running. */
+/** Business Operations Systems: a small workflow board -- task nodes wired together, one already running. */
 export function OperationsIllustration(props: IllustrationProps) {
   return (
     <svg

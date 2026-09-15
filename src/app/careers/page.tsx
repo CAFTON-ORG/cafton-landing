@@ -28,7 +28,7 @@ export default function CareersPage() {
             </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Build useful things with us.
+                Build software that actually gets used.
               </h1>
             </RevealItem>
             <RevealItem>

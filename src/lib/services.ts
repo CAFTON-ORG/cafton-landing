@@ -21,7 +21,7 @@ export const servicePillars: ServicePillar[] = [
   {
     slug: "operations",
     icon: Cog,
-    title: "Operations Systems",
+    title: "Business Operations Systems",
     tagline: "Run the back office without the busywork.",
     summary:
       "The systems that keep a business running day to day: people, money, sales at the counter, stock on the shelf, and product on the line. Built to replace spreadsheets and disconnected tools with one system your team actually uses.",
@@ -59,7 +59,7 @@ export const servicePillars: ServicePillar[] = [
     title: "Growth Systems",
     tagline: "Turn interest into paying clients.",
     summary:
-      "The systems that carry a lead from first contact to closed deal, then keep them coming back. For teams that are done chasing prospects through group chats and spreadsheets.",
+      "The systems that carry a lead from first contact to closed deal, then keep them coming back. Built for teams ready to move past tracking prospects across scattered messages and spreadsheets.",
     systems: [
       {
         title: "Lead Capture & Funnels",

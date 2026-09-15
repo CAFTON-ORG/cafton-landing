@@ -28,7 +28,7 @@ export default function About() {
       >
         <RevealGroup>
           <RevealItem className="mb-4">
-            <Badge variant="outline">About</Badge>
+            <Badge variant="outline" className="px-3 py-1 text-sm">About</Badge>
           </RevealItem>
           <RevealItem>
             <h1 className="max-w-xl text-4xl font-bold tracking-tight sm:text-5xl">

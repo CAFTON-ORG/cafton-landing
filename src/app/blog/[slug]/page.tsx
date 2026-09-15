@@ -73,7 +73,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </Link>
             </RevealItem>
             <RevealItem className="mb-4">
-              <Badge variant="outline">{post.category}</Badge>
+              <Badge variant="outline" className="px-3 py-1 text-sm">{post.category}</Badge>
             </RevealItem>
             <RevealItem>
               <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">

@@ -3,11 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { ReactLenis, useLenis } from "lenis/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "motion/react";
-
-gsap.registerPlugin(ScrollTrigger);
 
 // Next's router resets the native scroll position on navigation, but Lenis
 // virtualizes scroll on top of that -- left alone, it keeps rendering at its
@@ -30,23 +26,46 @@ function ScrollResetOnNavigate() {
 // rather than the native scroll event it virtualizes over. Without this,
 // ScrollTrigger-driven animations (the hero, in particular) lag a frame
 // behind the smoothed scroll position.
+//
+// GSAP/ScrollTrigger are dynamically imported here rather than at module
+// scope: this provider mounts in the root layout, on every page, but only
+// the homepage actually has any ScrollTrigger-driven section (Differentiators)
+// -- every other page was paying for GSAP's full weight in its initial JS
+// for nothing. The two other places that use GSAP (`differentiators.tsx`,
+// `hero-scene.tsx`) are both homepage-only and already load it themselves;
+// `registerPlugin` is idempotent, so it's safe to call again here too.
 function LenisGsapBridge() {
   const lenis = useLenis();
 
   useEffect(() => {
     if (!lenis) return;
 
-    const update = (time: number) => {
-      lenis.raf(time * 1000);
-    };
+    let teardown: (() => void) | undefined;
+    let cancelled = false;
 
-    gsap.ticker.add(update);
-    gsap.ticker.lagSmoothing(0);
-    lenis.on("scroll", ScrollTrigger.update);
+    Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
+      ([{ default: gsap }, { ScrollTrigger }]) => {
+        if (cancelled) return;
+        gsap.registerPlugin(ScrollTrigger);
+
+        const update = (time: number) => {
+          lenis.raf(time * 1000);
+        };
+
+        gsap.ticker.add(update);
+        gsap.ticker.lagSmoothing(0);
+        lenis.on("scroll", ScrollTrigger.update);
+
+        teardown = () => {
+          gsap.ticker.remove(update);
+          lenis.off("scroll", ScrollTrigger.update);
+        };
+      },
+    );
 
     return () => {
-      gsap.ticker.remove(update);
-      lenis.off("scroll", ScrollTrigger.update);
+      cancelled = true;
+      teardown?.();
     };
   }, [lenis]);
 

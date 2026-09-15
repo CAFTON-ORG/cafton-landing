@@ -43,8 +43,8 @@ export const blogPosts: BlogPost[] = [
     category: "Case Study",
     // The actual iLigtas admin dashboard -- same asset used on its
     // portfolio case study, genuinely relevant to this post's subject.
-    imageLight: "/hero-light.png",
-    imageDark: "/hero-dark.png",
+    imageLight: "/hero-light.jpg",
+    imageDark: "/hero-dark.jpg",
     imageAlt: "iLigtas live geofencing alerts dashboard",
     content: [
       "iLigtas started as a straightforward-sounding request: help coordinate emergency response and preparedness information across a region prone to earthquakes and landslides. It didn't stay straightforward for long, and that turned out to be the useful part.",

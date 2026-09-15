@@ -60,7 +60,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           </Link>
           <RevealGroup>
             <RevealItem className="mb-4">
-              <Badge variant="outline">{project.category}</Badge>
+              <Badge variant="outline" className="px-3 py-1 text-sm">{project.category}</Badge>
             </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">

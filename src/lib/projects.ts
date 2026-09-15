@@ -39,8 +39,8 @@ export const projects: Project[] = [
       "A connected mobile and web platform for location-aware coordination.",
     recognition:
       "Regional Finalist, Philippine Startup Challenge 9, Cordillera; Finalist, Baguio Smart City Challenge.",
-    imageLight: "/hero-light.png",
-    imageDark: "/hero-dark.png",
+    imageLight: "/hero-light.jpg",
+    imageDark: "/hero-dark.jpg",
     imageAlt: "iLigtas live geofencing alerts dashboard",
   },
   {

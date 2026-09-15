@@ -53,7 +53,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
           </Link>
           <RevealGroup>
             <RevealItem className="mb-4">
-              <Badge variant="outline">Services</Badge>
+              <Badge variant="outline" className="px-3 py-1 text-sm">Services</Badge>
             </RevealItem>
             <RevealItem>
               <pillar.icon className="size-8 text-foreground" aria-hidden="true" />

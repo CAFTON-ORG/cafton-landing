@@ -51,7 +51,7 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
         <PageShell>
           <RevealGroup>
             <RevealItem className="mb-4">
-              <Badge variant="outline">Portfolio</Badge>
+              <Badge variant="outline" className="px-3 py-1 text-sm">Portfolio</Badge>
             </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">

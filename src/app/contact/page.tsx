@@ -27,7 +27,7 @@ export default function ContactPage() {
         <PageShell>
           <RevealGroup>
             <RevealItem className="mb-4">
-              <Badge variant="outline">Contact</Badge>
+              <Badge variant="outline" className="px-3 py-1 text-sm">Contact</Badge>
             </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">

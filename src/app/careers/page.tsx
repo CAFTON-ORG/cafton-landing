@@ -24,7 +24,7 @@ export default function CareersPage() {
         <PageShell>
           <RevealGroup>
             <RevealItem className="mb-4">
-              <Badge variant="outline">Careers</Badge>
+              <Badge variant="outline" className="px-3 py-1 text-sm">Careers</Badge>
             </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">

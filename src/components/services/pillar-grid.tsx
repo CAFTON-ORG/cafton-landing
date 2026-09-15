@@ -1,8 +1,15 @@
+import type { ComponentType, SVGProps } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { RevealItem } from "@/components/motion/reveal";
 import { CornerBrackets } from "@/components/shared/corner-brackets";
 import { DotPattern } from "@/components/shared/dot-pattern";
+import {
+  GrowthIllustration,
+  IndustryPlatformsIllustration,
+  OperationsIllustration,
+  ProductBuildsIllustration,
+} from "@/components/services/pillar-illustrations";
 import { servicePillars } from "@/lib/services";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +23,14 @@ const GRID_ORDER = ["industry-platforms", "operations", "growth", "product-build
 const orderedPillars = GRID_ORDER.map((slug) =>
   servicePillars.find((pillar) => pillar.slug === slug),
 ).filter((pillar): pillar is NonNullable<typeof pillar> => Boolean(pillar));
+
+/** Keyed by slug rather than added to `services.ts` -- this is a presentation concern of the grid, not pillar data. */
+const ILLUSTRATIONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
+  operations: OperationsIllustration,
+  growth: GrowthIllustration,
+  "industry-platforms": IndustryPlatformsIllustration,
+  "product-builds": ProductBuildsIllustration,
+};
 
 interface PillarGridProps {
   /** Homepage teaser: shorter tiles, title only. Defaults to the full detail treatment. */
@@ -38,6 +53,7 @@ export function PillarGrid({ compact = false }: PillarGridProps) {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {orderedPillars.map((pillar, index) => {
         const isWide = index === 0 || index === 3;
+        const Illustration = ILLUSTRATIONS[pillar.slug];
 
         return (
           <RevealItem
@@ -60,12 +76,13 @@ export function PillarGrid({ compact = false }: PillarGridProps) {
               <CornerBrackets />
 
               {/*
-                No real photography exists yet for these four systems --
-                this is an honest placeholder in the site's own established
-                dot-pattern/glow language (see `ImagePlaceholder`), not a
-                stand-in claiming to be a real photo. Swap for real imagery
-                per pillar whenever it exists; the scrim + overlay content
-                below is built to sit over a real photo unchanged.
+                No real photography exists for these four systems, and no
+                AI image generation was available (no API key, no Python
+                runtime) -- an original hand-built line-art illustration per
+                pillar (`pillar-illustrations.tsx`) stands in instead of a
+                fabricated "photo." Swap for real imagery whenever it
+                exists; the scrim + overlay content below is built to sit
+                over a real photo unchanged.
               */}
               <div className="absolute inset-0 bg-muted/30" aria-hidden="true">
                 <DotPattern size="sm" opacity="low" fadeStyle="ellipse" />
@@ -75,12 +92,9 @@ export function PillarGrid({ compact = false }: PillarGridProps) {
                 <div
                   className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 [background:radial-gradient(circle_at_50%_40%,color-mix(in_oklch,var(--foreground)_18%,transparent)_0%,transparent_65%)]"
                 />
-                <pillar.icon
-                  className="absolute left-1/2 top-1/2 size-20 -translate-x-1/2 -translate-y-1/2 text-muted-foreground/30 transition-transform duration-500 ease-out group-hover:scale-110 sm:size-24"
-                  aria-hidden="true"
-                />
+                <Illustration className="absolute inset-0 size-full transition-transform duration-500 ease-out group-hover:scale-105" />
               </div>
-              <span className="sr-only">{pillar.title} illustration placeholder</span>
+              <span className="sr-only">{pillar.title} illustration</span>
 
               {/* Scrim: keeps the overlaid text legible over the tile image regardless of what's behind it. */}
               <div

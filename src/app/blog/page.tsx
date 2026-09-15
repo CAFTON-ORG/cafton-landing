@@ -9,13 +9,14 @@ import { BlogCard } from "@/components/blog/blog-card";
 import { Pagination } from "@/components/shared/pagination";
 import { CategoryFilter } from "@/components/shared/category-filter";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Badge } from "@/components/ui/badge";
 import { blogPosts } from "@/lib/blog";
 import { cardGridClass } from "@/lib/card-grid";
 
 export const metadata: Metadata = {
   title: "Blog - CAFTON",
   description:
-    "Notes from Cafton on building useful technology: process, engineering, and lessons from real projects.",
+    "Insights from Cafton on building useful technology: process, engineering, and lessons from real projects.",
   alternates: { canonical: "/blog" },
 };
 
@@ -49,9 +50,12 @@ export default async function Blog({ searchParams }: BlogPageProps) {
       <PageHero>
         <PageShell>
           <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline" className="px-3 py-1 text-sm">Blog</Badge>
+            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Notes from Cafton.
+                Insights from Cafton.
               </h1>
             </RevealItem>
             <RevealItem>

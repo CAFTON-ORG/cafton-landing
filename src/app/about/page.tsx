@@ -8,8 +8,7 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { ImagePlaceholder } from "@/components/shared/image-placeholder";
-import { LogoCarousel } from "@/components/shared/logo-carousel";
+import { Badge } from "@/components/ui/badge";
 import { ProcessGraphic } from "@/components/about/process-graphic";
 import { TeamPhoto } from "@/components/about/team-photo";
 import { servicePillars } from "@/lib/services";
@@ -28,6 +27,9 @@ export default function About() {
         image={<TeamPhoto />}
       >
         <RevealGroup>
+          <RevealItem className="mb-4">
+            <Badge variant="outline" className="px-3 py-1 text-sm">About</Badge>
+          </RevealItem>
           <RevealItem>
             <h1 className="max-w-xl text-4xl font-bold tracking-tight sm:text-5xl">
               Three teammates, building technology with purpose.

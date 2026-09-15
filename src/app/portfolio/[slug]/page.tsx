@@ -11,6 +11,7 @@ import {
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { ProjectHeroImage } from "@/components/portfolio/project-hero-image";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Badge } from "@/components/ui/badge";
 import { getProject, projects } from "@/lib/projects";
 
 interface ProjectPageProps {
@@ -58,6 +59,9 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             Back to Portfolio
           </Link>
           <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline" className="px-3 py-1 text-sm">{project.category}</Badge>
+            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 {project.title}

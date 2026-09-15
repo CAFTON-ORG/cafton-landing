@@ -9,6 +9,7 @@ import { ProjectCard } from "@/components/portfolio/project-card";
 import { Pagination } from "@/components/shared/pagination";
 import { CategoryFilter } from "@/components/shared/category-filter";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Badge } from "@/components/ui/badge";
 import { projects } from "@/lib/projects";
 import { cardGridClass } from "@/lib/card-grid";
 
@@ -49,6 +50,9 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
       <PageHero>
         <PageShell>
           <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline" className="px-3 py-1 text-sm">Portfolio</Badge>
+            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Technology we&apos;ve built around real problems.

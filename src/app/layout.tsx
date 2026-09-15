@@ -24,6 +24,8 @@ const organizationJsonLd = {
     "https://www.facebook.com/profile.php?id=61593222069389",
     "https://www.instagram.com/cafton.official",
     "https://www.linkedin.com/company/cafton",
+    "https://www.tiktok.com/@cafton.official",
+    "https://www.youtube.com/@caftonofficial",
   ],
 };
 

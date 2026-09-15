@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MousePointerClick } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DotPattern } from "@/components/shared/dot-pattern";
 import { useCanShow3D } from "@/hooks/use-can-show-3d";
@@ -159,17 +159,32 @@ export function HomeHero() {
           </div>
 
           <div className="pointer-events-none relative z-30 flex flex-col gap-5 md:absolute md:inset-0 md:mx-auto md:block md:max-w-7xl md:px-8">
-            <motion.p
-              {...anim(ENTRANCE_DELAY.subhead)}
-              className="pointer-events-auto max-w-md text-sm leading-6 text-muted-foreground sm:text-base md:absolute md:left-8 md:top-[46%] md:max-w-68"
-            >
-              Cafton engineers custom software, web and mobile applications, and
-              SaaS products around the way organizations actually work.
-            </motion.p>
+            <AnimatePresence>
+              {!built && canShow3D && (
+                <motion.div
+                  {...anim(ENTRANCE_DELAY.subhead)}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                  className="flex items-center justify-center gap-2 text-center text-sm text-muted-foreground md:absolute md:left-8 md:bottom-[11%] md:justify-start md:text-left"
+                >
+                  <motion.span
+                    animate={reduceMotion ? undefined : { scale: [1, 1.18, 1] }}
+                    transition={
+                      reduceMotion
+                        ? undefined
+                        : { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
+                    }
+                    className="flex"
+                  >
+                    <MousePointerClick className="size-4" aria-hidden="true" />
+                  </motion.span>
+                  Click the mark to build it
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <motion.div
               {...anim(ENTRANCE_DELAY.cta)}
-              className="pointer-events-auto flex flex-col flex-wrap gap-2 md:absolute md:flex-row md:right-8 md:bottom-[11%] md:justify-end"
+              className="pointer-events-auto flex flex-col gap-3 md:absolute md:flex-row md:right-8 md:bottom-[11%] md:justify-end"
             >
               <Button className="cursor-pointer group" asChild>
                 <Link href="/contact">

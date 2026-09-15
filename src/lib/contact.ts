@@ -44,7 +44,7 @@ export const yearsOperating = [
 ] as const;
 
 export const challengeOptions = [
-  "We still rely on spreadsheets, paper, or group chats",
+  "We still rely on spreadsheets, paper, or messaging apps",
   "Our tools don't talk to each other",
   "Day-to-day operations take longer than they should",
   "We're not converting enough leads into sales",

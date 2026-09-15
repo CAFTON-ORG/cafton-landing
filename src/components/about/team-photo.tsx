@@ -11,7 +11,7 @@ export function TeamPhoto() {
     <div className="group relative h-full w-full overflow-hidden rounded-xl border">
       {!loaded && <ImageSkeleton />}
       <Image
-        src="/cafton-team.png"
+        src="/cafton-team.jpg"
         alt="The Cafton team"
         fill
         sizes="(min-width: 1024px) 40vw, 100vw"

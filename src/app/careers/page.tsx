@@ -8,6 +8,7 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "Careers - CAFTON",
@@ -22,9 +23,12 @@ export default function CareersPage() {
       <PageHero>
         <PageShell>
           <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline" className="px-3 py-1 text-sm">Careers</Badge>
+            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Build useful things with us.
+                Build software that actually gets used.
               </h1>
             </RevealItem>
             <RevealItem>

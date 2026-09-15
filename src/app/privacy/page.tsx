@@ -6,6 +6,7 @@ import {
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "Privacy Policy - CAFTON",
@@ -19,6 +20,9 @@ export default function PrivacyPage() {
       <PageHero>
         <PageShell>
           <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline" className="px-3 py-1 text-sm">Privacy</Badge>
+            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Privacy policy

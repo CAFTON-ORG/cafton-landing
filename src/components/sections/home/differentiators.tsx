@@ -110,7 +110,14 @@ function ScrollDifferentiators() {
       trigger: sectionRef.current,
       start: "top top",
       end: "bottom top",
-      scrub: 1,
+      // Lenis (site-wide smooth scroll) already smooths raw input into a
+      // virtual scroll position; a `scrub` value stacks a second, separate
+      // smoothing delay on top of that already-smoothed value. `scrub: 1`
+      // (up to a full second of catch-up lag) compounded with Lenis read as
+      // sluggish, laggy scroll response right after the hero -- a small
+      // value keeps the pinned content tracking scroll input closely while
+      // still smoothing out any last per-frame jitter.
+      scrub: 0.3,
       onUpdate: (self) => {
         progress.current = self.progress;
         const index = Math.min(

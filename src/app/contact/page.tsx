@@ -11,6 +11,7 @@ import { Faq } from "@/components/shared/faq";
 import { Button } from "@/components/ui/button";
 import { Clock3, Mail } from "lucide-react";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "Contact - CAFTON",
@@ -25,6 +26,9 @@ export default function ContactPage() {
       <PageHero>
         <PageShell>
           <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline" className="px-3 py-1 text-sm">Contact</Badge>
+            </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                 Have a problem worth solving?

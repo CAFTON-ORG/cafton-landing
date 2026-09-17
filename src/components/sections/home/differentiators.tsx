@@ -5,10 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AnimatePresence, motion } from "motion/react";
-import { Search, Layers3, Users } from "lucide-react";
+import { Search, Layers3, Users, Puzzle } from "lucide-react";
 import { DotPattern } from "@/components/shared/dot-pattern";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { PageShell } from "@/components/layout/page-shell";
+import { CornerBrackets } from "@/components/shared/corner-brackets";
 import { useCanShow3D } from "@/hooks/use-can-show-3d";
 import { CanvasErrorBoundary } from "@/components/three/canvas-error-boundary";
 
@@ -47,11 +48,15 @@ const values = [
     description:
       "Three founders with years of experience working together, not a disconnected team assembled for a project.",
   },
+  {
+    icon: Puzzle,
+    title: "Built to Fit",
+    description:
+      "Every system is shaped around how your team already works, not a generic package retrofitted to your business.",
+  },
 ];
 
 function StaticDifferentiators() {
-  const [lead, ...rest] = values;
-
   return (
     <section id="why-cafton" className="relative py-14 sm:py-16 lg:py-20">
       <div
@@ -71,24 +76,30 @@ function StaticDifferentiators() {
           </p>
         </Reveal>
 
-        <RevealGroup className="grid max-w-4xl gap-10 sm:grid-cols-2">
-          <RevealItem className="flex flex-col gap-3 border-t border-border pt-6 sm:col-span-2 sm:flex-row sm:items-start sm:gap-6">
-            <lead.icon className="size-6 shrink-0 text-foreground" aria-hidden="true" />
-            <div className="flex flex-col gap-2">
-              <h3 className="text-lg font-semibold ">{lead.title}</h3>
-              <p className="max-w-md text-muted-foreground">{lead.description}</p>
-            </div>
-          </RevealItem>
-          {rest.map((value, index) => (
+        <RevealGroup className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {values.map((value, index) => (
             <RevealItem
-              key={index}
-              className="flex flex-col gap-3 border-t border-border pt-6"
+              key={value.title}
+              className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border p-6 transition-colors duration-300 hover:border-foreground/50"
             >
-              <value.icon className="size-5 text-foreground" aria-hidden="true" />
-              <h3 className="font-semibold ">{value.title}</h3>
-              <p className="text-sm text-muted-foreground">
-                {value.description}
-              </p>
+              <CornerBrackets />
+              <div className="flex items-center justify-between">
+                <span className="inline-flex size-11 items-center justify-center rounded-full border bg-background/80">
+                  <value.icon className="size-5 text-foreground" aria-hidden="true" />
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="text-xs font-semibold tracking-[0.2em] text-muted-foreground"
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <h3 className="font-semibold">{value.title}</h3>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {value.description}
+                </p>
+              </div>
             </RevealItem>
           ))}
         </RevealGroup>

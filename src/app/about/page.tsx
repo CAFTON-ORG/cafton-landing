@@ -49,7 +49,7 @@ export default function About() {
           <Reveal>
             <h2 className="text-3xl font-bold">What we believe</h2>
             <p className="mt-5 text-lg text-muted-foreground">
-              We don&apos;t start with software. We start with the problem: how
+              Build Better. Solve Smarter. That starts with the problem: how
               people work today and what could work better tomorrow.
             </p>
           </Reveal>

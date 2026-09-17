@@ -82,9 +82,9 @@ export function Footer() {
             Software Development Services
           </p>
           <p className="mt-5 text-lg font-medium leading-relaxed">
-            We don&apos;t start with software.
+            Build Better.
             <br />
-            We start with the problem.
+            Solve Smarter.
           </p>
           <Button
             asChild

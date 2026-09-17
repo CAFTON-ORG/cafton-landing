@@ -30,8 +30,6 @@ const ENTRANCE_DELAY = {
   cta: 1.05,
 } as const;
 
-const SWAP_DELAY = { line1: 0.1, line2: 0.1 } as const;
-
 function entrance(delay: number) {
   return {
     initial: { opacity: 0, y: 24 },
@@ -89,56 +87,19 @@ export function HomeHero() {
             className={`pointer-events-none z-20 font-black uppercase leading-[0.95] tracking-[-0.01em] text-foreground  md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8 ${DISPLAY_SIZE}`}
           >
             <span className="block md:absolute md:left-8 md:top-[10%] md:max-w-[46%]">
-              <AnimatePresence mode="wait" initial={!reduceMotion}>
-                {built ? (
-                  <motion.span
-                    key="line1-payoff"
-                    {...(reduceMotion ? {} : entrance(SWAP_DELAY.line1))}
-                    exit={reduceMotion ? undefined : { opacity: 0, y: -24 }}
-                    className="block"
-                  >
-                    We <span className="block">start</span>
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="line1-opening"
-                    {...anim(ENTRANCE_DELAY.line1)}
-                    exit={reduceMotion ? undefined : { opacity: 0, y: -24 }}
-                    className="block"
-                  >
-                    We don&apos;t <span className="block">start</span>
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              <motion.span {...anim(ENTRANCE_DELAY.line1)} className="block">
+                Build <span className="block">Better</span>
+              </motion.span>
             </span>
             <span className="block md:absolute md:right-8 md:top-[40%] md:max-w-[46%] md:text-right">
-              <AnimatePresence mode="wait" initial={!reduceMotion}>
-                {built ? (
-                  <motion.span
-                    key="line2-payoff"
-                    {...(reduceMotion ? {} : entrance(SWAP_DELAY.line2))}
-                    exit={reduceMotion ? undefined : { opacity: 0, y: -24 }}
-                    className="block"
-                  >
-                    with the{" "}
-                    <span className="block bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                      problem.
-                    </span>
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="line2-opening"
-                    {...anim(ENTRANCE_DELAY.line2)}
-                    exit={reduceMotion ? undefined : { opacity: 0, y: -24 }}
-                    className="block"
-                  >
-                    with{" "}
-                    <span className="block bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                      software.
-                    </span>
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              <motion.span {...anim(ENTRANCE_DELAY.line2)} className="block">
+                Solve{" "}
+                <span
+                  className={`block ${built ? "bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent" : ""}`}
+                >
+                  Smarter
+                </span>
+              </motion.span>
             </span>
           </h1>
 

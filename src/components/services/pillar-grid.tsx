@@ -63,7 +63,7 @@ export function PillarGrid({ compact = false }: PillarGridProps) {
             <Link
               href={`/services/${pillar.slug}`}
               className={cn(
-                "group relative flex w-full flex-col overflow-hidden rounded-xl border transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "group relative flex w-full flex-col overflow-hidden rounded-xl border shadow-sm transition-[transform,border-color] dark:shadow-none duration-300 contain-[paint] hover:-translate-y-0.5 hover:border-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 compact
                   ? isWide
                     ? "min-h-50 sm:min-h-55"
@@ -85,14 +85,11 @@ export function PillarGrid({ compact = false }: PillarGridProps) {
                 over a real photo unchanged.
               */}
               <div className="absolute inset-0 bg-muted/30" aria-hidden="true">
-                <DotPattern size="sm" opacity="low" fadeStyle="ellipse" />
+                <DotPattern size="sm" opacity="low" fadeStyle="none" />
                 <div
                   className="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_40%,color-mix(in_oklch,var(--foreground)_10%,transparent)_0%,transparent_65%)]"
                 />
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 [background:radial-gradient(circle_at_50%_40%,color-mix(in_oklch,var(--foreground)_18%,transparent)_0%,transparent_65%)]"
-                />
-                <Illustration className="absolute inset-0 size-full transition-transform duration-500 ease-out group-hover:scale-105" />
+                <Illustration className="absolute inset-0 size-full" />
               </div>
               <span className="sr-only">{pillar.title} illustration</span>
 
@@ -104,7 +101,7 @@ export function PillarGrid({ compact = false }: PillarGridProps) {
 
               <div className="relative z-10 flex h-full flex-col justify-between p-6 sm:p-8">
                 <div className="flex flex-col">
-                  <span className="inline-flex size-10 w-fit items-center justify-center rounded-full border bg-background/80 backdrop-blur-sm">
+                  <span className="inline-flex size-10 w-fit items-center justify-center rounded-full border bg-background/80">
                     <pillar.icon className="size-5 text-foreground" aria-hidden="true" />
                   </span>
                   <h3

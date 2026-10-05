@@ -14,10 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-// Theme toggle removed -- the site is pinned to dark only (forcedTheme in
-// layout.tsx). Restoring it is a two-line change: uncomment this import and
-// its two usages below.
-// import { ModeToggle } from "@/components/theme/mode-toggle";
+import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Logo } from "@/components/shared/logo";
 import { ServicesNavMenu } from "@/components/layout/services-nav-menu";
 
@@ -26,6 +23,7 @@ const navigationItems = [
   { name: "Services", href: "/services" },
   { name: "Portfolio", href: "/portfolio" },
   { name: "Blog", href: "/blog" },
+  { name: "Events", href: "/events" },
 ];
 
 /** Corner-bracket hover accent, the same game-UI-reticle nod `ServiceSelectOverlay`'s tiles use -- fades in on hover/focus of the parent `group`. */
@@ -60,7 +58,7 @@ export function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl transition-shadow duration-300 supports-[backdrop-filter]:bg-background/60 ${
+      className={`sticky top-0 z-50 w-full border-b bg-background/95 transition-shadow duration-300 ${
         scrolled ? "shadow-sm" : "shadow-none"
       }`}
     >
@@ -105,7 +103,7 @@ export function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden xl:flex items-center space-x-2">
-          {/* <ModeToggle variant="ghost" /> */}
+          <ModeToggle variant="ghost" />
           <Button asChild className="group cursor-pointer">
             <Link href="/contact">
               Contact Us
@@ -135,7 +133,7 @@ export function Navbar() {
                   </div>
                   <SheetTitle className="sr-only">CAFTON</SheetTitle>
                   <div className="ml-auto flex items-center gap-2">
-                    {/* <ModeToggle variant="ghost" /> */}
+                    <ModeToggle variant="ghost" />
                     <Button
                       variant="ghost"
                       size="icon"

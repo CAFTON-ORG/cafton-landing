@@ -6,7 +6,7 @@ const LOGO_PATH_D =
 
 const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 42"><path d="${LOGO_PATH_D}"/></svg>`;
 
-export const MARK_COLOR = { dark: "#e5e5e5", light: "#5a5a5a" } as const;
+export const MARK_COLOR = { dark: "#e5e5e5", light: "#7a7a7a" } as const;
 
 /**
  * Every placement of the mark (hero, Differentiators, contact) calls this

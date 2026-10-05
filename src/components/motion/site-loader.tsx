@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useReducedMotion } from "motion/react";
 import { LOGO_PATH_D, Logo } from "@/components/shared/logo";
+import { canShow3DNow } from "@/hooks/use-can-show-3d";
+import { onHeroReady } from "@/lib/hero-ready";
 
 /** Hard ceiling regardless of whether "load" ever fires -- see the effect below for why this has to be unreschedulable. */
 const MAX_WAIT_MS = 1500;
+/** Same ceiling on the homepage, where the loader also waits for the hero's 3D mark. Longer, because the three.js chunk has to download and the WebGL context start. */
+const HERO_MAX_WAIT_MS = 4000;
 /** How long the fade-out transition runs before the loader unmounts entirely. */
 const FADE_MS = 400;
 
@@ -21,46 +26,88 @@ const FADE_MS = 400;
  * dependency array, so it runs exactly once, schedules its timers exactly
  * once, and nothing can ever re-arm or push them later.
  *
- * Two independent, unconditional signals feed the same idempotent
- * `finish()` -- whichever fires first wins:
+ * The same idempotent `finish()` is fed by:
  * - `window.load` -- the browser's own confirmation that every resource
  *   queued at load time (images, fonts, scripts, stylesheets) has
- *   finished. Not tied to any one component's readiness.
- * - A flat `MAX_WAIT_MS` timeout, so a slow or partially-failed load can
- *   never hold the page hostage.
+ *   finished.
+ * - On the homepage only, when this device will actually render the 3D
+ *   mark: the hero scene's first presented frame (`onHeroReady`). Without
+ *   it the loader lifted as soon as the page loaded, revealing an empty
+ *   hero while the heavy 3D chunk was still arriving. This is a plain
+ *   one-way event, not a dependency on the canvas's own lifecycle, and
+ *   it is the only thing the dismissal waits on besides `load`.
+ * - A flat timeout, armed exactly once, so a slow or failed load (or a
+ *   hero that never draws) can never hold the page hostage.
  *
- * `window.load` only fires once per real navigation, not on Next's
- * client-side route transitions -- so this naturally shows once per fresh
- * page load/refresh and never again while navigating around the site.
+ * `window.load` only fires once per real navigation, so a fresh page load
+ * or refresh always shows the loader. Client-side navigation does not -- with
+ * one exception: arriving at the homepage re-runs the effect (keyed on the
+ * pathname only, so it still arms its timers exactly once per navigation) and
+ * brings the loader back until the hero's 3D mark has drawn, because the scene
+ * has to be rebuilt from scratch every time the homepage mounts. Any other
+ * client-side route just dismisses a loader that might still be showing.
  */
 export function SiteLoader() {
   const [visible, setVisible] = useState(true);
   const [dismissing, setDismissing] = useState(false);
   const reduceMotion = useReducedMotion();
+  const pathname = usePathname();
+  const lastPath = useRef<string | null>(null);
 
-  useEffect(() => {
+  // A layout effect, so on a client-side arrival at "/" the loader is back on
+  // screen before the browser paints the new page, not a frame after it.
+  useLayoutEffect(() => {
+    const navigated = lastPath.current !== null && lastPath.current !== pathname;
+    lastPath.current = pathname;
+
+    const waitForHero = pathname === "/" && canShow3DNow();
+
+    if (navigated && !waitForHero) {
+      setVisible(false);
+      return;
+    }
+    if (navigated) {
+      setDismissing(false);
+      setVisible(true);
+    }
+
     let settled = false;
+    let hideTimer: number | undefined;
 
     const finish = () => {
       if (settled) return;
       settled = true;
       setDismissing(true);
-      window.setTimeout(() => setVisible(false), FADE_MS);
+      hideTimer = window.setTimeout(() => setVisible(false), FADE_MS);
     };
 
-    if (document.readyState === "complete") {
-      finish();
-      return;
-    }
+    let loaded = navigated || document.readyState === "complete";
+    let heroReady = !waitForHero;
 
-    window.addEventListener("load", finish, { once: true });
-    const safety = window.setTimeout(finish, MAX_WAIT_MS);
+    const check = () => {
+      if (loaded && heroReady) finish();
+    };
+    const handleLoad = () => {
+      loaded = true;
+      check();
+    };
+    const handleHeroReady = () => {
+      heroReady = true;
+      check();
+    };
+
+    if (!loaded) window.addEventListener("load", handleLoad, { once: true });
+    const unsubscribeHero = waitForHero ? onHeroReady(handleHeroReady) : () => {};
+    const safety = window.setTimeout(finish, waitForHero ? HERO_MAX_WAIT_MS : MAX_WAIT_MS);
+    check();
 
     return () => {
-      window.removeEventListener("load", finish);
+      window.removeEventListener("load", handleLoad);
+      unsubscribeHero();
       window.clearTimeout(safety);
+      window.clearTimeout(hideTimer);
     };
-  }, []);
+  }, [pathname]);
 
   if (!visible) return null;
 

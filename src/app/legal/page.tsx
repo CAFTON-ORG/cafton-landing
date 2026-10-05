@@ -55,7 +55,7 @@ export default function LegalPage() {
                 government.
               </p>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border p-5">
+                <div className="rounded-xl border bg-card p-5 shadow-sm dark:bg-transparent dark:shadow-none">
                   <p className="text-sm font-semibold">
                     DTI Business Name Registration
                   </p>
@@ -66,7 +66,7 @@ export default function LegalPage() {
                     BNN 8436511 &middot; 21 Aug 2026
                   </p>
                 </div>
-                <div className="rounded-xl border p-5">
+                <div className="rounded-xl border bg-card p-5 shadow-sm dark:bg-transparent dark:shadow-none">
                   <p className="text-sm font-semibold">
                     BIR Certificate of Registration
                   </p>

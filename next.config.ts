@@ -14,13 +14,13 @@ const CSP_REPORT_ONLY = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://widget.gleamjs.io https://*.gleam.io",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  "img-src 'self' data: blob: https://*.gleam.io https://*.gleamjs.io",
   "media-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self' https://challenges.cloudflare.com",
-  "frame-src https://challenges.cloudflare.com",
+  "connect-src 'self' https://challenges.cloudflare.com https://*.gleam.io https://*.gleamjs.io",
+  "frame-src https://challenges.cloudflare.com https://gleam.io https://*.gleam.io",
   "upgrade-insecure-requests",
 ].join("; ");
 

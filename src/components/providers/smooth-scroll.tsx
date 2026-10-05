@@ -20,58 +20,6 @@ function ScrollResetOnNavigate() {
   return null;
 }
 
-// Keeps GSAP's ticker and Lenis's virtual scroll in lockstep: Lenis drives
-// the raf loop (autoRaf disabled below), GSAP's ticker drives Lenis, and
-// ScrollTrigger re-reads scroll position on Lenis's own "scroll" event
-// rather than the native scroll event it virtualizes over. Without this,
-// ScrollTrigger-driven animations (the hero, in particular) lag a frame
-// behind the smoothed scroll position.
-//
-// GSAP/ScrollTrigger are dynamically imported here rather than at module
-// scope: this provider mounts in the root layout, on every page, but only
-// the homepage actually has any ScrollTrigger-driven section (Differentiators)
-// -- every other page was paying for GSAP's full weight in its initial JS
-// for nothing. The two other places that use GSAP (`differentiators.tsx`,
-// `hero-scene.tsx`) are both homepage-only and already load it themselves;
-// `registerPlugin` is idempotent, so it's safe to call again here too.
-function LenisGsapBridge() {
-  const lenis = useLenis();
-
-  useEffect(() => {
-    if (!lenis) return;
-
-    let teardown: (() => void) | undefined;
-    let cancelled = false;
-
-    Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
-      ([{ default: gsap }, { ScrollTrigger }]) => {
-        if (cancelled) return;
-        gsap.registerPlugin(ScrollTrigger);
-
-        const update = (time: number) => {
-          lenis.raf(time * 1000);
-        };
-
-        gsap.ticker.add(update);
-        gsap.ticker.lagSmoothing(0);
-        lenis.on("scroll", ScrollTrigger.update);
-
-        teardown = () => {
-          gsap.ticker.remove(update);
-          lenis.off("scroll", ScrollTrigger.update);
-        };
-      },
-    );
-
-    return () => {
-      cancelled = true;
-      teardown?.();
-    };
-  }, [lenis]);
-
-  return null;
-}
-
 interface SmoothScrollProps {
   children: ReactNode;
 }
@@ -90,8 +38,7 @@ export function SmoothScroll({ children }: SmoothScrollProps) {
   }
 
   return (
-    <ReactLenis root options={{ autoRaf: false }}>
-      <LenisGsapBridge />
+    <ReactLenis root>
       <ScrollResetOnNavigate />
       {children}
     </ReactLenis>

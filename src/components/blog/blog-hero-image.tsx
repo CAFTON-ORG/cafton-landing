@@ -3,17 +3,26 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { BlogPost } from "@/lib/blog";
+import { CoverArt } from "@/components/shared/cover-art";
 import { ImageSkeleton } from "@/components/shared/image-skeleton";
 
 export function BlogHeroImage({ post }: { post: BlogPost }) {
   const [loaded, setLoaded] = useState(false);
+
+  if (!post.imageLight || !post.imageDark) {
+    return (
+      <div className="relative mx-auto aspect-video max-w-2xl overflow-hidden rounded-xl border">
+        <CoverArt />
+      </div>
+    );
+  }
 
   return (
     <div className="relative mx-auto aspect-video max-w-2xl overflow-hidden rounded-xl border">
       {!loaded && <ImageSkeleton />}
       <Image
         src={post.imageLight}
-        alt={post.imageAlt}
+        alt={post.imageAlt ?? ""}
         fill
         sizes="(min-width: 640px) 42rem, 100vw"
         priority
@@ -22,7 +31,7 @@ export function BlogHeroImage({ post }: { post: BlogPost }) {
       />
       <Image
         src={post.imageDark}
-        alt={post.imageAlt}
+        alt={post.imageAlt ?? ""}
         fill
         sizes="(min-width: 640px) 42rem, 100vw"
         priority

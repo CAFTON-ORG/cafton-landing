@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { Project } from "@/lib/projects";
+import { CoverArt } from "@/components/shared/cover-art";
 import { ImageSkeleton } from "@/components/shared/image-skeleton";
 
 export function ProjectHeroImage({ project }: { project: Project }) {
@@ -10,12 +11,20 @@ export function ProjectHeroImage({ project }: { project: Project }) {
   const fitClass =
     project.imageFit === "contain" ? "object-contain p-12" : "object-cover object-top";
 
+  if (!project.imageLight || !project.imageDark) {
+    return (
+      <div className="relative aspect-video">
+        <CoverArt />
+      </div>
+    );
+  }
+
   return (
     <div className="relative aspect-video">
       {!loaded && <ImageSkeleton />}
       <Image
         src={project.imageLight}
-        alt={project.imageAlt}
+        alt={project.imageAlt ?? ""}
         fill
         sizes="100vw"
         priority
@@ -24,7 +33,7 @@ export function ProjectHeroImage({ project }: { project: Project }) {
       />
       <Image
         src={project.imageDark}
-        alt={project.imageAlt}
+        alt={project.imageAlt ?? ""}
         fill
         sizes="100vw"
         priority

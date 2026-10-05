@@ -5,13 +5,12 @@ import {
   PageShell,
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
-import { BlogCard } from "@/components/blog/blog-card";
+import { BlogRow } from "@/components/blog/blog-row";
 import { Pagination } from "@/components/shared/pagination";
 import { CategoryFilter } from "@/components/shared/category-filter";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { blogPosts } from "@/lib/blog";
-import { cardGridClass } from "@/lib/card-grid";
 
 export const metadata: Metadata = {
   title: "Blog - CAFTON",
@@ -73,11 +72,11 @@ export default async function Blog({ searchParams }: BlogPageProps) {
           {pagePosts.length > 0 ? (
             <RevealGroup
               key={`${category ?? "all"}-${currentPage}`}
-              className={`mt-8 grid gap-5 ${cardGridClass(pagePosts.length, 2)}`}
+              className="mt-8"
             >
               {pagePosts.map((post) => (
                 <RevealItem key={post.slug}>
-                  <BlogCard post={post} />
+                  <BlogRow post={post} />
                 </RevealItem>
               ))}
             </RevealGroup>

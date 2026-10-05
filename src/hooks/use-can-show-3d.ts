@@ -33,6 +33,17 @@ function detectWebglSupport(): boolean {
 }
 
 /**
+ * Synchronous, non-hook form of the check below, for code outside React's
+ * render cycle (the site loader decides at first paint whether to wait for
+ * the hero scene). Client-only.
+ */
+export function canShow3DNow(): boolean {
+  if (typeof window === "undefined") return false;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return !reducedMotion && detectWebglSupport();
+}
+
+/**
  * Whether the hero's 3D scene should render.
  *
  * Off by default, and during server rendering, so there is never a flash

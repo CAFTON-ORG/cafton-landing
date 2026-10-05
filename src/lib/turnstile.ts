@@ -40,7 +40,13 @@ export async function verifyTurnstileToken(
     return false;
   }
 
-  const result = (await response.json()) as TurnstileVerification;
+  let result: TurnstileVerification;
+  try {
+    result = (await response.json()) as TurnstileVerification;
+  } catch {
+    console.error("Cloudflare Turnstile returned an unreadable response.");
+    return false;
+  }
   if (!result.success) {
     console.warn("Cloudflare Turnstile verification rejected the submission.", {
       errorCodes: result["error-codes"],

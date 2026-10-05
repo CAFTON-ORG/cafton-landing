@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Loader2 } from "lucide-react";
@@ -101,6 +101,34 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
 
   const steps = buildSteps(formData.buildingFor);
   const currentStep = steps[step];
+
+  // Errors are only raised by pressing Next/Send. Once a field has one, it is
+  // re-checked against the live value on every change: the message updates
+  // while the value is still wrong and disappears (along with the red
+  // border, which is driven by `aria-invalid`) the moment it is valid.
+  // Fields that have not been flagged are never validated early.
+  const visibleErrors = useMemo<FieldErrors>(() => {
+    const flagged = Object.keys(errors) as (keyof ContactFormData)[];
+    if (flagged.length === 0) return errors;
+    const schema = currentStep.id === "final" ? contactSchema : STEP_SCHEMAS[currentStep.id];
+    const result = schema.safeParse(formData);
+    if (result.success) return {};
+    const live: FieldErrors = {};
+    for (const issue of result.error.issues) {
+      const key = issue.path[0] as keyof ContactFormData;
+      if (!live[key]) live[key] = issue.message;
+    }
+    const next: FieldErrors = {};
+    for (const key of flagged) {
+      if (live[key]) next[key] = live[key];
+    }
+    return next;
+  }, [errors, formData, currentStep.id]);
+
+  const handleTurnstileToken = useCallback((token: string | null) => {
+    setTurnstileToken(token);
+    if (token) setStatus((current) => (current === "error" ? "idle" : current));
+  }, []);
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -268,7 +296,7 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
           {currentStep.id === "personal" && (
             <PersonalInfoStep
               formData={formData}
-              errors={errors}
+              errors={visibleErrors}
               onChange={handleChange}
               onBuildingForChange={handleSelectChange("buildingFor", buildingForOptions)}
             />
@@ -276,7 +304,7 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
           {currentStep.id === "business" && (
             <BusinessInfoStep
               formData={formData}
-              errors={errors}
+              errors={visibleErrors}
               onChange={handleChange}
               onSelectChange={handleSelectChange}
             />
@@ -292,7 +320,7 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
             <GoalsAreaStep
               value={formData.goalsCategory}
               onChange={handleGoalsCategoryChange}
-              error={errors.goalsCategory}
+              error={visibleErrors.goalsCategory}
             />
           )}
           {currentStep.id === "goalsSystems" && (
@@ -300,16 +328,16 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
               goalsCategory={formData.goalsCategory}
               goals={formData.goals}
               onToggle={handleGoalToggle}
-              error={errors.goals}
+              error={visibleErrors.goals}
             />
           )}
           {currentStep.id === "final" && (
             <FinalDetailsStep
               formData={formData}
-              errors={errors}
+              errors={visibleErrors}
               onChange={handleChange}
               onSelectChange={handleSelectChange}
-              onTurnstileToken={setTurnstileToken}
+              onTurnstileToken={handleTurnstileToken}
             />
           )}
         </motion.div>

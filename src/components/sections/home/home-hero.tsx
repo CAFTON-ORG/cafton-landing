@@ -13,10 +13,22 @@ import { CanvasErrorBoundary } from "@/components/three/canvas-error-boundary";
 import { useInViewport } from "@/hooks/use-in-viewport";
 import { ServiceSelectOverlay } from "@/components/sections/home/service-select-overlay";
 
-const HeroScene = dynamic(
-  () => import("@/components/three/hero-scene").then((mod) => mod.HeroScene),
-  { ssr: false },
-);
+// The scene pulls in three.js + react-three-fiber, the heaviest chunk on the
+// page. `dynamic` alone only starts fetching it once the component first
+// renders, which is after hydration AND the WebGL capability check -- so the
+// download used to begin late. Kicking the same import off at module load
+// starts it in parallel with hydration (the module cache dedupes the two).
+const loadHeroScene = () =>
+  import("@/components/three/hero-scene").then((mod) => mod.HeroScene);
+
+if (
+  typeof window !== "undefined" &&
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+) {
+  void loadHeroScene();
+}
+
+const HeroScene = dynamic(loadHeroScene, { ssr: false });
 
 const DISPLAY_SIZE = "text-[clamp(2.5rem,min(6.5vw,10vh),5.75rem)]";
 
@@ -42,7 +54,7 @@ export function HomeHero() {
   const router = useRouter();
   const canShow3D = useCanShow3D();
   const reduceMotion = useReducedMotion();
-  const [heroRef, heroInViewport] = useInViewport<HTMLElement>();
+  const [heroRef, heroInViewport] = useInViewport<HTMLElement>("100px 0px");
   const [built, setBuilt] = useState(false);
   const [showServiceSelect, setShowServiceSelect] = useState(false);
 
@@ -79,12 +91,12 @@ export function HomeHero() {
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-overlay [background-image:url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E')]"
+          className="pointer-events-none absolute inset-0 opacity-[0.035] [background-image:url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E')]"
         />
 
         <div className="relative grid h-full grid-rows-[auto_minmax(12rem,1fr)_auto] gap-5 px-5 pb-10 pt-6 md:block md:gap-0 md:p-0">
           <h1
-            className={`pointer-events-none z-20 font-black uppercase leading-[0.95] tracking-[-0.01em] text-foreground  md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8 ${DISPLAY_SIZE}`}
+            className={`pointer-events-none z-20 font-black uppercase leading-[0.95] tracking-[-0.01em] text-neutral-700 dark:text-foreground [filter:drop-shadow(0_0_14px_var(--background))_drop-shadow(0_0_4px_var(--background))] md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8 ${DISPLAY_SIZE}`}
           >
             <span className="block md:absolute md:left-8 md:top-[10%] md:max-w-[46%]">
               <motion.span {...anim(ENTRANCE_DELAY.line1)} className="block">

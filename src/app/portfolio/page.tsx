@@ -5,13 +5,12 @@ import {
   PageShell,
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
-import { ProjectCard } from "@/components/portfolio/project-card";
+import { ProjectRow } from "@/components/portfolio/project-row";
 import { Pagination } from "@/components/shared/pagination";
 import { CategoryFilter } from "@/components/shared/category-filter";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { projects } from "@/lib/projects";
-import { cardGridClass } from "@/lib/card-grid";
 
 export const metadata: Metadata = {
   title: "Portfolio - CAFTON",
@@ -73,11 +72,11 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
           {pageProjects.length > 0 ? (
             <RevealGroup
               key={`${category ?? "all"}-${currentPage}`}
-              className={`mt-8 grid gap-6 ${cardGridClass(pageProjects.length)}`}
+              className="mt-8"
             >
-              {pageProjects.map((project) => (
+              {pageProjects.map((project, index) => (
                 <RevealItem key={project.slug}>
-                  <ProjectCard project={project} />
+                  <ProjectRow project={project} index={(currentPage - 1) * PAGE_SIZE + index} />
                 </RevealItem>
               ))}
             </RevealGroup>

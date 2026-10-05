@@ -63,11 +63,11 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
             if (event.target !== event.currentTarget) return;
             if (!open) finish();
           }}
-          className="fixed inset-0 z-90 flex flex-col items-center justify-center overflow-y-auto bg-background px-4 py-8 focus:outline-none sm:px-5 sm:py-14 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:duration-300 data-[state=open]:duration-400"
+          className="fixed inset-0 z-90 bg-background focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:duration-300 data-[state=open]:duration-400"
         >
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-[0.035] mix-blend-overlay [background-image:url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E')]"
+            className="pointer-events-none absolute inset-0 opacity-[0.035] [background-image:url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E')]"
           />
           <div
             aria-hidden="true"
@@ -75,18 +75,18 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
           />
 
           {/*
-            `fixed`, not `absolute` -- Dialog.Content scrolls internally
-            (overflow-y-auto) once its content is taller than the viewport,
-            and an `absolute` child scrolls away with that content instead
-            of staying put. `fixed` anchors to the viewport itself, so the
-            close button stays reachable regardless of scroll position.
+            The close button lives on the fixed shell, outside the scrolling
+            wrapper below, so it stays pinned and reachable at any content
+            height. A bordered, filled circle keeps it clearly visible in both
+            themes (a bare muted icon disappears against the light surface).
           */}
-          <Dialog.Close className="fixed right-5 top-5 z-10 cursor-pointer rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <Dialog.Close className="absolute right-4 top-4 z-20 flex size-11 cursor-pointer items-center justify-center rounded-full border bg-card text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:right-6 sm:top-6">
             <X className="size-5" aria-hidden="true" />
             <span className="sr-only">Close</span>
           </Dialog.Close>
 
-          <div className="relative flex w-full max-w-3xl flex-col items-center text-center">
+          <div className="relative h-full overflow-y-auto px-4 py-8 sm:px-5 sm:py-14">
+          <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col items-center justify-center text-center">
             <Dialog.Description className="mb-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground sm:mb-2">
               Choose one to continue
             </Dialog.Description>
@@ -115,10 +115,10 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
                     disabled={pickedTitle !== null}
                     onClick={() => handlePick(pillar.title, pillar.slug)}
                     className={cn(
-                      "group relative flex flex-col items-start gap-1 overflow-hidden rounded-xl border p-3 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default sm:gap-2 sm:p-6",
+                      "group relative flex flex-col items-start gap-1 overflow-hidden rounded-xl border bg-card p-3 text-left shadow-sm transition-all dark:shadow-none duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default sm:gap-2 sm:p-6",
                       isPicked
                         ? "border-foreground bg-foreground text-background"
-                        : "border-border hover:-translate-y-0.5 hover:border-foreground/50",
+                        : "border-border hover:-translate-y-0.5 hover:border-foreground/50 dark:bg-transparent",
                       isOtherPicked && "opacity-30",
                     )}
                   >
@@ -162,6 +162,7 @@ export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlay
             >
               Skip -- I&apos;ll fill this in myself
             </button>
+          </div>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

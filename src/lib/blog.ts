@@ -6,12 +6,28 @@ export interface BlogPost {
   date: string;
   /** Drives the blog grid's category filter tabs. */
   category: string;
-  imageLight: string;
-  imageDark: string;
-  imageAlt: string;
+  /** Optional: posts without a cover render the branded `CoverArt` instead. */
+  imageLight?: string;
+  imageDark?: string;
+  imageAlt?: string;
 }
 
 export const blogPosts: BlogPost[] = [
+  {
+    slug: "start-smaller-than-you-think",
+    title: "Start smaller than you think",
+    excerpt:
+      "Why the best first version of a system is the one that solves a single painful step, and how we decide what that step is.",
+    date: "2026-10-05",
+    category: "Engineering",
+    content: [
+      "When a team brings us an idea for a system, the first draft of the scope is almost always too big. It has every screen, every report, and every role someone has ever imagined needing. That is not a mistake on their part. It is what happens when you finally get permission to describe the software you have always wanted.",
+      "The trouble is that a large first version delays the one thing that actually teaches you anything: real people using it. Every week spent building features nobody has touched yet is a week of guessing. Some of those guesses will be right. Many will quietly turn out to be wrong, and by then they are expensive to undo.",
+      "So we look for the single most painful step in the workflow, the one people complain about, work around, or do twice because the first attempt gets lost. We build that, and only that, as the first release. It is usually smaller than anyone expects, and it is usually the part that earns the most trust.",
+      "Starting small does not mean thinking small. The architecture still has to leave room for what comes next: the data model, the permissions, the way other tools will eventually connect. We spend our care there, where a wrong turn is hard to reverse, and keep the visible surface area deliberately modest.",
+      "Once that first piece is in daily use, the roadmap writes itself. People tell you what is missing, and just as usefully, what they never needed. If you are planning something and the scope keeps growing, try asking one question: what is the one step we would be embarrassed to still be doing by hand next quarter? Start there.",
+    ],
+  },
   {
     slug: "we-dont-start-with-software",
     title: "We don't start with software",
@@ -19,13 +35,6 @@ export const blogPosts: BlogPost[] = [
       "Why every engagement at Cafton begins with a conversation about the problem, not a list of features.",
     date: "2026-08-20",
     category: "Process",
-    // No dedicated photography exists for this post -- reusing the
-    // existing brand-pattern asset (already used elsewhere as a
-    // deliberate placeholder, e.g. Scanato's portfolio cover) rather
-    // than fabricating a screenshot for a piece that isn't about one.
-    imageLight: "/cafton-light.png",
-    imageDark: "/cafton-dark.png",
-    imageAlt: "Cafton brand mark pattern",
     content: [
       "Most software gets built backwards. Someone decides a mobile app is the answer before anyone has written down what question it's supposed to answer. A dashboard gets specced because dashboards are what software companies build, not because anyone checked whether a dashboard is what the situation actually needs.",
       "We've built systems for disaster response teams, restaurant floors, and organizations that had never worked with a software company before. The pattern that holds across all of it: the first meeting is never about frameworks or timelines. It's about what's actually going wrong, for whom, and how they're coping with it right now, today, without any of our help.",

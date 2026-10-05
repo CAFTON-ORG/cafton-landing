@@ -14,9 +14,10 @@ export interface Project {
   problem?: string;
   solution?: string;
   recognition?: string;
-  imageLight: string;
-  imageDark: string;
-  imageAlt: string;
+  /** Optional: projects without a cover render the branded `CoverArt` instead. */
+  imageLight?: string;
+  imageDark?: string;
+  imageAlt?: string;
   /** "cover" (default) crops a screenshot to fill the frame; "contain" shows a logo/mark in full, letterboxed. */
   imageFit?: "cover" | "contain";
   /** Public live URL, if the project has one -- shows a "Visit Live Site" button on the detail page. */

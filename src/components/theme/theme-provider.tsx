@@ -24,9 +24,15 @@ export function ThemeProvider({
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [preference, setPreference] = React.useState<Theme>(
-    () => (typeof window !== "undefined" && localStorage.getItem(storageKey) as Theme) || defaultTheme
-  )
+  const [preference, setPreference] = React.useState<Theme>(() => {
+    if (typeof window === "undefined") return defaultTheme
+    // Only a known value is trusted: anything else in storage would be
+    // written straight onto <html> as a class name.
+    const stored = localStorage.getItem(storageKey)
+    return stored === "dark" || stored === "light" || stored === "system"
+      ? stored
+      : defaultTheme
+  })
 
   const theme = forcedTheme ?? preference
 
@@ -37,10 +43,21 @@ export function ThemeProvider({
     const media = window.matchMedia("(prefers-color-scheme: dark)")
 
     const apply = () => {
+      const next = theme === "system" ? (media.matches ? "dark" : "light") : theme
+      if (root.classList.contains(next)) return
+
+      // Every element with a colour transition would otherwise animate to
+      // the new theme at its own pace, which reads as a laggy, staggered
+      // switch. Suppress transitions for the one frame the class flips.
+      const style = document.createElement("style")
+      style.textContent = "*,*::before,*::after{transition:none!important}"
+      document.head.appendChild(style)
+
       root.classList.remove("light", "dark")
-      root.classList.add(
-        theme === "system" ? (media.matches ? "dark" : "light") : theme
-      )
+      root.classList.add(next)
+
+      void window.getComputedStyle(document.body).opacity
+      window.setTimeout(() => style.remove(), 1)
     }
 
     apply()

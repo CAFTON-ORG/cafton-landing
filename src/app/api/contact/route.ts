@@ -49,7 +49,14 @@ function getCookieValue(cookieHeader: string, name: string) {
     .split(";")
     .map((cookie) => cookie.trim().split("=", 2))
     .find(([key]) => key === name)?.[1];
-  return value ? decodeURIComponent(value) : undefined;
+  if (!value) return undefined;
+  // A malformed escape ("%E0%A4%A") makes decodeURIComponent throw, which
+  // would turn a junk cookie into a 500 for an otherwise valid submission.
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return undefined;
+  }
 }
 
 export async function POST(request: Request) {
@@ -71,7 +78,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Request too large." }, { status: 413 });
   }
 
-  const body = await request.json().catch(() => null);
+  // The Content-Length header above is only a hint (and absent on chunked
+  // requests), so the real size is enforced on what was actually read.
+  const rawBody = await request.text().catch(() => "");
+  if (rawBody.length > MAX_BODY_BYTES) {
+    return NextResponse.json({ message: "Request too large." }, { status: 413 });
+  }
+
+  let body: unknown = null;
+  try {
+    body = JSON.parse(rawBody);
+  } catch {
+    body = null;
+  }
   const parsed = requestSchema.safeParse(body);
 
   if (!parsed.success) {

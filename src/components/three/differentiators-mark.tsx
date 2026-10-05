@@ -77,7 +77,7 @@ interface DifferentiatorsMarkProps {
 export function DifferentiatorsMark({ progressRef }: DifferentiatorsMarkProps) {
   const theme = useResolvedTheme();
   const isDark = theme === "dark";
-  const [containerRef, inViewport] = useInViewport<HTMLDivElement>();
+  const [containerRef, inViewport] = useInViewport<HTMLDivElement>("150px 0px");
   const { canvasKey, handleCreated } = useWebglContextRecovery();
 
   return (

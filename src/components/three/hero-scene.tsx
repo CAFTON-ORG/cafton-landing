@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import gsap from "gsap";
-import { Group, MathUtils, Mesh, MeshStandardMaterial, PointLight, Vector3 } from "three";
+import { Color, Group, MathUtils, Mesh, MeshStandardMaterial, PointLight, Vector3 } from "three";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
 import { useWebglContextRecovery } from "@/hooks/use-webgl-context-recovery";
 import { buildCaftonMarkFacets, MARK_COLOR } from "@/lib/cafton-mark-geometry";
+import { markHeroReady } from "@/lib/hero-ready";
 
 const MARK_SCALE = 1 / 14;
 const EXTRUDE_DEPTH = 6;
@@ -37,6 +38,14 @@ const GLOW_PEAK_DURATION = 0.45;
 const GLOW_SETTLE_DURATION = 0.65;
 const GLOW_REST_INTENSITY = 0.18;
 const POST_BUILD_HOLD_MS = 550;
+
+/**
+ * The build "flash". On a dark page it is a white emissive burst. On a light
+ * page that would wash the (light) mark out against the background, so there
+ * the mark flashes darker instead -- it stays the most visible thing on screen.
+ */
+const LIGHT_FLASH_COLOR = new Color("#2e2e2e");
+const LIGHT_FLASH_STRENGTH = 0.75;
 
 interface FacetSeed {
   scatter: Vector3;
@@ -101,6 +110,12 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
     [geometries]
   );
 
+  const baseColor = useMemo(
+    () => new Color(isDark ? MARK_COLOR.dark : MARK_COLOR.light),
+    [isDark]
+  );
+
+  const readyFired = useRef(false);
   const pointer = useRef({ x: 0, y: 0 });
   const hovering = useRef(false);
   const hoverScale = useRef(1);
@@ -203,6 +218,13 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
     const group = groupRef.current;
     if (!group) return;
 
+    if (!readyFired.current) {
+      readyFired.current = true;
+      // After the browser has presented this first frame, not before. The
+      // site loader waits on this so it never reveals an empty hero.
+      requestAnimationFrame(markHeroReady);
+    }
+
     const eased = build.current.progress;
     const unresolved = 1 - eased;
     const t = state.clock.elapsedTime;
@@ -246,7 +268,7 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
     group.scale.setScalar((1 + eased * 0.15) * hoverScale.current);
 
     if (glowLightRef.current) {
-      glowLightRef.current.intensity = build.current.glow * 3;
+      glowLightRef.current.intensity = isDark ? build.current.glow * 3 : 0;
     }
 
     facetRefs.current.forEach((mesh, i) => {
@@ -265,7 +287,13 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
         seed.scatterRotation.z * magnitude
       );
       const material = mesh.material as MeshStandardMaterial;
-      material.emissiveIntensity = build.current.glow;
+      if (isDark) {
+        material.emissiveIntensity = build.current.glow;
+      } else {
+        material.color
+          .copy(baseColor)
+          .lerp(LIGHT_FLASH_COLOR, build.current.glow * LIGHT_FLASH_STRENGTH);
+      }
     });
   });
 

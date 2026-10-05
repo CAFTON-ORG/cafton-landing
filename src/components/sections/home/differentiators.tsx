@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import { useLenis } from "lenis/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { AnimatePresence, motion } from "motion/react";
 import { Search, Layers3, Users, Puzzle } from "lucide-react";
@@ -80,7 +81,7 @@ function StaticDifferentiators() {
           {values.map((value, index) => (
             <RevealItem
               key={value.title}
-              className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border p-6 transition-colors duration-300 hover:border-foreground/50"
+              className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border bg-card p-6 shadow-sm transition-colors duration-300 hover:border-foreground/50 dark:bg-transparent dark:shadow-none"
             >
               <CornerBrackets />
               <div className="flex items-center justify-between">
@@ -116,19 +117,13 @@ function ScrollDifferentiators() {
   const lastIndex = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  useLenis(ScrollTrigger.update);
+
   useEffect(() => {
     const trigger = ScrollTrigger.create({
       trigger: sectionRef.current,
       start: "top top",
       end: "bottom top",
-      // Lenis (site-wide smooth scroll) already smooths raw input into a
-      // virtual scroll position; a `scrub` value stacks a second, separate
-      // smoothing delay on top of that already-smoothed value. `scrub: 1`
-      // (up to a full second of catch-up lag) compounded with Lenis read as
-      // sluggish, laggy scroll response right after the hero -- a small
-      // value keeps the pinned content tracking scroll input closely while
-      // still smoothing out any last per-frame jitter.
-      scrub: 0.3,
       onUpdate: (self) => {
         progress.current = self.progress;
         const index = Math.min(
@@ -178,12 +173,12 @@ function ScrollDifferentiators() {
               >
                 <span
                   aria-hidden="true"
-                  className={`block font-black uppercase leading-none text-transparent [-webkit-text-stroke:1.5px_var(--foreground)] [paint-order:stroke] ${NUMBER_SIZE}`}
+                  className={`block font-black uppercase leading-none text-transparent [-webkit-text-stroke:1.5px_var(--foreground)] [paint-order:stroke] [text-shadow:0_0_24px_var(--background),0_0_8px_var(--background)] ${NUMBER_SIZE}`}
                 >
                   {number}
                 </span>
                 <h3
-                  className={`mt-3 flex items-center gap-3 font-black uppercase leading-[0.95] tracking-tight ${TITLE_SIZE}`}
+                  className={`mt-3 flex items-center gap-3 font-black uppercase leading-[0.95] tracking-tight [text-shadow:0_0_24px_var(--background),0_0_8px_var(--background)] ${TITLE_SIZE}`}
                 >
                   <active.icon className="size-8 shrink-0 md:size-10" aria-hidden="true" />
                   {active.title}
@@ -206,7 +201,7 @@ function ScrollDifferentiators() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT }}
-                className="pointer-events-auto text-base leading-relaxed text-muted-foreground md:absolute md:bottom-[12%] md:right-8 md:max-w-md md:text-right md:text-xl"
+                className="pointer-events-auto text-base leading-relaxed text-foreground/80 [text-shadow:0_0_16px_var(--background),0_0_6px_var(--background)] md:absolute md:bottom-[12%] md:right-8 md:max-w-md md:text-right md:text-xl"
               >
                 {active.description}
               </motion.p>

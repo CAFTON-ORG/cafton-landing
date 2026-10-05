@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { BlogCard } from "@/components/blog/blog-card";
+import { Reveal } from "@/components/motion/reveal";
+import { BlogEditorial } from "@/components/sections/home/blog-editorial";
 import { blogPosts } from "@/lib/blog";
 import { PageShell } from "@/components/layout/page-shell";
-import { cardGridClass } from "@/lib/card-grid";
 
 const latestPosts = blogPosts.slice(0, 3);
 
@@ -25,17 +24,7 @@ const LatestWriting = () => {
           </p>
         </Reveal>
 
-        {/* No outer Reveal here: it fades the whole block from opacity 0,
-            which masks RevealGroup's own per-card stagger. */}
-        <RevealGroup
-          className={`grid gap-6 ${cardGridClass(latestPosts.length)}`}
-        >
-          {latestPosts.map((post) => (
-            <RevealItem key={post.slug}>
-              <BlogCard post={post} />
-            </RevealItem>
-          ))}
-        </RevealGroup>
+        <BlogEditorial posts={latestPosts} />
 
         <Reveal delay={0.2} className="mt-10 flex justify-center">
           <Button variant="outline" className="group cursor-pointer" asChild>

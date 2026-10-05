@@ -7,7 +7,7 @@ import { Color, Group, MathUtils, Mesh, MeshStandardMaterial, PointLight, Vector
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
 import { useWebglContextRecovery } from "@/hooks/use-webgl-context-recovery";
 import { buildCaftonMarkFacets, MARK_COLOR } from "@/lib/cafton-mark-geometry";
-import { markHeroReady } from "@/lib/hero-ready";
+import { markHeroReady, resetHeroReady } from "@/lib/hero-ready";
 
 const MARK_SCALE = 1 / 14;
 const EXTRUDE_DEPTH = 6;
@@ -361,6 +361,10 @@ export function HeroScene({ active, onBuildStart, onBuildComplete }: HeroScenePr
   const theme = useResolvedTheme();
   const isDark = theme === "dark";
   const { canvasKey, handleCreated } = useWebglContextRecovery();
+
+  // Leaving the homepage tears the scene down; returning rebuilds it, so the
+  // "first frame drawn" signal has to start over for the loader to wait on it.
+  useEffect(() => resetHeroReady, []);
 
   return (
     <div className="absolute inset-0" aria-hidden="true">

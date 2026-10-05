@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useReducedMotion } from "motion/react";
 import { LOGO_PATH_D, Logo } from "@/components/shared/logo";
 import { canShow3DNow } from "@/hooks/use-can-show-3d";
@@ -38,28 +39,49 @@ const FADE_MS = 400;
  * - A flat timeout, armed exactly once, so a slow or failed load (or a
  *   hero that never draws) can never hold the page hostage.
  *
- * `window.load` only fires once per real navigation, not on Next's
- * client-side route transitions -- so this naturally shows once per fresh
- * page load/refresh and never again while navigating around the site.
+ * `window.load` only fires once per real navigation, so a fresh page load
+ * or refresh always shows the loader. Client-side navigation does not -- with
+ * one exception: arriving at the homepage re-runs the effect (keyed on the
+ * pathname only, so it still arms its timers exactly once per navigation) and
+ * brings the loader back until the hero's 3D mark has drawn, because the scene
+ * has to be rebuilt from scratch every time the homepage mounts. Any other
+ * client-side route just dismisses a loader that might still be showing.
  */
 export function SiteLoader() {
   const [visible, setVisible] = useState(true);
   const [dismissing, setDismissing] = useState(false);
   const reduceMotion = useReducedMotion();
+  const pathname = usePathname();
+  const lastPath = useRef<string | null>(null);
 
-  useEffect(() => {
+  // A layout effect, so on a client-side arrival at "/" the loader is back on
+  // screen before the browser paints the new page, not a frame after it.
+  useLayoutEffect(() => {
+    const navigated = lastPath.current !== null && lastPath.current !== pathname;
+    lastPath.current = pathname;
+
+    const waitForHero = pathname === "/" && canShow3DNow();
+
+    if (navigated && !waitForHero) {
+      setVisible(false);
+      return;
+    }
+    if (navigated) {
+      setDismissing(false);
+      setVisible(true);
+    }
+
     let settled = false;
+    let hideTimer: number | undefined;
 
     const finish = () => {
       if (settled) return;
       settled = true;
       setDismissing(true);
-      window.setTimeout(() => setVisible(false), FADE_MS);
+      hideTimer = window.setTimeout(() => setVisible(false), FADE_MS);
     };
 
-    const waitForHero = window.location.pathname === "/" && canShow3DNow();
-
-    let loaded = document.readyState === "complete";
+    let loaded = navigated || document.readyState === "complete";
     let heroReady = !waitForHero;
 
     const check = () => {
@@ -83,8 +105,9 @@ export function SiteLoader() {
       window.removeEventListener("load", handleLoad);
       unsubscribeHero();
       window.clearTimeout(safety);
+      window.clearTimeout(hideTimer);
     };
-  }, []);
+  }, [pathname]);
 
   if (!visible) return null;
 

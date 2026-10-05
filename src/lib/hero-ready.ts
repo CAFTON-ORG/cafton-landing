@@ -22,3 +22,12 @@ export function onHeroReady(callback: () => void): () => void {
   window.addEventListener(HERO_READY_EVENT, callback, { once: true });
   return () => window.removeEventListener(HERO_READY_EVENT, callback);
 }
+
+/**
+ * Called when the hero scene unmounts (navigating away from the homepage),
+ * so that coming back is treated as a fresh load: the scene remounts, builds
+ * a new WebGL context and has to draw its first frame again.
+ */
+export function resetHeroReady() {
+  heroReady = false;
+}

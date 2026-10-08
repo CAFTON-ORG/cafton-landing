@@ -42,6 +42,14 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  icons: {
+    // The tab icon follows the browser's own light/dark setting, not the
+    // site's theme toggle: a page can't drive its tab icon from JS state.
+    icon: [
+      { url: "/favicon-light.svg", media: "(prefers-color-scheme: light)" },
+      { url: "/favicon-dark.svg", media: "(prefers-color-scheme: dark)" },
+    ],
+  },
   openGraph: {
     type: "website",
     url: SITE_URL,

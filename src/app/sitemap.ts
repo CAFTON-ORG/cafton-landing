@@ -4,6 +4,7 @@ import { SITE_URL } from "@/lib/site";
 import { projects } from "@/lib/projects";
 import { blogPosts } from "@/lib/blog";
 import { servicePillars } from "@/lib/services";
+import { events } from "@/lib/events";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes: {
@@ -37,6 +38,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
+  const eventRoutes = events.map((event) => ({
+    path: `/events/${event.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
   const blogRoutes = blogPosts.map((post) => ({
     path: `/blog/${post.slug}`,
     changeFrequency: "yearly" as const,
@@ -45,7 +52,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const lastModified = new Date();
 
-  return [...routes, ...serviceRoutes, ...projectRoutes, ...blogRoutes].map(
+  return [...routes, ...serviceRoutes, ...projectRoutes, ...eventRoutes, ...blogRoutes].map(
     ({ path, changeFrequency, priority }) => ({
       url: `${SITE_URL}${path}`,
       lastModified,

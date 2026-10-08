@@ -5,7 +5,7 @@ import {
   PageShell,
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
-import { PillarGrid } from "@/components/services/pillar-grid";
+import { ServiceIndex } from "@/components/services/service-index";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 
@@ -42,9 +42,7 @@ export default function ServicesPage() {
       </PageHero>
       <PageSection>
         <PageShell>
-          <RevealGroup>
-            <PillarGrid />
-          </RevealGroup>
+          <ServiceIndex />
         </PageShell>
       </PageSection>
       <ProjectCta />

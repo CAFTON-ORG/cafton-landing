@@ -3,42 +3,32 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Logo } from "@/components/shared/logo";
 import { scrollToTop } from "@/components/providers/smooth-scroll";
 import { ServicesNavMenu } from "@/components/layout/services-nav-menu";
+import { MobileMenu } from "@/components/layout/mobile-menu";
+import { navigationItems } from "@/components/layout/nav-items";
+import { cn } from "@/lib/utils";
 
-const navigationItems = [
-  { name: "About", href: "/about" },
-  { name: "Services", href: "/services" },
-  { name: "Portfolio", href: "/portfolio" },
-  { name: "Blog", href: "/blog" },
-  { name: "Events", href: "/events" },
-];
-
-/** Corner-bracket hover accent, the same game-UI-reticle nod `ServiceSelectOverlay`'s tiles use -- fades in on hover/focus of the parent `group`. */
-function CornerBrackets() {
-  return (
-    <>
-      <span className="pointer-events-none absolute left-0.5 top-0.5 size-1.5 border-l border-t border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
-      <span className="pointer-events-none absolute right-0.5 top-0.5 size-1.5 border-r border-t border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
-      <span className="pointer-events-none absolute bottom-0.5 left-0.5 size-1.5 border-b border-l border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
-      <span className="pointer-events-none absolute bottom-0.5 right-0.5 size-1.5 border-b border-r border-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
-    </>
-  );
-}
-
+/**
+ * Floating pill navigation. The `header` keeps a 4rem band in the flow (so the
+ * layout maths of every page is unchanged) but is pulled over the content
+ * below it with a negative margin and made click-through, so only the pill
+ * itself is interactive and the page's own background shows around it. It
+ * condenses and gains elevation once the page scrolls.
+ *
+ * Standards followed: a `header` landmark holding a labelled `nav`,
+ * `aria-current="page"` on the active link, controls at least 36px tall
+ * (WCAG 2.5.8 asks 24px, platform guidance 44px for the mobile menu button),
+ * visible keyboard focus rings, and no motion for prefers-reduced-motion.
+ * The surface is a translucent fill with a hairline border and a soft shadow;
+ * it deliberately has no backdrop blur, which would be re-composited every
+ * frame over the animating hero and the pinned sections.
+ */
 export function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
@@ -59,129 +49,64 @@ export function Navbar() {
   };
 
   return (
-    <header
-      className={`sticky top-0 z-50 w-full border-b bg-background/95 transition-shadow duration-300 ${
-        scrolled ? "shadow-sm" : "shadow-none"
-      }`}
-    >
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <div className="flex items-center space-x-2">
+    <header className="pointer-events-none sticky top-0 z-50 -mb-16 h-16">
+      <div className="flex h-full items-start justify-center px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4">
+        <div
+          className={cn(
+            "pointer-events-auto flex h-12 w-full items-center justify-between gap-2 rounded-full border py-1.5 pl-4 pr-1.5 shadow-[inset_0_1px_0_color-mix(in_oklch,var(--foreground)_10%,transparent)] transition-[max-width,background-color,box-shadow,border-color] duration-300 ease-out motion-reduce:transition-none",
+            scrolled
+              ? "max-w-4xl border-foreground/15 bg-background/95 shadow-lg shadow-black/10"
+              : "max-w-6xl border-foreground/10 bg-background/70",
+          )}
+        >
           <Link
             href="/"
             onClick={handleLogoClick}
-            className="flex items-center space-x-2 cursor-pointer transition-opacity hover:opacity-80"
+            className="flex shrink-0 items-center gap-2 rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring"
           >
-            <Logo size={32} aria-hidden="true" />
+            <Logo size={26} aria-hidden="true" />
             <span className="font-bold uppercase">Cafton</span>
           </Link>
-        </div>
 
-        {/* Desktop Navigation */}
-        <nav
-          aria-label="Main navigation"
-          className="hidden items-center gap-1 xl:flex"
-        >
-          {navigationItems.map((item) =>
-            item.name === "Services" ? (
-              <ServicesNavMenu key={item.name} />
-            ) : (
-              <Link
-                key={item.name}
-                href={item.href}
-                aria-current={pathname === item.href ? "page" : undefined}
-                className={`group relative inline-flex h-9 items-center justify-center rounded-md px-4 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                  pathname === item.href
-                    ? "font-semibold text-foreground"
-                    : "font-medium text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {pathname !== item.href && <CornerBrackets />}
-                {item.name}
-              </Link>
-            ),
-          )}
-        </nav>
-
-        {/* Desktop CTA */}
-        <div className="hidden xl:flex items-center space-x-2">
-          <ModeToggle variant="ghost" />
-          <Button asChild className="group cursor-pointer">
-            <Link href="/contact">
-              Contact Us
-              <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </Button>
-        </div>
-
-        {/* Mobile Menu */}
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild className="xl:hidden">
-            <Button variant="ghost" size="icon" className="cursor-pointer">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent
-            side="right"
-            className="w-full sm:w-[400px] p-0 gap-0 [&>button]:hidden overflow-hidden flex flex-col"
+          {/* Desktop navigation */}
+          <nav
+            aria-label="Main navigation"
+            className="hidden items-center gap-0.5 xl:flex"
           >
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <SheetHeader className="space-y-0 p-4 pb-2 border-b">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Logo size={16} aria-hidden="true" />
-                  </div>
-                  <SheetTitle className="sr-only">CAFTON</SheetTitle>
-                  <div className="ml-auto flex items-center gap-2">
-                    <ModeToggle variant="ghost" />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsOpen(false)}
-                      className="cursor-pointer h-8 w-8"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </SheetHeader>
+            {navigationItems.map((item) =>
+              item.name === "Services" ? (
+                <ServicesNavMenu key={item.name} />
+              ) : (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  aria-current={pathname === item.href ? "page" : undefined}
+                  className={cn(
+                    "inline-flex h-9 items-center rounded-full px-4 text-sm outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring",
+                    pathname === item.href || pathname.startsWith(`${item.href}/`)
+                      ? "bg-foreground/10 font-semibold text-foreground"
+                      : "font-medium text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
+                  )}
+                >
+                  {item.name}
+                </Link>
+              ),
+            )}
+          </nav>
 
-              {/* Navigation Links */}
-              <div className="flex-1 overflow-y-auto">
-                <nav className="p-6 space-y-1">
-                  {navigationItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      aria-current={pathname === item.href ? "page" : undefined}
-                      className={`group relative flex items-center rounded-lg px-4 py-3 text-base transition-colors ${
-                        pathname === item.href
-                          ? "font-semibold text-foreground"
-                          : "font-medium hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {pathname !== item.href && <CornerBrackets />}
-                      {item.name}
-                    </Link>
-                  ))}
-                </nav>
-              </div>
+          {/* Desktop actions */}
+          <div className="hidden shrink-0 items-center gap-1 xl:flex">
+            <ModeToggle variant="ghost" className="size-9 rounded-full" />
+            <Button asChild className="group h-9 cursor-pointer rounded-full px-4">
+              <Link href="/contact">
+                Contact Us
+                <ArrowRight className="ms-1 size-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </Button>
+          </div>
 
-              {/* Footer Actions */}
-              <div className="border-t p-6">
-                <Button size="lg" asChild className="group w-full cursor-pointer">
-                  <Link href="/contact" onClick={() => setIsOpen(false)}>
-                    Contact Us
-                    <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+          <MobileMenu />
+        </div>
       </div>
     </header>
   );

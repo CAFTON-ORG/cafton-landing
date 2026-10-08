@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageShell } from "@/components/layout/page-shell";
-import { Reveal, RevealGroup } from "@/components/motion/reveal";
-import { PillarGrid } from "@/components/services/pillar-grid";
+import { Reveal } from "@/components/motion/reveal";
+import { ServiceIndex } from "@/components/services/service-index";
 
 export function ServicesOverview() {
   return (
@@ -20,9 +20,9 @@ export function ServicesOverview() {
           </header>
         </Reveal>
 
-        <RevealGroup className="mt-10 sm:mt-12">
-          <PillarGrid compact />
-        </RevealGroup>
+        <div className="mt-10 sm:mt-12">
+          <ServiceIndex compact />
+        </div>
 
         <Reveal>
           <Link

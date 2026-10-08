@@ -142,7 +142,7 @@ export function SiteLoader() {
 
         <svg
           viewBox="0 0 36 42"
-          className="relative size-22"
+          className="relative size-22 overflow-visible"
           xmlns="http://www.w3.org/2000/svg"
         >
           {/* Outline draws itself in first -- pathLength="1" normalizes the

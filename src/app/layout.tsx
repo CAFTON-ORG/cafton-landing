@@ -97,6 +97,12 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className={inter.className}>
+        <a
+          href="#main"
+          className="sr-only fixed left-3 top-3 z-[110] rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background focus:not-sr-only focus:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
+        >
+          Skip to content
+        </a>
         <SiteLoader />
         <JsonLd data={organizationJsonLd} />
         {/* Dark by default; visitors can switch with the navbar toggle. A
@@ -107,7 +113,9 @@ export default function RootLayout({
           <RevealObserver />
           <Navbar />
           <div className="min-h-dvh bg-background">
-            <main>{children}</main>
+            <main id="main" tabIndex={-1} className="outline-none">
+              {children}
+            </main>
           </div>
           <Footer />
         </ThemeProvider>

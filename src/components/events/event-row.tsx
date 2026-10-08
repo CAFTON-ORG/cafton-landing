@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { EventStatusBadge } from "@/components/events/event-status";
+import { CoverArt } from "@/components/shared/cover-art";
 import {
   formatEventDates,
   getEventStatus,
@@ -17,14 +18,13 @@ export function EventRow({ event }: { event: CaftonEvent }) {
       href={`/events/${event.slug}`}
       className="group grid grid-cols-[4rem_1fr] items-center gap-x-5 gap-y-3 border-b py-6 outline-none first:border-t hover:bg-muted/30 focus-visible:bg-muted/40 sm:grid-cols-[5rem_1fr_auto_auto] sm:gap-x-8"
     >
-      <Image
-        src={event.poster.src}
-        alt=""
-        width={event.poster.width}
-        height={event.poster.height}
-        sizes="80px"
-        className="h-auto w-full rounded-md"
-      />
+      <div className="relative aspect-1400/1974 w-full overflow-hidden rounded-md">
+        {event.poster ? (
+          <Image src={event.poster.src} alt="" fill sizes="80px" className="object-cover" />
+        ) : (
+          <CoverArt />
+        )}
+      </div>
       <div className="min-w-0">
         <p className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">
           {event.type} &middot; {formatEventDates(event)}

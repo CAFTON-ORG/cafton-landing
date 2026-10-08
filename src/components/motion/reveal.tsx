@@ -1,88 +1,63 @@
-"use client";
+import { Children, cloneElement, isValidElement, type CSSProperties, type ReactElement, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
-import type { ReactNode } from "react";
-import { motion, useReducedMotion, type Variants } from "motion/react";
-
-// Shared scroll-reveal blocks for general page sections. The 3D hero has
-// its own timeline. Reduced motion falls back to plain elements.
-
-const EASE_OUT = [0.16, 1, 0.3, 1] as const;
-const DURATION = 0.9;
-const ITEM_DURATION = 0.8;
-const STAGGER = 0.14;
+// Reveal blocks for general page sections. These are plain server components
+// that only mark an element `.reveal`:
+// - on load, a block that is already on screen fades up with a short CSS
+//   animation (staggered by its `--reveal-index`), which starts at first
+//   paint and needs no JavaScript;
+// - a block below the fold is faded up the first time it scrolls into view by
+//   `RevealObserver` (mounted once in the layout).
+// Markup is visible by default, so nothing is hidden before hydration and
+// visitors who prefer reduced motion see everything in place. The 3D hero
+// has its own timeline.
 
 interface RevealProps {
   children: ReactNode;
   className?: string;
-  /** Extra delay in seconds, useful for offsetting a second/third element. */
-  delay?: number;
   /** Distance in px the element rises from. Defaults to a subtle 16px. */
   y?: number;
 }
 
-/** Fades + rises a single block in once, when it scrolls into view. */
-export function Reveal({ children, className, delay = 0, y = 16 }: RevealProps) {
-  const reduceMotion = useReducedMotion();
-
-  if (reduceMotion) {
-    return <div className={className}>{children}</div>;
-  }
+/** Fades + rises a single block in. */
+export function Reveal({ children, className, y }: RevealProps) {
+  const style = y === undefined ? undefined : ({ "--reveal-y": `${y}px` } as CSSProperties);
 
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: DURATION, delay, ease: EASE_OUT }}
-    >
+    <div className={cn("reveal", className)} style={style}>
       {children}
-    </motion.div>
+    </div>
   );
 }
-
-const staggerContainer: Variants = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: STAGGER },
-  },
-};
-
-const staggerItem: Variants = {
-  hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: ITEM_DURATION, ease: EASE_OUT } },
-};
 
 interface RevealGroupProps {
   children: ReactNode;
   className?: string;
 }
 
-/** Wrap a list/grid; each direct `<RevealItem>` child staggers in together. */
+interface RevealItemProps extends RevealGroupProps {
+  /** Position within the group; set by `RevealGroup`, drives the stagger. */
+  index?: number;
+}
+
+/** Wrap a list/grid; each direct `<RevealItem>` child staggers in after the one before it. */
 export function RevealGroup({ children, className }: RevealGroupProps) {
-  const reduceMotion = useReducedMotion();
-
-  if (reduceMotion) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
-    <motion.div
-      className={className}
-      variants={staggerContainer}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-80px" }}
-    >
-      {children}
-    </motion.div>
+    <div className={className}>
+      {Children.map(children, (child, index) =>
+        isValidElement(child) && child.type === RevealItem ? cloneElement(child as ReactElement<RevealItemProps>, { index }) : child,
+      )}
+    </div>
   );
 }
 
-export function RevealItem({ children, className }: RevealGroupProps) {
+export function RevealItem({ children, className, index = 0 }: RevealItemProps) {
   return (
-    <motion.div className={className} variants={staggerItem}>
+    <div
+      className={cn("reveal", className)}
+      style={{ "--reveal-index": index } as CSSProperties}
+    >
       {children}
-    </motion.div>
+    </div>
   );
 }

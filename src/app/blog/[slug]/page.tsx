@@ -101,7 +101,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <Reveal>
             <BlogHeroImage post={post} />
           </Reveal>
-          <Reveal delay={0.1}>
+          <Reveal>
             <div className="mx-auto max-w-2xl">
               <RevealGroup className="mt-10 flex flex-col gap-6">
                 {post.content.map((paragraph, index) => (

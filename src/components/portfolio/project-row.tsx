@@ -37,6 +37,7 @@ export function ProjectRow({ project, index }: ProjectRowProps) {
             dark={project.imageDark}
             alt={project.imageAlt ?? ""}
             fill
+            priority={index === 0}
             sizes="(min-width: 1024px) 50vw, 100vw"
             className={cn(
               "transition-transform duration-700 ease-out group-hover:scale-105",

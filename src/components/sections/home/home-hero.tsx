@@ -4,11 +4,11 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowRight, MousePointerClick } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DotPattern } from "@/components/shared/dot-pattern";
 import { useCanShow3D } from "@/hooks/use-can-show-3d";
+import { cn } from "@/lib/utils";
 import { CanvasErrorBoundary } from "@/components/three/canvas-error-boundary";
 import { useInViewport } from "@/hooks/use-in-viewport";
 import { ServiceSelectOverlay } from "@/components/sections/home/service-select-overlay";
@@ -32,33 +32,19 @@ const HeroScene = dynamic(loadHeroScene, { ssr: false });
 
 const DISPLAY_SIZE = "text-[clamp(2.5rem,min(6.5vw,10vh),5.75rem)]";
 
-const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+/** Entrance delays, in seconds, for the CSS `animate-rise` utility. */
+const DELAY = { headline: 0.05, hint: 0.35, cta: 0.5 } as const;
 
-const ENTRANCE_DURATION = 0.4;
-const ENTRANCE_DELAY = {
-  line1: 0.1,
-  line2: 0.1,
-  subhead: 0.65,
-  cta: 1.05,
-} as const;
-
-function entrance(delay: number) {
-  return {
-    initial: { opacity: 0, y: 24 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: ENTRANCE_DURATION, delay, ease: EASE_OUT },
-  } as const;
+function rise(delay: number) {
+  return { "--rise-delay": `${delay}s` } as React.CSSProperties;
 }
 
 export function HomeHero() {
   const router = useRouter();
   const canShow3D = useCanShow3D();
-  const reduceMotion = useReducedMotion();
   const [heroRef, heroInViewport] = useInViewport<HTMLElement>("100px 0px");
   const [built, setBuilt] = useState(false);
   const [showServiceSelect, setShowServiceSelect] = useState(false);
-
-  const anim = (delay: number) => (reduceMotion ? {} : entrance(delay));
 
   const handleBuildComplete = useCallback(() => {
     setShowServiceSelect(true);
@@ -96,22 +82,22 @@ export function HomeHero() {
 
         <div className="relative grid h-full grid-rows-[auto_minmax(12rem,1fr)_auto] gap-5 px-5 pb-10 pt-6 md:block md:gap-0 md:p-0">
           <h1
-            className={`pointer-events-none z-20 font-black uppercase leading-[0.95] tracking-[-0.01em] text-neutral-700 dark:text-foreground [filter:drop-shadow(0_0_14px_var(--background))_drop-shadow(0_0_4px_var(--background))] md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8 ${DISPLAY_SIZE}`}
+            className={`pointer-events-none z-20 font-black uppercase leading-[0.95] tracking-[-0.01em] text-neutral-700 dark:text-foreground [text-shadow:0_0_14px_var(--background),0_0_4px_var(--background)] md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8 ${DISPLAY_SIZE}`}
           >
             <span className="block md:absolute md:left-8 md:top-[10%] md:max-w-[46%]">
-              <motion.span {...anim(ENTRANCE_DELAY.line1)} className="block">
+              <span className="animate-rise block" style={rise(DELAY.headline)}>
                 Build <span className="block">Better</span>
-              </motion.span>
+              </span>
             </span>
             <span className="block md:absolute md:right-8 md:top-[40%] md:max-w-[46%] md:text-right">
-              <motion.span {...anim(ENTRANCE_DELAY.line2)} className="block">
+              <span className="animate-rise block" style={rise(DELAY.headline)}>
                 Solve{" "}
                 <span
-                  className={`block ${built ? "bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent" : ""}`}
+                  className={`block ${built ? "bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent [text-shadow:none]" : ""}`}
                 >
                   Smarter
                 </span>
-              </motion.span>
+              </span>
             </span>
           </h1>
 
@@ -132,32 +118,25 @@ export function HomeHero() {
           </div>
 
           <div className="pointer-events-none relative z-30 flex flex-col gap-5 md:absolute md:inset-0 md:mx-auto md:block md:max-w-7xl md:px-8">
-            <AnimatePresence>
-              {!built && canShow3D && (
-                <motion.div
-                  {...anim(ENTRANCE_DELAY.subhead)}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-                  className="flex items-center justify-center gap-2 text-center text-sm text-muted-foreground md:absolute md:left-8 md:bottom-[11%] md:justify-start md:text-left"
-                >
-                  <motion.span
-                    animate={reduceMotion ? undefined : { scale: [1, 1.18, 1] }}
-                    transition={
-                      reduceMotion
-                        ? undefined
-                        : { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
-                    }
-                    className="flex"
-                  >
-                    <MousePointerClick className="size-4" aria-hidden="true" />
-                  </motion.span>
-                  Click the mark to build it
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {canShow3D && (
+              <div
+                aria-hidden={built}
+                className={cn(
+                  "animate-rise flex items-center justify-center gap-2 text-center text-sm text-muted-foreground transition-[opacity,translate] duration-300 md:absolute md:left-8 md:bottom-[11%] md:justify-start md:text-left",
+                  built && "-translate-y-2 opacity-0",
+                )}
+                style={rise(DELAY.hint)}
+              >
+                <span className="animate-hint-pulse flex">
+                  <MousePointerClick className="size-4" aria-hidden="true" />
+                </span>
+                Click the mark to build it
+              </div>
+            )}
 
-            <motion.div
-              {...anim(ENTRANCE_DELAY.cta)}
-              className="pointer-events-auto flex flex-col gap-3 md:absolute md:flex-row md:right-8 md:bottom-[11%] md:justify-end"
+            <div
+              className="animate-rise pointer-events-auto flex flex-col gap-3 md:absolute md:flex-row md:right-8 md:bottom-[11%] md:justify-end"
+              style={rise(DELAY.cta)}
             >
               <Button className="cursor-pointer group" asChild>
                 <Link href="/contact">
@@ -176,7 +155,7 @@ export function HomeHero() {
                   <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>

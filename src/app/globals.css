@@ -189,3 +189,106 @@ main {
 .animate-loader-ring {
   animation: loader-ring 2.4s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
 }
+
+/* Scroll reveal (see components/motion/reveal.tsx). `RevealObserver` marks a
+   below-the-fold block `is-hidden` once the page has hydrated and `is-visible`
+   when it scrolls into view; the transition does the rest. Content is visible
+   by default, so nothing here can hide it before that script runs. */
+.reveal.is-hidden {
+  opacity: 0;
+  transform: translateY(var(--reveal-y, 16px));
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.is-hidden.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Entrance on load for blocks already on screen. A CSS animation starts at
+   first paint with no JavaScript, and `backwards` fill means it only sets the
+   starting state, so it never overrides `is-hidden` / `is-visible` above.
+   It starts at half opacity, not zero: the text is readable from the first
+   frame (so the page's largest content isn't held back by a fade) while it
+   still settles upward into place. */
+@keyframes reveal-load {
+  from {
+    opacity: 0.5;
+    transform: translateY(var(--reveal-y, 16px));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    animation: reveal-load 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(var(--reveal-index, 0) * 0.08s);
+  }
+}
+
+/* One-shot entrance for above-the-fold copy (the home hero). */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-rise {
+    animation: rise-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--rise-delay, 0s);
+  }
+}
+
+@keyframes hint-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-hint-pulse {
+    animation: hint-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+/* Lenis drives smooth scrolling in JS. A native `scroll-behavior: smooth` on
+   top of it smooths every programmatic scroll a second time and makes the
+   page feel laggy, so it has to be off whenever Lenis is running. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+@keyframes hub-sway {
+  from {
+    transform: rotateY(-28deg);
+  }
+  to {
+    transform: rotateY(28deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-hub-sway {
+    animation: hub-sway 3.5s ease-in-out infinite alternate;
+  }
+}

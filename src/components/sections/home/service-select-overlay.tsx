@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { servicePillars } from "@/lib/services";

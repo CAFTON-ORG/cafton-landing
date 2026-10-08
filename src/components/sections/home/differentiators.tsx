@@ -2,19 +2,14 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { useLenis } from "lenis/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { AnimatePresence, motion } from "motion/react";
 import { Search, Layers3, Users, Puzzle } from "lucide-react";
 import { DotPattern } from "@/components/shared/dot-pattern";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { PageShell } from "@/components/layout/page-shell";
 import { CornerBrackets } from "@/components/shared/corner-brackets";
 import { useCanShow3D } from "@/hooks/use-can-show-3d";
+import { useNearViewport } from "@/hooks/use-near-viewport";
 import { CanvasErrorBoundary } from "@/components/three/canvas-error-boundary";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const DifferentiatorsMark = dynamic(
   () =>
@@ -23,8 +18,6 @@ const DifferentiatorsMark = dynamic(
     ),
   { ssr: false }
 );
-
-const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
 const NUMBER_SIZE = "text-[clamp(4.5rem,min(20vw,36vh),12rem)]";
 
@@ -116,29 +109,51 @@ function ScrollDifferentiators() {
   const progress = useRef(0);
   const lastIndex = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [markRef, nearMark] = useNearViewport<HTMLDivElement>();
 
-  useLenis(ScrollTrigger.update);
-
+  // Progress 0 -> 1 from the section's top reaching the viewport top to its
+  // bottom reaching it. Read from native scroll (Lenis scrolls the real
+  // window, so these events fire for it too) on at most one frame at a time,
+  // and only while the section is on screen.
   useEffect(() => {
-    const trigger = ScrollTrigger.create({
-      trigger: sectionRef.current,
-      start: "top top",
-      end: "bottom top",
-      onUpdate: (self) => {
-        progress.current = self.progress;
-        const index = Math.min(
-          values.length - 1,
-          Math.floor(self.progress * HOLD_SEGMENTS)
-        );
-        if (index !== lastIndex.current) {
-          lastIndex.current = index;
-          setActiveIndex(index);
-        }
-      },
+    const section = sectionRef.current;
+    if (!section) return;
+
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const { top } = section.getBoundingClientRect();
+      const next = Math.min(1, Math.max(0, -top / section.offsetHeight));
+      progress.current = next;
+      const index = Math.min(values.length - 1, Math.floor(next * HOLD_SEGMENTS));
+      if (index !== lastIndex.current) {
+        lastIndex.current = index;
+        setActiveIndex(index);
+      }
+    };
+
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll);
+        onScroll();
+      } else {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
+      }
     });
+    observer.observe(section);
 
     return () => {
-      trigger.kill();
+      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
     };
   }, []);
 
@@ -162,15 +177,10 @@ function ScrollDifferentiators() {
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground md:absolute md:left-8 md:top-[2%]">
               Why Cafton &mdash; {activeIndex + 1} of {values.length}
             </p>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeIndex}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -24 }}
-                transition={{ duration: 0.5, ease: EASE_OUT }}
-                className="md:absolute md:left-8 md:top-[8%] md:max-w-[85%]"
-              >
+            <div
+              key={activeIndex}
+              className="animate-in fade-in slide-in-from-bottom-6 duration-500 motion-reduce:animate-none md:absolute md:left-8 md:top-[8%] md:max-w-[85%]"
+            >
                 <span
                   aria-hidden="true"
                   className={`block font-black uppercase leading-none text-transparent [-webkit-text-stroke:1.5px_var(--foreground)] [paint-order:stroke] [text-shadow:0_0_24px_var(--background),0_0_8px_var(--background)] ${NUMBER_SIZE}`}
@@ -183,29 +193,24 @@ function ScrollDifferentiators() {
                   <active.icon className="size-8 shrink-0 md:size-10" aria-hidden="true" />
                   {active.title}
                 </h3>
-              </motion.div>
-            </AnimatePresence>
+            </div>
           </div>
 
-          <div className="relative z-10 min-h-0 md:absolute md:inset-0">
-            <CanvasErrorBoundary fallback={null}>
-              <DifferentiatorsMark progressRef={progress} />
-            </CanvasErrorBoundary>
+          <div ref={markRef} className="relative z-10 min-h-0 md:absolute md:inset-0">
+            {nearMark && (
+              <CanvasErrorBoundary fallback={null}>
+                <DifferentiatorsMark progressRef={progress} />
+              </CanvasErrorBoundary>
+            )}
           </div>
 
           <div className="pointer-events-none relative z-30 md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={activeIndex}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -16 }}
-                transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT }}
-                className="pointer-events-auto text-base leading-relaxed text-foreground/80 [text-shadow:0_0_16px_var(--background),0_0_6px_var(--background)] md:absolute md:bottom-[12%] md:right-8 md:max-w-md md:text-right md:text-xl"
+            <p
+              key={activeIndex}
+              className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-backwards motion-reduce:animate-none pointer-events-auto text-base leading-relaxed text-foreground/80 [text-shadow:0_0_16px_var(--background),0_0_6px_var(--background)] md:absolute md:bottom-[12%] md:right-8 md:max-w-md md:text-right md:text-xl"
               >
-                {active.description}
-              </motion.p>
-            </AnimatePresence>
+              {active.description}
+            </p>
           </div>
         </div>
 

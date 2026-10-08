@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { Lightbulb, PenTool, Code2, Rocket, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -48,18 +48,17 @@ export function ProcessGraphic() {
             onBlur={() => setHovered(null)}
             className="flex cursor-pointer flex-col items-center gap-2 focus-visible:outline-none"
           >
-            <motion.div
-              animate={{ scale: current === i ? 1.15 : 1 }}
-              transition={{ type: "spring", stiffness: 200, damping: 18 }}
+            <div
               className={cn(
-                "flex size-11 items-center justify-center rounded-full border transition-colors",
+                "flex size-11 items-center justify-center rounded-full border transition-[color,background-color,border-color,scale] duration-300",
+                current === i && "scale-115",
                 current === i
                   ? "border-foreground bg-foreground text-background"
                   : "border-border text-muted-foreground",
               )}
             >
               <step.icon className="size-5" aria-hidden="true" />
-            </motion.div>
+            </div>
             <span
               className={cn(
                 "text-xs font-medium transition-colors",
@@ -75,10 +74,9 @@ export function ProcessGraphic() {
             // guessing a pixel offset from the label sitting below it.
             <div className="flex h-11 flex-1 items-center">
               <div className="relative mx-2 h-px w-full bg-border">
-                <motion.div
-                  className="absolute inset-y-0 left-0 bg-foreground"
-                  animate={{ width: current > i ? "100%" : "0%" }}
-                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                <div
+                  className="absolute inset-y-0 left-0 bg-foreground transition-[width] duration-400 ease-in-out"
+                  style={{ width: current > i ? "100%" : "0%" }}
                 />
               </div>
             </div>

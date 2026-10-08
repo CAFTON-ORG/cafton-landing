@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLenis } from "lenis/react";
-import { useMotionValueEvent, useScroll } from "motion/react";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +14,7 @@ import {
 } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Logo } from "@/components/shared/logo";
+import { scrollToTop } from "@/components/providers/smooth-scroll";
 import { ServicesNavMenu } from "@/components/layout/services-nav-menu";
 
 const navigationItems = [
@@ -42,9 +41,13 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const lenis = useLenis();
-  const { scrollY } = useScroll();
-  useMotionValueEvent(scrollY, "change", (y) => setScrolled(y > 8));
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // There's no separate "Home" nav item -- clicking the logo while already
   // on "/" is otherwise a no-op (Link doesn't navigate to the current
@@ -52,8 +55,7 @@ export function Navbar() {
   // instead in that one case; everywhere else this is a normal Link.
   const handleLogoClick = () => {
     if (pathname !== "/") return;
-    if (lenis) lenis.scrollTo(0);
-    else window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollToTop();
   };
 
   return (

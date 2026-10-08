@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { SystemHub } from "@/components/contact/system-hub";
 import { servicePillars } from "@/lib/services";
 
@@ -28,7 +28,6 @@ const CONNECTED: NodeOffset[] = [
 ];
 
 const AUTO_CYCLE_MS = 2800;
-const SPRING = { type: "spring", stiffness: 90, damping: 16 } as const;
 
 /**
  * The site's own 4 service pillars, scattered and disconnected, animating
@@ -62,24 +61,25 @@ export function SystemGraphic() {
         const length = Math.hypot(pos.x, pos.y);
         const angle = (Math.atan2(pos.y, pos.x) * 180) / Math.PI;
         return (
-          <motion.div
+          <div
             key={`line-${pillar.slug}`}
-            className="absolute left-1/2 top-1/2 h-0.5 origin-left bg-foreground/40"
-            style={{ width: length }}
-            animate={{ rotate: angle, scaleX: connected ? 1 : 0, opacity: connected ? 1 : 0 }}
-            transition={SPRING}
+            className="absolute left-1/2 top-1/2 h-0.5 origin-left bg-foreground/40 transition-[transform,opacity] duration-700 ease-out"
+            style={{
+              width: length,
+              transform: `rotate(${angle}deg) scaleX(${connected ? 1 : 0})`,
+              opacity: connected ? 1 : 0,
+            }}
           />
         );
       })}
 
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <motion.div
-          animate={{ scale: connected ? 1.1 : 1 }}
-          transition={SPRING}
-          className="size-24"
+        <div
+          className="size-24 transition-transform duration-700 ease-out"
+          style={{ transform: `scale(${connected ? 1.1 : 1})` }}
         >
           <SystemHub />
-        </motion.div>
+        </div>
       </div>
 
       {servicePillars.map((pillar, i) => {
@@ -89,12 +89,12 @@ export function SystemGraphic() {
             key={pillar.slug}
             className="pointer-events-none absolute inset-0 flex items-center justify-center"
           >
-            <motion.div
-              animate={{ x: pos.x, y: pos.y, rotate: pos.rotate }}
-              transition={SPRING}
+            <div
+              className="transition-transform duration-700 ease-out"
+              style={{ transform: `translate(${pos.x}px, ${pos.y}px) rotate(${pos.rotate}deg)` }}
             >
               <pillar.icon className="size-8 text-foreground" aria-hidden="true" />
-            </motion.div>
+            </div>
           </div>
         );
       })}

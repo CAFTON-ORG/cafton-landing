@@ -65,6 +65,24 @@ export const projects: Project[] = [
     liveUrl: "https://scanato.cafton.com",
   },
   {
+    slug: "cafton-voting-app",
+    client: "University of Baguio SIT",
+    title: "Online Elections With One Account, One Vote",
+    category: "Web Application",
+    summary:
+      "A voting platform for University of Baguio School of Information Technology elections. Voters sign in with their own account, and each account can cast a single vote.",
+    description:
+      "Cafton Voting is the platform behind elections at the University of Baguio School of Information Technology. Voters sign in with their own account and each account casts one vote. Cafton built and runs it as the school's voting technology partner, and it also ran the voting for the Mr. and Ms. Cafton's Choice Award.",
+    problem:
+      "An election is only worth running if people trust the result: every eligible voter counted once, and nobody voting twice or on someone else's behalf.",
+    solution:
+      "Sign-in with each voter's own Google account, one vote per account, and a home screen that shows which elections are open and how many candidates are running.",
+    imageLight: "/voting-app.jpg",
+    imageDark: "/voting-app.jpg",
+    imageAlt: "Cafton Voting home page: Secure elections, one account, one vote",
+    liveUrl: "https://mmsit.cafton.com",
+  },
+  {
     slug: "jamils-mural-arts",
     client: "Jamil's Mural Arts",
     title: "A Portfolio Site Built Around the Work Itself",

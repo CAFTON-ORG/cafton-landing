@@ -15,7 +15,7 @@ import { EventRow } from "@/components/events/event-row";
 import { EventStatusBadge } from "@/components/events/event-status";
 import {
   events,
-  formatEventDates,
+  getEventFacts,
   getEventStatus,
   type EventStatus,
 } from "@/lib/events";
@@ -81,11 +81,7 @@ export default function EventsPage() {
                 </p>
 
                 <dl className="mt-10 max-w-xl text-sm">
-                  {[
-                    ["When", formatEventDates(featured.event)],
-                    ["Prizes", `${featured.event.prizes.length} winners`],
-                    ["Enter", "Online, through Gleam"],
-                  ].map(([label, value]) => (
+                  {getEventFacts(featured.event).map(([label, value]) => (
                     <div
                       key={label}
                       className="flex items-baseline justify-between gap-6 border-t border-dashed py-3 last:border-b"
@@ -102,16 +98,18 @@ export default function EventsPage() {
                   <Button asChild className="group cursor-pointer">
                     <Link
                       href={
-                        featured.status === "open"
+                        featured.status === "open" && featured.event.campaignUrl
                           ? `/events/${featured.event.slug}#enter`
                           : `/events/${featured.event.slug}`
                       }
                     >
-                      {featured.status === "open" ? "Enter the giveaway" : "View details"}
+                      {featured.status === "open" && featured.event.campaignUrl
+                        ? "Enter the giveaway"
+                        : "View details"}
                       <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                   </Button>
-                  {featured.status === "open" && (
+                  {featured.status === "open" && featured.event.campaignUrl && (
                     <Button asChild variant="outline" className="cursor-pointer">
                       <Link href={`/events/${featured.event.slug}`}>View details</Link>
                     </Button>
@@ -119,7 +117,7 @@ export default function EventsPage() {
                 </div>
               </Reveal>
 
-              <Reveal delay={0.1}>
+              <Reveal>
                 <EventPoster event={featured.event} priority />
               </Reveal>
             </div>

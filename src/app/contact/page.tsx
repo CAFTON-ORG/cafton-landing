@@ -78,7 +78,7 @@ export default function ContactPage() {
                 </p>
               </div>
             </Reveal>
-            <Reveal delay={0.1}>
+            <Reveal>
               <Suspense
                 fallback={
                   <div
@@ -100,7 +100,7 @@ export default function ContactPage() {
               Questions people ask before reaching out
             </h2>
           </Reveal>
-          <Reveal delay={0.1} className="mt-8">
+          <Reveal className="mt-8">
             <Faq />
           </Reveal>
         </PageShell>

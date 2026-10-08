@@ -1,43 +1,23 @@
-"use client";
-
-import { useState } from "react";
-import Image from "next/image";
 import type { BlogPost } from "@/lib/blog";
 import { CoverArt } from "@/components/shared/cover-art";
-import { ImageSkeleton } from "@/components/shared/image-skeleton";
+import { ThemedImage } from "@/components/shared/themed-image";
 
 export function BlogHeroImage({ post }: { post: BlogPost }) {
-  const [loaded, setLoaded] = useState(false);
-
-  if (!post.imageLight || !post.imageDark) {
-    return (
-      <div className="relative mx-auto aspect-video max-w-2xl overflow-hidden rounded-xl border">
-        <CoverArt />
-      </div>
-    );
-  }
-
   return (
-    <div className="relative mx-auto aspect-video max-w-2xl overflow-hidden rounded-xl border">
-      {!loaded && <ImageSkeleton />}
-      <Image
-        src={post.imageLight}
-        alt={post.imageAlt ?? ""}
-        fill
-        sizes="(min-width: 640px) 42rem, 100vw"
-        priority
-        onLoad={() => setLoaded(true)}
-        className={`object-cover object-top transition-opacity duration-500 dark:hidden ${loaded ? "opacity-100" : "opacity-0"}`}
-      />
-      <Image
-        src={post.imageDark}
-        alt={post.imageAlt ?? ""}
-        fill
-        sizes="(min-width: 640px) 42rem, 100vw"
-        priority
-        onLoad={() => setLoaded(true)}
-        className={`hidden object-cover object-top transition-opacity duration-500 dark:block ${loaded ? "opacity-100" : "opacity-0"}`}
-      />
+    <div className="relative mx-auto aspect-video max-w-2xl overflow-hidden rounded-xl border bg-muted/40">
+      {post.imageLight && post.imageDark ? (
+        <ThemedImage
+          light={post.imageLight}
+          dark={post.imageDark}
+          alt={post.imageAlt ?? ""}
+          fill
+          sizes="(min-width: 640px) 42rem, 100vw"
+          priority
+          className="object-cover object-top"
+        />
+      ) : (
+        <CoverArt />
+      )}
     </div>
   );
 }

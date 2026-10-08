@@ -1,45 +1,25 @@
-"use client";
-
-import { useState } from "react";
-import Image from "next/image";
 import type { Project } from "@/lib/projects";
 import { CoverArt } from "@/components/shared/cover-art";
-import { ImageSkeleton } from "@/components/shared/image-skeleton";
+import { ThemedImage } from "@/components/shared/themed-image";
 
 export function ProjectHeroImage({ project }: { project: Project }) {
-  const [loaded, setLoaded] = useState(false);
-  const fitClass =
-    project.imageFit === "contain" ? "object-contain p-12" : "object-cover object-top";
-
-  if (!project.imageLight || !project.imageDark) {
-    return (
-      <div className="relative aspect-video">
-        <CoverArt />
-      </div>
-    );
-  }
-
   return (
-    <div className="relative aspect-video">
-      {!loaded && <ImageSkeleton />}
-      <Image
-        src={project.imageLight}
-        alt={project.imageAlt ?? ""}
-        fill
-        sizes="100vw"
-        priority
-        onLoad={() => setLoaded(true)}
-        className={`${fitClass} transition-opacity duration-500 dark:hidden ${loaded ? "opacity-100" : "opacity-0"}`}
-      />
-      <Image
-        src={project.imageDark}
-        alt={project.imageAlt ?? ""}
-        fill
-        sizes="100vw"
-        priority
-        onLoad={() => setLoaded(true)}
-        className={`hidden ${fitClass} transition-opacity duration-500 dark:block ${loaded ? "opacity-100" : "opacity-0"}`}
-      />
+    <div className="relative aspect-video bg-muted/40">
+      {project.imageLight && project.imageDark ? (
+        <ThemedImage
+          light={project.imageLight}
+          dark={project.imageDark}
+          alt={project.imageAlt ?? ""}
+          fill
+          sizes="100vw"
+          priority
+          className={
+            project.imageFit === "contain" ? "object-contain p-12" : "object-cover object-top"
+          }
+        />
+      ) : (
+        <CoverArt />
+      )}
     </div>
   );
 }

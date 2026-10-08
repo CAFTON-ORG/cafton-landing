@@ -117,7 +117,7 @@ export default function EventsPage() {
                 </div>
               </Reveal>
 
-              <Reveal delay={0.1}>
+              <Reveal>
                 <EventPoster event={featured.event} priority />
               </Reveal>
             </div>

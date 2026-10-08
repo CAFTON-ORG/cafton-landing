@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import type { ZodType } from "zod";
 import { Button } from "@/components/ui/button";
@@ -27,8 +26,6 @@ import { ChallengesStep } from "@/components/contact/steps/challenges-step";
 import { GoalsAreaStep } from "@/components/contact/steps/goals-area-step";
 import { GoalsSystemsStep } from "@/components/contact/steps/goals-systems-step";
 import { FinalDetailsStep } from "@/components/contact/steps/final-details-step";
-
-const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
 const STEP_SCHEMAS: Record<StepId, ZodType> = {
   personal: baseContactSchema.pick({
@@ -78,7 +75,6 @@ type ContactFormProps = {
 
 export function ContactForm({ leadSource, pageName, className = "" }: ContactFormProps) {
   const searchParams = useSearchParams();
-  const reduceMotion = useReducedMotion();
 
   // Arriving from the hero's build-and-pick flow -- a chosen service area
   // (?category=<pillar slug>) pre-selects that pillar in the Goals-area
@@ -273,16 +269,6 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
     return <SuccessScreen className={className} onReset={() => setStatus("idle")} />;
   }
 
-  const stepAnim = (direction: 1 | -1) =>
-    reduceMotion
-      ? {}
-      : {
-          initial: { opacity: 0, x: 16 * direction },
-          animate: { opacity: 1, x: 0 },
-          exit: { opacity: 0, x: -16 * direction },
-          transition: { duration: 0.3, ease: EASE_OUT },
-        };
-
   return (
     <form
       className={`grid gap-6 rounded-xl border bg-card p-6 sm:p-8 ${className}`}
@@ -291,8 +277,10 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
     >
       <ProgressHeader steps={steps} currentStep={step} />
 
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div key={currentStep.id} {...stepAnim(1)}>
+      <div
+        key={currentStep.id}
+        className="animate-in fade-in slide-in-from-right-4 duration-300 motion-reduce:animate-none"
+      >
           {currentStep.id === "personal" && (
             <PersonalInfoStep
               formData={formData}
@@ -340,8 +328,7 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
               onTurnstileToken={handleTurnstileToken}
             />
           )}
-        </motion.div>
-      </AnimatePresence>
+      </div>
 
       {status === "error" && (
         <p role="alert" className="text-sm text-destructive">

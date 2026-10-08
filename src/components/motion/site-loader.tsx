@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useReducedMotion } from "motion/react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { LOGO_PATH_D, Logo } from "@/components/shared/logo";
 import { canShow3DNow } from "@/hooks/use-can-show-3d";
 import { onHeroReady } from "@/lib/hero-ready";

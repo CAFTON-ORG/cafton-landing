@@ -13,10 +13,14 @@ interface ThemedImageProps extends Omit<ImageProps, "src" | "alt"> {
  * lazy and `display: none`, so the browser never downloads it. Only the
  * visible-in-light copy carries the alt text; the other is decorative to
  * avoid announcing the same image twice.
+ *
+ * `priority` (for an above-the-fold image) applies to the dark variant only:
+ * dark is the site default, and preloading both would download an image
+ * that is never shown.
  */
-export function ThemedImage({ light, dark, alt, className, ...props }: ThemedImageProps) {
+export function ThemedImage({ light, dark, alt, className, priority, ...props }: ThemedImageProps) {
   if (light === dark) {
-    return <Image {...props} src={light} alt={alt} className={className} />;
+    return <Image {...props} priority={priority} src={light} alt={alt} className={className} />;
   }
 
   return (
@@ -24,6 +28,7 @@ export function ThemedImage({ light, dark, alt, className, ...props }: ThemedIma
       <Image {...props} src={light} alt={alt} className={cn(className, "dark:hidden")} />
       <Image
         {...props}
+        priority={priority}
         src={dark}
         alt=""
         aria-hidden="true"

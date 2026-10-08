@@ -53,14 +53,14 @@ export default function About() {
               people work today and what could work better tomorrow.
             </p>
           </Reveal>
-          <Reveal delay={0.1}>
+          <Reveal>
             <h2 className="text-3xl font-bold">How we work</h2>
             <p className="mt-5 text-muted-foreground">
               Understand → Design → Engineer → Deploy → Improve. Clear thinking
               and close collaboration guide every stage.
             </p>
           </Reveal>
-          <Reveal delay={0.2} className="lg:col-span-2">
+          <Reveal className="lg:col-span-2">
             <div className="border-t border-border pt-8">
               <ProcessGraphic />
             </div>
@@ -102,7 +102,7 @@ export default function About() {
               </RevealItem>
             ))}
           </RevealGroup>
-          <Reveal delay={0.1}>
+          <Reveal>
             <Link
               href="/services"
               className="group mt-8 inline-flex items-center text-sm font-medium text-foreground"
@@ -150,7 +150,7 @@ export default function About() {
               Organizations we&apos;ve built with and for.
             </p>
           </Reveal>
-          <Reveal delay={0.1} className="mt-10">
+          <Reveal className="mt-10">
             <LogoCarousel />
           </Reveal>
         </PageShell>

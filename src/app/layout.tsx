@@ -102,13 +102,12 @@ export default function RootLayout({
             new storage key (not the old "nextjs-ui-theme") so stale values
             from the dark-only period can't override the dark default. */}
         <ThemeProvider defaultTheme="dark" storageKey={THEME_STORAGE_KEY}>
-          <SmoothScroll>
-            <Navbar />
-            <div className="min-h-dvh bg-background">
-              <main>{children}</main>
-            </div>
-            <Footer />
-          </SmoothScroll>
+          <SmoothScroll />
+          <Navbar />
+          <div className="min-h-dvh bg-background">
+            <main>{children}</main>
+          </div>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

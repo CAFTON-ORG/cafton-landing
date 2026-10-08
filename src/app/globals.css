@@ -189,3 +189,95 @@ main {
 .animate-loader-ring {
   animation: loader-ring 2.4s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
 }
+
+/* Scroll reveal (see components/motion/reveal.tsx). Each block fades and
+   rises while it enters the viewport, linked to scroll position so it runs
+   on the compositor with no JavaScript. Only applied where the browser
+   supports scroll-linked animations and the visitor allows motion; anywhere
+   else the content is simply visible. */
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--reveal-y, 16px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+  }
+}
+
+/* One-shot entrance for above-the-fold copy (the home hero). */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-rise {
+    animation: rise-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--rise-delay, 0s);
+  }
+}
+
+@keyframes hint-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-hint-pulse {
+    animation: hint-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+/* Lenis drives smooth scrolling in JS. A native `scroll-behavior: smooth` on
+   top of it smooths every programmatic scroll a second time and makes the
+   page feel laggy, so it has to be off whenever Lenis is running. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+@keyframes hub-sway {
+  from {
+    transform: rotateY(-28deg);
+  }
+  to {
+    transform: rotateY(28deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-hub-sway {
+    animation: hub-sway 3.5s ease-in-out infinite alternate;
+  }
+}

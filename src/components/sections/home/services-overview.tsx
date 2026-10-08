@@ -24,7 +24,7 @@ export function ServicesOverview() {
           <PillarGrid compact />
         </RevealGroup>
 
-        <Reveal delay={0.1}>
+        <Reveal>
           <Link
             href="/services"
             className="group mt-8 inline-flex items-center text-sm font-medium text-foreground sm:mt-10"

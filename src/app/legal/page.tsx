@@ -47,7 +47,7 @@ export default function LegalPage() {
             </section>
           </Reveal>
 
-          <Reveal delay={0.05}>
+          <Reveal>
             <section>
               <h2 className="text-2xl font-semibold">Business Registration</h2>
               <p className="mt-3 text-muted-foreground">
@@ -90,7 +90,7 @@ export default function LegalPage() {
             </section>
           </Reveal>
 
-          <Reveal delay={0.1}>
+          <Reveal>
             <section>
               <h2 className="text-2xl font-semibold">Terms of Use</h2>
               <p className="mt-3 text-muted-foreground">
@@ -101,7 +101,7 @@ export default function LegalPage() {
             </section>
           </Reveal>
 
-          <Reveal delay={0.14}>
+          <Reveal>
             <section>
               <h2 className="text-2xl font-semibold">Use of This Website</h2>
               <p className="mt-3 text-muted-foreground">
@@ -114,7 +114,7 @@ export default function LegalPage() {
             </section>
           </Reveal>
 
-          <Reveal delay={0.18}>
+          <Reveal>
             <section>
               <h2 className="text-2xl font-semibold">Intellectual Property</h2>
               <p className="mt-3 text-muted-foreground">
@@ -126,7 +126,7 @@ export default function LegalPage() {
             </section>
           </Reveal>
 
-          <Reveal delay={0.22}>
+          <Reveal>
             <section>
               <h2 className="text-2xl font-semibold">
                 Limitation of Liability
@@ -140,7 +140,7 @@ export default function LegalPage() {
             </section>
           </Reveal>
 
-          <Reveal delay={0.26}>
+          <Reveal>
             <section>
               <h2 className="text-2xl font-semibold">Governing Law</h2>
               <p className="mt-3 text-muted-foreground">
@@ -150,7 +150,7 @@ export default function LegalPage() {
             </section>
           </Reveal>
 
-          <Reveal delay={0.3}>
+          <Reveal>
             <section>
               <h2 className="text-2xl font-semibold">
                 Changes to These Terms
@@ -163,7 +163,7 @@ export default function LegalPage() {
             </section>
           </Reveal>
 
-          <Reveal delay={0.34}>
+          <Reveal>
             <section>
               <h2 className="text-2xl font-semibold">Contact</h2>
               <p className="mt-3 text-muted-foreground">

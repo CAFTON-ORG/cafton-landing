@@ -48,7 +48,7 @@ export default function PrivacyPage() {
               </p>
             </section>
           </Reveal>
-          <Reveal delay={0.06}>
+          <Reveal>
             <section>
               <h2 className="text-2xl font-semibold">How we use it</h2>
               <p className="mt-3 text-muted-foreground">
@@ -57,7 +57,7 @@ export default function PrivacyPage() {
               </p>
             </section>
           </Reveal>
-          <Reveal delay={0.12}>
+          <Reveal>
             <section>
               <h2 className="text-2xl font-semibold">Your choices</h2>
               <p className="mt-3 text-muted-foreground">

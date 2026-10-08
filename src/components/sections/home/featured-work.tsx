@@ -29,7 +29,7 @@ const FeaturedWork = () => {
 
         <WorkShowcase projects={featuredProjects} />
 
-        <Reveal delay={0.2} className="mt-10 flex justify-center">
+        <Reveal className="mt-10 flex justify-center">
           <Button variant="outline" className="group cursor-pointer" asChild>
             <Link href="/portfolio">
               View all work

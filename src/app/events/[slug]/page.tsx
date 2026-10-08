@@ -129,7 +129,7 @@ export default async function EventPage({ params }: EventPageProps) {
               </RevealItem>
             </RevealGroup>
 
-            <Reveal delay={0.1}>
+            <Reveal>
               <EventPoster event={event} priority />
             </Reveal>
           </div>

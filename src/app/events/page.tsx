@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Gift, Share2, Trophy } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import {
   PageHero,
   PageSection,
@@ -8,40 +9,36 @@ import {
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { GleamWidget } from "@/components/events/gleam-widget";
-
-const GIVEAWAY_URL = "https://gleam.io/V6Dp2/cafton-merch-giveaway";
+import { Button } from "@/components/ui/button";
+import { EventPoster } from "@/components/events/event-poster";
+import { EventRow } from "@/components/events/event-row";
+import { EventStatusBadge } from "@/components/events/event-status";
+import {
+  events,
+  formatEventDates,
+  getEventStatus,
+  type EventStatus,
+} from "@/lib/events";
 
 export const metadata: Metadata = {
   title: "Events - CAFTON",
   description:
-    "Giveaways, merch drops, and community events from CAFTON. Join in and follow along on our socials.",
+    "Giveaways, merch drops, and community events from CAFTON. See what is open now and how to join.",
   alternates: { canonical: "/events" },
 };
 
-const steps = [
-  {
-    icon: Share2,
-    title: "Follow our socials",
-    description:
-      "Complete the quick entry actions on our channels to earn entries.",
-  },
-  {
-    icon: Gift,
-    title: "Enter the giveaway",
-    description:
-      "Join through the entry form below. More actions mean more chances to win.",
-  },
-  {
-    icon: Trophy,
-    title: "Win CAFTON merch",
-    description:
-      "Winners are picked at random when the giveaway closes and announced on our socials.",
-  },
-];
+// Status depends on the current date, so refresh the static page regularly.
+export const revalidate = 600;
+
+const STATUS_ORDER: Record<EventStatus, number> = { open: 0, upcoming: 1, closed: 2 };
 
 export default function EventsPage() {
+  const ranked = events
+    .map((event) => ({ event, status: getEventStatus(event) }))
+    .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+
+  const [featured, ...others] = ranked;
+
   return (
     <>
       <PageHero>
@@ -57,56 +54,95 @@ export default function EventsPage() {
             </RevealItem>
             <RevealItem>
               <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-                Join our merch giveaways and follow along on our socials for
-                what&apos;s coming next.
+                See what is open right now, what you can win, and how to take
+                part.
               </p>
             </RevealItem>
           </RevealGroup>
         </PageShell>
       </PageHero>
 
-      <PageSection>
-        <PageShell>
-          <RevealGroup className="grid gap-6 md:grid-cols-3">
-            {steps.map((step) => (
-              <RevealItem key={step.title}>
-                <Card className="h-full">
-                  <CardContent className="flex flex-col gap-3">
-                    <step.icon className="size-5 text-muted-foreground" aria-hidden="true" />
-                    <h2 className="text-lg font-semibold">{step.title}</h2>
-                    <p className="text-sm text-muted-foreground">
-                      {step.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </RevealItem>
-            ))}
-          </RevealGroup>
-        </PageShell>
-      </PageSection>
+      {featured && (
+        <PageSection>
+          <PageShell>
+            <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
+              <Reveal>
+                <div className="flex flex-wrap items-center gap-3">
+                  <EventStatusBadge status={featured.status} />
+                  <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    {featured.event.type}
+                  </span>
+                </div>
+                <h2 className="mt-6 text-balance text-4xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl lg:text-6xl">
+                  {featured.event.title}
+                </h2>
+                <p className="mt-5 max-w-xl text-lg text-muted-foreground">
+                  {featured.event.tagline}
+                </p>
+
+                <dl className="mt-10 max-w-xl text-sm">
+                  {[
+                    ["When", formatEventDates(featured.event)],
+                    ["Prizes", `${featured.event.prizes.length} winners`],
+                    ["Enter", "Online, through Gleam"],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="flex items-baseline justify-between gap-6 border-t border-dashed py-3 last:border-b"
+                    >
+                      <dt className="font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        {label}
+                      </dt>
+                      <dd className="text-right font-medium">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Button asChild className="group cursor-pointer">
+                    <Link
+                      href={
+                        featured.status === "open"
+                          ? `/events/${featured.event.slug}#enter`
+                          : `/events/${featured.event.slug}`
+                      }
+                    >
+                      {featured.status === "open" ? "Enter the giveaway" : "View details"}
+                      <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
+                  {featured.status === "open" && (
+                    <Button asChild variant="outline" className="cursor-pointer">
+                      <Link href={`/events/${featured.event.slug}`}>View details</Link>
+                    </Button>
+                  )}
+                </div>
+              </Reveal>
+
+              <Reveal delay={0.1}>
+                <EventPoster event={featured.event} priority />
+              </Reveal>
+            </div>
+          </PageShell>
+        </PageSection>
+      )}
 
       <PageSection className="border-t">
-        <PageShell className="max-w-3xl">
+        <PageShell>
           <Reveal>
-            <h2 className="text-center text-2xl font-semibold">Current giveaway</h2>
-            <div id="giveaway" className="mt-6">
-              <GleamWidget
-                campaignUrl={GIVEAWAY_URL}
-                title="CAFTON MERCH GIVEAWAY"
-              />
-            </div>
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              Entry form not loading?{" "}
-              <a
-                href={GIVEAWAY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-foreground underline underline-offset-4"
-              >
-                Open the giveaway on Gleam
-              </a>
-              .
-            </p>
+            <h2 className="text-2xl font-bold tracking-tight">More events</h2>
+            {others.length > 0 ? (
+              <div className="mt-8">
+                {others.map(({ event }) => (
+                  <EventRow key={event.slug} event={event} />
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 max-w-xl text-muted-foreground">
+                More events are on the way. Follow our social channels to hear
+                about them first.
+              </p>
+            )}
           </Reveal>
         </PageShell>
       </PageSection>

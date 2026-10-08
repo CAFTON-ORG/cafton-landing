@@ -40,7 +40,7 @@ function TikTokIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-const socialLinks = [
+export const socialLinks = [
   {
     href: "https://www.facebook.com/profile.php?id=61593222069389",
     label: "Facebook",

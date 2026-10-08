@@ -5,12 +5,14 @@ import { cn } from "@/lib/utils";
 type PageShellProps = {
   children: ReactNode;
   className?: string;
+  id?: string;
 };
 
 /** Shared content width and responsive gutters for every marketing page. */
-export function PageShell({ children, className = "" }: PageShellProps) {
+export function PageShell({ children, className = "", id }: PageShellProps) {
   return (
     <div
+      id={id}
       className={cn("mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8", className)}
     >
       {children}

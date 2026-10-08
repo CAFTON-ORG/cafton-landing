@@ -7,6 +7,7 @@ import { inter } from "@/lib/fonts";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { SmoothScroll } from "@/components/providers/smooth-scroll";
+import { RevealObserver } from "@/components/motion/reveal-observer";
 import { SiteLoader } from "@/components/motion/site-loader";
 import { JsonLd } from "@/components/shared/json-ld";
 import { SITE_URL } from "@/lib/site";
@@ -103,6 +104,7 @@ export default function RootLayout({
             from the dark-only period can't override the dark default. */}
         <ThemeProvider defaultTheme="dark" storageKey={THEME_STORAGE_KEY}>
           <SmoothScroll />
+          <RevealObserver />
           <Navbar />
           <div className="min-h-dvh bg-background">
             <main>{children}</main>

@@ -47,8 +47,18 @@ export function SmoothScroll() {
       window.addEventListener(type, start, { passive: true, once: true });
     }
 
+    // Fetch the chunk once the page is idle (without starting anything), so
+    // the first scroll finds it ready instead of waiting on the network.
+    const warm = () => void import("lenis");
+    const idle = "requestIdleCallback" in window;
+    const warmHandle = idle
+      ? window.requestIdleCallback(warm, { timeout: 4000 })
+      : window.setTimeout(warm, 2000);
+
     return () => {
       cancelled = true;
+      if (idle) window.cancelIdleCallback(warmHandle);
+      else window.clearTimeout(warmHandle);
       stopListening();
       instance?.destroy();
       instance = null;

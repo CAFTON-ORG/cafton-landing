@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Color, Group, MathUtils, Mesh, MeshStandardMaterial, PointLight, Vector3 } from "three";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
 import { useWebglContextRecovery } from "@/hooks/use-webgl-context-recovery";
@@ -126,6 +126,9 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
   );
 
   const readyFired = useRef(false);
+  const invalidate = useThree((state) => state.invalidate);
+  /** Frame timings, used once to drop the render resolution on slow devices. */
+  const frameStats = useRef({ frames: 0, total: 0, settled: false });
   const pointer = useRef({ x: 0, y: 0 });
   const hovering = useRef(false);
   const hoverScale = useRef(1);
@@ -174,6 +177,7 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
   // when the pointer moves off the mark mid-gesture.
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
+      invalidate();
       const d = drag.current;
       if (!d.active) return;
       const dx = event.clientX - d.lastX;
@@ -191,6 +195,7 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
     };
 
     const handlePointerUp = (event: PointerEvent) => {
+      invalidate();
       const d = drag.current;
       const moved = Math.hypot(event.clientX - d.downX, event.clientY - d.downY);
       const elapsed = performance.now() - d.downTime;
@@ -208,7 +213,7 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [triggerBuild]);
+  }, [triggerBuild, invalidate]);
 
   useFrame((state, delta) => {
     const group = groupRef.current;
@@ -305,6 +310,33 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
           .lerp(LIGHT_FLASH_COLOR, build.current.glow * LIGHT_FLASH_STRENGTH);
       }
     });
+
+    // Judge the device on its first ~100 frames (skipping start-up) and
+    // render at 1x from then on if it can't hold ~40fps.
+    const stats = frameStats.current;
+    if (!stats.settled) {
+      stats.frames += 1;
+      if (stats.frames > 20) stats.total += delta;
+      if (stats.frames === 110) {
+        stats.settled = true;
+        if (stats.total / 90 > 0.026) state.setDpr(1);
+      }
+    }
+
+    // The loop only runs on demand: once the mark is built and everything has
+    // settled, nothing is drawn until the pointer moves again, so an idle hero
+    // costs no GPU time while the visitor scrolls the page.
+    const d = drag.current;
+    const hoverTarget = hovering.current || d.active ? 1.04 : 1;
+    const moving =
+      !built.current ||
+      d.active ||
+      d.velocityX !== 0 ||
+      d.velocityY !== 0 ||
+      Math.abs(state.pointer.x - pointer.current.x) > 0.001 ||
+      Math.abs(state.pointer.y - pointer.current.y) > 0.001 ||
+      Math.abs(hoverScale.current - hoverTarget) > 0.001;
+    if (moving) state.invalidate();
   });
 
   return (
@@ -312,6 +344,7 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
       ref={groupRef}
       onPointerDown={(event) => {
         event.stopPropagation();
+        invalidate();
         const d = drag.current;
         d.active = true;
         d.lastX = event.clientX;
@@ -325,12 +358,14 @@ function CaftonMark({ isDark, onBuildStart, onBuildComplete }: CaftonMarkProps) 
       }}
       onPointerOver={() => {
         hovering.current = true;
+        invalidate();
         if (!drag.current.active) {
           document.body.style.cursor = built.current ? "grab" : "pointer";
         }
       }}
       onPointerOut={() => {
         hovering.current = false;
+        invalidate();
         if (!drag.current.active) document.body.style.cursor = "";
       }}
     >
@@ -367,6 +402,15 @@ interface HeroSceneProps {
   onBuildComplete?: () => void;
 }
 
+/** Draws a frame when the hero scrolls back into view (the loop is on demand). */
+function WakeOnActive({ active }: { active: boolean }) {
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(() => {
+    if (active) invalidate();
+  }, [active, invalidate]);
+  return null;
+}
+
 export function HeroScene({ active, onBuildStart, onBuildComplete }: HeroSceneProps) {
   const theme = useResolvedTheme();
   const isDark = theme === "dark";
@@ -389,16 +433,16 @@ export function HeroScene({ active, onBuildStart, onBuildComplete }: HeroScenePr
       <Canvas
         key={canvasKey}
         camera={{ position: [0, 0, 9], fov: 36 }}
-        dpr={[1, 1.5]}
+        dpr={[1, 1.25]}
         gl={{ antialias: false, alpha: true, powerPreference: "low-power" }}
-        performance={{ min: 0.5 }}
-        frameloop={active ? "always" : "never"}
+        frameloop={active ? "demand" : "never"}
         onCreated={handleCreated}
         // Reserves vertical pan for page scroll; horizontal drag on the
         // mark still reaches the pointer handlers instead of being
         // swallowed by the browser's default touch scrolling.
         style={{ touchAction: "pan-y" }}
       >
+        <WakeOnActive active={active} />
         <SceneLighting isDark={isDark} />
         <CaftonMark isDark={isDark} onBuildStart={onBuildStart} onBuildComplete={onBuildComplete} />
       </Canvas>

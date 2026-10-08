@@ -82,7 +82,7 @@ export function HomeHero() {
 
         <div className="relative grid h-full grid-rows-[auto_minmax(12rem,1fr)_auto] gap-5 px-5 pb-10 pt-6 md:block md:gap-0 md:p-0">
           <h1
-            className={`pointer-events-none z-20 font-black uppercase leading-[0.95] tracking-[-0.01em] text-neutral-700 dark:text-foreground [filter:drop-shadow(0_0_14px_var(--background))_drop-shadow(0_0_4px_var(--background))] md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8 ${DISPLAY_SIZE}`}
+            className={`pointer-events-none z-20 font-black uppercase leading-[0.95] tracking-[-0.01em] text-neutral-700 dark:text-foreground [text-shadow:0_0_14px_var(--background),0_0_4px_var(--background)] md:absolute md:inset-0 md:mx-auto md:max-w-7xl md:px-8 ${DISPLAY_SIZE}`}
           >
             <span className="block md:absolute md:left-8 md:top-[10%] md:max-w-[46%]">
               <span className="animate-rise block" style={rise(DELAY.headline)}>
@@ -93,7 +93,7 @@ export function HomeHero() {
               <span className="animate-rise block" style={rise(DELAY.headline)}>
                 Solve{" "}
                 <span
-                  className={`block ${built ? "bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent" : ""}`}
+                  className={`block ${built ? "bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent [text-shadow:none]" : ""}`}
                 >
                   Smarter
                 </span>

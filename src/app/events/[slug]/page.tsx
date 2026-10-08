@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Award, ArrowDown, ArrowLeft } from "lucide-react";
+import { Award, ArrowDown, ArrowLeft, ArrowUpRight } from "lucide-react";
 import {
   PageHero,
   PageSection,
@@ -15,6 +15,7 @@ import { EventPoster } from "@/components/events/event-poster";
 import { EventStatusBadge } from "@/components/events/event-status";
 import { GleamWidget } from "@/components/events/gleam-widget";
 import { socialLinks } from "@/components/layout/footer";
+import { cn } from "@/lib/utils";
 import {
   events,
   formatEventDates,
@@ -162,7 +163,7 @@ export default async function EventPage({ params }: EventPageProps) {
 
           <ol>
             {event.prizes.map((prize, index) => (
-              <li key={prize.rank}>
+              <li key={prize.name}>
                 <Reveal className="grid items-center gap-6 border-b py-10 first:border-t lg:grid-cols-[6rem_1fr_1.1fr] lg:gap-10">
                   <span
                     aria-hidden="true"
@@ -181,23 +182,26 @@ export default async function EventPage({ params }: EventPageProps) {
                       {prize.items.join("  +  ")}
                     </p>
                   </div>
-                  <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-black">
+                  <div
+                    className={cn(
+                      "relative aspect-4/3 overflow-hidden rounded-xl",
+                      prize.image && !prize.cutout
+                        ? "bg-black"
+                        : "bg-linear-to-b from-zinc-200 to-zinc-400",
+                    )}
+                  >
                     {prize.image ? (
                       <Image
                         src={prize.image}
                         alt={prize.imageAlt ?? ""}
                         fill
                         sizes="(min-width: 1024px) 45vw, 100vw"
-                        className="object-cover"
+                        className={prize.cutout ? "object-contain p-8" : "object-cover"}
                       />
                     ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white">
-                        <div
-                          aria-hidden="true"
-                          className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:16px_16px]"
-                        />
-                        <Award className="relative size-14" aria-hidden="true" />
-                        <span className="relative text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-zinc-800">
+                        <Award className="size-14" aria-hidden="true" />
+                        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-zinc-600">
                           {prize.items.join(" and ")}
                         </span>
                       </div>
@@ -235,6 +239,37 @@ export default async function EventPage({ params }: EventPageProps) {
           </RevealGroup>
         </PageShell>
       </PageSection>
+      )}
+
+      {event.promo && (
+        <PageSection className="border-t">
+          <PageShell>
+            <Reveal className="grid items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  {event.promo.eyebrow}
+                </p>
+                <h2 className="mt-4 text-balance text-4xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl">
+                  {event.promo.title}
+                </h2>
+                <p className="mt-5 max-w-xl text-lg text-muted-foreground">
+                  {event.promo.description}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 lg:justify-end">
+                <Button asChild size="lg" className="group cursor-pointer">
+                  <a href={event.promo.href} target="_blank" rel="noopener noreferrer">
+                    {event.promo.cta}
+                    <ArrowUpRight className="ms-2 size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </a>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="cursor-pointer">
+                  <Link href="/contact">Talk to us</Link>
+                </Button>
+              </div>
+            </Reveal>
+          </PageShell>
+        </PageSection>
       )}
 
       <PageSection className="border-t">

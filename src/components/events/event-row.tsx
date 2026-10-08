@@ -12,7 +12,6 @@ import {
 /** One ruled line in the events index: poster thumbnail, title, dates, status. */
 export function EventRow({ event }: { event: CaftonEvent }) {
   const status = getEventStatus(event);
-  const thumbnail = event.poster?.src ?? event.prizes.find((prize) => prize.image)?.image;
 
   return (
     <Link
@@ -20,8 +19,8 @@ export function EventRow({ event }: { event: CaftonEvent }) {
       className="group grid grid-cols-[4rem_1fr] items-center gap-x-5 gap-y-3 border-b py-6 outline-none first:border-t hover:bg-muted/30 focus-visible:bg-muted/40 sm:grid-cols-[5rem_1fr_auto_auto] sm:gap-x-8"
     >
       <div className="relative aspect-1400/1974 w-full overflow-hidden rounded-md">
-        {thumbnail ? (
-          <Image src={thumbnail} alt="" fill sizes="80px" className="object-cover" />
+        {event.poster ? (
+          <Image src={event.poster.src} alt="" fill sizes="80px" className="object-cover" />
         ) : (
           <CoverArt />
         )}

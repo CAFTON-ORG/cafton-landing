@@ -7,6 +7,16 @@ export interface EventPrize {
   /** Items without a photo render a typographic plate instead. */
   image?: string;
   imageAlt?: string;
+  /** A transparent cut-out: shown on a studio backdrop instead of filling the plate. */
+  cutout?: boolean;
+}
+
+export interface EventPromo {
+  eyebrow: string;
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
 }
 
 export interface EventStep {
@@ -39,6 +49,8 @@ export interface CaftonEvent {
   facts?: [label: string, value: string][];
   closedTitle?: string;
   closedNote?: string;
+  /** A product or service the event ties into, promoted on its page. */
+  promo?: EventPromo;
 }
 
 export const events: CaftonEvent[] = [
@@ -105,6 +117,12 @@ export const events: CaftonEvent[] = [
     summary:
       "Cafton sponsored the Mr. and Ms. Cafton's Choice Award and powered its voting with the Cafton Voting App. The winners have been chosen and received their awards and Cafton merch.",
     closed: true,
+    poster: {
+      src: "/events/mr-and-ms-cafton-choice-award/poster.jpg",
+      alt: "Mr. and Ms. Cafton's Choice Award poster with the Cafton paper bag, notebook and tumblers",
+      width: 1400,
+      height: 1974,
+    },
     about: [
       "The Mr. and Ms. Cafton's Choice Award recognises the pair chosen by vote. Cafton joined as one of its sponsors and partners, and built the Cafton Voting App that ran the voting.",
       "The event has now ended and the winners have been announced. Each took home a certificate, a sash and a Cafton merch package.",
@@ -115,6 +133,14 @@ export const events: CaftonEvent[] = [
       ["Voting by", "Cafton Voting App"],
       ["Winners", "Announced"],
     ],
+    promo: {
+      eyebrow: "Built by Cafton",
+      title: "The Cafton Voting App",
+      description:
+        "Secure, one-account-one-vote online elections. It ran the voting for this award. Want online voting for your own event or organization? Talk to us.",
+      href: "https://mmsit.cafton.com",
+      cta: "Visit mmsit.cafton.com",
+    },
     closedTitle: "This event has closed",
     closedNote:
       "The winners have been chosen. Thank you to everyone who took part. Follow our social channels for what comes next.",
@@ -128,22 +154,17 @@ export const events: CaftonEvent[] = [
         rank: "In the winner's package",
         name: "Cafton notebook",
         items: ["Notebook"],
-        image: "/events/mr-and-ms-cafton-choice-award/notebooks.jpg",
-        imageAlt: "Two Cafton notebooks in black and grey on navy fabric",
+        image: "/events/mr-and-ms-cafton-choice-award/notebooks.webp",
+        imageAlt: "Black and grey Cafton notebook with the logo on the cover",
+        cutout: true,
       },
       {
         rank: "In the winner's package",
         name: "Cafton tumbler",
         items: ["Tumbler"],
-        image: "/events/mr-and-ms-cafton-choice-award/tumblers.jpg",
+        image: "/events/mr-and-ms-cafton-choice-award/tumblers.webp",
         imageAlt: "Two black Cafton tumblers with the engraved logo",
-      },
-      {
-        rank: "In the winner's package",
-        name: "Cafton paper bag",
-        items: ["Paper bag"],
-        image: "/events/mr-and-ms-cafton-choice-award/paper-bags.jpg",
-        imageAlt: "Three black Cafton paper gift bags",
+        cutout: true,
       },
     ],
   },

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowDown, ArrowLeft } from "lucide-react";
+import { Award, ArrowDown, ArrowLeft } from "lucide-react";
 import {
   PageHero,
   PageSection,
@@ -19,6 +19,7 @@ import {
   events,
   formatEventDates,
   getEvent,
+  getEventFacts,
   getEventStatus,
 } from "@/lib/events";
 
@@ -47,14 +48,19 @@ export async function generateMetadata({ params }: EventPageProps): Promise<Meta
       title: `${event.title} - CAFTON`,
       description: event.summary,
       url: `/events/${event.slug}`,
-      images: [
-        {
-          url: event.poster.src,
-          width: event.poster.width,
-          height: event.poster.height,
-          alt: event.poster.alt,
-        },
-      ],
+      images: event.poster
+        ? [
+            {
+              url: event.poster.src,
+              width: event.poster.width,
+              height: event.poster.height,
+              alt: event.poster.alt,
+            },
+          ]
+        : event.prizes
+            .filter((prize) => prize.image)
+            .slice(0, 1)
+            .map((prize) => ({ url: prize.image!, alt: prize.imageAlt })),
     },
   };
 }
@@ -65,6 +71,7 @@ export default async function EventPage({ params }: EventPageProps) {
   if (!event) notFound();
 
   const status = getEventStatus(event);
+  const canEnter = status === "open" && Boolean(event.campaignUrl);
 
   return (
     <>
@@ -98,11 +105,7 @@ export default async function EventPage({ params }: EventPageProps) {
               </RevealItem>
               <RevealItem>
                 <dl className="mt-8 max-w-xl text-sm">
-                  {[
-                    ["When", formatEventDates(event)],
-                    ["Prizes", `${event.prizes.length} winners`],
-                    ["Enter", "Online, through Gleam"],
-                  ].map(([label, value]) => (
+                  {getEventFacts(event).map(([label, value]) => (
                     <div
                       key={label}
                       className="flex items-baseline justify-between gap-6 border-t border-dashed py-3 last:border-b"
@@ -117,8 +120,8 @@ export default async function EventPage({ params }: EventPageProps) {
               </RevealItem>
               <RevealItem>
                 <Button asChild className="group mt-8 cursor-pointer">
-                  <a href={status === "open" ? "#enter" : "#prizes"}>
-                    {status === "open" ? "Enter the giveaway" : "See the prizes"}
+                  <a href={canEnter ? "#enter" : "#prizes"}>
+                    {canEnter ? "Enter the giveaway" : "See the prizes"}
                     <ArrowDown className="ms-2 size-4 transition-transform group-hover:translate-y-0.5" />
                   </a>
                 </Button>
@@ -132,11 +135,28 @@ export default async function EventPage({ params }: EventPageProps) {
         </PageShell>
       </PageHero>
 
-      <PageSection>
+      {event.about && (
+        <PageSection>
+          <PageShell className="max-w-3xl">
+            <Reveal>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                About the event
+              </h2>
+              <div className="mt-6 space-y-4 text-lg leading-relaxed text-muted-foreground">
+                {event.about.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </div>
+            </Reveal>
+          </PageShell>
+        </PageSection>
+      )}
+
+      <PageSection className={event.about ? "border-t" : undefined}>
         <PageShell id="prizes" className="scroll-mt-24">
           <Reveal className="mb-10 max-w-2xl">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              What you can win
+              {event.prizesHeading ?? "What you can win"}
             </h2>
           </Reveal>
 
@@ -161,14 +181,27 @@ export default async function EventPage({ params }: EventPageProps) {
                       {prize.items.join("  +  ")}
                     </p>
                   </div>
-                  <div className="relative aspect-368/198 overflow-hidden rounded-xl bg-black">
-                    <Image
-                      src={prize.image}
-                      alt={prize.imageAlt}
-                      fill
-                      sizes="(min-width: 1024px) 45vw, 100vw"
-                      className="object-cover"
-                    />
+                  <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-black">
+                    {prize.image ? (
+                      <Image
+                        src={prize.image}
+                        alt={prize.imageAlt ?? ""}
+                        fill
+                        sizes="(min-width: 1024px) 45vw, 100vw"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white">
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:16px_16px]"
+                        />
+                        <Award className="relative size-14" aria-hidden="true" />
+                        <span className="relative text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+                          {prize.items.join(" and ")}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </Reveal>
               </li>
@@ -177,6 +210,7 @@ export default async function EventPage({ params }: EventPageProps) {
         </PageShell>
       </PageSection>
 
+      {event.steps && event.steps.length > 0 && (
       <PageSection className="border-t">
         <PageShell>
           <Reveal className="mb-10 max-w-2xl">
@@ -201,11 +235,12 @@ export default async function EventPage({ params }: EventPageProps) {
           </RevealGroup>
         </PageShell>
       </PageSection>
+      )}
 
       <PageSection className="border-t">
         <PageShell id="enter" className="max-w-3xl scroll-mt-24">
           <Reveal>
-            {status === "open" && (
+            {canEnter && event.campaignUrl && (
               <>
                 <h2 className="text-center text-3xl font-bold tracking-tight sm:text-4xl">
                   Enter now
@@ -243,11 +278,11 @@ export default async function EventPage({ params }: EventPageProps) {
             {status === "closed" && (
               <div className="text-center">
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                  This giveaway has closed
+                  {event.closedTitle ?? "This giveaway has closed"}
                 </h2>
                 <p className="mx-auto mt-4 max-w-md text-muted-foreground">
-                  Thank you to everyone who joined. Follow our social channels
-                  for the winner announcement and the next event.
+                  {event.closedNote ??
+                    "Thank you to everyone who joined. Follow our social channels for the winner announcement and the next event."}
                 </p>
               </div>
             )}

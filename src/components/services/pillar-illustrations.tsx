@@ -10,7 +10,7 @@ import type { SVGProps } from "react";
  * used elsewhere (`DotPattern`, the loader's self-drawing mark). Each fills
  * its tile edge-to-edge via `preserveAspectRatio="xMidYMid slice"`, the SVG
  * equivalent of `object-cover` on an `<img>`, so swapping in a real photo
- * later is a drop-in change to `PillarGrid`, not a redesign.
+ * later is a drop-in change to `ServiceIndex`, not a redesign.
  */
 
 type IllustrationProps = SVGProps<SVGSVGElement>;

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { EventPoster } from "@/components/events/event-poster";
 import { EventStatusBadge } from "@/components/events/event-status";
 import { GleamWidget } from "@/components/events/gleam-widget";
-import { socialLinks } from "@/components/layout/footer";
+import { socialLinks } from "@/components/layout/social-links";
 import { cn } from "@/lib/utils";
 import {
   events,

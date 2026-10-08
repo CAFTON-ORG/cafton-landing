@@ -109,7 +109,7 @@
 /* Shared vertical rhythm: pages use PageShell, PageHero, and PageSection.
    dvh, not vh, so the page does not jump as mobile browser chrome hides. */
 main {
-  min-height: calc(100dvh - 4rem);
+  min-height: 100dvh;
 }
 
 /* LogoCarousel: the track renders its logo list twice back to back, so
@@ -290,5 +290,20 @@ html.lenis body {
 @media (prefers-reduced-motion: no-preference) {
   .animate-hub-sway {
     animation: hub-sway 3.5s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes scroll-cue {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(270%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-scroll-cue {
+    animation: scroll-cue 1.8s ease-in-out infinite;
   }
 }

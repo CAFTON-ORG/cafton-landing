@@ -38,9 +38,10 @@ interface PageHeroProps {
   image?: ReactNode;
 }
 
+// The top padding includes the 4rem band the floating nav header overlaps.
 export function PageHero({ children, image }: PageHeroProps) {
   return (
-    <section className="relative overflow-hidden border-b bg-muted/30 py-20 sm:py-24 lg:py-28">
+    <section className="relative overflow-hidden border-b bg-muted/30 pb-20 pt-36 sm:pb-24 sm:pt-40 lg:pb-28 lg:pt-44">
       <div className="pointer-events-none absolute inset-0">
         <DotPattern size="md" fadeStyle="ellipse" opacity="low" />
       </div>

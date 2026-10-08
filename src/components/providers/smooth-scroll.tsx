@@ -67,8 +67,14 @@ export function SmoothScroll() {
 
   // Next resets the native scroll position on navigation, but Lenis keeps its
   // own virtual position and would otherwise keep rendering the old one.
+  // A link like /about#partners also changes the pathname, so a hash has to
+  // win over the reset: land on the target (below the floating nav), not at
+  // the top.
   useEffect(() => {
-    instance?.scrollTo(0, { immediate: true });
+    const { hash } = window.location;
+    const target = hash ? document.getElementById(decodeURIComponent(hash.slice(1))) : null;
+    if (target) instance?.scrollTo(target, { immediate: true, offset: -96 });
+    else instance?.scrollTo(0, { immediate: true });
   }, [pathname]);
 
   return null;

@@ -24,9 +24,9 @@ export function ServicesNavMenu() {
       <NavigationMenuList>
         <NavigationMenuItem>
           <NavigationMenuTrigger
-            className={`h-9 bg-transparent px-4 text-sm hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent ${
+            className={`h-9 rounded-full bg-transparent px-4 text-sm hover:bg-foreground/5 focus:bg-transparent data-[state=open]:bg-foreground/10 ${
               isActive
-                ? "font-semibold text-foreground"
+                ? "bg-foreground/10 font-semibold text-foreground"
                 : "font-medium text-muted-foreground hover:text-foreground data-[state=open]:text-foreground"
             }`}
           >

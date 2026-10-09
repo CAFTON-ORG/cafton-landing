@@ -160,7 +160,8 @@ function ScrollDifferentiators() {
     >
       <h2 className="sr-only">What guides our work</h2>
 
-      <div className="sticky top-16 h-[calc(100dvh-4rem)] overflow-hidden border-y">
+      {/* svh so the pinned stage (and its canvas) keeps one size while a phone's toolbar collapses. */}
+      <div className="sticky top-16 h-[calc(100svh-4rem)] overflow-hidden border-y">
         <div className="pointer-events-none absolute inset-0">
           <DotPattern className="opacity-60" size="md" fadeStyle="ellipse" />
         </div>

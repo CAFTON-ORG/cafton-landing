@@ -107,9 +107,11 @@
 }
 
 /* Shared vertical rhythm: pages use PageShell, PageHero, and PageSection.
-   dvh, not vh, so the page does not jump as mobile browser chrome hides. */
+   svh, not vh or dvh: vh is the height with the mobile browser toolbar hidden
+   (too tall at first), and dvh changes as the toolbar slides away, which
+   resizes anything sized from it. */
 main {
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 /* LogoCarousel: the track renders its logo list twice back to back, so

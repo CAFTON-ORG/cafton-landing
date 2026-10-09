@@ -112,7 +112,7 @@ export default function RootLayout({
           <SmoothScroll />
           <RevealObserver />
           <Navbar />
-          <div className="min-h-dvh bg-background">
+          <div className="min-h-svh bg-background">
             <main id="main" tabIndex={-1} className="outline-none">
               {children}
             </main>

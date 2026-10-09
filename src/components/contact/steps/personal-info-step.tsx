@@ -2,6 +2,7 @@ import type { ChangeEvent } from "react";
 import { Building2, Lightbulb, User, type LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { buildingForOptions, type ContactFormData } from "@/lib/contact";
 import type { FieldErrors } from "@/components/contact/types";
@@ -30,6 +31,7 @@ interface PersonalInfoStepProps {
   formData: ContactFormData;
   errors: FieldErrors;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onPhoneChange: (value: string) => void;
   onBuildingForChange: (value: string) => void;
 }
 
@@ -37,6 +39,7 @@ export function PersonalInfoStep({
   formData,
   errors,
   onChange,
+  onPhoneChange,
   onBuildingForChange,
 }: PersonalInfoStepProps) {
   return (
@@ -98,13 +101,14 @@ export function PersonalInfoStep({
         </div>
         <div className="grid gap-2">
           <Label htmlFor="phone">Phone</Label>
-          <Input
+          <PhoneInput
             id="phone"
-            type="tel"
             name="phone"
             autoComplete="tel"
+            defaultCountry="PH"
+            placeholder="Enter phone number"
             value={formData.phone}
-            onChange={onChange}
+            onChange={onPhoneChange}
             aria-invalid={!!errors.phone}
             aria-describedby={errors.phone ? "phone-error" : undefined}
           />

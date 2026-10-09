@@ -2,14 +2,16 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ThemedImage } from "@/components/shared/themed-image";
 import { CoverArt } from "@/components/shared/cover-art";
-import { readingTime, type BlogPost } from "@/lib/blog";
+import { AuthorAvatar } from "@/components/shared/author-avatar";
+import { readingTime } from "@/lib/blog";
+import type { Author, BlogPost } from "@/types/content";
 
 /**
  * Archive entry: a dated margin column, the headline and excerpt, and a small
  * thumbnail that appears on wider screens. Reads as one ruled line in a
  * journal index rather than a standalone tile.
  */
-export function BlogRow({ post }: { post: BlogPost }) {
+export function BlogRow({ post, author }: { post: BlogPost; author?: Author }) {
   const date = new Date(post.date);
 
   return (
@@ -43,6 +45,12 @@ export function BlogRow({ post }: { post: BlogPost }) {
         <p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-6 text-muted-foreground">
           {post.excerpt}
         </p>
+        {author && (
+          <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+            <AuthorAvatar author={author} className="size-5" />
+            By {author.name}
+          </p>
+        )}
         <span className="mt-4 inline-flex items-center text-sm font-medium">
           Read more
           <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />

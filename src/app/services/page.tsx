@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import {
   PageHero,
   PageSection,
@@ -9,12 +10,12 @@ import { ServiceIndex } from "@/components/services/service-index";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata: Metadata = {
-  title: "Services - CAFTON",
+export const metadata: Metadata = pageMetadata({
+  title: "Services",
   description:
-    "Business operations, growth, industry, and product-build systems, built around the way your organization actually works.",
-  alternates: { canonical: "/services" },
-};
+    "Business operations, growth, industry, and new-product software, built around the way your organization actually works.",
+  path: "/services",
+});
 
 export default function ServicesPage() {
   return (

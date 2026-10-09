@@ -56,7 +56,7 @@ export function MobileMenu() {
 
       <Dialog.Portal>
         <Dialog.Content
-          className="fixed inset-0 z-[60] flex flex-col bg-background outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:duration-200 data-[state=open]:duration-200 motion-reduce:animate-none xl:hidden"
+          className="fixed inset-0 z-60 flex flex-col bg-background outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:duration-200 data-[state=open]:duration-200 motion-reduce:animate-none xl:hidden"
         >
           <Dialog.Title className="sr-only">Menu</Dialog.Title>
           <Dialog.Description className="sr-only">

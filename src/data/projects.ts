@@ -1,32 +1,9 @@
-export interface Project {
-  /** URL slug -- /portfolio/[slug] */
-  slug: string;
-  /** Client / product name, e.g. "iLigtas" */
-  client: string;
-  /** Case-study headline */
-  title: string;
-  /** Drives the portfolio grid's category filter tabs. */
-  category: string;
-  /** Short blurb for cards (homepage + portfolio grid) */
-  summary: string;
-  /** Fuller paragraph for the detail page */
-  description: string;
-  problem?: string;
-  solution?: string;
-  recognition?: string;
-  /** Optional: projects without a cover render the branded `CoverArt` instead. */
-  imageLight?: string;
-  imageDark?: string;
-  imageAlt?: string;
-  /** "cover" (default) crops a screenshot to fill the frame; "contain" shows a logo/mark in full, letterboxed. */
-  imageFit?: "cover" | "contain";
-  /** Public live URL, if the project has one -- shows a "Visit Live Site" button on the detail page. */
-  liveUrl?: string;
-}
+import type { Project } from "@/types/content";
 
 export const projects: Project[] = [
   {
     slug: "iligtas",
+    authorId: "cafton",
     client: "iLigtas",
     title: "Disaster Preparedness & Emergency Response Platform",
     category: "Mobile Application",
@@ -46,6 +23,7 @@ export const projects: Project[] = [
   },
   {
     slug: "scanato",
+    authorId: "cafton",
     client: "Scanato",
     title: "Scan the Table. Run the House.",
     category: "SaaS Product",
@@ -66,6 +44,7 @@ export const projects: Project[] = [
   },
   {
     slug: "cafton-voting-app",
+    authorId: "cafton",
     client: "University of Baguio SIT",
     title: "Online Elections With One Account, One Vote",
     category: "Web Application",
@@ -84,6 +63,7 @@ export const projects: Project[] = [
   },
   {
     slug: "jamils-mural-arts",
+    authorId: "cafton",
     client: "Jamil's Mural Arts",
     title: "A Portfolio Site Built Around the Work Itself",
     category: "Website",
@@ -104,7 +84,3 @@ export const projects: Project[] = [
     imageFit: "contain",
   },
 ];
-
-export function getProject(slug: string): Project | undefined {
-  return projects.find((project) => project.slug === slug);
-}

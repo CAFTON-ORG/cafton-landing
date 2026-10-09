@@ -3,11 +3,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { EventStatusBadge } from "@/components/events/event-status";
 import { CoverArt } from "@/components/shared/cover-art";
-import {
-  formatEventDates,
-  getEventStatus,
-  type CaftonEvent,
-} from "@/lib/events";
+import { formatEventDates, getEventStatus } from "@/lib/events";
+import type { CaftonEvent } from "@/types/content";
 
 /** One ruled line in the events index: poster thumbnail, title, dates, status. */
 export function EventRow({ event }: { event: CaftonEvent }) {

@@ -1,63 +1,45 @@
 import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/lib/site";
-import { projects } from "@/lib/projects";
-import { blogPosts } from "@/lib/blog";
+import { listBlogPosts } from "@/lib/repositories/blog";
+import { listEvents } from "@/lib/repositories/events";
+import { listProjects } from "@/lib/repositories/projects";
 import { servicePillars } from "@/lib/services";
-import { events } from "@/lib/events";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const routes: {
-    path: string;
-    changeFrequency: NonNullable<
-      MetadataRoute.Sitemap[number]["changeFrequency"]
-    >;
-    priority: number;
-  }[] = [
-    { path: "", changeFrequency: "weekly", priority: 1 },
-    { path: "/about", changeFrequency: "monthly", priority: 0.8 },
-    { path: "/services", changeFrequency: "monthly", priority: 0.9 },
-    { path: "/portfolio", changeFrequency: "monthly", priority: 0.8 },
-    { path: "/contact", changeFrequency: "monthly", priority: 0.9 },
-    { path: "/blog", changeFrequency: "weekly", priority: 0.6 },
-    { path: "/events", changeFrequency: "weekly", priority: 0.6 },
-    { path: "/careers", changeFrequency: "monthly", priority: 0.5 },
-    { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
-    { path: "/legal", changeFrequency: "yearly", priority: 0.3 },
+/**
+ * Every indexable URL, once, with no query strings. Pages marked `noindex`
+ * (careers, while it has no open roles) are left out: listing a URL that tells
+ * crawlers not to index it is a mixed signal. `lastModified` is only given
+ * where there is a real date to give (blog posts); an invented "modified now"
+ * on every URL teaches crawlers to ignore the field.
+ */
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [blogPosts, events, projects] = await Promise.all([
+    listBlogPosts(),
+    listEvents(),
+    listProjects(),
+  ]);
+
+  const pages = [
+    "",
+    "/about",
+    "/services",
+    "/portfolio",
+    "/blog",
+    "/events",
+    "/contact",
+    "/privacy",
+    "/legal",
   ];
 
-  const projectRoutes = projects.map((project) => ({
-    path: `/portfolio/${project.slug}`,
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
-  }));
-
-  const serviceRoutes = servicePillars.map((pillar) => ({
-    path: `/services/${pillar.slug}`,
-    changeFrequency: "monthly" as const,
-    priority: 0.8,
-  }));
-
-  const eventRoutes = events.map((event) => ({
-    path: `/events/${event.slug}`,
-    changeFrequency: "weekly" as const,
-    priority: 0.6,
-  }));
-
-  const blogRoutes = blogPosts.map((post) => ({
-    path: `/blog/${post.slug}`,
-    changeFrequency: "yearly" as const,
-    priority: 0.5,
-  }));
-
-  const lastModified = new Date();
-
-  return [...routes, ...serviceRoutes, ...projectRoutes, ...eventRoutes, ...blogRoutes].map(
-    ({ path, changeFrequency, priority }) => ({
-      url: `${SITE_URL}${path}`,
-      lastModified,
-      changeFrequency,
-      priority,
-    })
-  );
+  return [
+    ...pages.map((path) => ({ url: `${SITE_URL}${path}` })),
+    ...servicePillars.map((pillar) => ({ url: `${SITE_URL}/services/${pillar.slug}` })),
+    ...projects.map((project) => ({ url: `${SITE_URL}/portfolio/${project.slug}` })),
+    ...events.map((event) => ({ url: `${SITE_URL}/events/${event.slug}` })),
+    ...blogPosts.map((post) => ({
+      url: `${SITE_URL}/blog/${post.slug}`,
+      lastModified: post.date,
+    })),
+  ];
 }

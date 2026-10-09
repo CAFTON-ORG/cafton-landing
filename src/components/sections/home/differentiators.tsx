@@ -52,7 +52,7 @@ function StaticDifferentiators() {
         <RevealGroup>
           <ol className="border-b">
             {values.map((value, index) => (
-              <RevealItem key={value.title} className="border-t">
+              <RevealItem as="li" key={value.title} className="border-t">
                 <div className="grid gap-x-8 gap-y-2 py-7 sm:grid-cols-[5rem_1fr]">
                   <span
                     aria-hidden="true"

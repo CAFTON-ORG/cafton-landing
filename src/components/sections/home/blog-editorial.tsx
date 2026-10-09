@@ -3,14 +3,21 @@ import { ArrowRight } from "lucide-react";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { ThemedImage } from "@/components/shared/themed-image";
 import { CoverArt } from "@/components/shared/cover-art";
-import { formatBlogDate, readingTime, type BlogPost } from "@/lib/blog";
+import { formatBlogDate, readingTime } from "@/lib/blog";
+import type { Author, BlogPost } from "@/types/content";
 
 /**
  * Cover story + index: the newest post runs as a full-bleed cover with its
  * headline set over the image, the rest follow as a typographic reading list
  * with no images, so the section reads like a magazine spread, not a card row.
  */
-export function BlogEditorial({ posts }: { posts: BlogPost[] }) {
+export function BlogEditorial({
+  posts,
+  authors,
+}: {
+  posts: BlogPost[];
+  authors: Map<string, Author>;
+}) {
   const [cover, ...rest] = posts;
 
   return (
@@ -40,6 +47,7 @@ export function BlogEditorial({ posts }: { posts: BlogPost[] }) {
             <p className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Latest &middot; {cover.category} &middot;{" "}
               <time dateTime={cover.date}>{formatBlogDate(cover.date)}</time>
+              {authors.get(cover.authorId) && ` \u00b7 By ${authors.get(cover.authorId)?.name}`}
             </p>
             <h3 className="max-w-lg text-balance text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
               {cover.title}
@@ -73,6 +81,7 @@ export function BlogEditorial({ posts }: { posts: BlogPost[] }) {
                   {post.category} &middot;{" "}
                   <time dateTime={post.date}>{formatBlogDate(post.date)}</time>{" "}
                   &middot; {readingTime(post)}
+                  {authors.get(post.authorId) && ` \u00b7 By ${authors.get(post.authorId)?.name}`}
                 </p>
                 <h3 className="mt-2 text-balance text-lg font-semibold leading-snug tracking-tight sm:text-xl">
                   {post.title}

@@ -3,12 +3,13 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/motion/reveal";
 import { BlogEditorial } from "@/components/sections/home/blog-editorial";
-import { blogPosts } from "@/lib/blog";
+import { getAuthorMap } from "@/lib/repositories/authors";
+import { listBlogPosts } from "@/lib/repositories/blog";
 import { PageShell } from "@/components/layout/page-shell";
 
-const latestPosts = blogPosts.slice(0, 3);
-
-const LatestWriting = () => {
+async function LatestWriting() {
+  const [posts, authors] = await Promise.all([listBlogPosts(), getAuthorMap()]);
+  const latestPosts = posts.slice(0, 3);
   if (latestPosts.length === 0) return null;
 
   return (
@@ -24,7 +25,7 @@ const LatestWriting = () => {
           </p>
         </Reveal>
 
-        <BlogEditorial posts={latestPosts} />
+        <BlogEditorial posts={latestPosts} authors={authors} />
 
         <Reveal className="mt-10 flex justify-center">
           <Button variant="outline" className="group cursor-pointer" asChild>
@@ -37,6 +38,6 @@ const LatestWriting = () => {
       </PageShell>
     </section>
   );
-};
+}
 
 export { LatestWriting };

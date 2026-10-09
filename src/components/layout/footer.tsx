@@ -3,6 +3,7 @@ import { CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/shared/logo";
 import { socialLinks } from "@/components/layout/social-links";
+import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
 import { servicePillars } from "@/lib/services";
 
 const footerLinks = [
@@ -95,6 +96,7 @@ export function Footer() {
                 {link.label}
               </Link>
             ))}
+            <CookieSettingsButton className="cursor-pointer transition-colors hover:text-foreground" />
           </nav>
         </div>
       </div>

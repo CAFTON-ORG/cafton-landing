@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/structured-data";
+import { JsonLd } from "@/components/shared/json-ld";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -28,11 +31,11 @@ export async function generateMetadata({
   const pillar = getServicePillar(slug);
   if (!pillar) return {};
 
-  return {
-    title: `${pillar.title} - CAFTON`,
-    description: pillar.tagline,
-    alternates: { canonical: `/services/${pillar.slug}` },
-  };
+  return pageMetadata({
+    title: pillar.title,
+    description: pillar.summary,
+    path: `/services/${pillar.slug}`,
+  });
 }
 
 export default async function ServiceDetailPage({ params }: ServicePageProps) {
@@ -42,6 +45,12 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Services", path: "/services" },
+          { name: pillar.title, path: `/services/${pillar.slug}` },
+        ])}
+      />
       <PageHero>
         <PageShell>
           <Link
@@ -93,7 +102,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
                 key={system.title}
                 className="border-t border-border py-6 first:border-t-0 first:pt-0"
               >
-                <h3 className="text-lg font-semibold">{system.title}</h3>
+                <h2 className="text-lg font-semibold">{system.title}</h2>
                 <p className="mt-2 text-pretty text-sm leading-6 text-muted-foreground sm:text-base">
                   {system.description}
                 </p>

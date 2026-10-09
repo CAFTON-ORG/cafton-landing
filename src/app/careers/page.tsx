@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,12 +11,16 @@ import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata: Metadata = {
-  title: "Careers - CAFTON",
+export const metadata: Metadata = pageMetadata({
+  title: "Careers",
   description:
-    "We're always interested in meeting thoughtful people who care about practical, well-made technology.",
-  alternates: { canonical: "/careers" },
-};
+    "We are always interested in meeting thoughtful people who care about practical, well-made technology.",
+  path: "/careers",
+  // No open roles yet: a thin page that would only be reported as
+  // "crawled, not indexed". Remove this flag (and re-add it to the sitemap)
+  // when there are roles to list.
+  noindex: true,
+});
 
 export default function CareersPage() {
   return (

@@ -45,6 +45,9 @@ export function ServiceIndex({ compact = false }: ServiceIndexProps) {
   const [active, setActive] = useState(0);
   const current = pillars[active];
   const Illustration = ILLUSTRATIONS[current.slug];
+  // On the home page the rows sit under its "What we build" h2; on /services
+  // they are the top-level sections under the page's h1.
+  const Heading = compact ? "h3" : "h2";
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1.25fr_1fr] lg:gap-16">
@@ -75,7 +78,7 @@ export function ServiceIndex({ compact = false }: ServiceIndexProps) {
                 </span>
 
                 <div className="min-w-0">
-                  <h3
+                  <Heading
                     className={cn(
                       "text-balance font-bold leading-tight tracking-tight transition-colors duration-300",
                       compact ? "text-2xl sm:text-3xl" : "text-2xl sm:text-4xl",
@@ -83,7 +86,7 @@ export function ServiceIndex({ compact = false }: ServiceIndexProps) {
                     )}
                   >
                     {pillar.title}
-                  </h3>
+                  </Heading>
                   <p className="mt-2 max-w-md text-muted-foreground">{pillar.tagline}</p>
                   {!compact && (
                     <p className="mt-4 text-xs leading-5 text-muted-foreground">

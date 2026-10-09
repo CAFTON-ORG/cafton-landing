@@ -1,28 +1,4 @@
-export interface PartnerLink {
-  label: string;
-  href: string;
-}
-
-export interface PartnerLogo {
-  src: string;
-  /** "cover" fills the plate with the logo's own square artwork; "contain" sets a transparent logo on the plate. */
-  fit: "cover" | "contain";
-  /** Plate colour for "contain" logos. */
-  plate?: string;
-}
-
-export interface Partner {
-  name: string;
-  /** Short form for tight placements. */
-  shortName: string;
-  logo: PartnerLogo;
-  /** What the relationship is. Left out where it hasn't been written down yet. */
-  roles?: string[];
-  /** Gets a full entry (with story and links) even in the dense wall used when there are many partners. */
-  featured?: boolean;
-  description?: string;
-  links?: PartnerLink[];
-}
+import type { Partner } from "@/types/content";
 
 export const partners: Partner[] = [
   {

@@ -3,20 +3,16 @@
 import { useCallback, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import type { ZodType } from "zod";
 import { Button } from "@/components/ui/button";
 import {
-  baseContactSchema,
-  businessInfoStepSchema,
   challengeOptions,
   contactFormDefaults,
   contactSchema,
-  goalsAreaStepSchema,
-  goalsSystemsStepSchema,
   buildingForOptions,
   type ContactFormData,
 } from "@/lib/contact";
 import { getServicePillar } from "@/lib/services";
+import { STEP_FIELDS, STEP_SCHEMAS } from "@/components/contact/step-config";
 import { buildSteps, type FieldErrors, type StepId } from "@/components/contact/types";
 import { ProgressHeader } from "@/components/contact/progress-header";
 import { SuccessScreen } from "@/components/contact/success-screen";
@@ -26,44 +22,6 @@ import { ChallengesStep } from "@/components/contact/steps/challenges-step";
 import { GoalsAreaStep } from "@/components/contact/steps/goals-area-step";
 import { GoalsSystemsStep } from "@/components/contact/steps/goals-systems-step";
 import { FinalDetailsStep } from "@/components/contact/steps/final-details-step";
-
-const STEP_SCHEMAS: Record<StepId, ZodType> = {
-  personal: baseContactSchema.pick({
-    firstName: true,
-    lastName: true,
-    email: true,
-    phone: true,
-    buildingFor: true,
-  }),
-  business: businessInfoStepSchema,
-  challenges: baseContactSchema.pick({ challenges: true, challengesOther: true }),
-  goalsArea: goalsAreaStepSchema,
-  goalsSystems: goalsSystemsStepSchema,
-  final: baseContactSchema.pick({
-    budget: true,
-    timeline: true,
-    referralSource: true,
-    notes: true,
-  }),
-};
-
-const STEP_FIELDS: Record<StepId, (keyof ContactFormData)[]> = {
-  personal: ["firstName", "lastName", "email", "phone", "buildingFor"],
-  business: [
-    "businessName",
-    "industry",
-    "industryOther",
-    "position",
-    "positionOther",
-    "businessSize",
-    "yearsOperating",
-    "officeAddress",
-  ],
-  challenges: ["challenges", "challengesOther"],
-  goalsArea: ["goalsCategory"],
-  goalsSystems: ["goals"],
-  final: ["budget", "timeline", "referralSource", "notes"],
-};
 
 type ContactFormProps = {
   /** Value sent as the `website_lead_source` HubSpot property, e.g. "Homepage" or "Contact Us Page". */
@@ -131,6 +89,10 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
   ) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhoneChange = (phone: string) => {
+    setFormData((prev) => ({ ...prev, phone }));
   };
 
   function handleSelectChange<K extends keyof ContactFormData>(
@@ -286,6 +248,7 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
               formData={formData}
               errors={visibleErrors}
               onChange={handleChange}
+              onPhoneChange={handlePhoneChange}
               onBuildingForChange={handleSelectChange("buildingFor", buildingForOptions)}
             />
           )}
@@ -336,6 +299,12 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
         </p>
       )}
 
+      {/*
+        Next and Send are different buttons that occupy the same spot. Without
+        distinct keys React reuses one DOM button and flips its type from
+        "button" to "submit" mid-click, so the browser's default action then
+        submits the form the moment the last step appears.
+      */}
       <div className="flex items-center justify-between gap-3">
         {step > 0 ? (
           <Button type="button" variant="outline" className="cursor-pointer" onClick={handleBack}>
@@ -346,11 +315,16 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
         )}
 
         {step < steps.length - 1 ? (
-          <Button type="button" className="cursor-pointer" onClick={handleNext}>
+          <Button key="next" type="button" className="cursor-pointer" onClick={handleNext}>
             Next
           </Button>
         ) : (
-          <Button type="submit" disabled={status === "submitting"} className="cursor-pointer">
+          <Button
+            key="send"
+            type="submit"
+            disabled={status === "submitting"}
+            className="cursor-pointer"
+          >
             {status === "submitting" && (
               <Loader2 className="animate-spin motion-reduce:animate-none" />
             )}

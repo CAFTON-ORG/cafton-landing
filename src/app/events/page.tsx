@@ -1,38 +1,29 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import {
-  PageHero,
-  PageSection,
-  PageShell,
-} from "@/components/layout/page-shell";
+import { PageHero, PageSection, PageShell } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { EventPoster } from "@/components/events/event-poster";
 import { EventRow } from "@/components/events/event-row";
-import { EventStatusBadge } from "@/components/events/event-status";
-import {
-  events,
-  getEventFacts,
-  getEventStatus,
-  type EventStatus,
-} from "@/lib/events";
+import { FeaturedEvent } from "@/components/events/featured-event";
+import { getEventStatus } from "@/lib/events";
+import { listEvents } from "@/lib/repositories/events";
+import { pageMetadata } from "@/lib/seo";
+import type { EventStatus } from "@/types/content";
 
-export const metadata: Metadata = {
-  title: "Events - CAFTON",
+export const metadata: Metadata = pageMetadata({
+  title: "Events",
   description:
-    "Giveaways, merch drops, and community events from CAFTON. See what is open now and how to join.",
-  alternates: { canonical: "/events" },
-};
+    "Giveaways, merch drops, and community events from Cafton. See what is open now, what you can win, and how to join.",
+  path: "/events",
+});
 
 // Status depends on the current date, so refresh the static page regularly.
 export const revalidate = 600;
 
 const STATUS_ORDER: Record<EventStatus, number> = { open: 0, upcoming: 1, closed: 2 };
 
-export default function EventsPage() {
+export default async function EventsPage() {
+  const events = await listEvents();
   const ranked = events
     .map((event) => ({ event, status: getEventStatus(event) }))
     .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
@@ -54,76 +45,14 @@ export default function EventsPage() {
             </RevealItem>
             <RevealItem>
               <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-                See what is open right now, what you can win, and how to take
-                part.
+                See what is open right now, what you can win, and how to take part.
               </p>
             </RevealItem>
           </RevealGroup>
         </PageShell>
       </PageHero>
 
-      {featured && (
-        <PageSection>
-          <PageShell>
-            <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-20">
-              <Reveal>
-                <div className="flex flex-wrap items-center gap-3">
-                  <EventStatusBadge status={featured.status} />
-                  <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    {featured.event.type}
-                  </span>
-                </div>
-                <h2 className="mt-6 text-balance text-4xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl lg:text-6xl">
-                  {featured.event.title}
-                </h2>
-                <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-                  {featured.event.tagline}
-                </p>
-
-                <dl className="mt-10 max-w-xl text-sm">
-                  {getEventFacts(featured.event).map(([label, value]) => (
-                    <div
-                      key={label}
-                      className="flex items-baseline justify-between gap-6 border-t border-dashed py-3 last:border-b"
-                    >
-                      <dt className="font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        {label}
-                      </dt>
-                      <dd className="text-right font-medium">{value}</dd>
-                    </div>
-                  ))}
-                </dl>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <Button asChild className="group cursor-pointer">
-                    <Link
-                      href={
-                        featured.status === "open" && featured.event.campaignUrl
-                          ? `/events/${featured.event.slug}#enter`
-                          : `/events/${featured.event.slug}`
-                      }
-                    >
-                      {featured.status === "open" && featured.event.campaignUrl
-                        ? "Enter the giveaway"
-                        : "View details"}
-                      <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
-                    </Link>
-                  </Button>
-                  {featured.status === "open" && featured.event.campaignUrl && (
-                    <Button asChild variant="outline" className="cursor-pointer">
-                      <Link href={`/events/${featured.event.slug}`}>View details</Link>
-                    </Button>
-                  )}
-                </div>
-              </Reveal>
-
-              <Reveal>
-                <EventPoster event={featured.event} priority />
-              </Reveal>
-            </div>
-          </PageShell>
-        </PageSection>
-      )}
+      {featured && <FeaturedEvent event={featured.event} status={featured.status} />}
 
       <PageSection className="border-t">
         <PageShell>
@@ -137,8 +66,7 @@ export default function EventsPage() {
               </div>
             ) : (
               <p className="mt-3 max-w-xl text-muted-foreground">
-                More events are on the way. Follow our social channels to hear
-                about them first.
+                More events are on the way. Follow our social channels to hear about them first.
               </p>
             )}
           </Reveal>

@@ -7,8 +7,10 @@ import {
   PageShell,
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
-import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
+import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
+import { PolicySection } from "@/components/privacy/policy-section";
+import { cookies, PRIVACY_LAST_UPDATED, rights } from "@/data/privacy";
 import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
 
 export const metadata: Metadata = pageMetadata({
@@ -17,62 +19,6 @@ export const metadata: Metadata = pageMetadata({
     "How Cafton collects, uses, and protects your personal information, and how we use cookies, under the Data Privacy Act of 2012.",
   path: "/privacy",
 });
-
-const LAST_UPDATED = "9 October 2026";
-
-const cookies = [
-  {
-    name: "cafton_consent",
-    provider: "Cafton",
-    purpose: "Remembers the cookie choice you made, so we don't ask again on every page.",
-    duration: "6 months",
-    type: "Strictly necessary",
-  },
-  {
-    name: "cafton-theme",
-    provider: "Cafton (browser local storage)",
-    purpose: "Remembers your light or dark preference. It is only saved if you use the theme toggle.",
-    duration: "Until you clear it",
-    type: "Strictly necessary",
-  },
-  {
-    name: "Cloudflare Turnstile",
-    provider: "Cloudflare",
-    purpose:
-      "Checks that a person, not a bot, is sending the contact form. Cloudflare may use cookies or browser storage while it does.",
-    duration: "As set by Cloudflare",
-    type: "Strictly necessary",
-  },
-  {
-    name: "Gleam entry form",
-    provider: "Gleam",
-    purpose:
-      "The giveaway entry form on our events pages. It loads only if you allow embedded content, and Gleam sets its own cookies.",
-    duration: "As set by Gleam",
-    type: "Optional (your consent)",
-  },
-];
-
-const rights = [
-  "Be informed about how your personal data is processed.",
-  "Access the personal data we hold about you.",
-  "Correct data that is inaccurate or out of date.",
-  "Object to processing, or ask us to suspend, remove, or block your data.",
-  "Receive your data in a structured, commonly used format.",
-  "Withdraw consent you have given, at any time.",
-  "Be compensated for damages from inaccurate, incomplete, outdated, false, unlawfully obtained, or unauthorized use of your data.",
-];
-
-function Section({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
-  return (
-    <Reveal>
-      <section id={id} className="scroll-mt-24 border-t pt-8">
-        <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
-        <div className="mt-4 space-y-4 leading-relaxed text-muted-foreground">{children}</div>
-      </section>
-    </Reveal>
-  );
-}
 
 export default function PrivacyPage() {
   return (
@@ -92,7 +38,7 @@ export default function PrivacyPage() {
               <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
                 How Cafton collects, uses, and protects your personal
                 information, and how this website uses cookies. Last updated{" "}
-                {LAST_UPDATED}.
+                {PRIVACY_LAST_UPDATED}.
               </p>
             </RevealItem>
           </RevealGroup>
@@ -101,7 +47,7 @@ export default function PrivacyPage() {
 
       <PageSection>
         <PageShell className="max-w-3xl space-y-10">
-          <Section title="Who we are">
+          <PolicySection title="Who we are">
             <p>
               This website is run by Cafton Software Development Services
               (&ldquo;Cafton&rdquo;), based in Baguio City, Philippines. We are
@@ -116,9 +62,9 @@ export default function PrivacyPage() {
               </a>
               .
             </p>
-          </Section>
+          </PolicySection>
 
-          <Section title="Information we collect">
+          <PolicySection title="Information we collect">
             <p>
               <strong className="font-semibold text-foreground">
                 What you give us.
@@ -141,9 +87,9 @@ export default function PrivacyPage() {
               and in memory, to limit abuse, and shares it with Cloudflare for
               its bot check. We do not run analytics or advertising trackers.
             </p>
-          </Section>
+          </PolicySection>
 
-          <Section title="How we use it">
+          <PolicySection title="How we use it">
             <p>
               We use your inquiry to reply to you, discuss and scope possible
               work, and keep reasonable records of our business dealings. We use
@@ -155,9 +101,9 @@ export default function PrivacyPage() {
               and on our legitimate interest in running and securing this
               website.
             </p>
-          </Section>
+          </PolicySection>
 
-          <Section title="Who we share it with">
+          <PolicySection title="Who we share it with">
             <ul className="list-disc space-y-2 pl-5">
               <li>
                 <strong className="font-semibold text-foreground">HubSpot</strong>
@@ -185,9 +131,9 @@ export default function PrivacyPage() {
               only use providers that we trust to protect it, and we share
               nothing beyond what each needs to do its job.
             </p>
-          </Section>
+          </PolicySection>
 
-          <Section id="cookies" title="Cookies and similar technologies">
+          <PolicySection id="cookies" title="Cookies and similar technologies">
             <p>
               Cookies are small files a site stores in your browser. We keep
               them to the minimum. Strictly necessary items work without your
@@ -228,18 +174,18 @@ export default function PrivacyPage() {
               cookies. Most browsers also let you block or delete cookies in
               their settings, though parts of a site may then stop working.
             </p>
-          </Section>
+          </PolicySection>
 
-          <Section title="How long we keep it">
+          <PolicySection title="How long we keep it">
             <p>
               We keep inquiry details for as long as we need them to respond and
               to keep reasonable business records, then delete or anonymize
               them. You can ask us to delete your information sooner at any
               time.
             </p>
-          </Section>
+          </PolicySection>
 
-          <Section title="How we protect it">
+          <PolicySection title="How we protect it">
             <p>
               The site is served over HTTPS, the contact form is protected
               against spam and bots, and access to what you send us is limited
@@ -247,9 +193,9 @@ export default function PrivacyPage() {
               secure, so please do not send us sensitive information, such as
               government ID numbers or passwords, through the form.
             </p>
-          </Section>
+          </PolicySection>
 
-          <Section title="Your rights">
+          <PolicySection title="Your rights">
             <p>Under the Data Privacy Act of 2012 you have the right to:</p>
             <ul className="list-disc space-y-2 pl-5">
               {rights.map((right) => (
@@ -276,9 +222,9 @@ export default function PrivacyPage() {
               </a>
               .
             </p>
-          </Section>
+          </PolicySection>
 
-          <Section title="Changes to this policy">
+          <PolicySection title="Changes to this policy">
             <p>
               If we change how we handle your information or which cookies we
               use, we will update this page and its date, and ask for your
@@ -292,7 +238,7 @@ export default function PrivacyPage() {
               </Link>
               .
             </p>
-          </Section>
+          </PolicySection>
         </PageShell>
       </PageSection>
       <ProjectCta />

@@ -6,7 +6,7 @@ import { ArrowUpRight } from "lucide-react";
 import { ThemedImage } from "@/components/shared/themed-image";
 import { CoverArt } from "@/components/shared/cover-art";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
-import type { Project } from "@/lib/projects";
+import type { Project } from "@/types/content";
 import { cn } from "@/lib/utils";
 
 function fitClass(project: Project) {

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
-import { breadcrumbJsonLd, ORGANIZATION_ID } from "@/lib/structured-data";
+import { authorJsonLd, breadcrumbJsonLd, ORGANIZATION_ID } from "@/lib/structured-data";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -14,27 +14,25 @@ import { BlogHeroImage } from "@/components/blog/blog-hero-image";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { JsonLd } from "@/components/shared/json-ld";
-import {
-  blogPosts,
-  formatBlogDate,
-  getBlogPost,
-  readingTime,
-} from "@/lib/blog";
+import { Byline } from "@/components/shared/byline";
+import { formatBlogDate, readingTime } from "@/lib/blog";
+import { getAuthor } from "@/lib/repositories/authors";
+import { getBlogPost, listBlogPosts } from "@/lib/repositories/blog";
 import { SITE_URL } from "@/lib/site";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return blogPosts.map((post) => ({ slug: post.slug }));
+export async function generateStaticParams() {
+  return (await listBlogPosts()).map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = await getBlogPost(slug);
   if (!post) return {};
 
   return pageMetadata({
@@ -47,8 +45,9 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = await getBlogPost(slug);
   if (!post) notFound();
+  const author = await getAuthor(post.authorId);
 
   const blogPostingJsonLd = {
     "@context": "https://schema.org",
@@ -61,7 +60,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
     image: `${SITE_URL}/cafton-lengthwise.png`,
     inLanguage: "en-PH",
-    author: { "@id": ORGANIZATION_ID },
+    author: author ? authorJsonLd(author) : { "@id": ORGANIZATION_ID },
     publisher: { "@id": ORGANIZATION_ID },
   };
 
@@ -106,6 +105,15 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 {post.excerpt}
               </p>
             </RevealItem>
+            {author && (
+              <RevealItem>
+                <Byline
+                  author={author}
+                  label="Written by"
+                  className="mt-8"
+                />
+              </RevealItem>
+            )}
           </RevealGroup>
         </PageShell>
       </PageHero>

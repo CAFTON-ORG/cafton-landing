@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { CoverArt } from "@/components/shared/cover-art";
-import type { CaftonEvent } from "@/lib/events";
+import type { CaftonEvent } from "@/types/content";
 import { cn } from "@/lib/utils";
 
 interface EventPosterProps {

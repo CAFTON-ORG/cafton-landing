@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/lib/site";
-import { blogPosts } from "@/lib/blog";
-import { events } from "@/lib/events";
-import { projects } from "@/lib/projects";
+import { listBlogPosts } from "@/lib/repositories/blog";
+import { listEvents } from "@/lib/repositories/events";
+import { listProjects } from "@/lib/repositories/projects";
 import { servicePillars } from "@/lib/services";
 
 /**
@@ -13,7 +13,13 @@ import { servicePillars } from "@/lib/services";
  * where there is a real date to give (blog posts); an invented "modified now"
  * on every URL teaches crawlers to ignore the field.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [blogPosts, events, projects] = await Promise.all([
+    listBlogPosts(),
+    listEvents(),
+    listProjects(),
+  ]);
+
   const pages = [
     "",
     "/about",

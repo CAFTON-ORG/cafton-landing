@@ -15,21 +15,23 @@ import { ProjectCta } from "@/components/sections/home/project-cta";
 import { ProjectHeroImage } from "@/components/portfolio/project-hero-image";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
-import { getProject, projects } from "@/lib/projects";
+import { Byline } from "@/components/shared/byline";
+import { getAuthor } from "@/lib/repositories/authors";
+import { getProject, listProjects } from "@/lib/repositories/projects";
 
 interface ProjectPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return projects.map((project) => ({ slug: project.slug }));
+export async function generateStaticParams() {
+  return (await listProjects()).map((project) => ({ slug: project.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: ProjectPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const project = getProject(slug);
+  const project = await getProject(slug);
   if (!project) return {};
 
   return pageMetadata({
@@ -41,8 +43,9 @@ export async function generateMetadata({
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { slug } = await params;
-  const project = getProject(slug);
+  const project = await getProject(slug);
   if (!project) notFound();
+  const author = await getAuthor(project.authorId);
 
   const details = [
     project.problem && { label: "Problem", body: project.problem },
@@ -81,6 +84,11 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                 Built for {project.client}
               </p>
             </RevealItem>
+            {author && (
+              <RevealItem>
+                <Byline author={author} label="Built by" className="mt-6" />
+              </RevealItem>
+            )}
             <RevealItem>
               <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
                 {project.description}

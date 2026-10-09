@@ -1,4 +1,4 @@
-import type { Project } from "@/lib/projects";
+import type { Project } from "@/types/content";
 import { CoverArt } from "@/components/shared/cover-art";
 import { ThemedImage } from "@/components/shared/themed-image";
 

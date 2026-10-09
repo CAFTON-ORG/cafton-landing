@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import type { Project } from "@/lib/projects";
+import type { Project } from "@/types/content";
 import { ThemedImage } from "@/components/shared/themed-image";
 import { CoverArt } from "@/components/shared/cover-art";
 import { CornerBrackets } from "@/components/shared/corner-brackets";

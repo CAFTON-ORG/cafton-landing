@@ -11,7 +11,8 @@ import { Pagination } from "@/components/shared/pagination";
 import { CategoryFilter } from "@/components/shared/category-filter";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
-import { blogPosts } from "@/lib/blog";
+import { getAuthorMap } from "@/lib/repositories/authors";
+import { listBlogPosts } from "@/lib/repositories/blog";
 
 export const metadata: Metadata = pageMetadata({
   title: "Blog",
@@ -28,6 +29,7 @@ interface BlogPageProps {
 
 export default async function Blog({ searchParams }: BlogPageProps) {
   const { page: pageParam, category: categoryParam } = await searchParams;
+  const [blogPosts, authors] = await Promise.all([listBlogPosts(), getAuthorMap()]);
 
   const categories = Array.from(new Set(blogPosts.map((post) => post.category)));
   const category = categoryParam && categories.includes(categoryParam) ? categoryParam : undefined;
@@ -77,7 +79,7 @@ export default async function Blog({ searchParams }: BlogPageProps) {
             >
               {pagePosts.map((post) => (
                 <RevealItem key={post.slug}>
-                  <BlogRow post={post} />
+                  <BlogRow post={post} author={authors.get(post.authorId)} />
                 </RevealItem>
               ))}
             </RevealGroup>

@@ -3,12 +3,11 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/motion/reveal";
 import { WorkShowcase } from "@/components/sections/home/work-showcase";
-import { projects } from "@/lib/projects";
+import { listProjects } from "@/lib/repositories/projects";
 import { PageShell } from "@/components/layout/page-shell";
 
-const featuredProjects = projects.slice(0, 3);
-
-const FeaturedWork = () => {
+async function FeaturedWork() {
+  const featuredProjects = (await listProjects()).slice(0, 3);
   if (featuredProjects.length === 0) return null;
 
   return (
@@ -40,6 +39,6 @@ const FeaturedWork = () => {
       </PageShell>
     </section>
   );
-};
+}
 
 export { FeaturedWork };

@@ -1,5 +1,6 @@
 import { SITE_URL } from "@/lib/site";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
+import type { Author } from "@/types/content";
 
 const ORGANIZATION_ID = `${SITE_URL}/#organization`;
 const WEBSITE_ID = `${SITE_URL}/#website`;
@@ -43,6 +44,16 @@ export const siteJsonLd = {
     },
   ],
 };
+
+/** schema.org author: the Cafton organization for the team account, a Person otherwise. */
+export function authorJsonLd(author: Author) {
+  if (author.kind === "organization") return { "@id": ORGANIZATION_ID };
+  return {
+    "@type": "Person",
+    name: author.name,
+    ...(author.url && { url: author.url.startsWith("http") ? author.url : `${SITE_URL}${author.url}` }),
+  };
+}
 
 interface Crumb {
   name: string;

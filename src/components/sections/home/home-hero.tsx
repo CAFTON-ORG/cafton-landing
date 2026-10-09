@@ -75,7 +75,10 @@ export function HomeHero() {
       <section
         id="hero"
         ref={heroRef}
-        className="relative h-dvh min-h-[34rem] overflow-hidden bg-linear-to-b from-background to-background/80 pt-16"
+        // svh, not dvh: on a phone the browser toolbar slides away as you scroll, and
+        // dvh would resize this section (and so the 3D canvas, and the mark inside
+        // it) every time. svh is the stable "toolbar showing" height.
+        className="relative h-svh min-h-[34rem] overflow-hidden bg-linear-to-b from-background to-background/80 pt-16"
       >
         <div className="absolute inset-0">
           <DotPattern className="opacity-100" size="md" fadeStyle="ellipse" />

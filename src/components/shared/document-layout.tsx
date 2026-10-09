@@ -13,7 +13,7 @@ interface DocumentLayoutProps {
 export function DocumentLayout({ toc, children, className }: DocumentLayoutProps) {
   return (
     <PageShell className="max-w-5xl">
-      <div className="grid gap-8 lg:grid-cols-[14rem_1fr] lg:gap-16">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-16">
         <div className="lg:sticky lg:top-28 lg:self-start">
           <TableOfContents items={toc} />
         </div>

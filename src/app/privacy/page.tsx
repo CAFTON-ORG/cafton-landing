@@ -9,9 +9,10 @@ import {
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
+import { CookieTable } from "@/components/privacy/cookie-table";
 import { DocumentLayout } from "@/components/shared/document-layout";
 import { PolicySection } from "@/components/privacy/policy-section";
-import { cookies, PRIVACY_LAST_UPDATED, rights } from "@/data/privacy";
+import { PRIVACY_LAST_UPDATED, rights } from "@/data/privacy";
 import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
 
 export const metadata: Metadata = pageMetadata({
@@ -182,33 +183,7 @@ export default function PrivacyPage() {
               <CookieSettingsButton className="cursor-pointer font-medium text-foreground underline underline-offset-4" />
               .
             </p>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-160 border-collapse text-left text-sm">
-                <caption className="sr-only">Cookies and storage used by this website</caption>
-                <thead>
-                  <tr className="border-b text-foreground">
-                    <th scope="col" className="py-3 pr-4 font-semibold">Name</th>
-                    <th scope="col" className="py-3 pr-4 font-semibold">Provider</th>
-                    <th scope="col" className="py-3 pr-4 font-semibold">Purpose</th>
-                    <th scope="col" className="py-3 pr-4 font-semibold">Duration</th>
-                    <th scope="col" className="py-3 font-semibold">Type</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cookies.map((cookie) => (
-                    <tr key={cookie.name} className="border-b align-top">
-                      <th scope="row" className="py-3 pr-4 font-medium text-foreground">
-                        {cookie.name}
-                      </th>
-                      <td className="py-3 pr-4">{cookie.provider}</td>
-                      <td className="py-3 pr-4">{cookie.purpose}</td>
-                      <td className="py-3 pr-4">{cookie.duration}</td>
-                      <td className="py-3">{cookie.type}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <CookieTable />
             <p>
               We do not use analytics, advertising, or cross-site tracking
               cookies. Most browsers also let you block or delete cookies in

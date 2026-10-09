@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import { authorJsonLd, breadcrumbJsonLd, ORGANIZATION_ID } from "@/lib/structured-data";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import {
   PageHero,
   PageSection,
@@ -14,6 +12,8 @@ import { BlogHeroImage } from "@/components/blog/blog-hero-image";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { JsonLd } from "@/components/shared/json-ld";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { PostBody } from "@/components/blog/post-body";
 import { Byline } from "@/components/shared/byline";
 import { formatBlogDate, readingTime } from "@/lib/blog";
 import { getAuthor } from "@/lib/repositories/authors";
@@ -73,17 +73,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           { name: post.title, path: `/blog/${post.slug}` },
         ])}
       />
-      <PageHero>
+      <PageHero variant="compact">
         <PageShell>
           <RevealGroup>
             <RevealItem>
-              <Link
-                href="/blog"
-                className="mb-6 inline-flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ArrowLeft className="me-2 size-4" />
-                Back to Blog
-              </Link>
+              <Breadcrumbs
+                items={[{ name: "Blog", href: "/blog" }, { name: post.title }]}
+              />
             </RevealItem>
             <RevealItem className="mb-4">
               <Badge variant="outline" className="px-3 py-1 text-sm">{post.category}</Badge>
@@ -123,19 +119,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <Reveal>
             <BlogHeroImage post={post} />
           </Reveal>
-          <Reveal>
-            <div className="mx-auto max-w-2xl">
-              <RevealGroup className="mt-10 flex flex-col gap-6">
-                {post.content.map((paragraph, index) => (
-                  <RevealItem key={index}>
-                    <p className="text-base leading-7 text-foreground/90 sm:text-lg sm:leading-8">
-                      {paragraph}
-                    </p>
-                  </RevealItem>
-                ))}
-              </RevealGroup>
-            </div>
-          </Reveal>
+          <PostBody post={post} />
         </PageShell>
       </PageSection>
 

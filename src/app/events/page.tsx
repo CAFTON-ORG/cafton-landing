@@ -3,7 +3,7 @@ import { PageHero, PageSection, PageShell } from "@/components/layout/page-shell
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
-import { EventRow } from "@/components/events/event-row";
+import { EventList } from "@/components/events/event-list";
 import { FeaturedEvent } from "@/components/events/featured-event";
 import { getEventStatus } from "@/lib/events";
 import { listEvents } from "@/lib/repositories/events";
@@ -29,10 +29,13 @@ export default async function EventsPage() {
     .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
 
   const [featured, ...others] = ranked;
+  // What can still be entered comes first; finished events sit in an archive below.
+  const current = others.filter(({ status }) => status !== "closed").map(({ event }) => event);
+  const past = others.filter(({ status }) => status === "closed").map(({ event }) => event);
 
   return (
     <>
-      <PageHero>
+      <PageHero variant="compact">
         <PageShell>
           <RevealGroup>
             <RevealItem className="mb-4">
@@ -56,20 +59,23 @@ export default async function EventsPage() {
 
       <PageSection className="border-t">
         <PageShell>
-          <Reveal>
-            <h2 className="text-2xl font-bold tracking-tight">More events</h2>
-            {others.length > 0 ? (
-              <div className="mt-8">
-                {others.map(({ event }) => (
-                  <EventRow key={event.slug} event={event} />
-                ))}
-              </div>
-            ) : (
+          {others.length > 0 ? (
+            <div className="space-y-16">
+              {current.length > 0 && (
+                <EventList heading="Open and upcoming" events={current} />
+              )}
+              {past.length > 0 && (
+                <EventList heading="Past events" events={past} paged />
+              )}
+            </div>
+          ) : (
+            <Reveal>
+              <h2 className="text-2xl font-bold tracking-tight">More events</h2>
               <p className="mt-3 max-w-xl text-muted-foreground">
                 More events are on the way. Follow our social channels to hear about them first.
               </p>
-            )}
-          </Reveal>
+            </Reveal>
+          )}
         </PageShell>
       </PageSection>
 

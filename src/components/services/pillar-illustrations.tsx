@@ -15,6 +15,12 @@ import type { SVGProps } from "react";
 
 type IllustrationProps = SVGProps<SVGSVGElement>;
 
+/** The illustration for a service pillar, picked by its slug. Renders nothing for an unknown slug. */
+export function PillarIllustration({ slug, ...props }: IllustrationProps & { slug: string }) {
+  const Illustration = PILLAR_ILLUSTRATIONS[slug];
+  return Illustration ? <Illustration {...props} /> : null;
+}
+
 /** Business Operations Systems: a small workflow board -- task nodes wired together, one already running. */
 export function OperationsIllustration(props: IllustrationProps) {
   return (
@@ -194,3 +200,10 @@ export function ProductBuildsIllustration(props: IllustrationProps) {
     </svg>
   );
 }
+
+const PILLAR_ILLUSTRATIONS: Record<string, (props: IllustrationProps) => React.JSX.Element> = {
+  operations: OperationsIllustration,
+  growth: GrowthIllustration,
+  "industry-platforms": IndustryPlatformsIllustration,
+  "product-builds": ProductBuildsIllustration,
+};

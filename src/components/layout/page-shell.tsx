@@ -36,12 +36,25 @@ interface PageHeroProps {
    * the hero into a two-column layout instead.
    */
   image?: ReactNode;
+  /**
+   * "compact" is for index and detail pages, where the content is what the
+   * visitor came for: about half the height of the default band. Home-style
+   * pages (About, Contact, Careers) keep the roomier default.
+   */
+  variant?: "default" | "compact";
 }
 
 // The top padding includes the 4rem band the floating nav header overlaps.
-export function PageHero({ children, image }: PageHeroProps) {
+export function PageHero({ children, image, variant = "default" }: PageHeroProps) {
   return (
-    <section className="relative overflow-hidden border-b bg-muted/30 pb-20 pt-36 sm:pb-24 sm:pt-40 lg:pb-28 lg:pt-44">
+    <section
+      className={cn(
+        "relative overflow-hidden border-b bg-muted/30",
+        variant === "compact"
+          ? "pb-10 pt-28 sm:pb-12 sm:pt-32 lg:pb-14 lg:pt-36"
+          : "pb-20 pt-36 sm:pb-24 sm:pt-40 lg:pb-28 lg:pt-44",
+      )}
+    >
       <div className="pointer-events-none absolute inset-0">
         <DotPattern size="md" fadeStyle="ellipse" opacity="low" />
       </div>

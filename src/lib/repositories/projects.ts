@@ -14,3 +14,7 @@ export async function listProjects(): Promise<Project[]> {
 export async function getProject(slug: string): Promise<Project | undefined> {
   return projects.find((project) => project.slug === slug);
 }
+
+export async function listProjectsForService(serviceSlug: string): Promise<Project[]> {
+  return projects.filter((project) => project.services.includes(serviceSlug));
+}

@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
  * condenses and gains elevation once the page scrolls.
  *
  * Standards followed: a `header` landmark holding a labelled `nav`,
- * `aria-current="page"` on the active link, controls at least 36px tall
+ * `aria-current="page"` on the active link, controls 40px tall inside a 56px pill
  * (WCAG 2.5.8 asks 24px, platform guidance 44px for the mobile menu button),
  * visible keyboard focus rings, and no motion for prefers-reduced-motion.
  * The surface is a translucent fill with a hairline border and a soft shadow;
@@ -53,7 +53,7 @@ export function Navbar() {
       <div className="flex h-full items-start justify-center px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4">
         <div
           className={cn(
-            "pointer-events-auto flex h-12 w-full items-center justify-between gap-2 rounded-full border py-1.5 pl-4 pr-1.5 shadow-[inset_0_1px_0_color-mix(in_oklch,var(--foreground)_10%,transparent)] transition-[max-width,background-color,box-shadow,border-color] duration-300 ease-out motion-reduce:transition-none",
+            "pointer-events-auto flex h-14 w-full items-center justify-between gap-2 rounded-full border py-2 pl-5 pr-2 shadow-[inset_0_1px_0_color-mix(in_oklch,var(--foreground)_10%,transparent)] transition-[max-width,background-color,box-shadow,border-color] duration-300 ease-out motion-reduce:transition-none",
             scrolled
               ? "max-w-4xl border-foreground/15 bg-background/95 shadow-lg shadow-black/10"
               : "max-w-6xl border-foreground/10 bg-background/70",
@@ -64,7 +64,7 @@ export function Navbar() {
             onClick={handleLogoClick}
             className="flex shrink-0 items-center gap-2 rounded-full outline-none transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring"
           >
-            <Logo size={26} aria-hidden="true" />
+            <Logo size={30} aria-hidden="true" />
             <span className="font-bold uppercase">Cafton</span>
           </Link>
 
@@ -82,7 +82,7 @@ export function Navbar() {
                   href={item.href}
                   aria-current={pathname === item.href ? "page" : undefined}
                   className={cn(
-                    "inline-flex h-9 items-center rounded-full px-4 text-sm outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring",
+                    "inline-flex h-10 items-center rounded-full px-4 text-sm outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring",
                     pathname === item.href || pathname.startsWith(`${item.href}/`)
                       ? "bg-foreground/10 font-semibold text-foreground"
                       : "font-medium text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
@@ -96,8 +96,8 @@ export function Navbar() {
 
           {/* Desktop actions */}
           <div className="hidden shrink-0 items-center gap-1 xl:flex">
-            <ModeToggle variant="ghost" className="size-9 rounded-full" />
-            <Button asChild className="group h-9 cursor-pointer rounded-full px-4">
+            <ModeToggle variant="ghost" className="size-10 rounded-full" />
+            <Button asChild className="group h-10 cursor-pointer rounded-full px-5">
               <Link href="/contact">
                 Contact Us
                 <ArrowRight className="ms-1 size-4 transition-transform group-hover:translate-x-0.5" />

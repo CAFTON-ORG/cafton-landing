@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { listPageMetadata } from "@/lib/seo";
 import {
   PageHero,
   PageSection,
@@ -13,12 +13,13 @@ import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { listProjects } from "@/lib/repositories/projects";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Portfolio",
-  description:
-    "Case studies of software Cafton has built around real problems: disaster response, restaurant and retail operations, online elections, and more.",
-  path: "/portfolio",
-});
+const DESCRIPTION =
+  "Case studies of software Cafton has built around real problems: disaster response, restaurant and retail operations, online elections, and more.";
+
+export async function generateMetadata({ searchParams }: WorkPageProps): Promise<Metadata> {
+  const { page, category } = await searchParams;
+  return listPageMetadata({ title: "Portfolio", description: DESCRIPTION, path: "/portfolio", page, category });
+}
 
 const PAGE_SIZE = 6;
 
@@ -48,7 +49,7 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
 
   return (
     <>
-      <PageHero>
+      <PageHero variant="compact">
         <PageShell>
           <RevealGroup>
             <RevealItem className="mb-4">
@@ -92,6 +93,8 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
             totalPages={totalPages}
             basePath="/portfolio"
             query={category ? { category } : undefined}
+            totalItems={filteredProjects.length}
+            pageSize={PAGE_SIZE}
           />
         </PageShell>
       </PageSection>

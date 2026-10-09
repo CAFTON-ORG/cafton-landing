@@ -72,13 +72,13 @@ export function MobileMenu() {
           />
 
           {/* Same position and shape as the header pill. */}
-          <div className="relative mx-3 mt-[max(0.5rem,env(safe-area-inset-top))] flex h-12 shrink-0 items-center justify-between rounded-full border border-foreground/15 bg-background/95 py-1.5 pl-4 pr-1.5">
+          <div className="relative mx-3 mt-[max(0.5rem,env(safe-area-inset-top))] flex h-14 shrink-0 items-center justify-between rounded-full border border-foreground/15 bg-background/95 py-2 pl-5 pr-2">
             <Link
               href="/"
               onClick={close}
               className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
             >
-              <Logo size={26} aria-hidden="true" />
+              <Logo size={30} aria-hidden="true" />
               <span className="font-bold uppercase">Cafton</span>
             </Link>
             <div className="flex items-center gap-1">

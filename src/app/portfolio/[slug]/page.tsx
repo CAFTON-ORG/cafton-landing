@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ArrowUpRight } from "lucide-react";
 import { pageMetadata } from "@/lib/seo";
 import { breadcrumbJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/shared/json-ld";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  PageHero,
-  PageSection,
-  PageShell,
-} from "@/components/layout/page-shell";
+import { PageHero, PageSection, PageShell } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { ProjectHeroImage } from "@/components/portfolio/project-hero-image";
+import { ProjectStory } from "@/components/portfolio/project-story";
+import { RelatedProjects } from "@/components/portfolio/related-projects";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
+import { AdjacentNav, neighbours } from "@/components/shared/adjacent-nav";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { Byline } from "@/components/shared/byline";
 import { getAuthor } from "@/lib/repositories/authors";
 import { getProject, listProjects } from "@/lib/repositories/projects";
@@ -45,13 +44,10 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { slug } = await params;
   const project = await getProject(slug);
   if (!project) notFound();
-  const author = await getAuthor(project.authorId);
 
-  const details = [
-    project.problem && { label: "Problem", body: project.problem },
-    project.solution && { label: "Solution", body: project.solution },
-    project.recognition && { label: "Recognition", body: project.recognition },
-  ].filter(Boolean) as { label: string; body: string }[];
+  const [author, projects] = await Promise.all([getAuthor(project.authorId), listProjects()]);
+  const { previous, next } = neighbours(projects, project.slug);
+  const more = projects.filter((item) => item.slug !== project.slug).slice(0, 3);
 
   return (
     <>
@@ -61,84 +57,57 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           { name: project.client, path: `/portfolio/${project.slug}` },
         ])}
       />
-      <PageHero>
+      <PageHero variant="compact">
         <PageShell>
-          <Link
-            href="/portfolio"
-            className="mb-6 inline-flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="me-2 size-4" />
-            Back to Portfolio
-          </Link>
+          <Breadcrumbs
+            items={[{ name: "Portfolio", href: "/portfolio" }, { name: project.client }]}
+          />
           <RevealGroup>
             <RevealItem className="mb-4">
               <Badge variant="outline" className="px-3 py-1 text-sm">{project.category}</Badge>
             </RevealItem>
             <RevealItem>
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+              <h1 className="max-w-3xl text-balance text-4xl font-bold tracking-tight sm:text-5xl">
                 {project.title}
               </h1>
             </RevealItem>
             <RevealItem>
-              <p className="mt-4 text-sm font-medium text-muted-foreground">
-                Built for {project.client}
-              </p>
+              <p className="mt-5 max-w-2xl text-lg text-muted-foreground">{project.summary}</p>
             </RevealItem>
-            {author && (
-              <RevealItem>
-                <Byline author={author} label="Built by" className="mt-6" />
-              </RevealItem>
-            )}
-            <RevealItem>
-              <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-                {project.description}
-              </p>
+            <RevealItem className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-5">
+              {author && <Byline author={author} label="Built by" />}
+              {project.liveUrl && (
+                <Button className="group cursor-pointer" asChild>
+                  <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                    Visit Live Site
+                    <ArrowUpRight className="ms-2 size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </a>
+                </Button>
+              )}
             </RevealItem>
-            {project.liveUrl && (
-              <RevealItem>
-                <div className="mt-8 flex flex-wrap gap-4">
-                  <Button className="cursor-pointer group" asChild>
-                    <a
-                      href={project.liveUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Visit Live Site
-                      <ArrowUpRight className="ms-2 size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </a>
-                  </Button>
-                </div>
-              </RevealItem>
-            )}
           </RevealGroup>
         </PageShell>
       </PageHero>
 
-      <PageSection>
+      <PageSection className="pb-0 sm:pb-0 lg:pb-0">
         <PageShell>
           <Reveal>
-            <article className="overflow-hidden rounded-xl border bg-card">
+            <div className="overflow-hidden rounded-xl border">
               <ProjectHeroImage project={project} />
-
-              {details.length > 0 && (
-                <div className="p-7 sm:p-10">
-                  <RevealGroup className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {details.map(({ label, body }) => (
-                      <RevealItem key={label}>
-                        <h2 className="font-semibold">{label}</h2>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {body}
-                        </p>
-                      </RevealItem>
-                    ))}
-                  </RevealGroup>
-                </div>
-              )}
-            </article>
+            </div>
           </Reveal>
-
         </PageShell>
       </PageSection>
+
+      <ProjectStory project={project} />
+
+      <RelatedProjects projects={more} heading="More work" />
+
+      <AdjacentNav
+        noun="project"
+        previous={previous && { href: `/portfolio/${previous.slug}`, title: previous.client }}
+        next={next && { href: `/portfolio/${next.slug}`, title: next.client }}
+      />
 
       <ProjectCta />
     </>

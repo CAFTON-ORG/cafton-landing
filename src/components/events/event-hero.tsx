@@ -1,11 +1,11 @@
-import Link from "next/link";
-import { ArrowDown, ArrowLeft } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { PageHero, PageShell } from "@/components/layout/page-shell";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { EventFacts } from "@/components/events/event-facts";
 import { EventPoster } from "@/components/events/event-poster";
 import { EventStatusBadge } from "@/components/events/event-status";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { Byline } from "@/components/shared/byline";
 import type { Author, CaftonEvent, EventStatus } from "@/types/content";
 
@@ -22,13 +22,10 @@ export function EventHero({ event, status, author, canEnter }: EventHeroProps) {
   return (
     <PageHero>
       <PageShell>
-        <Link
-          href="/events"
-          className="inline-flex items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="me-2 size-4" aria-hidden="true" />
-          All events
-        </Link>
+        <Breadcrumbs
+          items={[{ name: "Events", href: "/events" }, { name: event.title }]}
+          className="mb-0"
+        />
 
         <div className="mt-8 grid items-center gap-12 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
           <RevealGroup>

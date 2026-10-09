@@ -80,3 +80,36 @@ export function pageMetadata({
     },
   };
 }
+
+/**
+ * Metadata for a list page that can be paged or filtered. Every variant is its
+ * own canonical URL (Google's guidance for pagination, now that rel=prev/next
+ * is ignored) and its title says which page or category it shows, so results
+ * are not duplicates of the first page.
+ */
+export function listPageMetadata({
+  title,
+  description,
+  path,
+  page,
+  category,
+}: {
+  title: string;
+  description: string;
+  path: string;
+  page?: string;
+  category?: string;
+}): Metadata {
+  const pageNumber = Math.max(1, Number(page) || 1);
+  const params = new URLSearchParams();
+  if (category) params.set("category", category);
+  if (pageNumber > 1) params.set("page", String(pageNumber));
+  const qs = params.toString();
+
+  const label = [category, pageNumber > 1 ? `Page ${pageNumber}` : ""].filter(Boolean).join(", ");
+  return pageMetadata({
+    title: label ? `${title} (${label})` : title,
+    description,
+    path: qs ? `${path}?${qs}` : path,
+  });
+}

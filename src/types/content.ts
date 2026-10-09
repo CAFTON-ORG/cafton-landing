@@ -17,6 +17,24 @@ export interface Author {
   url?: string;
 }
 
+/** A photo inside a post. Width and height are the file's own, so the page reserves its space before it loads. */
+export interface BlogImage {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  caption?: string;
+}
+
+/** One or more photos placed in the article, shown as a single figure or a grid with a lightbox. */
+export interface BlogMedia {
+  /** Index of the paragraph this sits after (0 = after the first paragraph). */
+  after: number;
+  images: BlogImage[];
+  /** Caption for the whole set; a single image can use its own. */
+  caption?: string;
+}
+
 export interface BlogPost {
   slug: string;
   /** Id of the `Author` who wrote the post. */
@@ -24,6 +42,8 @@ export interface BlogPost {
   title: string;
   excerpt: string;
   content: string[];
+  /** Photos and galleries placed between paragraphs. */
+  media?: BlogMedia[];
   date: string;
   /** Drives the blog grid's category filter tabs. */
   category: string;
@@ -44,6 +64,8 @@ export interface Project {
   title: string;
   /** Drives the portfolio grid's category filter tabs. */
   category: string;
+  /** Slugs of the service pillars this project falls under; drives "related work" on service pages. */
+  services: string[];
   /** Short blurb for cards (homepage + portfolio grid) */
   summary: string;
   /** Fuller paragraph for the detail page */
@@ -57,6 +79,8 @@ export interface Project {
   imageAlt?: string;
   /** "cover" (default) crops a screenshot to fill the frame; "contain" shows a logo/mark in full, letterboxed. */
   imageFit?: "cover" | "contain";
+  /** More screenshots, shown as a gallery on the detail page. */
+  media?: BlogImage[];
   /** Public live URL, if the project has one -- shows a "Visit Live Site" button on the detail page. */
   liveUrl?: string;
 }
@@ -142,4 +166,9 @@ export interface Partner {
   featured?: boolean;
   description?: string;
   links?: PartnerLink[];
+}
+
+export interface FaqItem {
+  question: string;
+  answer: string;
 }

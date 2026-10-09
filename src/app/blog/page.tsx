@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { listPageMetadata } from "@/lib/seo";
 import {
   PageHero,
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
+import { BlogLead } from "@/components/blog/blog-lead";
 import { BlogRow } from "@/components/blog/blog-row";
 import { Pagination } from "@/components/shared/pagination";
 import { CategoryFilter } from "@/components/shared/category-filter";
@@ -14,12 +15,13 @@ import { Badge } from "@/components/ui/badge";
 import { getAuthorMap } from "@/lib/repositories/authors";
 import { listBlogPosts } from "@/lib/repositories/blog";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Blog",
-  description:
-    "Insights from Cafton on building useful technology: process, engineering, and lessons from real projects.",
-  path: "/blog",
-});
+const DESCRIPTION =
+  "Insights from Cafton on building useful technology: process, engineering, and lessons from real projects.";
+
+export async function generateMetadata({ searchParams }: BlogPageProps): Promise<Metadata> {
+  const { page, category } = await searchParams;
+  return listPageMetadata({ title: "Blog", description: DESCRIPTION, path: "/blog", page, category });
+}
 
 const PAGE_SIZE = 6;
 
@@ -47,9 +49,14 @@ export default async function Blog({ searchParams }: BlogPageProps) {
     currentPage * PAGE_SIZE,
   );
 
+  // The newest post leads page 1 of the unfiltered list; filtered and later pages are plain archive.
+  const showLead = currentPage === 1 && !category && pagePosts.length > 1;
+  const lead = showLead ? pagePosts[0] : undefined;
+  const archive = showLead ? pagePosts.slice(1) : pagePosts;
+
   return (
     <>
-      <PageHero>
+      <PageHero variant="compact">
         <PageShell>
           <RevealGroup>
             <RevealItem className="mb-4">
@@ -72,12 +79,17 @@ export default async function Blog({ searchParams }: BlogPageProps) {
       <PageSection>
         <PageShell>
           <CategoryFilter categories={categories} active={category} basePath="/blog" />
+          {lead && (
+            <div className="mt-10">
+              <BlogLead post={lead} author={authors.get(lead.authorId)} />
+            </div>
+          )}
           {pagePosts.length > 0 ? (
             <RevealGroup
               key={`${category ?? "all"}-${currentPage}`}
-              className="mt-8"
+              className={lead ? "mt-12" : "mt-8"}
             >
-              {pagePosts.map((post) => (
+              {archive.map((post) => (
                 <RevealItem key={post.slug}>
                   <BlogRow post={post} author={authors.get(post.authorId)} />
                 </RevealItem>
@@ -93,6 +105,8 @@ export default async function Blog({ searchParams }: BlogPageProps) {
             totalPages={totalPages}
             basePath="/blog"
             query={category ? { category } : undefined}
+            totalItems={filteredPosts.length}
+            pageSize={PAGE_SIZE}
           />
         </PageShell>
       </PageSection>

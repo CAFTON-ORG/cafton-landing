@@ -6,14 +6,42 @@ import { cn } from "@/lib/utils";
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  /** Route the list lives at, e.g. "/portfolio" -- page 1 links back to the bare path. */
+  /** Route the list lives at, e.g. "/portfolio". Page 1 links back to the bare path. */
   basePath: string;
   /** Extra query params (e.g. an active category filter) to preserve across page links. */
   query?: Record<string, string>;
+  /** With `pageSize`, adds a "Showing 7-12 of 31" line under the pager. */
+  totalItems?: number;
+  pageSize?: number;
 }
 
-/** Shared numbered pager for any list page (portfolio, blog, ...). Renders nothing for a single page. */
-export function Pagination({ currentPage, totalPages, basePath, query }: PaginationProps) {
+/**
+ * The page numbers to show: always the first and last, the current page with
+ * one neighbour each side, and "gap" markers between, so 40 pages still fit
+ * on a phone. Returns numbers and the string "gap".
+ */
+export function pageWindow(current: number, total: number): (number | "gap")[] {
+  const wanted = new Set([1, total, current - 1, current, current + 1]);
+  const pages = [...wanted].filter((page) => page >= 1 && page <= total).sort((a, b) => a - b);
+  const result: (number | "gap")[] = [];
+  pages.forEach((page, index) => {
+    const previous = pages[index - 1];
+    if (previous !== undefined && page - previous === 2) result.push(previous + 1);
+    else if (previous !== undefined && page - previous > 2) result.push("gap");
+    result.push(page);
+  });
+  return result;
+}
+
+/** Shared numbered pager for any list page (portfolio, blog, events). Renders nothing for a single page. */
+export function Pagination({
+  currentPage,
+  totalPages,
+  basePath,
+  query,
+  totalItems,
+  pageSize,
+}: PaginationProps) {
   if (totalPages <= 1) return null;
 
   const pageHref = (page: number) => {
@@ -22,32 +50,48 @@ export function Pagination({ currentPage, totalPages, basePath, query }: Paginat
     const qs = params.toString();
     return qs ? `${basePath}?${qs}` : basePath;
   };
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  const from = pageSize ? (currentPage - 1) * pageSize + 1 : 0;
+  const to = pageSize && totalItems ? Math.min(currentPage * pageSize, totalItems) : 0;
 
   return (
-    <nav aria-label="Pagination" className="mt-12 flex items-center justify-center gap-2">
-      <PageArrow href={pageHref(currentPage - 1)} disabled={currentPage <= 1} label="Previous page">
-        <ChevronLeft className="size-4" />
-      </PageArrow>
-      {pages.map((page) => (
-        <Link
-          key={page}
-          href={pageHref(page)}
-          aria-current={page === currentPage ? "page" : undefined}
-          className={cn(
-            "flex size-9 items-center justify-center rounded-md border text-sm font-medium transition-colors",
-            page === currentPage
-              ? "border-foreground bg-foreground text-background"
-              : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
-          )}
-        >
-          {page}
-        </Link>
-      ))}
-      <PageArrow href={pageHref(currentPage + 1)} disabled={currentPage >= totalPages} label="Next page">
-        <ChevronRight className="size-4" />
-      </PageArrow>
-    </nav>
+    <div className="mt-12 flex flex-col items-center gap-4">
+      <nav aria-label="Pagination" className="flex items-center justify-center gap-2">
+        <PageArrow href={pageHref(currentPage - 1)} disabled={currentPage <= 1} label="Previous page">
+          <ChevronLeft className="size-4" />
+        </PageArrow>
+        {pageWindow(currentPage, totalPages).map((page, index) =>
+          page === "gap" ? (
+            <span key={`gap-${index}`} aria-hidden="true" className="px-1 text-muted-foreground">
+              &hellip;
+            </span>
+          ) : (
+            <Link
+              key={page}
+              href={pageHref(page)}
+              aria-label={`Page ${page}`}
+              aria-current={page === currentPage ? "page" : undefined}
+              className={cn(
+                "flex size-10 items-center justify-center rounded-md border text-sm font-medium outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring",
+                page === currentPage
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
+              )}
+            >
+              {page}
+            </Link>
+          ),
+        )}
+        <PageArrow href={pageHref(currentPage + 1)} disabled={currentPage >= totalPages} label="Next page">
+          <ChevronRight className="size-4" />
+        </PageArrow>
+      </nav>
+      {pageSize && totalItems ? (
+        <p className="text-sm text-muted-foreground">
+          Showing {from}&ndash;{to} of {totalItems}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -62,7 +106,8 @@ function PageArrow({
   label: string;
   children: ReactNode;
 }) {
-  const className = "flex size-9 items-center justify-center rounded-md border transition-colors";
+  const className =
+    "flex size-10 items-center justify-center rounded-md border outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring";
 
   if (disabled) {
     return (

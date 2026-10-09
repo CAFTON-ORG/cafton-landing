@@ -7,6 +7,7 @@ export const projects: Project[] = [
     client: "iLigtas",
     title: "Disaster Preparedness & Emergency Response Platform",
     category: "Mobile Application",
+    services: ["industry-platforms", "product-builds"],
     summary:
       "A technology platform supporting preparedness and emergency response through mobile technology, geofencing, location-based services, and web-based administration.",
     description:
@@ -27,6 +28,7 @@ export const projects: Project[] = [
     client: "Scanato",
     title: "Scan the Table. Run the House.",
     category: "SaaS Product",
+    services: ["operations", "product-builds"],
     summary:
       "A scan-to-order platform unifying QR ordering, payments, and real-time inventory for restaurants and retail, from the table to the kitchen to the point of sale.",
     description:
@@ -48,6 +50,7 @@ export const projects: Project[] = [
     client: "University of Baguio SIT",
     title: "Online Elections With One Account, One Vote",
     category: "Web Application",
+    services: ["industry-platforms", "product-builds"],
     summary:
       "A voting platform for University of Baguio School of Information Technology elections. Voters sign in with their own account, and each account can cast a single vote.",
     description:
@@ -67,6 +70,7 @@ export const projects: Project[] = [
     client: "Jamil's Mural Arts",
     title: "A Portfolio Site Built Around the Work Itself",
     category: "Website",
+    services: ["growth"],
     summary:
       "A portfolio website for a mural arts studio, built to showcase completed murals and make it simple for new clients to reach out about a commission.",
     description:

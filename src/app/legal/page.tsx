@@ -6,6 +6,7 @@ import {
   PageSection,
   PageShell,
 } from "@/components/layout/page-shell";
+import { DocumentLayout } from "@/components/shared/document-layout";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
@@ -17,10 +18,49 @@ export const metadata: Metadata = pageMetadata({
   path: "/legal",
 });
 
+const TOC = [
+  {
+    "id": "company-information",
+    "title": "Company Information"
+  },
+  {
+    "id": "business-registration",
+    "title": "Business Registration"
+  },
+  {
+    "id": "terms-of-use",
+    "title": "Terms of Use"
+  },
+  {
+    "id": "use-of-this-website",
+    "title": "Use of This Website"
+  },
+  {
+    "id": "intellectual-property",
+    "title": "Intellectual Property"
+  },
+  {
+    "id": "limitation-of-liability",
+    "title": "Limitation of Liability"
+  },
+  {
+    "id": "governing-law",
+    "title": "Governing Law"
+  },
+  {
+    "id": "changes-to-these-terms",
+    "title": "Changes to These Terms"
+  },
+  {
+    "id": "contact",
+    "title": "Contact"
+  }
+];
+
 export default function LegalPage() {
   return (
     <>
-      <PageHero>
+      <PageHero variant="compact">
         <PageShell>
           <RevealGroup>
             <RevealItem className="mb-4">
@@ -35,9 +75,9 @@ export default function LegalPage() {
         </PageShell>
       </PageHero>
       <PageSection>
-        <PageShell className="max-w-3xl space-y-8">
+        <DocumentLayout toc={TOC} className="space-y-8">
           <Reveal>
-            <section>
+            <section id="company-information" className="scroll-mt-24">
               <h2 className="text-2xl font-semibold">Company Information</h2>
               <p className="mt-3 text-muted-foreground">
                 Cafton Software Development Services is registered with the
@@ -49,7 +89,7 @@ export default function LegalPage() {
           </Reveal>
 
           <Reveal>
-            <section>
+            <section id="business-registration" className="scroll-mt-24">
               <h2 className="text-2xl font-semibold">Business Registration</h2>
               <p className="mt-3 text-muted-foreground">
                 Cafton holds the following registrations with the Philippine
@@ -92,7 +132,7 @@ export default function LegalPage() {
           </Reveal>
 
           <Reveal>
-            <section>
+            <section id="terms-of-use" className="scroll-mt-24">
               <h2 className="text-2xl font-semibold">Terms of Use</h2>
               <p className="mt-3 text-muted-foreground">
                 By accessing or using this website, you agree to these terms.
@@ -103,7 +143,7 @@ export default function LegalPage() {
           </Reveal>
 
           <Reveal>
-            <section>
+            <section id="use-of-this-website" className="scroll-mt-24">
               <h2 className="text-2xl font-semibold">Use of This Website</h2>
               <p className="mt-3 text-muted-foreground">
                 This website and its contents are provided for general
@@ -116,7 +156,7 @@ export default function LegalPage() {
           </Reveal>
 
           <Reveal>
-            <section>
+            <section id="intellectual-property" className="scroll-mt-24">
               <h2 className="text-2xl font-semibold">Intellectual Property</h2>
               <p className="mt-3 text-muted-foreground">
                 The Cafton name, logo, and the content of this website are the
@@ -128,10 +168,8 @@ export default function LegalPage() {
           </Reveal>
 
           <Reveal>
-            <section>
-              <h2 className="text-2xl font-semibold">
-                Limitation of Liability
-              </h2>
+            <section id="limitation-of-liability" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Limitation of Liability</h2>
               <p className="mt-3 text-muted-foreground">
                 This website is provided as is, without warranties of any
                 kind. To the fullest extent permitted by law, Cafton is not
@@ -142,7 +180,7 @@ export default function LegalPage() {
           </Reveal>
 
           <Reveal>
-            <section>
+            <section id="governing-law" className="scroll-mt-24">
               <h2 className="text-2xl font-semibold">Governing Law</h2>
               <p className="mt-3 text-muted-foreground">
                 These terms are governed by the laws of the Republic of the
@@ -152,10 +190,8 @@ export default function LegalPage() {
           </Reveal>
 
           <Reveal>
-            <section>
-              <h2 className="text-2xl font-semibold">
-                Changes to These Terms
-              </h2>
+            <section id="changes-to-these-terms" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Changes to These Terms</h2>
               <p className="mt-3 text-muted-foreground">
                 We may update this page from time to time as our registration
                 details or business practices change. Continued use of this
@@ -165,7 +201,7 @@ export default function LegalPage() {
           </Reveal>
 
           <Reveal>
-            <section>
+            <section id="contact" className="scroll-mt-24">
               <h2 className="text-2xl font-semibold">Contact</h2>
               <p className="mt-3 text-muted-foreground">
                 For questions about these terms, contact us at
@@ -173,7 +209,7 @@ export default function LegalPage() {
               </p>
             </section>
           </Reveal>
-        </PageShell>
+        </DocumentLayout>
       </PageSection>
       <ProjectCta />
     </>

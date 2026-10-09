@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/layout/page-shell";
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { RelatedProjects } from "@/components/portfolio/related-projects";
+import { ServiceFaq } from "@/components/services/service-faq";
 import { ServiceSystems } from "@/components/services/service-systems";
 import { PillarIllustration } from "@/components/services/pillar-illustrations";
 import { AdjacentNav, neighbours } from "@/components/shared/adjacent-nav";
@@ -16,6 +17,7 @@ import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { DotPattern } from "@/components/shared/dot-pattern";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
+import { serviceFaqs } from "@/data/service-faqs";
 import { listProjectsForService } from "@/lib/repositories/projects";
 import { getServicePillar, servicePillars } from "@/lib/services";
 
@@ -102,6 +104,8 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
       <ServiceSystems systems={pillar.systems} />
 
       <RelatedProjects projects={related} heading="Related work" />
+
+      <ServiceFaq items={serviceFaqs[pillar.slug] ?? []} />
 
       <AdjacentNav
         noun="service"

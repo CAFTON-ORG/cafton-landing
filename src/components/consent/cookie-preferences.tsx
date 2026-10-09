@@ -49,6 +49,7 @@ function PreferencesForm() {
 
   return (
     <>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pt-5 sm:px-6 sm:pt-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <Dialog.Title className="text-xl font-bold">Cookie preferences</Dialog.Title>
@@ -57,7 +58,7 @@ function PreferencesForm() {
             from &ldquo;Cookie settings&rdquo; in the footer.
           </Dialog.Description>
         </div>
-        <Dialog.Close className="-mr-2 -mt-1 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring">
+        <Dialog.Close className="-mr-2 -mt-1 flex size-11 shrink-0 sm:size-9 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring">
           <X className="size-5" aria-hidden="true" />
           <span className="sr-only">Close</span>
         </Dialog.Close>
@@ -92,16 +93,21 @@ function PreferencesForm() {
         </Link>
         .
       </p>
+      <div className="h-5" />
+      </div>
 
-      <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-        <Button variant="outline" className="flex-1 cursor-pointer" onClick={rejectAll}>
+      <div className="grid shrink-0 grid-cols-2 gap-2 border-t px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:flex sm:px-6 sm:pb-6">
+        <Button
+          className="col-span-2 cursor-pointer sm:order-last sm:flex-1"
+          onClick={() => save({ embeds })}
+        >
+          Save choices
+        </Button>
+        <Button variant="outline" className="cursor-pointer sm:flex-1" onClick={rejectAll}>
           Reject non-essential
         </Button>
-        <Button variant="outline" className="flex-1 cursor-pointer" onClick={acceptAll}>
+        <Button variant="outline" className="cursor-pointer sm:flex-1" onClick={acceptAll}>
           Accept all
-        </Button>
-        <Button className="flex-1 cursor-pointer" onClick={() => save({ embeds })}>
-          Save choices
         </Button>
       </div>
     </>
@@ -125,7 +131,7 @@ export function CookiePreferences() {
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-80 bg-black/50 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-81 max-h-[calc(100svh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border bg-background p-6 shadow-2xl outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 motion-reduce:animate-none">
+        <Dialog.Content className="fixed inset-x-0 bottom-0 z-81 flex max-h-[min(90svh,44rem)] flex-col rounded-t-2xl border border-b-0 bg-background shadow-2xl outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-bottom-8 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-8 motion-reduce:animate-none sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[calc(100%-2rem)] sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:border-b sm:data-[state=closed]:zoom-out-95 sm:data-[state=closed]:slide-out-to-bottom-0 sm:data-[state=open]:zoom-in-95 sm:data-[state=open]:slide-in-from-bottom-0">
           <PreferencesForm />
         </Dialog.Content>
       </Dialog.Portal>

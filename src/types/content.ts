@@ -167,3 +167,8 @@ export interface Partner {
   description?: string;
   links?: PartnerLink[];
 }
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}

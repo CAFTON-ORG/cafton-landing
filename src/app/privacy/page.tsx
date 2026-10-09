@@ -9,6 +9,7 @@ import {
 import { ProjectCta } from "@/components/sections/home/project-cta";
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
+import { DocumentLayout } from "@/components/shared/document-layout";
 import { PolicySection } from "@/components/privacy/policy-section";
 import { cookies, PRIVACY_LAST_UPDATED, rights } from "@/data/privacy";
 import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
@@ -19,6 +20,45 @@ export const metadata: Metadata = pageMetadata({
     "How Cafton collects, uses, and protects your personal information, and how we use cookies, under the Data Privacy Act of 2012.",
   path: "/privacy",
 });
+
+const TOC = [
+  {
+    "id": "who-we-are",
+    "title": "Who we are"
+  },
+  {
+    "id": "information-we-collect",
+    "title": "Information we collect"
+  },
+  {
+    "id": "how-we-use-it",
+    "title": "How we use it"
+  },
+  {
+    "id": "who-we-share-it-with",
+    "title": "Who we share it with"
+  },
+  {
+    "id": "cookies",
+    "title": "Cookies and similar technologies"
+  },
+  {
+    "id": "how-long-we-keep-it",
+    "title": "How long we keep it"
+  },
+  {
+    "id": "how-we-protect-it",
+    "title": "How we protect it"
+  },
+  {
+    "id": "your-rights",
+    "title": "Your rights"
+  },
+  {
+    "id": "changes-to-this-policy",
+    "title": "Changes to this policy"
+  }
+];
 
 export default function PrivacyPage() {
   return (
@@ -46,7 +86,7 @@ export default function PrivacyPage() {
       </PageHero>
 
       <PageSection>
-        <PageShell className="max-w-3xl space-y-10">
+        <DocumentLayout toc={TOC} className="space-y-10">
           <PolicySection title="Who we are">
             <p>
               This website is run by Cafton Software Development Services
@@ -239,7 +279,7 @@ export default function PrivacyPage() {
               .
             </p>
           </PolicySection>
-        </PageShell>
+        </DocumentLayout>
       </PageSection>
       <ProjectCta />
     </>

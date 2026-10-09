@@ -4,8 +4,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import type { FaqItem } from "@/types/content";
 
-const faqs: { question: string; answer: string }[] = [
+const faqs: FaqItem[] = [
   {
     question: "Do we need a registered business to reach out?",
     answer:
@@ -39,9 +40,14 @@ const faqs: { question: string; answer: string }[] = [
 ];
 
 export function Faq() {
+  return <FaqList items={faqs} />;
+}
+
+/** An accordion of questions; one open at a time. */
+export function FaqList({ items }: { items: FaqItem[] }) {
   return (
     <Accordion type="single" collapsible className="w-full">
-      {faqs.map((item, index) => (
+      {items.map((item, index) => (
         <AccordionItem key={item.question} value={`item-${index}`}>
           <AccordionTrigger className="text-left text-base font-semibold">
             {item.question}

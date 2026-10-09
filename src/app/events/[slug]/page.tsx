@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/structured-data";
+import { JsonLd } from "@/components/shared/json-ld";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -40,30 +43,14 @@ export async function generateMetadata({ params }: EventPageProps): Promise<Meta
   const event = getEvent(slug);
   if (!event) return {};
 
-  return {
-    title: `${event.title} - CAFTON Events`,
+  return pageMetadata({
+    title: event.title,
     description: event.summary,
-    alternates: { canonical: `/events/${event.slug}` },
-    openGraph: {
-      type: "website",
-      title: `${event.title} - CAFTON`,
-      description: event.summary,
-      url: `/events/${event.slug}`,
-      images: event.poster
-        ? [
-            {
-              url: event.poster.src,
-              width: event.poster.width,
-              height: event.poster.height,
-              alt: event.poster.alt,
-            },
-          ]
-        : event.prizes
-            .filter((prize) => prize.image)
-            .slice(0, 1)
-            .map((prize) => ({ url: prize.image!, alt: prize.imageAlt })),
-    },
-  };
+    path: `/events/${event.slug}`,
+    image: event.poster
+      ? { url: event.poster.src, width: event.poster.width, height: event.poster.height, alt: event.poster.alt }
+      : undefined,
+  });
 }
 
 export default async function EventPage({ params }: EventPageProps) {
@@ -76,6 +63,12 @@ export default async function EventPage({ params }: EventPageProps) {
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Events", path: "/events" },
+          { name: event.title, path: `/events/${event.slug}` },
+        ])}
+      />
       <PageHero>
         <PageShell>
           <Link

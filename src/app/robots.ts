@@ -7,6 +7,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
+      // The contact form's endpoint: nothing there for a search engine.
+      disallow: "/api/",
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

@@ -115,7 +115,7 @@ export const events: CaftonEvent[] = [
     type: "Sponsorship",
     tagline: "Cafton stood behind the vote as a sponsor and technology partner.",
     summary:
-      "Cafton sponsored the Mr. and Ms. Cafton's Choice Award and powered its voting with the Cafton Voting App. The winners have been chosen and received their awards and Cafton merch.",
+      "Cafton sponsored the Mr. and Ms. Cafton's Choice Award and powered its voting with the Cafton Voting App. The winners have been chosen.",
     closed: true,
     poster: {
       src: "/events/mr-and-ms-cafton-choice-award/poster.jpg",

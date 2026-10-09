@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import {
   PageHero,
   PageSection,
@@ -12,12 +13,12 @@ import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { blogPosts } from "@/lib/blog";
 
-export const metadata: Metadata = {
-  title: "Blog - CAFTON",
+export const metadata: Metadata = pageMetadata({
+  title: "Blog",
   description:
     "Insights from Cafton on building useful technology: process, engineering, and lessons from real projects.",
-  alternates: { canonical: "/blog" },
-};
+  path: "/blog",
+});
 
 const PAGE_SIZE = 6;
 

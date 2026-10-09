@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { Suspense } from "react";
 import {
   PageHero,
@@ -13,12 +14,12 @@ import { Clock3, Mail } from "lucide-react";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata: Metadata = {
-  title: "Contact - CAFTON",
+export const metadata: Metadata = pageMetadata({
+  title: "Contact",
   description:
-    "Tell us what you're building, what isn't working, or what you'd like to improve.",
-  alternates: { canonical: "/contact" },
-};
+    "Tell us what you are building, what is not working, or what you would like to improve. We usually reply within one business day.",
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, ORGANIZATION_ID } from "@/lib/structured-data";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -35,11 +37,12 @@ export async function generateMetadata({
   const post = getBlogPost(slug);
   if (!post) return {};
 
-  return {
-    title: `${post.title} - CAFTON Blog`,
+  return pageMetadata({
+    title: post.title,
     description: post.excerpt,
-    alternates: { canonical: `/blog/${post.slug}` },
-  };
+    path: `/blog/${post.slug}`,
+    type: "article",
+  });
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
@@ -53,13 +56,24 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     headline: post.title,
     description: post.excerpt,
     datePublished: post.date,
+    dateModified: post.date,
     url: `${SITE_URL}/blog/${post.slug}`,
-    author: { "@type": "Organization", name: "Cafton" },
+    mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
+    image: `${SITE_URL}/cafton-lengthwise.png`,
+    inLanguage: "en-PH",
+    author: { "@id": ORGANIZATION_ID },
+    publisher: { "@id": ORGANIZATION_ID },
   };
 
   return (
     <>
       <JsonLd data={blogPostingJsonLd} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Blog", path: "/blog" },
+          { name: post.title, path: `/blog/${post.slug}` },
+        ])}
+      />
       <PageHero>
         <PageShell>
           <RevealGroup>

@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd } from "@/lib/structured-data";
+import { JsonLd } from "@/components/shared/json-ld";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
@@ -29,11 +32,11 @@ export async function generateMetadata({
   const project = getProject(slug);
   if (!project) return {};
 
-  return {
-    title: `${project.client} - CAFTON Portfolio`,
+  return pageMetadata({
+    title: `${project.client}: ${project.title}`,
     description: project.summary,
-    alternates: { canonical: `/portfolio/${project.slug}` },
-  };
+    path: `/portfolio/${project.slug}`,
+  });
 }
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
@@ -49,6 +52,12 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Portfolio", path: "/portfolio" },
+          { name: project.client, path: `/portfolio/${project.slug}` },
+        ])}
+      />
       <PageHero>
         <PageShell>
           <Link
@@ -108,7 +117,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
                   <RevealGroup className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {details.map(({ label, body }) => (
                       <RevealItem key={label}>
-                        <h3 className="font-semibold">{label}</h3>
+                        <h2 className="font-semibold">{label}</h2>
                         <p className="mt-2 text-sm text-muted-foreground">
                           {body}
                         </p>

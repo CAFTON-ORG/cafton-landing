@@ -38,6 +38,8 @@ interface RevealGroupProps {
 interface RevealItemProps extends RevealGroupProps {
   /** Position within the group; set by `RevealGroup`, drives the stagger. */
   index?: number;
+  /** Use "li" when the group is a `ul`/`ol`, so the list keeps valid markup. */
+  as?: "div" | "li";
 }
 
 /** Wrap a list/grid; each direct `<RevealItem>` child staggers in after the one before it. */
@@ -51,13 +53,13 @@ export function RevealGroup({ children, className }: RevealGroupProps) {
   );
 }
 
-export function RevealItem({ children, className, index = 0 }: RevealItemProps) {
+export function RevealItem({ children, className, index = 0, as: Tag = "div" }: RevealItemProps) {
   return (
-    <div
+    <Tag
       className={cn("reveal", className)}
       style={{ "--reveal-index": index } as CSSProperties}
     >
       {children}
-    </div>
+    </Tag>
   );
 }

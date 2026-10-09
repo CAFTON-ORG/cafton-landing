@@ -264,6 +264,13 @@ main {
   }
 }
 
+/* The cookie notice is rendered on the server so it paints with the first
+   frame; the inline script in the root layout sets data-consent before paint
+   when a choice already exists, which keeps it hidden for returning visitors. */
+html[data-consent] [data-cookie-banner] {
+  display: none;
+}
+
 /* Lenis drives smooth scrolling in JS. A native `scroll-behavior: smooth` on
    top of it smooths every programmatic scroll a second time and makes the
    page feel laggy, so it has to be off whenever Lenis is running. */

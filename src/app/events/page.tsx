@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import {
@@ -20,12 +21,12 @@ import {
   type EventStatus,
 } from "@/lib/events";
 
-export const metadata: Metadata = {
-  title: "Events - CAFTON",
+export const metadata: Metadata = pageMetadata({
+  title: "Events",
   description:
-    "Giveaways, merch drops, and community events from CAFTON. See what is open now and how to join.",
-  alternates: { canonical: "/events" },
-};
+    "Giveaways, merch drops, and community events from Cafton. See what is open now, what you can win, and how to join.",
+  path: "/events",
+});
 
 // Status depends on the current date, so refresh the static page regularly.
 export const revalidate = 600;

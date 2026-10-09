@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Image from "next/image";
 import {
   PageHero,
@@ -9,12 +10,12 @@ import { ProjectCta } from "@/components/sections/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata: Metadata = {
-  title: "Legal - CAFTON",
+export const metadata: Metadata = pageMetadata({
+  title: "Legal",
   description:
-    "Legal information for Cafton Software Development Services, including registration details and terms of use.",
-  alternates: { canonical: "/legal" },
-};
+    "Legal information for Cafton Software Development Services, including business registration details.",
+  path: "/legal",
+});
 
 export default function LegalPage() {
   return (

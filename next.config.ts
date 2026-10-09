@@ -21,7 +21,6 @@ const CSP_REPORT_ONLY = [
   "font-src 'self' data:",
   "connect-src 'self' https://challenges.cloudflare.com https://*.gleam.io https://*.gleamjs.io",
   "frame-src https://challenges.cloudflare.com https://gleam.io https://*.gleam.io",
-  "upgrade-insecure-requests",
 ].join("; ");
 
 const nextConfig: NextConfig = {

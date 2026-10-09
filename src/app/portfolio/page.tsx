@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import {
   PageHero,
   PageSection,
@@ -12,12 +13,12 @@ import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { projects } from "@/lib/projects";
 
-export const metadata: Metadata = {
-  title: "Portfolio - CAFTON",
+export const metadata: Metadata = pageMetadata({
+  title: "Portfolio",
   description:
-    "Case studies of technology CAFTON has built around real problems: disaster response, restaurant and retail operations, and more.",
-  alternates: { canonical: "/portfolio" },
-};
+    "Case studies of software Cafton has built around real problems: disaster response, restaurant and retail operations, online elections, and more.",
+  path: "/portfolio",
+});
 
 const PAGE_SIZE = 6;
 

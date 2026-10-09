@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import {
@@ -16,12 +17,12 @@ import { PartnersSection } from "@/components/sections/partners";
 import { servicePillars } from "@/lib/services";
 import { coreValues as values } from "@/lib/values";
 
-export const metadata: Metadata = {
-  title: "About - CAFTON",
+export const metadata: Metadata = pageMetadata({
+  title: "About",
   description:
-    "Cafton is a software development company in Baguio City. We help businesses, organizations and emerging ventures solve real-world challenges with practical digital solutions.",
-  alternates: { canonical: "/about" },
-};
+    "Cafton is a software development company in Baguio City helping businesses and organizations solve real problems with practical digital solutions.",
+  path: "/about",
+});
 
 const facts = ["Est. 2026", "Baguio City", "Remote, nationwide"];
 
@@ -198,7 +199,7 @@ export default function About() {
           <RevealGroup>
             <ol className="relative border-l pl-8 sm:pl-10">
               {chapters.map((chapter, index) => (
-                <RevealItem key={chapter.label} className="relative pb-12 last:pb-0">
+                <RevealItem as="li" key={chapter.label} className="relative pb-12 last:pb-0">
                   <span
                     aria-hidden="true"
                     className="absolute -left-[2.4rem] top-1 size-3 rounded-full border-2 border-foreground bg-background sm:-left-[2.9rem]"
@@ -293,7 +294,7 @@ export default function About() {
           <RevealGroup>
             <ol className="border-b">
               {values.map((value, index) => (
-                <RevealItem key={value.title} className="group border-t">
+                <RevealItem as="li" key={value.title} className="group border-t">
                   <div className="grid gap-x-8 gap-y-2 py-7 sm:grid-cols-[5rem_1fr] sm:py-9">
                     <span
                       aria-hidden="true"

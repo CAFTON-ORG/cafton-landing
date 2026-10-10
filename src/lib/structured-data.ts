@@ -31,6 +31,7 @@ export const siteJsonLd = {
         "https://www.instagram.com/cafton.official",
         "https://www.linkedin.com/company/cafton",
         "https://www.tiktok.com/@cafton.official",
+        "https://x.com/cafton_official",
         "https://www.youtube.com/@caftonofficial",
       ],
     },

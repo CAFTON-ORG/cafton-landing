@@ -37,6 +37,13 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
   },
 
+  // The product was renamed Scanato -> Scanoto; keep old links working.
+  async redirects() {
+    return [
+      { source: '/portfolio/scanato', destination: '/portfolio/scanoto', permanent: true },
+    ];
+  },
+
   // Headers for better security and performance
   async headers() {
     return [

@@ -23,16 +23,16 @@ export const projects: Project[] = [
     imageAlt: "iLigtas live geofencing alerts dashboard",
   },
   {
-    slug: "scanato",
+    slug: "scanoto",
     authorId: "cafton",
-    client: "Scanato",
+    client: "Scanoto",
     title: "Scan the Table. Run the House.",
     category: "SaaS Product",
     services: ["operations", "product-builds"],
     summary:
       "A scan-to-order platform unifying QR ordering, payments, and real-time inventory for restaurants and retail, from the table to the kitchen to the point of sale.",
     description:
-      "Scanato is a scan-to-order platform that lets restaurant and retail guests order directly from their phones via table-specific QR codes, while unifying ordering, payment processing, and inventory management in a single system. It removes manual ticket copying and disconnected point-of-sale data entry.",
+      "Scanoto is a scan-to-order platform that lets restaurant and retail guests order directly from their phones via table-specific QR codes, while unifying ordering, payment processing, and inventory management in a single system. It removes manual ticket copying and disconnected point-of-sale data entry.",
     problem:
       "Orders placed at the table, the counter, and online each lived in their own disconnected system. Menus, tickets, and inventory drifted out of sync with each other.",
     solution:
@@ -41,8 +41,8 @@ export const projects: Project[] = [
     // asset for now and swap in a real product screenshot later.
     imageLight: "/scanato-light.png",
     imageDark: "/scanato-dark.png",
-    imageAlt: "Scanato brand mark",
-    liveUrl: "https://scanato.cafton.com",
+    imageAlt: "Scanoto home page: scan the table, run the house",
+    liveUrl: "https://scanoto.cafton.com",
   },
   {
     slug: "cafton-voting-app",
@@ -68,23 +68,43 @@ export const projects: Project[] = [
     slug: "jamils-mural-arts",
     authorId: "cafton",
     client: "Jamil's Mural Arts",
-    title: "A Portfolio Site Built Around the Work Itself",
-    category: "Website",
-    services: ["growth"],
+    title: "Hand-Painted Murals, Booked Online",
+    category: "Web Application",
+    services: ["growth", "operations", "product-builds"],
     summary:
-      "A portfolio website for a mural arts studio, built to showcase completed murals and make it simple for new clients to reach out about a commission.",
+      "A full platform for a mural studio: a portfolio site that shows the work, an online inquiry form for new commissions, and a private dashboard for running leads, scheduling, and content.",
     description:
-      "Mural work sells on being seen. Jamil's Mural Arts needed a home for that work beyond scattered social media posts: a site organized around the murals themselves, with a clear, low-friction way for a prospective client to get in touch about a new one.",
+      "Jamil's Mural Arts began as a portfolio and is now the system the studio runs on. The public site presents the murals, services, and blog; a four-step inquiry form takes new commissions with project details and preferred timing; and an invite-only dashboard gives the studio a sales pipeline, a schedule, and editing for every page of content, with roles that decide who can do what.",
     problem:
-      "The studio's past work lived across social platforms with no single place to browse it, and no clear next step for someone who wanted to commission a piece.",
+      "A portfolio alone shows the work but leaves everything after it manual. Past murals were scattered across social media, new inquiries had no structured path in, and keeping the site current meant asking a developer for every change.",
     solution:
-      "A dedicated portfolio site built around the work, with a straightforward inquiry path for new commissions.",
-    // Cover is the studio's own brand mark -- no product screenshot exists
-    // yet since the site isn't live. Not fabricated; a real live URL and
-    // real site photography slot in here once it ships.
-    imageLight: "/partners/jamils-mural-arts.png",
-    imageDark: "/partners/jamils-mural-arts.png",
-    imageAlt: "Jamil's Mural Arts brand mark",
-    imageFit: "contain",
+      "One connected system. The public site sells the work and collects structured inquiries, protected against spam and confirmed by email. Behind it, a private dashboard tracks each lead through a pipeline, schedules site visits, and lets the team edit projects, posts, services, and testimonials, with role-based access for staff.",
+    imageLight: "/projects/jamils/home.jpg",
+    imageDark: "/projects/jamils/home.jpg",
+    imageAlt: "Jamil's Mural Arts home page: Walls worth looking at",
+    media: [
+      {
+        src: "/projects/jamils/portfolio.jpg",
+        alt: "Portfolio page filtered by commercial, residential, and public murals",
+        width: 1440,
+        height: 900,
+        caption: "Portfolio with category filters",
+      },
+      {
+        src: "/projects/jamils/services.jpg",
+        alt: "Services page listing residential murals and what each is great for",
+        width: 1440,
+        height: 900,
+        caption: "Services, each with what it suits",
+      },
+      {
+        src: "/projects/jamils/booking.jpg",
+        alt: "Four-step project inquiry form with project type options",
+        width: 1440,
+        height: 900,
+        caption: "Four-step project inquiry",
+      },
+    ],
+    liveUrl: "https://jamilsmuralarts.com",
   },
 ];

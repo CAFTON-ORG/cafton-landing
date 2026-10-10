@@ -12,14 +12,14 @@ const MAX_TILES = 5;
 
 /**
  * Where each tile sits, by how many photos there are. One photo keeps its own
- * proportions; two to four fill an even grid; five or more become a mosaic
+ * proportions; two to four fill an even grid (three: a wide lead above two); five or more become a mosaic
  * with one lead photo, so a long set never grows into a long column.
  */
 const LAYOUTS: Record<number, { grid: string; tiles: string[] }> = {
   2: { grid: "grid-cols-2 aspect-[8/3]", tiles: ["", ""] },
   3: {
-    grid: "grid-cols-2 grid-rows-2 aspect-[3/2]",
-    tiles: ["row-span-2", "", ""],
+    grid: "grid-cols-2",
+    tiles: ["col-span-2 aspect-[2/1]", "aspect-[16/10]", "aspect-[16/10]"],
   },
   4: { grid: "grid-cols-2 grid-rows-2 aspect-[4/3]", tiles: ["", "", "", ""] },
   5: {

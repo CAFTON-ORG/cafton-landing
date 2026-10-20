@@ -98,15 +98,15 @@ export default function RootLayout({
             from the dark-only period can't override the dark default. */}
         <ThemeProvider defaultTheme="dark" storageKey={THEME_STORAGE_KEY}>
           <ConsentProvider>
-          <SmoothScroll />
-          <RevealObserver />
-          <Navbar />
-          <div className="min-h-svh bg-background">
-            <main id="main" tabIndex={-1} className="outline-none">
-              {children}
-            </main>
-          </div>
-          <Footer />
+            <SmoothScroll />
+            <RevealObserver />
+            <Navbar />
+            <div className="min-h-svh bg-background">
+              <main id="main" tabIndex={-1} className="outline-none">
+                {children}
+              </main>
+            </div>
+            <Footer />
           </ConsentProvider>
         </ThemeProvider>
       </body>

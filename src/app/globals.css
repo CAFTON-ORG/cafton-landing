@@ -53,7 +53,6 @@
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
-  --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
 }
@@ -78,6 +77,16 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
+}
+
+/* Outlined display type. The glyph is filled with the page colour so the
+   variable font's overlapping contours don't show as lines, and the stroke is
+   painted first so the fill covers its inner half: the visible line is half of
+   --outline-width, so it is set larger than the line wanted. */
+@utility text-outline {
+  color: var(--background);
+  -webkit-text-stroke: var(--outline-width, 3px) var(--foreground);
+  paint-order: stroke fill;
 }
 
 @layer base {
@@ -135,13 +144,15 @@ main {
   animation-play-state: paused;
 }
 
-/* SiteLoader: the Cafton mark draws itself in (SVG stroke-dashoffset, using
-   pathLength="1" so the dash math works regardless of the path's real
-   length), then the filled mark fades in with a soft pulsing glow, while
-   two rings pulse outward behind it. Purely a CSS animation, entirely
-   decoupled from the loader's own dismiss timing (see site-loader.tsx) --
-   that separation is deliberate: the visuals can be as elaborate as
-   wanted without risking that logic again. */
+/* SiteLoader (see site-loader.tsx). Sequence, in order:
+   1. the Cafton mark draws itself (SVG stroke-dashoffset; pathLength="1" keeps
+      the dash math independent of the path's real length), then fills in;
+   2. viewfinder brackets -- the same motif as the home hero -- converge on it;
+   3. the wordmark rises in letter by letter, then a thin line starts sweeping
+      beneath it for as long as the loader stays up.
+   Only transform and opacity are animated, so everything runs on the
+   compositor; there is deliberately no animated filter/shadow. The visuals are
+   decoupled from the loader's own dismiss timing in site-loader.tsx. */
 @keyframes loader-draw {
   to {
     stroke-dashoffset: 0;
@@ -157,24 +168,46 @@ main {
   }
 }
 
-@keyframes loader-glow {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 0px color-mix(in oklch, var(--foreground) 55%, transparent));
+@keyframes loader-lock {
+  from {
+    opacity: 0;
+    transform: scale(1.45);
   }
-  50% {
-    filter: drop-shadow(0 0 22px color-mix(in oklch, var(--foreground) 55%, transparent));
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-@keyframes loader-ring {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.45;
-  }
-  100% {
-    transform: scale(1.9);
+@keyframes loader-letter {
+  from {
     opacity: 0;
+    transform: translateY(0.7em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes loader-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes loader-halo {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
   }
 }
 
@@ -183,13 +216,24 @@ main {
 }
 
 .animate-loader-fill-in {
-  animation:
-    loader-fill-in 0.5s ease forwards 0.95s,
-    loader-glow 2.4s ease-in-out 1.45s infinite;
+  animation: loader-fill-in 0.5s ease forwards 0.95s;
 }
 
-.animate-loader-ring {
-  animation: loader-ring 2.4s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+.animate-loader-lock {
+  animation: loader-lock 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+.animate-loader-letter {
+  animation: loader-letter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(0.7s + var(--i, 0) * 0.06s);
+}
+
+.animate-loader-sweep {
+  animation: loader-sweep 1.3s cubic-bezier(0.65, 0, 0.35, 1) 1.1s infinite;
+}
+
+.animate-loader-halo {
+  animation: loader-halo 2.8s ease-in-out infinite;
 }
 
 /* Scroll reveal (see components/motion/reveal.tsx). `RevealObserver` marks a

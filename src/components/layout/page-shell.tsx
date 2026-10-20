@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { DotPattern } from "@/components/shared/dot-pattern";
+import { MarkWatermark } from "@/components/shared/mark-watermark";
+import { RegistrationMark } from "@/components/shared/registration-mark";
 import { cn } from "@/lib/utils";
 
 type PageShellProps = {
@@ -55,13 +57,19 @@ export function PageHero({ children, image, variant = "default" }: PageHeroProps
           : "pb-20 pt-36 sm:pb-24 sm:pt-40 lg:pb-28 lg:pt-44",
       )}
     >
-      <div className="pointer-events-none absolute inset-0">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <DotPattern size="md" fadeStyle="ellipse" opacity="low" />
+        <div className="absolute inset-0 [background:radial-gradient(circle_at_15%_0%,color-mix(in_oklch,var(--foreground)_8%,transparent)_0%,transparent_55%)]" />
+        {/* A hero with its own image (About) already fills the right side; every other hero gets the mark. */}
+        {!image && (
+          <MarkWatermark className="-right-16 top-1/2 h-[34rem] w-auto -translate-y-1/2 opacity-[0.2] sm:-right-10 sm:h-[40rem] lg:right-[max(-2rem,calc(50%-44rem))] lg:h-[44rem]" />
+        )}
+        {/* Blueprint finish: a hairline that fades out at both ends, with
+            registration marks on the content's left and right edges. */}
+        <div className="absolute inset-x-0 bottom-0 h-px bg-linear-to-r from-transparent via-foreground/30 to-transparent" />
+        <RegistrationMark className="bottom-0 left-[max(1.25rem,calc(50%-38rem))]" />
+        <RegistrationMark className="bottom-0 left-[min(calc(100%-1.25rem),calc(50%+38rem))]" />
       </div>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_15%_0%,color-mix(in_oklch,var(--foreground)_8%,transparent)_0%,transparent_55%)]"
-      />
       <div className="relative">
         {image ? (
           <PageShell className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14">

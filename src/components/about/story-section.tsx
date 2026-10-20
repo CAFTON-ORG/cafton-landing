@@ -22,9 +22,6 @@ const chapters = [
 
 // Filled with the page colour (stroke painted first) so the overlapping
 // contours of the variable font don't show as lines inside the glyphs.
-const OUTLINE =
-  "text-background [-webkit-text-stroke:1.5px_var(--foreground)] [paint-order:stroke]";
-
 export function OurStory() {
   return (
     <>
@@ -41,7 +38,7 @@ export function OurStory() {
             <div>
               <div
                 aria-hidden="true"
-                className="flex font-black uppercase leading-none tracking-tight text-[clamp(3.75rem,13vw,7rem)]"
+                className="flex font-black uppercase leading-none tracking-[0.01em] text-[clamp(3.75rem,13vw,7rem)]"
               >
                 {["C", "A", "F"].map((letter) => (
                   <span
@@ -58,14 +55,14 @@ export function OurStory() {
             </div>
             <span
               aria-hidden="true"
-              className="pt-[0.1em] text-[clamp(2rem,6vw,3.5rem)] font-light leading-none text-muted-foreground/60"
+              className="flex h-[clamp(3.75rem,13vw,7rem)] items-center text-[clamp(2rem,6vw,3.5rem)] font-light leading-none text-muted-foreground/60"
             >
               +
             </span>
             <div>
               <div
                 aria-hidden="true"
-                className={`inline-block font-black uppercase leading-none tracking-tight text-[clamp(3.75rem,13vw,7rem)] ${OUTLINE}`}
+                className="text-outline inline-block font-black uppercase leading-none tracking-[0.01em] text-[clamp(3.75rem,13vw,7rem)]"
               >
                 TON
               </div>

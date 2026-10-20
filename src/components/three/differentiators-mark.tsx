@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, type RefObject } from "react";
+import { memo, useMemo, useRef, type RefObject } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import type { Group } from "three";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
@@ -74,7 +74,9 @@ interface DifferentiatorsMarkProps {
  * ambient rotation plus extra turns tied to how far the user has
  * scrolled through the section it's mounted in.
  */
-export function DifferentiatorsMark({ progressRef }: DifferentiatorsMarkProps) {
+export const DifferentiatorsMark = memo(function DifferentiatorsMark({
+  progressRef,
+}: DifferentiatorsMarkProps) {
   const theme = useResolvedTheme();
   const isDark = theme === "dark";
   const [containerRef, inViewport] = useInViewport<HTMLDivElement>("150px 0px");
@@ -85,9 +87,10 @@ export function DifferentiatorsMark({ progressRef }: DifferentiatorsMarkProps) {
       <Canvas
         key={canvasKey}
         camera={{ position: [0, 0, 9], fov: 36 }}
-        dpr={[1, 1.5]}
+        // Same ceiling as the hero: the mark is flat-shaded geometry, so the
+        // extra pixels above 1.25x cost fill rate without adding detail.
+        dpr={[1, 1.25]}
         gl={{ antialias: false, alpha: true, powerPreference: "low-power" }}
-        performance={{ min: 0.5 }}
         frameloop={inViewport ? "always" : "never"}
         onCreated={handleCreated}
       >
@@ -98,4 +101,4 @@ export function DifferentiatorsMark({ progressRef }: DifferentiatorsMarkProps) {
       </Canvas>
     </div>
   );
-}
+});

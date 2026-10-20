@@ -24,11 +24,8 @@ const NUMBER_SIZE = "text-[clamp(4.5rem,min(20vw,36vh),12rem)]";
 
 const TITLE_SIZE = "text-[clamp(2rem,6vw,4.5rem)]";
 
-// Filled with the page colour (stroke painted first) so the overlapping
-// contours of the variable font don't show as lines inside the glyphs.
-const OUTLINE =
-  "text-background [-webkit-text-stroke:1.5px_var(--foreground)] [paint-order:stroke]";
-
+// Keeps the title readable where it crosses the 3D mark. Not used on the
+// outlined numeral: a glow on a thin stroke just dims it.
 const HALO = "[text-shadow:0_0_24px_var(--background),0_0_8px_var(--background)]";
 
 /** Fallback for reduced-motion / no-WebGL visitors: the same six values as the About page, as a plain list. */
@@ -56,7 +53,7 @@ function StaticDifferentiators() {
                 <div className="grid gap-x-8 gap-y-2 py-7 sm:grid-cols-[5rem_1fr]">
                   <span
                     aria-hidden="true"
-                    className={`text-5xl font-black leading-none tabular-nums sm:text-6xl ${OUTLINE}`}
+                    className="text-outline text-5xl font-black leading-none tabular-nums sm:text-6xl"
                   >
                     {String(index + 1).padStart(2, "0")}
                   </span>
@@ -110,11 +107,19 @@ function ScrollDifferentiators() {
     if (!section) return;
 
     let frame = 0;
+    // Measured once and again on resize, so a scroll frame is arithmetic only
+    // (no layout read). Both are relative to the document, not the viewport.
+    let sectionTop = 0;
+    let sectionHeight = 1;
+
+    const measure = () => {
+      sectionTop = section.getBoundingClientRect().top + window.scrollY;
+      sectionHeight = section.offsetHeight || 1;
+    };
 
     const update = () => {
       frame = 0;
-      const { top } = section.getBoundingClientRect();
-      const next = Math.min(1, Math.max(0, -top / section.offsetHeight));
+      const next = Math.min(1, Math.max(0, (window.scrollY - sectionTop) / sectionHeight));
       progress.current = next;
       const index = Math.min(values.length - 1, Math.floor(next * HOLD_SEGMENTS));
       if (index !== lastIndex.current) {
@@ -126,15 +131,19 @@ function ScrollDifferentiators() {
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
+    const onResize = () => {
+      measure();
+      onScroll();
+    };
 
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         window.addEventListener("scroll", onScroll, { passive: true });
-        window.addEventListener("resize", onScroll);
-        onScroll();
+        window.addEventListener("resize", onResize);
+        onResize();
       } else {
         window.removeEventListener("scroll", onScroll);
-        window.removeEventListener("resize", onScroll);
+        window.removeEventListener("resize", onResize);
       }
     });
     observer.observe(section);
@@ -142,7 +151,7 @@ function ScrollDifferentiators() {
     return () => {
       observer.disconnect();
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);
@@ -156,7 +165,7 @@ function ScrollDifferentiators() {
       ref={sectionRef}
       className="relative"
       // One viewport of scrolling per value, so each gets its moment.
-      style={{ height: `${values.length * 100}vh` }}
+      style={{ height: `${values.length * 100}svh` }}
     >
       <h2 className="sr-only">What guides our work</h2>
 
@@ -180,11 +189,11 @@ function ScrollDifferentiators() {
             </p>
             <div
               key={activeIndex}
-              className="animate-in fade-in slide-in-from-bottom-6 duration-500 motion-reduce:animate-none md:absolute md:left-8 md:top-[8%] md:max-w-[85%]"
+              className="animate-in fade-in slide-in-from-bottom-6 duration-500 motion-reduce:animate-none md:absolute md:left-8 md:top-[9%] md:max-w-[85%]"
             >
               <span
                 aria-hidden="true"
-                className={`block font-black uppercase leading-none ${OUTLINE} ${HALO} ${NUMBER_SIZE}`}
+                className={`text-outline block font-black uppercase leading-none tabular-nums tracking-[0.01em] [--outline-width:4px] ${NUMBER_SIZE}`}
               >
                 {number}
               </span>

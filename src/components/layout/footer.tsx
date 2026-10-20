@@ -2,6 +2,8 @@ import Link from "next/link";
 import { CalendarDays, Mail, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/shared/logo";
+import { DotPattern } from "@/components/shared/dot-pattern";
+import { RegistrationMark } from "@/components/shared/registration-mark";
 import { BackToTop } from "@/components/layout/back-to-top";
 import { socialLinks } from "@/components/layout/social-links";
 import { CookieSettingsButton } from "@/components/consent/cookie-settings-button";
@@ -24,10 +26,6 @@ const legalLinks = [
 const linkClass =
   "inline-block py-1 text-sm text-muted-foreground transition-colors hover:text-foreground";
 
-// Filled with the page colour so the font's overlapping contours don't show as lines.
-const WORDMARK =
-  "text-background [-webkit-text-stroke:1.5px_var(--foreground)] [paint-order:stroke]";
-
 function FooterColumn({
   title,
   children,
@@ -48,7 +46,15 @@ function FooterColumn({
 export function Footer() {
   return (
     <footer className="relative overflow-hidden border-t">
-      <div className="mx-auto max-w-6xl px-5 pb-10 pt-16 sm:px-6 lg:px-8">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        {/* Dot grid and a soft glow from the top-left, as on the page banners. */}
+        <DotPattern size="md" fadeStyle="ellipse" opacity="low" />
+        <div className="absolute inset-0 [background:radial-gradient(circle_at_10%_0%,color-mix(in_oklch,var(--foreground)_7%,transparent)_0%,transparent_50%)]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-foreground/30 to-transparent" />
+        <RegistrationMark className="left-[max(1.25rem,calc(50%-36rem))] top-0" />
+        <RegistrationMark className="left-[min(calc(100%-1.25rem),calc(50%+36rem))] top-0" />
+      </div>
+      <div className="relative mx-auto max-w-6xl px-5 pb-10 pt-16 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_2fr] lg:gap-20">
           <div className="max-w-sm">
             <Link
@@ -160,7 +166,7 @@ export function Footer() {
 
       <p
         aria-hidden="true"
-        className={`pointer-events-none -mb-[0.14em] select-none text-center text-[clamp(4rem,23vw,18rem)] font-black uppercase leading-[0.8] tracking-tight opacity-30 ${WORDMARK}`}
+        className="text-outline pointer-events-none relative select-none pb-[0.06em] text-center text-[clamp(4rem,20.5vw,16rem)] font-black uppercase leading-[0.8] tracking-[0.015em] opacity-70 [--outline-width:3px] [mask-image:linear-gradient(to_bottom,#000_25%,transparent_100%)]"
       >
         Cafton
       </p>

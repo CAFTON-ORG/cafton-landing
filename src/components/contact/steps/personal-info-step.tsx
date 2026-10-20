@@ -106,6 +106,8 @@ export function PersonalInfoStep({
             name="phone"
             autoComplete="tel"
             defaultCountry="PH"
+            international
+            countryCallingCodeEditable={false}
             placeholder="Enter phone number"
             value={formData.phone}
             onChange={onPhoneChange}

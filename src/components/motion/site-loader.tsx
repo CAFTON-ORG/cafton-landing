@@ -111,56 +111,86 @@ export function SiteLoader() {
 
   if (!visible) return null;
 
-  // Reduced-motion visitors get the plain, static, already-resolved mark --
-  // no draw-in, no glow, no rings -- matching this project's standing
+  const surface = `fixed inset-0 z-100 flex items-center justify-center bg-background transition-[opacity,scale] duration-400 ease-out ${
+    dismissing ? "pointer-events-none scale-[1.03] opacity-0" : "opacity-100"
+  }`;
+
+  // Reduced-motion visitors get the plain, static, already-resolved mark and
+  // wordmark -- no draw-in, no sweep -- matching this project's standing
   // reduced-motion convention everywhere else (show the end state, not a
   // disabled-but-still-mounted animation).
   if (reduceMotion) {
     return (
-      <div
-        aria-hidden="true"
-        className={`fixed inset-0 z-100 flex items-center justify-center bg-background transition-opacity duration-400 ${
-          dismissing ? "pointer-events-none opacity-0" : "opacity-100"
-        }`}
-      >
-        <Logo size={88} className="text-foreground" />
+      <div aria-hidden="true" className={surface}>
+        <div className="flex flex-col items-center gap-6">
+          <Logo size={80} className="text-foreground" />
+          <span className="pl-[0.5em] text-sm font-bold uppercase tracking-[0.5em] text-foreground">
+            Cafton
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div
-      aria-hidden="true"
-      className={`fixed inset-0 z-100 flex items-center justify-center bg-background transition-opacity duration-400 ${
-        dismissing ? "pointer-events-none opacity-0" : "opacity-100"
-      }`}
-    >
-      <div className="relative flex size-32 items-center justify-center">
-        {/* Two rings pulsing outward behind the mark, staggered for a layered "sonar" read. */}
-        <span className="animate-loader-ring absolute size-20 rounded-full border border-foreground/40" />
-        <span className="animate-loader-ring absolute size-20 rounded-full border border-foreground/40 [animation-delay:1.2s]" />
+    <div aria-hidden="true" className={surface}>
+      {/* Soft breathing glow behind the mark. */}
+      <div className="animate-loader-halo pointer-events-none absolute size-[28rem] max-w-[90vw] rounded-full [background:radial-gradient(circle,color-mix(in_oklch,var(--foreground)_14%,transparent),transparent_65%)]" />
 
-        <svg
-          viewBox="0 0 36 42"
-          className="relative size-22 overflow-visible"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Outline draws itself in first -- pathLength="1" normalizes the
-              dash math to a 0-1 range regardless of the path's real length,
-              so no JS measurement of the path is needed. */}
-          <path
-            d={LOGO_PATH_D}
-            pathLength={1}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            strokeDasharray={1}
-            strokeDashoffset={1}
-            className="animate-loader-draw text-foreground/70"
-          />
-          {/* Filled mark fades in once the outline finishes, then holds a slow glow pulse. */}
-          <path d={LOGO_PATH_D} fill="currentColor" className="animate-loader-fill-in text-foreground opacity-0" />
-        </svg>
+      <div className="relative flex flex-col items-center gap-8">
+        <div className="relative flex size-36 items-center justify-center">
+          {/* Viewfinder brackets converge on the mark, as on the home hero. */}
+          <div className="animate-loader-lock absolute inset-0">
+            <span className="absolute left-0 top-0 size-5 border-l-2 border-t-2 border-foreground/40" />
+            <span className="absolute right-0 top-0 size-5 border-r-2 border-t-2 border-foreground/40" />
+            <span className="absolute bottom-0 left-0 size-5 border-b-2 border-l-2 border-foreground/40" />
+            <span className="absolute bottom-0 right-0 size-5 border-b-2 border-r-2 border-foreground/40" />
+          </div>
+
+          <svg
+            viewBox="0 0 36 42"
+            className="relative size-20 overflow-visible"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Outline draws itself in first -- pathLength="1" normalizes the
+                dash math to a 0-1 range regardless of the path's real length,
+                so no JS measurement of the path is needed. */}
+            <path
+              d={LOGO_PATH_D}
+              pathLength={1}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              strokeDasharray={1}
+              strokeDashoffset={1}
+              className="animate-loader-draw text-foreground/70"
+            />
+            {/* Filled mark fades in once the outline finishes. */}
+            <path
+              d={LOGO_PATH_D}
+              fill="currentColor"
+              className="animate-loader-fill-in text-foreground opacity-0"
+            />
+          </svg>
+        </div>
+
+        <div className="flex flex-col items-center gap-4">
+          {/* The trailing letter-space is cancelled with left padding so the word sits optically centred. */}
+          <span className="flex pl-[0.5em] text-sm font-bold uppercase tracking-[0.5em] text-foreground">
+            {"CAFTON".split("").map((letter, index) => (
+              <span
+                key={letter}
+                className="animate-loader-letter inline-block"
+                style={{ "--i": index } as React.CSSProperties}
+              >
+                {letter}
+              </span>
+            ))}
+          </span>
+          <span className="animate-loader-fill-in relative h-px w-28 overflow-hidden bg-foreground/15 opacity-0">
+            <span className="animate-loader-sweep absolute inset-y-0 left-0 w-1/2 bg-foreground" />
+          </span>
+        </div>
       </div>
     </div>
   );

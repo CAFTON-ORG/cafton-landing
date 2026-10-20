@@ -25,7 +25,7 @@ const CSP_REPORT_ONLY = [
 
 const nextConfig: NextConfig = {
   experimental: {
-    optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
+    optimizePackageImports: ["lucide-react"],
   },
   turbopack: {},
 
@@ -34,13 +34,13 @@ const nextConfig: NextConfig = {
 
   // Image optimization
   images: {
-    formats: ['image/webp', 'image/avif'],
+    formats: ["image/avif", "image/webp"],
   },
 
   // The product was renamed Scanato -> Scanoto; keep old links working.
   async redirects() {
     return [
-      { source: '/portfolio/scanato', destination: '/portfolio/scanoto', permanent: true },
+      { source: "/portfolio/scanato", destination: "/portfolio/scanoto", permanent: true },
     ];
   },
 
@@ -48,43 +48,43 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: "/(.*)",
         headers: [
           {
-            key: 'X-Frame-Options',
-            value: 'DENY',
+            key: "X-Frame-Options",
+            value: "DENY",
           },
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
+            key: "Referrer-Policy",
+            value: "origin-when-cross-origin",
           },
           {
             // Two years, subdomains included, preload-eligible. Only safe
             // because the site is HTTPS-only -- it is not reversible for
             // visitors who have already seen it until it expires.
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload',
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
           },
           {
             // Nothing here uses these; deny them so injected script can't.
-            key: 'Permissions-Policy',
+            key: "Permissions-Policy",
             value:
-              'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+              "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
           },
           {
-            key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin',
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
           },
           {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on',
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
           },
           {
-            key: 'Content-Security-Policy-Report-Only',
+            key: "Content-Security-Policy-Report-Only",
             value: CSP_REPORT_ONLY,
           },
         ],

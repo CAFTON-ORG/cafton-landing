@@ -5,6 +5,7 @@ import { Inbox } from "lucide-react";
 
 import type { Column } from "@/components/dashboard/data-table/data-table";
 import { ResourceTable } from "@/components/dashboard/data-table/resource-table";
+import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { formatRelative } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
 import { LEADS_TABLE } from "../table";
@@ -58,9 +59,10 @@ const columns: Column<LeadView>[] = [
 ];
 
 export function LeadsTable({ page }: { page: Page<LeadView> }) {
+  const table = useTableParams(LEADS_TABLE);
   return (
     <ResourceTable
-      config={LEADS_TABLE}
+      table={table}
       page={page}
       columns={columns}
       getRowId={(lead) => lead.id}

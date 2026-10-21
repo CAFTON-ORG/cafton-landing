@@ -5,6 +5,7 @@ import { Building2, Plus } from "lucide-react";
 
 import type { Column } from "@/components/dashboard/data-table/data-table";
 import { ResourceTable } from "@/components/dashboard/data-table/resource-table";
+import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { useCan } from "@/components/dashboard/layout/staff-context";
 import { Button } from "@/components/dashboard/ui/button";
 import type { Page } from "@/lib/pagination";
@@ -38,6 +39,7 @@ const columns: Column<OrganizationView>[] = [
 ];
 
 export function OrganizationsTable({ page }: { page: Page<OrganizationView> }) {
+  const table = useTableParams(ORGANIZATIONS_TABLE);
   const canCreate = useCan("organizations:create");
   const add = (
     <OrganizationDialog
@@ -51,7 +53,7 @@ export function OrganizationsTable({ page }: { page: Page<OrganizationView> }) {
 
   return (
     <ResourceTable
-      config={ORGANIZATIONS_TABLE}
+      table={table}
       page={page}
       columns={columns}
       getRowId={(org) => org.id}

@@ -6,6 +6,7 @@ import { useMemo } from "react";
 
 import type { Column } from "@/components/dashboard/data-table/data-table";
 import { ResourceTable } from "@/components/dashboard/data-table/resource-table";
+import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import type { Page } from "@/lib/pagination";
@@ -79,9 +80,11 @@ export function DealsTable({
     [stageKeys],
   );
 
+  const table = useTableParams(config);
+
   return (
     <ResourceTable
-      config={config}
+      table={table}
       page={page}
       columns={columns}
       getRowId={(deal) => deal.id}

@@ -5,6 +5,7 @@ import { Plus, Contact as ContactIcon } from "lucide-react";
 
 import type { Column } from "@/components/dashboard/data-table/data-table";
 import { ResourceTable } from "@/components/dashboard/data-table/resource-table";
+import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { useCan } from "@/components/dashboard/layout/staff-context";
 import { Button } from "@/components/dashboard/ui/button";
 import type { Page } from "@/lib/pagination";
@@ -55,6 +56,7 @@ export function ContactsTable({
   organizations: PersonRef[];
   people: PersonRef[];
 }) {
+  const table = useTableParams(CONTACTS_TABLE);
   const canCreate = useCan("contacts:create");
   const add = (
     <ContactDialog
@@ -70,7 +72,7 @@ export function ContactsTable({
 
   return (
     <ResourceTable
-      config={CONTACTS_TABLE}
+      table={table}
       page={page}
       columns={columns}
       getRowId={(contact) => contact.id}

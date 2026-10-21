@@ -2,21 +2,11 @@ import type { Metadata, Viewport } from "next";
 
 import "./globals.css";
 
-import { ThemeProvider } from "@/components/theme/theme-provider";
 import { inter } from "@/lib/fonts";
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
-import { SmoothScroll } from "@/components/providers/smooth-scroll";
-import { RevealObserver } from "@/components/motion/reveal-observer";
-import { SiteLoader } from "@/components/motion/site-loader";
-import { JsonLd } from "@/components/shared/json-ld";
-import { ConsentProvider } from "@/components/consent/consent-provider";
+import { THEME_STORAGE_KEY } from "@/lib/theme";
 import { CONSENT_COOKIE } from "@/lib/consent";
 import { SITE_URL } from "@/lib/site";
 import { DEFAULT_SOCIAL_IMAGE, SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
-import { siteJsonLd } from "@/lib/structured-data";
-
-const THEME_STORAGE_KEY = "cafton-theme";
 
 // Runs before first paint, for two reasons:
 // - applies a stored light preference so returning light-mode visitors don't
@@ -65,11 +55,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
@@ -84,32 +70,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: INIT_SCRIPT }} />
       </head>
-      <body className={inter.className}>
-        <a
-          href="#main"
-          className="sr-only fixed left-3 top-3 z-110 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background focus:not-sr-only focus:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
-        >
-          Skip to content
-        </a>
-        <SiteLoader />
-        <JsonLd data={siteJsonLd} />
-        {/* Dark by default; visitors can switch with the navbar toggle. A
-            new storage key (not the old "nextjs-ui-theme") so stale values
-            from the dark-only period can't override the dark default. */}
-        <ThemeProvider defaultTheme="dark" storageKey={THEME_STORAGE_KEY}>
-          <ConsentProvider>
-            <SmoothScroll />
-            <RevealObserver />
-            <Navbar />
-            <div className="min-h-svh bg-background">
-              <main id="main" tabIndex={-1} className="outline-none">
-                {children}
-              </main>
-            </div>
-            <Footer />
-          </ConsentProvider>
-        </ThemeProvider>
-      </body>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }

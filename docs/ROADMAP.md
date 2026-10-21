@@ -6,12 +6,12 @@ Order is chosen so each phase delivers value alone and unlocks the next: content
 
 ## Phase 0 - Foundation and tooling
 Goal: a safe base to build on, with no visible change to the public site.
-- [ ] Create feature branch; confirm CI (`.github/workflows/ci.yml`) runs lint + typecheck + build
-- [ ] Add Prettier (+ tailwind plugin), Vitest, Testing Library, Playwright + axe, `verify` script, env validation (`lib/env.ts`)
-- [ ] Add Prisma 7 + Supabase clients; `.env.example`; local PGlite DB script (`db:local`) from artist-app
-- [ ] Move public pages into `app/(site)/` route group (URLs unchanged); prove with sitemap + route snapshot diff
-- [ ] Set up base-nova: second shadcn config for `components/dashboard-ui` without touching `components/ui`; scope dashboard tokens so landing theme is unaffected
-- [ ] ADRs: placement, monolith, auth, UI coexistence, money/soft-delete conventions
+- [x] Create feature branch; confirm CI (`.github/workflows/ci.yml`) runs lint + typecheck + build
+- [x] Add Prettier (+ tailwind plugin), Vitest, Testing Library, Playwright + axe, `verify` script, env validation (`lib/env.ts`)
+- [x] Add Prisma 7 + Supabase clients; `.env.example`; local PGlite DB script (`db:local`) from artist-app
+- [x] Move public pages into `app/(site)/` route group (URLs unchanged); prove with sitemap + route snapshot diff
+- [x] Set up base-nova: second shadcn config for `components/dashboard-ui` without touching `components/ui`; scope dashboard tokens so landing theme is unaffected
+- [x] ADRs: placement, monolith, auth, UI coexistence, money/soft-delete conventions
 - Done when: landing renders pixel-identical, all existing routes 200, CI green.
 
 ## Phase 1 - Auth, RBAC and dashboard shell

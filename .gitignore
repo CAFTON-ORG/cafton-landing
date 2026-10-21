@@ -47,3 +47,6 @@ next-env.d.ts
 # tests
 /playwright-report
 /test-results
+
+# site snapshots (scripts/site-snapshot.mjs)
+/.snapshots

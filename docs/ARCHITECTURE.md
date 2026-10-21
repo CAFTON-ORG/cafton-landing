@@ -54,7 +54,8 @@ src/
       actions.ts             writes, "use server": requirePermission -> Zod -> Prisma -> audit -> revalidate
       schemas.ts             Zod, shared with client forms
       components/            dashboard UI for this domain only
-    cms/  crm/  sales/  delivery/  finance/  hr/  admin/
+    users/  roles/  audit/   (Phase 1: access and accountability)
+    cms/  crm/  sales/  delivery/  finance/  hr/
   config/                    site.ts, navigation.ts, services.ts, values.ts
   providers/                 theme, consent, smooth scroll (app-wide context)
   hooks/                     generic hooks
@@ -80,7 +81,7 @@ Shared spine: `Profile` (staff account) -> `Role` -> `RolePermission`; `AuditLog
 | Domain | Core entities | Key relationships |
 | --- | --- | --- |
 | **CMS** | `BlogPost`, `Author`, `PortfolioProject`, `Service`, `ServiceFaq`, `Event`, `Partner`, `JobOpening`, `LegalPage`, `SeoMeta` | Replaces `src/data/*`. Draft -> review -> published workflow, scheduled publish, revision history |
-| **CRM** | `Organization`, `Contact`, `Lead`, `Deal`, `PipelineStage`, `Activity`, `Task` | Contact form creates Lead (dedup by email); Lead converts to Contact + Organization + Deal. HubSpot becomes optional sync, not the system of record |
+| **CRM** | `Organization`, `Contact`, `Lead`, `Deal`, `PipelineStage`, `Activity`, `Task` | Contact form creates a Lead (linked to an existing contact by email); a Lead converts to Contact + Organization + Deal. HubSpot is not used (ADR 0006) |
 | **Sales** | `CatalogItem`, `Quote`, `QuoteLine`, `Contract`, `Subscription` (retainers) | Deal -> Quote -> Contract; accepted quote seeds Project and Invoice schedule |
 | **Delivery** | `Project`, `Milestone`, `ProjectTask`, `TimeEntry`, `ProjectMember` | Won deal -> Project; time entries feed invoicing and cost reports |
 | **Finance** | `Account` (chart of accounts), `JournalEntry` + `JournalLine` (double entry), `Invoice`, `InvoiceLine`, `Payment`, `Bill`, `Expense`, `Vendor`, `TaxRate`, `BankAccount`, `BankTransaction`, `FiscalPeriod` | Invoice/payment/bill/payroll post balanced journal entries; closed periods are immutable; reports derive from the ledger only |

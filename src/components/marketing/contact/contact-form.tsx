@@ -24,9 +24,9 @@ import { GoalsSystemsStep } from "@/components/marketing/contact/steps/goals-sys
 import { FinalDetailsStep } from "@/components/marketing/contact/steps/final-details-step";
 
 type ContactFormProps = {
-  /** Value sent as the `website_lead_source` HubSpot property, e.g. "Homepage" or "Contact Us Page". */
+  /** Where the enquiry came from, stored on the lead, e.g. "Homepage" or "Contact Us Page". */
   leadSource: string;
-  /** Sent as `context.pageName` in the HubSpot submission. */
+  /** Name of the page the form was on, shown in the lead's first timeline entry. */
   pageName: string;
   className?: string;
 };

@@ -22,7 +22,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
     <>
       <a
         href="#main"
-        className="bg-foreground text-background focus-visible:ring-ring sr-only fixed top-3 left-3 z-110 rounded-full px-4 py-2 text-sm font-medium focus:not-sr-only focus:outline-none focus-visible:ring-[3px]"
+        className="sr-only fixed left-3 top-3 z-110 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background focus:not-sr-only focus:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
       >
         Skip to content
       </a>
@@ -36,7 +36,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
           <SmoothScroll />
           <RevealObserver />
           <Navbar />
-          <div className="bg-background min-h-svh">
+          <div className="min-h-svh bg-background">
             <main id="main" tabIndex={-1} className="outline-none">
               {children}
             </main>

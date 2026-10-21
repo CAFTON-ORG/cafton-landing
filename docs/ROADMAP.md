@@ -17,13 +17,17 @@ Goal: a safe base to build on, with no visible change to the public site.
 - Done when: landing renders pixel-identical, all existing routes 200, CI green.
 
 ## Phase 1 - Auth, RBAC and dashboard shell
-- [ ] Supabase Auth (Google), invite-only trigger, `proxy.ts`, DAL (`getStaff`, `requirePermission`)
-- [ ] `Profile`, `Role`, `RolePermission`, `StaffInvite`, `AuditLog`, `Setting` models + migration
-- [ ] Permission catalogue + built-in roles; `/dashboard/users`, `/dashboard/roles` with escalation guard rails
-- [ ] Shell: sidebar (collapsible), mobile drawer, app bar, breadcrumbs, command palette, theme toggle, `config/navigation.ts` filtered by permission
-- [ ] Shared `DataTable`, form patterns, `ActionResult`/`runAction`, toast, confirm dialog, empty/error/loading states
-- [ ] Audit log viewer; notifications (in-app) skeleton
-- [ ] Tests: permission rules, invite flow, access-denied pages, a11y pass on shell
+- [x] Supabase Auth (Google), invite-only trigger, `proxy.ts`, DAL (`getStaff`, `requirePermission`, `requirePageAccess`) - ADR 0005
+- [x] `Profile`, `Role`, `RolePermission`, `StaffInvite`, `AuditLog` models + migration (`Setting` moved to the first phase that needs it)
+- [x] Permission catalogue + built-in roles (owner, admin, viewer; more arrive with their phase); `/dashboard/users`, `/dashboard/roles` with escalation guard rails
+- [x] Shell: sidebar (collapsible), mobile drawer, app bar, breadcrumbs, command palette, theme toggle, `config/dashboard-navigation.ts` filtered by permission
+- [x] Shared `DataTable` (URL-driven), `ActionResult`/`runAction`, toast, confirm dialog, empty/error/loading/access-denied states
+- [x] Audit log viewer and an append-only audit table; overview page
+- [x] Tests: permission rules, users/roles rules, invite claims, migration + trigger + append-only + RLS via PGlite
+- [x] `npm run staff:invite` to bootstrap the first owner
+- [ ] Apply the migration to the Supabase project, enable the Google provider, invite the first owner (see README), then sign in end to end
+- [ ] Playwright + axe pass on the shell (needs `npx playwright install chromium`)
+- [ ] In-app notifications skeleton (moved to Phase 8 with email digests)
 - Done when: only invited staff can sign in; each role sees only its menu; every mutation writes an audit row.
 
 ## Phase 2 - CMS (replace hard-coded content)
@@ -36,13 +40,17 @@ Goal: a safe base to build on, with no visible change to the public site.
 - Done when: snapshot diff of rendered public HTML (before vs after) shows no change; an editor can publish a blog post that appears on the site without a deploy.
 
 ## Phase 3 - CRM
-- [ ] Models: `Organization`, `Contact`, `Lead`, `Deal`, `PipelineStage`, `Activity`, `Task`, `Tag`
-- [ ] Contact form -> Lead (dedup, spam checks kept); keep HubSpot as optional outbound sync behind a flag
-- [ ] Lead qualification and conversion to Contact + Organization + Deal
-- [ ] Kanban pipeline + table view, stage exit criteria and probabilities, weighted forecast, win/loss reasons
-- [ ] Timeline per record (notes, calls, emails, stage changes), tasks with due dates and reminders, assignment and ownership
-- [ ] Rules module + tests (what can move, close, reopen, delete); CSV import/export; duplicate detection
-- Done when: a website enquiry can be followed to a won deal without leaving the dashboard.
+HubSpot is dropped: the contact form writes to our database and the dashboard is the system of record (ADR 0006).
+- [x] Models: `Organization`, `Contact`, `Lead`, `Deal`, `PipelineStage`, `Activity`, `Task` (tags deferred)
+- [x] Contact form -> Lead (links an existing contact by email; first timeline entry; reply-by task); spam checks kept; HubSpot code, env vars and privacy wording removed
+- [x] Lead qualification, disqualification (reason), reopen, and conversion to Contact + Organization + Deal in one transaction
+- [x] Pipeline board and table views, stage exit criteria and probabilities, weighted forecast, win (value required) and loss (reason required), reopen
+- [x] Timeline per lead, contact and deal (notes, calls, emails, meetings, automatic stage changes); tasks with due dates, assignment and urgency; owner assignment
+- [x] Rules module + tests; a real-database integration test of the whole flow; built-in Sales role
+- [ ] CSV import/export, duplicate detection beyond email, tags, saved views
+- [ ] Email to staff on a new lead and email to contacts (needs Resend, Phase 8)
+- [ ] Edit pipeline stages in the UI
+- Done when: a website enquiry can be followed to a won deal without leaving the dashboard. (Verified against PGlite; verify once more against Supabase after `db:deploy`.)
 
 ## Phase 4 - Sales
 - [ ] Service/product catalog with pricing models (fixed, hourly, retainer), tax category

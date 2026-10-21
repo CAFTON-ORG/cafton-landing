@@ -52,11 +52,40 @@ A blog post, portfolio project, event, partner, service or legal page managed in
 **Published**:
 Visible on the marketing site. Only content with the required fields can be published; published content must be unpublished before deletion.
 
-## Lead capture (CRM)
+## CRM
 
-**Inquiry**:
-A submission of the public contact form. Becomes a Lead in Phase 3.
-_Avoid_: ticket, message.
+**Lead**:
+A website enquiry: one submission of the contact form, kept whole. Status: new, qualified, disqualified or converted. Not yet a relationship.
+_Avoid_: inquiry, ticket, prospect.
+
+**Contact**:
+A person we deal with. Email addresses are unique among live contacts. Created by converting a lead, or by hand.
+_Avoid_: customer, client (a Contact may never buy).
+
+**Organization**:
+A company, school or group that contacts belong to.
+_Avoid_: account, company.
+
+**Deal**:
+One opportunity to sell, tied to a contact (and usually an organization), moving through the pipeline. Has an estimated value until it is won, then a final, locked one.
+_Avoid_: opportunity, project (a Project exists only after a deal is won, from Phase 5).
+
+**Pipeline stage**:
+A step a deal moves through. Each has a win probability. Open stages: New, Discovery, Proposal, Negotiation. Closing stages: Won and Lost.
+_Avoid_: status.
+
+**Convert**:
+Turn a lead into a contact, an organization and a deal in one step.
+
+**Timeline**:
+The history of a lead, contact or deal: notes, calls, emails, meetings and automatic stage changes.
+_Avoid_: activity log (that is the Audit log).
+
+**Task**:
+A dated follow-up, optionally attached to a lead, contact or deal and assigned to a person.
+
+**Weighted forecast**:
+The sum of each open deal's value times its stage's win probability.
 
 ## Money (from Phase 4)
 

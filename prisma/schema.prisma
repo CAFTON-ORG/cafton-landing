@@ -1,6 +1,7 @@
 // Source of truth for the platform's tables. Models are added phase by phase
 // (see docs/ROADMAP.md). Things Prisma cannot express (exclusion constraints,
-// check constraints, auth.users triggers, RLS) live in the migration SQL.
+// check constraints, the auth.users trigger, RLS, append-only triggers) live in
+// the migration SQL.
 
 generator client {
   provider = "prisma-client"
@@ -9,4 +10,294 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ------------------------------------------------------------ access (Phase 1)
+
+model Role {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key         String   @unique
+  name        String   @unique
+  description String?
+  /// System roles take their permissions from code (lib/auth/permissions.ts).
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  permissions RolePermission[]
+  profiles    Profile[]
+  invites     StaffInvite[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId     String @map("role_id") @db.Uuid
+  permission String
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permission])
+  @@map("role_permissions")
+}
+
+/// Sign-up is invite-only: an auth user whose email is not here is rejected by a trigger.
+model StaffInvite {
+  email     String   @id
+  roleId    String   @map("role_id") @db.Uuid
+  invitedBy String?  @map("invited_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@map("staff_invites")
+}
+
+/// One row per signed-in staff member. `id` equals auth.users.id (Supabase Auth).
+model Profile {
+  id        String   @id @db.Uuid
+  email     String
+  fullName  String?  @map("full_name")
+  avatarUrl String?  @map("avatar_url")
+  roleId    String   @map("role_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@map("profiles")
+}
+
+/// Append-only (enforced by a trigger): who did what, to what, when.
+model AuditLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Null for the development preview user and for system actions.
+  actorId    String?  @map("actor_id") @db.Uuid
+  /// Snapshot, so history still reads correctly after the person is removed.
+  actorName  String   @map("actor_name")
+  /// Dotted verb, e.g. "user.invite", "role.update".
+  action     String
+  entity     String
+  entityId   String?  @map("entity_id")
+  summary    String
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([entity, entityId])
+  @@map("audit_log")
+}
+
+// ------------------------------------------------------------------ CRM (Phase 3)
+// Money is stored as integer minor units (centavos) with an ISO currency code.
+// Business records are soft-deleted (deleted_at); tasks and activities are not.
+
+enum LeadStatus {
+  new
+  qualified
+  disqualified
+  converted
+
+  @@map("lead_status")
+}
+
+enum StageKind {
+  open
+  won
+  lost
+
+  @@map("stage_kind")
+}
+
+enum ActivityType {
+  note
+  call
+  email
+  meeting
+  stage_change
+  system
+
+  @@map("activity_type")
+}
+
+model Organization {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  industry  String?
+  size      String?
+  website   String?
+  phone     String?
+  address   String?
+  notes     String?
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  contacts Contact[]
+  deals    Deal[]
+
+  @@index([name])
+  @@map("organizations")
+}
+
+model Contact {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName      String    @map("first_name")
+  lastName       String    @map("last_name")
+  email          String
+  phone          String?
+  position       String?
+  organizationId String?   @map("organization_id") @db.Uuid
+  ownerId        String?   @map("owner_id") @db.Uuid
+  source         String    @default("manual")
+  notes          String?
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedBy      String?   @map("updated_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  deals        Deal[]
+  leads        Lead[]
+  activities   Activity[]
+  tasks        Task[]
+
+  @@index([organizationId])
+  @@index([lastName, firstName])
+  @@map("contacts")
+}
+
+/// A website enquiry (the contact form). `answers` keeps the whole submission; the
+/// promoted columns exist for lists and filters.
+model Lead {
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference          String     @unique @default(dbgenerated("(('LD-'::text || to_char(now(), 'YYYY'::text)) || '-'::text) || lpad((nextval('lead_reference_seq'::regclass))::text, 4, '0'::text)"))
+  firstName          String     @map("first_name")
+  lastName           String     @map("last_name")
+  email              String
+  phone              String?
+  businessName       String?    @map("business_name")
+  goalsArea          String?    @map("goals_area")
+  budget             String?
+  timeline           String?
+  source             String     @default("website")
+  pagePath           String?    @map("page_path")
+  answers            Json
+  status             LeadStatus @default(new)
+  disqualifiedReason String?    @map("disqualified_reason")
+  ownerId            String?    @map("owner_id") @db.Uuid
+  contactId          String?    @map("contact_id") @db.Uuid
+  convertedAt        DateTime?  @map("converted_at") @db.Timestamptz(6)
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?  @map("deleted_at") @db.Timestamptz(6)
+
+  contact    Contact?   @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  deal       Deal?
+  activities Activity[]
+  tasks      Task[]
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([email])
+  @@map("leads")
+}
+
+/// Pipeline stages are data, not an enum, so the sales process can change without a migration.
+model PipelineStage {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key          String    @unique
+  name         String
+  position     Int
+  /// Chance of winning, 0 to 100. Drives the weighted forecast.
+  probability  Int
+  kind         StageKind @default(open)
+  /// What must be true before a deal leaves this stage.
+  exitCriteria String?   @map("exit_criteria")
+
+  deals Deal[]
+
+  @@map("pipeline_stages")
+}
+
+model Deal {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference         String    @unique @default(dbgenerated("(('DL-'::text || to_char(now(), 'YYYY'::text)) || '-'::text) || lpad((nextval('deal_reference_seq'::regclass))::text, 4, '0'::text)"))
+  title             String
+  contactId         String    @map("contact_id") @db.Uuid
+  organizationId    String?   @map("organization_id") @db.Uuid
+  stageId           String    @map("stage_id") @db.Uuid
+  /// Integer minor units (centavos). Null until a value is known.
+  amountMinor       BigInt?   @map("amount_minor")
+  currency          String    @default("PHP")
+  ownerId           String?   @map("owner_id") @db.Uuid
+  expectedCloseDate DateTime? @map("expected_close_date") @db.Date
+  source            String    @default("manual")
+  description       String?
+  lostReason        String?   @map("lost_reason")
+  leadId            String?   @unique @map("lead_id") @db.Uuid
+  stageChangedAt    DateTime  @default(now()) @map("stage_changed_at") @db.Timestamptz(6)
+  wonAt             DateTime? @map("won_at") @db.Timestamptz(6)
+  lostAt            DateTime? @map("lost_at") @db.Timestamptz(6)
+  createdBy         String?   @map("created_by") @db.Uuid
+  updatedBy         String?   @map("updated_by") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Restrict)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  stage        PipelineStage @relation(fields: [stageId], references: [id], onDelete: Restrict)
+  lead         Lead?         @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  activities   Activity[]
+  tasks        Task[]
+
+  @@index([stageId])
+  @@index([contactId])
+  @@index([ownerId])
+  @@map("deals")
+}
+
+/// The timeline. Attached to a lead, contact or deal (at least one).
+model Activity {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type          ActivityType @default(note)
+  body          String
+  leadId        String?      @map("lead_id") @db.Uuid
+  contactId     String?      @map("contact_id") @db.Uuid
+  dealId        String?      @map("deal_id") @db.Uuid
+  createdBy     String?      @map("created_by") @db.Uuid
+  /// Snapshot, like the audit log.
+  createdByName String       @map("created_by_name")
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  lead    Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, createdAt(sort: Desc)])
+  @@index([contactId, createdAt(sort: Desc)])
+  @@index([leadId, createdAt(sort: Desc)])
+  @@map("activities")
+}
+
+model Task {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title      String
+  dueAt      DateTime? @map("due_at") @db.Timestamptz(6)
+  doneAt     DateTime? @map("done_at") @db.Timestamptz(6)
+  assigneeId String?   @map("assignee_id") @db.Uuid
+  leadId     String?   @map("lead_id") @db.Uuid
+  contactId  String?   @map("contact_id") @db.Uuid
+  dealId     String?   @map("deal_id") @db.Uuid
+  createdBy  String?   @map("created_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  lead    Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([assigneeId, doneAt])
+  @@index([dueAt])
+  @@map("tasks")
 }

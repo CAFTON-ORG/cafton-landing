@@ -68,6 +68,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       data-scroll-behavior="smooth"
     >
       <head>
+        {/* Must be a plain <script> in <head>: it runs while the HTML is parsed, before first paint, so a
+            returning light-mode visitor never sees a dark flash. next/script defers it until after
+            hydration, which defeats the purpose. React 19's dev-only "script tag while rendering"
+            notice appears when the layout is re-rendered on the client (Fast Refresh, error overlay);
+            the server-rendered script has already run, so production is unaffected. */}
+        {/* eslint-disable-next-line react/no-danger -- audited: INIT_SCRIPT is a constant built only from our own constants, never from request or user data */}
         <script dangerouslySetInnerHTML={{ __html: INIT_SCRIPT }} />
       </head>
       <body className={inter.className}>{children}</body>

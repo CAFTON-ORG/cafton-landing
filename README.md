@@ -19,13 +19,23 @@ cp .env.example .env.local
 npm run dev            # http://localhost:3000
 ```
 
-The public site runs with no environment variables set. Platform services (database, Supabase, email) are optional until the phase that needs them.
+The public site runs with no environment variables set (the contact form needs the database: without it, visitors are asked to email instead). Platform services (database, Supabase, email) are optional until the phase that needs them.
 
 Optional local database, no Supabase needed:
 
 ```bash
 npm run db:local       # in-memory Postgres (PGlite) built from prisma/migrations
 ```
+
+## Dashboard setup (Supabase)
+
+1. In Supabase, create a project. **Authentication > Providers**: enable **Google** (create OAuth credentials in Google Cloud; Supabase shows the redirect URI). **Authentication > URL Configuration**: add `http://localhost:3000/auth/callback` and your production URL.
+2. Copy `.env.example` to `.env` and fill in `DATABASE_URL` (pooled, port 6543), `DIRECT_URL` (direct or session pooler, port 5432), `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+3. `npm run db:deploy` applies the migrations (tables, built-in roles, the invite-only sign-up trigger, RLS).
+4. `npm run staff:invite -- you@gmail.com owner` creates the first owner. Then sign in at `/login` with that Google account.
+5. Invite everyone else from **Dashboard > People**.
+
+Without Supabase configured, `npm run dev` signs you in automatically as a preview owner so you can work on the UI.
 
 ## Scripts
 
@@ -38,6 +48,7 @@ npm run db:local       # in-memory Postgres (PGlite) built from prisma/migration
 | `npm run format` / `format:check` | Prettier |
 | `npm run db:generate` / `db:deploy` / `db:status` / `db:studio` | Prisma |
 | `npm run db:local` | throw-away local Postgres |
+| `npm run staff:invite -- <email> [role]` | invite a person from the command line (first owner) |
 
 ## Where things go
 

@@ -17,12 +17,7 @@ const baseContactSchema = z.object({
   // Step 1 -- Personal Information
   firstName: z.string().trim().min(1, "First name is required").max(100),
   lastName: z.string().trim().min(1, "Last name is required").max(100),
-  email: z
-    .string()
-    .trim()
-    .min(1, "Email is required")
-    .email("Enter a valid email")
-    .max(254),
+  email: z.string().trim().min(1, "Email is required").email("Enter a valid email").max(254),
   phone: z
     .string()
     .trim()
@@ -218,16 +213,15 @@ export const contactFormDefaults: ContactFormData = {
   notes: "",
 };
 
-export function buildHubSpotMessage(data: ContactFormData) {
+/** Plain-text summary of everything the enquirer told us, for the lead's timeline and the deal's description. */
+export function buildEnquirySummary(data: ContactFormData) {
   const goalsArea = getServicePillar(data.goalsCategory)?.title ?? data.goalsCategory;
 
   return [
     data.buildingFor && `This project is for: ${data.buildingFor}`,
     data.businessName && `Business: ${data.businessName}`,
-    data.industry &&
-      `Industry: ${data.industry === "Other" ? data.industryOther : data.industry}`,
-    data.position &&
-      `Role: ${data.position === "Other" ? data.positionOther : data.position}`,
+    data.industry && `Industry: ${data.industry === "Other" ? data.industryOther : data.industry}`,
+    data.position && `Role: ${data.position === "Other" ? data.positionOther : data.position}`,
     data.businessSize && `Business size: ${data.businessSize}`,
     data.yearsOperating && `Years operating: ${data.yearsOperating}`,
     data.officeAddress && `Office address: ${data.officeAddress}`,
@@ -244,6 +238,5 @@ export function buildHubSpotMessage(data: ContactFormData) {
     .filter(Boolean)
     .join("\n");
 }
-
 
 export * from "@/features/crm/contact-options";

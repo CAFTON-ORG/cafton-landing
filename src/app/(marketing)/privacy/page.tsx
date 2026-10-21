@@ -147,9 +147,11 @@ export default function PrivacyPage() {
           <PolicySection title="Who we share it with">
             <ul className="list-disc space-y-2 pl-5">
               <li>
-                <strong className="font-semibold text-foreground">HubSpot</strong>
-                , which stores contact form submissions for us as a customer
-                relationship tool.
+                <strong className="font-semibold text-foreground">
+                  Our database provider
+                </strong>
+                , which stores contact form submissions and our customer
+                records for us.
               </li>
               <li>
                 <strong className="font-semibold text-foreground">Cloudflare</strong>

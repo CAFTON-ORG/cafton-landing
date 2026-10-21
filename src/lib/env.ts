@@ -11,8 +11,6 @@ const optionalString = z.string().min(1).optional();
  */
 const schema = z.object({
   // Public site (existing)
-  HUBSPOT_PORTAL_ID: optionalString,
-  HUBSPOT_FORM_GUID: optionalString,
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: optionalString,
   TURNSTILE_SECRET_KEY: optionalString,
 
@@ -23,7 +21,7 @@ const schema = z.object({
 
   // Platform: Supabase (Auth + Storage only)
   NEXT_PUBLIC_SUPABASE_URL: z.url().optional(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: optionalString,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: optionalString,
 
   // Platform: email
   RESEND_API_KEY: optionalString,
@@ -44,6 +42,11 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+export const isProduction = process.env.NODE_ENV === "production";
+
+/** DATABASE_URL set: Prisma can be used. */
+export const isDatabaseConfigured = Boolean(env.DATABASE_URL);
 
 /** Read a value the calling feature cannot work without. */
 export function requireEnv<K extends keyof typeof env>(key: K): NonNullable<(typeof env)[K]> {

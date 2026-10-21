@@ -35,10 +35,11 @@ Goal: a safe base to build on, with no visible change to the public site.
 - [x] Seed script copies every bundled item into the database unchanged; idempotent, never overwrites edits (`npm run db:seed-content`)
 - [x] Repositories read the database (bundled content before the first seed or if the database fails); Seeded into the Supabase project
 - [x] Proof: DB round-trip test deep-equals the bundled content; public site built from files and from the database is identical (23 pages)
-- [ ] Dashboard editors with draft / publish, per content type (in progress: blog posts first)
+- [x] Dashboard: blog post editor (draft / publish / unpublish, slug, author, category, cover image with alt text, unsaved-changes guard) and lists with publish / unpublish / delete for posts, projects, events and partners; Content Editor role
+- [ ] Full editors for projects, events, partners and service FAQs (galleries, prizes, steps, links)
 - [ ] Media library on Supabase Storage (upload, alt text required, usage tracking, safe delete)
 - [ ] Scheduled publish, revision history, SEO fields, live preview
-- [ ] On-demand revalidation when content is published (`revalidatePath`)
+- [x] On-demand revalidation when content changes (`revalidatePath`); tested
 - [ ] Contact + careers forms persist submissions (contact done in Phase 3; careers pending)
 - Done when: an editor can publish a blog post that appears on the site without a deploy.
 

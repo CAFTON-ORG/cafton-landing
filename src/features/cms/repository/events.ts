@@ -39,7 +39,12 @@ function toEvent(row: Prisma.EventGetPayload<object>): CaftonEvent {
     poster: poster ?? undefined,
     ...(row.about.length > 0 && { about: row.about }),
     prizesHeading: opt(row.prizesHeading),
-    prizes: parseJson(z.array(eventPrizeSchema), row.prizes, [] as EventPrize[], `prizes of ${where}`),
+    prizes: parseJson(
+      z.array(eventPrizeSchema),
+      row.prizes,
+      [] as EventPrize[],
+      `prizes of ${where}`,
+    ),
     ...(steps.length > 0 && { steps }),
     ...(facts.length > 0 && { facts }),
     closedTitle: opt(row.closedTitle),

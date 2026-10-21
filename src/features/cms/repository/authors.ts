@@ -14,17 +14,17 @@ export async function listAuthors(): Promise<Author[]> {
     {
       populated: () => prisma.author.count(),
       query: async () => {
-        const rows = await prisma.author.findMany({ orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
-        return rows.map(
-          (row): Author => ({
-            id: row.id,
-            kind: row.kind,
-            name: row.name,
-            role: opt(row.role),
-            avatar: opt(row.avatar),
-            url: opt(row.url),
-          }),
-        );
+        const rows = await prisma.author.findMany({
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        });
+        return rows.map((row): Author => ({
+          id: row.id,
+          kind: row.kind,
+          name: row.name,
+          role: opt(row.role),
+          avatar: opt(row.avatar),
+          url: opt(row.url),
+        }));
       },
     },
     () => authors,

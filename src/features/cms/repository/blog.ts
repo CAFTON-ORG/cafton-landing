@@ -13,7 +13,12 @@ import { opt, publicRows, readContent } from "./source";
  */
 
 function toBlogPost(row: Prisma.BlogPostGetPayload<object>): BlogPost {
-  const media = parseJson(z.array(blogMediaSchema), row.media, [] as BlogMedia[], `media of post ${row.slug}`);
+  const media = parseJson(
+    z.array(blogMediaSchema),
+    row.media,
+    [] as BlogMedia[],
+    `media of post ${row.slug}`,
+  );
   return {
     slug: row.slug,
     authorId: row.authorId,

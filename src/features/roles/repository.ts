@@ -1,6 +1,6 @@
 import "server-only";
 
-import { resolvePermissions } from "@/lib/auth/permissions";
+import { SYSTEM_ROLE_ORDER, resolvePermissions } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import type { RoleSummary } from "./types";
@@ -13,9 +13,8 @@ export async function listRoles(): Promise<RoleSummary[]> {
     include: { permissions: true, _count: { select: { profiles: true, invites: true } } },
   });
 
-  const order = ["owner", "admin", "sales", "viewer"];
   const rank = (role: { key: string; isSystem: boolean }) =>
-    role.isSystem ? order.indexOf(role.key) : order.length;
+    role.isSystem ? SYSTEM_ROLE_ORDER.indexOf(role.key as never) : SYSTEM_ROLE_ORDER.length;
   roles.sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
 
   return roles.map((role) => ({

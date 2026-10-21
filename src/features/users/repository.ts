@@ -1,5 +1,6 @@
 import "server-only";
 
+import { SYSTEM_ROLE_ORDER } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
@@ -69,7 +70,9 @@ export async function listUsers(params: TableParams): Promise<Page<DashboardUser
 export async function listRoleOptions(): Promise<RoleOption[]> {
   if (!isDatabaseConfigured) return [];
   const roles = await prisma.role.findMany({ select: roleSelect.select, orderBy: { name: "asc" } });
-  const order = ["owner", "admin", "sales", "viewer"];
-  const rank = (key: string) => (order.includes(key) ? order.indexOf(key) : order.length);
+  const rank = (key: string) => {
+    const index = SYSTEM_ROLE_ORDER.indexOf(key as never);
+    return index === -1 ? SYSTEM_ROLE_ORDER.length : index;
+  };
   return roles.sort((a, b) => rank(a.key) - rank(b.key) || a.name.localeCompare(b.name));
 }

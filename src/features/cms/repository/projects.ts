@@ -13,7 +13,12 @@ import { opt, publicRows, readContent } from "./source";
  */
 
 function toProject(row: Prisma.PortfolioProjectGetPayload<object>): Project {
-  const media = parseJson(z.array(blogImageSchema), row.media, [] as BlogImage[], `media of project ${row.slug}`);
+  const media = parseJson(
+    z.array(blogImageSchema),
+    row.media,
+    [] as BlogImage[],
+    `media of project ${row.slug}`,
+  );
   return {
     slug: row.slug,
     authorId: row.authorId,

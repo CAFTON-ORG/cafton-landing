@@ -9,6 +9,16 @@
  */
 
 export const RESOURCES = {
+  content: {
+    label: "Website content",
+    actions: {
+      view: "View blog posts, projects, events and partners",
+      create: "Create content",
+      update: "Edit content",
+      publish: "Publish and unpublish",
+      delete: "Delete content",
+    },
+  },
   leads: {
     label: "Leads (website enquiries)",
     actions: {
@@ -99,7 +109,10 @@ export function isPermission(value: string): value is Permission {
 
 /* ------------------------------------------------------------ system roles */
 
-export type SystemRoleKey = "owner" | "admin" | "sales" | "viewer";
+export type SystemRoleKey = "owner" | "admin" | "editor" | "sales" | "viewer";
+
+/** The order built-in roles are listed in, most powerful first. Custom roles follow, A to Z. */
+export const SYSTEM_ROLE_ORDER: readonly SystemRoleKey[] = ["owner", "admin", "editor", "sales", "viewer"];
 
 /**
  * Built-in roles live in code. Owner can do everything. Admin can do
@@ -124,9 +137,16 @@ const ADMINISTRATION: Permission[] = [
 export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleKey, Permission[]> = {
   owner: ALL_PERMISSIONS,
   admin: ALL_PERMISSIONS.filter((permission) => permission !== "owners:manage"),
-  // Runs the sales pipeline end to end. Cannot delete records or touch administration.
+  // Runs the website's content: writes and publishes it, but cannot delete it or touch anything else.
+  editor: ALL_PERMISSIONS.filter(
+    (permission) => permission.startsWith("content:") && permission !== "content:delete",
+  ),
+  // Runs the sales pipeline end to end. Cannot delete records, edit website content or touch administration.
   sales: ALL_PERMISSIONS.filter(
-    (permission) => !ADMINISTRATION.includes(permission) && !permission.endsWith(":delete"),
+    (permission) =>
+      !ADMINISTRATION.includes(permission) &&
+      !permission.endsWith(":delete") &&
+      (!permission.startsWith("content:") || permission === "content:view"),
   ),
   viewer: ALL_PERMISSIONS.filter(
     (permission) =>
@@ -143,6 +163,10 @@ export const SYSTEM_ROLE_META: Record<SystemRoleKey, { name: string; description
     name: "Admin",
     description: "Runs the platform and the team. Cannot assign, change, or remove Owners.",
   },
+  editor: {
+    name: "Content Editor",
+    description: "Writes and publishes the website's blog, portfolio, events and partners. Cannot delete content.",
+  },
   sales: {
     name: "Sales",
     description: "Works leads, contacts and deals. Cannot delete records or manage people.",
@@ -151,7 +175,7 @@ export const SYSTEM_ROLE_META: Record<SystemRoleKey, { name: string; description
 };
 
 export function isSystemRoleKey(key: string): key is SystemRoleKey {
-  return key === "owner" || key === "admin" || key === "sales" || key === "viewer";
+  return (SYSTEM_ROLE_ORDER as readonly string[]).includes(key);
 }
 
 /* ----------------------------------------------------------------- checks */

@@ -36,6 +36,7 @@ describe("access migration", () => {
     );
     expect(rows).toEqual([
       { key: "admin", is_system: true },
+      { key: "editor", is_system: true },
       { key: "owner", is_system: true },
       { key: "sales", is_system: true },
       { key: "viewer", is_system: true },

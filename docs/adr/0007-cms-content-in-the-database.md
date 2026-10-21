@@ -30,6 +30,10 @@ Only `published`, not deleted, rows are public.
 
 `npm run db:seed-content` adds what is missing and never touches existing rows, so edits made in the dashboard survive a re-run. `npm run db:seed-content -- --overwrite` resets rows from the files (it loses edits). It uses `DIRECT_URL`/`DATABASE_URL` and runs in one transaction.
 
+## Editing
+
+A built-in **Content Editor** role (`content:view/create/update/publish`, no delete) writes and publishes; Sales and Viewer can read but not change content. The blog post editor takes a title, excerpt, body (paragraphs separated by a blank line), author, category, date, web address and cover images (a path on this site or an https address, never `javascript:` or `data:`). Publishing needs a title, an excerpt, a body and alt text for any cover image, checked in the editor, in the action and (the first three) by a database constraint. Published content has to be unpublished before it can be deleted. Every change writes an audit entry in the same transaction, and the public pages that show the content are revalidated. Photo galleries inside an article are kept untouched on save until the media library exists. Projects, events and partners are listed with publish, unpublish and delete; their full editors come next.
+
 ## Not in this slice
 
 - Media library on Supabase Storage (images are still paths under `public/`).

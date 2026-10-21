@@ -41,6 +41,36 @@ describe("built-in roles", () => {
   });
 });
 
+describe("website content permissions", () => {
+  it("lets an editor write and publish but never delete, and gives them nothing else", () => {
+    const editor = SYSTEM_ROLE_PERMISSIONS.editor;
+    expect(editor).toEqual(
+      expect.arrayContaining([
+        "content:view",
+        "content:create",
+        "content:update",
+        "content:publish",
+      ]),
+    );
+    expect(editor).not.toContain("content:delete");
+    expect(editor.every((permission) => permission.startsWith("content:"))).toBe(true);
+  });
+
+  it("keeps sales and viewers from changing the website", () => {
+    for (const role of ["sales", "viewer"] as const) {
+      const writes = SYSTEM_ROLE_PERMISSIONS[role].filter(
+        (p) => p.startsWith("content:") && p !== "content:view",
+      );
+      expect(writes, role).toEqual([]);
+      expect(SYSTEM_ROLE_PERMISSIONS[role]).toContain("content:view");
+    }
+  });
+
+  it("gives admins everything about content, including delete", () => {
+    expect(SYSTEM_ROLE_PERMISSIONS.admin).toContain("content:delete");
+  });
+});
+
 describe("canGrantAll", () => {
   it("allows granting a subset and refuses anything you do not hold", () => {
     expect(canGrantAll(SYSTEM_ROLE_PERMISSIONS.admin, ["users:view"])).toBe(true);
@@ -50,7 +80,10 @@ describe("canGrantAll", () => {
 
 describe("normalisePermissions", () => {
   it("drops unknown values and adds the matching view permission", () => {
-    expect(normalisePermissions(["users:invite", "nope:nope"]).sort()).toEqual(["users:invite", "users:view"]);
+    expect(normalisePermissions(["users:invite", "nope:nope"]).sort()).toEqual([
+      "users:invite",
+      "users:view",
+    ]);
   });
 });
 

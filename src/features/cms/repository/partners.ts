@@ -15,7 +15,12 @@ import { opt, publicRows, readContent } from "./source";
 const MISSING_LOGO: PartnerLogo = { src: "/cafton.png", fit: "contain" };
 
 function toPartner(row: Prisma.PartnerGetPayload<object>): Partner {
-  const links = parseJson(z.array(partnerLinkSchema), row.links, [] as PartnerLink[], `links of partner ${row.slug}`);
+  const links = parseJson(
+    z.array(partnerLinkSchema),
+    row.links,
+    [] as PartnerLink[],
+    `links of partner ${row.slug}`,
+  );
   return {
     name: row.name,
     shortName: row.shortName,

@@ -32,16 +32,18 @@ let repo: Repos;
 
 const content = { authors, blogPosts, projects, events, partners, serviceFaqs };
 type Counts = Record<string, { inserted: number; updated: number; skipped: number }>;
-const seed = (options?: { overwrite?: boolean }) => seedContent(db, content, options) as Promise<Counts>;
+const seed = (options?: { overwrite?: boolean }) =>
+  seedContent(db, content, options) as Promise<Counts>;
 
 /** What JSON can represent: drops `undefined`, which is how optional fields compare equal. */
-const plain = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
+const plain = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
 beforeAll(async () => {
   db = (await createDatabase()) as PGlite;
   server = new PGLiteSocketServer({ db, port: 0, host: "127.0.0.1", maxConnections: 4 });
   await server.start();
-  const port = (server as unknown as { server: { address(): { port: number } } }).server.address().port;
+  const port = (server as unknown as { server: { address(): { port: number } } }).server.address()
+    .port;
   process.env.DATABASE_URL = `postgresql://postgres:postgres@127.0.0.1:${port}/postgres`;
   process.env.DATABASE_POOL_MAX = "1";
 
@@ -62,7 +64,9 @@ afterAll(async () => {
 
 describe("before anything is seeded", () => {
   it("serves the bundled content, so a forgotten seed never blanks the site", async () => {
-    expect(await repo.blog.listBlogPosts()).toEqual([...blogPosts].sort((a, b) => b.date.localeCompare(a.date)));
+    expect(await repo.blog.listBlogPosts()).toEqual(
+      [...blogPosts].sort((a, b) => b.date.localeCompare(a.date)),
+    );
     expect(await repo.projects.listProjects()).toEqual(projects);
     expect(await repo.partners.listPartners()).toEqual(partners);
   });
@@ -105,7 +109,9 @@ describe("after seeding", () => {
 
     const service = projects[0].services[0];
     const expected = projects.filter((p) => p.services.includes(service)).map((p) => p.slug);
-    expect((await repo.projects.listProjectsForService(service)).map((p) => p.slug)).toEqual(expected);
+    expect((await repo.projects.listProjectsForService(service)).map((p) => p.slug)).toEqual(
+      expected,
+    );
   });
 });
 
@@ -116,7 +122,10 @@ describe("editing content", () => {
     expect((await repo.blog.listBlogPosts()).map((p) => p.slug)).not.toContain(slug);
     expect(await repo.blog.getBlogPost(slug)).toBeUndefined();
 
-    await db.query("UPDATE blog_posts SET status = 'published', title = 'Edited in the dashboard' WHERE slug = $1", [slug]);
+    await db.query(
+      "UPDATE blog_posts SET status = 'published', title = 'Edited in the dashboard' WHERE slug = $1",
+      [slug],
+    );
     await seed(); // must not clobber the edit
     expect((await repo.blog.getBlogPost(slug))?.title).toBe("Edited in the dashboard");
 
@@ -134,7 +143,10 @@ describe("editing content", () => {
   it("survives a malformed JSON column by dropping just that part", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const slug = projects.find((p) => p.media?.length)?.slug ?? projects[0].slug;
-    await db.query(`UPDATE portfolio_projects SET media = '[{"nonsense": true}]'::jsonb WHERE slug = $1`, [slug]);
+    await db.query(
+      `UPDATE portfolio_projects SET media = '[{"nonsense": true}]'::jsonb WHERE slug = $1`,
+      [slug],
+    );
 
     const project = await repo.projects.getProject(slug);
     expect(project).toBeDefined();
@@ -160,8 +172,12 @@ describe("database rules", () => {
 
     expect(await insert("Bad Slug")).toMatch(/blog_posts_slug_format/);
     expect(await insert(blogPosts[1].slug)).toMatch(/blog_posts_slug_live_key|unique/);
-    expect(await insert("fresh-post", "published", "", "{a}")).toMatch(/blog_posts_published_complete/);
-    expect(await insert("fresh-post", "published", "x", "{}")).toMatch(/blog_posts_published_complete/);
+    expect(await insert("fresh-post", "published", "", "{a}")).toMatch(
+      /blog_posts_published_complete/,
+    );
+    expect(await insert("fresh-post", "published", "x", "{}")).toMatch(
+      /blog_posts_published_complete/,
+    );
     expect(await insert("fresh-post", "draft", "", "{}")).toBeNull();
   });
 

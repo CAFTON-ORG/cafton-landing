@@ -8,6 +8,9 @@
 //   3. npm run design:review            (BASE_URL defaults to http://localhost:3200)
 //
 // Output: .design-review/<theme>-<viewport>/<page>.png (git-ignored).
+//
+// Afterwards run `git checkout tsconfig.json`: Next edits it while a server with NEXT_DIST_DIR runs,
+// and delete .next-preview/.
 import fs from "node:fs";
 import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
@@ -27,6 +30,7 @@ async function recordIds() {
     deal: await one("SELECT id FROM deals WHERE title = 'Online ordering and inventory'"),
     contact: await one("SELECT id FROM contacts ORDER BY last_name LIMIT 1"),
     org: await one("SELECT id FROM organizations ORDER BY name LIMIT 1"),
+    post: await one("SELECT id FROM blog_posts ORDER BY date DESC LIMIT 1"),
   };
   await client.end();
   return ids;
@@ -47,6 +51,12 @@ const PAGES = [
   ["organizations", "/dashboard/crm/organizations"],
   ["organization-detail", `/dashboard/crm/organizations/${ids.org}`],
   ["tasks", "/dashboard/crm/tasks"],
+  ["blog-posts", "/dashboard/content/blog"],
+  ["post-new", "/dashboard/content/blog/new"],
+  ["post-edit", `/dashboard/content/blog/${ids.post}`],
+  ["content-projects", "/dashboard/content/projects"],
+  ["content-events", "/dashboard/content/events"],
+  ["content-partners", "/dashboard/content/partners"],
   ["people", "/dashboard/users"],
   ["roles", "/dashboard/roles"],
   ["audit", "/dashboard/audit"],

@@ -87,6 +87,17 @@ A dated follow-up, optionally attached to a lead, contact or deal and assigned t
 **Weighted forecast**:
 The sum of each open deal's value times its stage's win probability.
 
+## Website content (CMS)
+
+**Draft / Published**:
+A piece of content is a draft until it is published. Only published content is on the website. Published content must be unpublished before it can be deleted.
+
+**Content Editor**:
+The built-in role that writes and publishes the website's content but cannot delete it or touch anything else.
+
+**Bundled content**:
+The content the site shipped with, kept in `features/cms/content`. It is the seed for the database and the fallback if the database is unavailable or has never been seeded.
+
 ## Money (from Phase 4)
 
 **Amount**:

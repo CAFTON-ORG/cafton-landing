@@ -24,7 +24,10 @@ export async function readContent<T>(
     if ((await source.populated()) === 0) return bundled();
     return await source.query();
   } catch (error) {
-    console.error(`CMS: reading ${label} from the database failed; serving the bundled content.`, error);
+    console.error(
+      `CMS: reading ${label} from the database failed; serving the bundled content.`,
+      error,
+    );
     return bundled();
   }
 }

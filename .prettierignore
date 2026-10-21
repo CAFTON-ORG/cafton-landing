@@ -1,0 +1,10 @@
+.next
+node_modules
+package-lock.json
+next-env.d.ts
+.claude
+src/components/ui
+playwright-report
+test-results
+prisma/migrations
+src/generated

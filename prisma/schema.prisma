@@ -1,0 +1,12 @@
+// Source of truth for the platform's tables. Models are added phase by phase
+// (see docs/ROADMAP.md). Things Prisma cannot express (exclusion constraints,
+// check constraints, auth.users triggers, RLS) live in the migration SQL.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

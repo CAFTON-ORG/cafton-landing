@@ -31,6 +31,9 @@ async function recordIds() {
     contact: await one("SELECT id FROM contacts ORDER BY last_name LIMIT 1"),
     org: await one("SELECT id FROM organizations ORDER BY name LIMIT 1"),
     post: await one("SELECT id FROM blog_posts ORDER BY date DESC LIMIT 1"),
+    project: await one("SELECT id FROM portfolio_projects ORDER BY position LIMIT 1"),
+    event: await one("SELECT id FROM events ORDER BY position LIMIT 1"),
+    partner: await one("SELECT id FROM partners WHERE featured LIMIT 1"),
   };
   await client.end();
   return ids;
@@ -55,6 +58,13 @@ const PAGES = [
   ["post-new", "/dashboard/content/blog/new"],
   ["post-edit", `/dashboard/content/blog/${ids.post}`],
   ["content-projects", "/dashboard/content/projects"],
+  ["project-new", "/dashboard/content/projects/new"],
+  ["project-edit", `/dashboard/content/projects/${ids.project}`],
+  ["event-new", "/dashboard/content/events/new"],
+  ["event-edit", `/dashboard/content/events/${ids.event}`],
+  ["partner-edit", `/dashboard/content/partners/${ids.partner}`],
+  ["faqs", "/dashboard/content/faqs"],
+  ["media-library", "/dashboard/content/media"],
   ["content-events", "/dashboard/content/events"],
   ["content-partners", "/dashboard/content/partners"],
   ["people", "/dashboard/users"],
@@ -75,6 +85,8 @@ const INTERACTIONS = [
   ["organizations", "Add organization", "dialog-add-organization"],
   ["roles", "New role", "dialog-new-role"],
   ["people", "Invite person", "dialog-invite"],
+  ["post-edit", "Choose image", "dialog-image-picker"],
+  ["project-edit", "Add image", "gallery-add-image"],
 ];
 
 const VIEWPORTS = {

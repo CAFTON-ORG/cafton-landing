@@ -1,15 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { ExternalLink, Eye, EyeOff, Save } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from "react";
 
-import { useCan } from "@/components/dashboard/layout/staff-context";
 import { Field } from "@/components/dashboard/shared/field";
-import { StatusBadge } from "@/components/dashboard/shared/status-badge";
-import { Button } from "@/components/dashboard/ui/button";
 import {
   Card,
   CardContent,
@@ -18,19 +11,12 @@ import {
   CardTitle,
 } from "@/components/dashboard/ui/card";
 import { Input } from "@/components/dashboard/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
-import { useServerAction } from "@/hooks/use-server-action";
 import { savePost } from "../admin/actions";
-import type { PublishIntent } from "../admin/schema";
-import { STATUS_LABEL, type AdminPostDetail, type AuthorOption } from "../admin/types";
+import type { AdminPostDetail, AuthorOption } from "../admin/types";
 import { checkPublishPost, paragraphsFromText, slugify } from "../rules";
+import { AuthorField } from "./author-field";
+import { ImageField, PublishPanel, useContentEditor } from "./editor-kit";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -61,40 +47,14 @@ export function PostEditor({
   authors: AuthorOption[];
   categories: string[];
 }) {
-  const router = useRouter();
-  const canPublish = useCan("content:publish");
-  const { run, pending } = useServerAction();
-  const initial = post ?? { ...BLANK, authorId: authors[0]?.id ?? "" };
-  const [values, setValues] = useState(initial);
-  const [slugTouched, setSlugTouched] = useState(Boolean(post));
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const dirty = JSON.stringify(values) !== JSON.stringify(initial);
-
-  // Leaving with unsaved changes asks first (the browser's own dialog).
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
-
-  const set = (key: keyof AdminPostDetail) => (value: string) =>
-    setValues((current) => ({ ...current, [key]: value }));
-  const bind = (key: keyof AdminPostDetail) => ({
-    id: `post-${key}`,
-    value: String(values[key]),
-    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      set(key)(event.target.value),
-    "aria-invalid": !!errors[key],
+  const { values, set, setValues, errors, pending, dirty, submit, published } = useContentEditor({
+    initial: post ?? { ...BLANK, authorId: authors[0]?.id ?? "" },
+    isNew: !post,
+    save: (form, intent) => savePost({ ...form, id: post?.id || undefined }, intent),
+    editHref: (id) => `/dashboard/content/blog/${id}`,
+    listHref: "/dashboard/content/blog",
   });
-
-  function onTitle(title: string) {
-    setValues((current) => ({
-      ...current,
-      title,
-      ...(slugTouched ? {} : { slug: slugify(title) }),
-    }));
-  }
+  const [slugTouched, setSlugTouched] = useState(Boolean(post));
 
   const readiness = checkPublishPost({
     title: values.title,
@@ -104,33 +64,6 @@ export function PostEditor({
     imageDark: values.imageDark,
     imageAlt: values.imageAlt,
   });
-  const published = values.status === "published";
-
-  function submit(intent: PublishIntent) {
-    setErrors({});
-    run(() => savePost({ ...values, id: post?.id || undefined }, intent), {
-      success:
-        intent === "publish"
-          ? "Published. It is live on the website."
-          : intent === "unpublish"
-            ? "Unpublished."
-            : "Saved.",
-      onSuccess: (data) => {
-        if (!post && data?.id) router.replace(`/dashboard/content/blog/${data.id}`);
-        else router.refresh();
-        setValues((current) => ({
-          ...current,
-          status:
-            intent === "publish" ? "published" : intent === "unpublish" ? "draft" : current.status,
-        }));
-      },
-      onFieldErrors: (fieldErrors) => {
-        setErrors(fieldErrors);
-        toast.error(fieldErrors.form ?? "Check the highlighted fields.");
-      },
-    });
-  }
-
   const wordCount = values.body.trim() ? values.body.trim().split(/\s+/).length : 0;
 
   return (
@@ -153,9 +86,15 @@ export function PostEditor({
               <Input
                 id="post-title"
                 value={values.title}
-                onChange={(event) => onTitle(event.target.value)}
                 aria-invalid={!!errors.title}
                 autoComplete="off"
+                onChange={(event) =>
+                  setValues((current) => ({
+                    ...current,
+                    title: event.target.value,
+                    ...(slugTouched ? {} : { slug: slugify(event.target.value) }),
+                  }))
+                }
               />
             </Field>
             <Field
@@ -164,7 +103,13 @@ export function PostEditor({
               error={errors.excerpt}
               hint="One or two sentences. Shown in the blog list and in search results."
             >
-              <Textarea {...bind("excerpt")} rows={3} />
+              <Textarea
+                id="post-excerpt"
+                rows={3}
+                value={values.excerpt}
+                onChange={(event) => set("excerpt", event.target.value)}
+                aria-invalid={!!errors.excerpt}
+              />
             </Field>
             <Field
               id="post-body"
@@ -172,14 +117,20 @@ export function PostEditor({
               error={errors.body}
               hint={`${wordCount} ${wordCount === 1 ? "word" : "words"}`}
             >
-              <Textarea {...bind("body")} rows={18} className="font-[inherit] leading-relaxed" />
+              <Textarea
+                id="post-body"
+                rows={18}
+                className="leading-relaxed"
+                value={values.body}
+                onChange={(event) => set("body", event.target.value)}
+                aria-invalid={!!errors.body}
+              />
             </Field>
             {post && post.galleryCount > 0 && (
               <p className="text-muted-foreground bg-muted rounded-lg px-3 py-2 text-sm">
                 This article has {post.galleryCount} photo{" "}
                 {post.galleryCount === 1 ? "gallery" : "galleries"} placed between paragraphs. They
-                are kept exactly as they are when you save. Editing them arrives with the media
-                library.
+                are kept exactly as they are when you save.
               </p>
             )}
           </CardContent>
@@ -189,128 +140,73 @@ export function PostEditor({
           <CardHeader>
             <CardTitle>Cover image</CardTitle>
             <CardDescription>
-              Optional. Without one the post shows the Cafton cover art. Use a path on this site or
-              a full https:// address.
+              Optional. Without one the post shows the Cafton cover art.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2">
-            <Field id="post-imageLight" label="Light theme image" error={errors.imageLight}>
-              <Input {...bind("imageLight")} placeholder="/images/cover-light.jpg" />
-            </Field>
-            <Field id="post-imageDark" label="Dark theme image" error={errors.imageDark}>
-              <Input {...bind("imageDark")} placeholder="/images/cover-dark.jpg" />
-            </Field>
-            <div className="sm:col-span-2">
-              <Field
-                id="post-imageAlt"
-                label="Describe the image"
-                error={errors.imageAlt}
-                hint="Required to publish when there is an image: screen readers read it."
-              >
-                <Input {...bind("imageAlt")} />
-              </Field>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ImageField
+                id="post-imageLight"
+                label="Light theme image"
+                value={values.imageLight}
+                onChange={(value) => set("imageLight", value)}
+                onPicked={(item) => !values.imageAlt && item.alt && set("imageAlt", item.alt)}
+                error={errors.imageLight}
+                placeholder="/images/cover-light.jpg"
+              />
+              <ImageField
+                id="post-imageDark"
+                label="Dark theme image"
+                value={values.imageDark}
+                onChange={(value) => set("imageDark", value)}
+                error={errors.imageDark}
+                placeholder="/images/cover-dark.jpg"
+              />
             </div>
+            <Field
+              id="post-imageAlt"
+              label="Describe the image"
+              error={errors.imageAlt}
+              hint="Required to publish when there is an image: screen readers read it."
+            >
+              <Input
+                id="post-imageAlt"
+                value={values.imageAlt}
+                onChange={(event) => set("imageAlt", event.target.value)}
+                aria-invalid={!!errors.imageAlt}
+              />
+            </Field>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid content-start gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Publishing{" "}
-              <StatusBadge tone={published ? "success" : "neutral"}>
-                {STATUS_LABEL[values.status]}
-              </StatusBadge>
-            </CardTitle>
-            <CardDescription>
-              {published
-                ? "This post is live on the website. Saving updates it immediately."
-                : (readiness ?? "Ready to publish.")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-2">
-            {errors.form && (
-              <p role="alert" className="text-destructive text-sm">
-                {errors.form}
-              </p>
-            )}
-            <Button type="submit" disabled={pending || !dirty}>
-              <Save aria-hidden="true" />{" "}
-              {pending ? "Saving…" : published ? "Save changes" : "Save draft"}
-            </Button>
-            {canPublish &&
-              (published ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={pending}
-                  onClick={() => submit("unpublish")}
-                >
-                  <EyeOff aria-hidden="true" /> Unpublish
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={pending || !!readiness}
-                  title={readiness ?? undefined}
-                  onClick={() => submit("publish")}
-                >
-                  <Eye aria-hidden="true" /> Publish
-                </Button>
-              ))}
-            {post && published && (
-              <Button
-                type="button"
-                variant="ghost"
-                nativeButton={false}
-                render={<a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" />}
-              >
-                <ExternalLink aria-hidden="true" /> View on the site
-              </Button>
-            )}
-            <Button
-              type="button"
-              variant="ghost"
-              nativeButton={false}
-              render={<Link href="/dashboard/content/blog" />}
-            >
-              Back to all posts
-            </Button>
-          </CardContent>
-        </Card>
+        <PublishPanel
+          status={values.status}
+          readiness={readiness}
+          pending={pending}
+          dirty={dirty}
+          isNew={!post}
+          onSubmit={submit}
+          listHref="/dashboard/content/blog"
+          listLabel="Back to all posts"
+          publicHref={post ? `/blog/${post.slug}` : undefined}
+          error={errors.form}
+        />
 
         <Card>
           <CardHeader>
             <CardTitle>Details</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <Field id="post-authorId" label="Written by" required error={errors.authorId}>
-              <Select
-                value={values.authorId}
-                onValueChange={(value) => set("authorId")(String(value))}
-              >
-                <SelectTrigger
-                  id="post-authorId"
-                  className="w-full"
-                  aria-invalid={!!errors.authorId}
-                >
-                  <SelectValue>
-                    {(value: string) =>
-                      authors.find((author) => author.id === value)?.name ?? "Choose an author"
-                    }
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {authors.map((author) => (
-                    <SelectItem key={author.id} value={author.id}>
-                      {author.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+            <AuthorField
+              id="post-authorId"
+              label="Written by"
+              value={values.authorId}
+              onChange={(value) => set("authorId", value)}
+              authors={authors}
+              error={errors.authorId}
+            />
             <Field
               id="post-category"
               label="Category"
@@ -318,7 +214,14 @@ export function PostEditor({
               error={errors.category}
               hint="Becomes a filter tab on the blog page."
             >
-              <Input {...bind("category")} list="post-categories" autoComplete="off" />
+              <Input
+                id="post-category"
+                value={values.category}
+                onChange={(event) => set("category", event.target.value)}
+                list="post-categories"
+                autoComplete="off"
+                aria-invalid={!!errors.category}
+              />
               <datalist id="post-categories">
                 {categories.map((category) => (
                   <option key={category} value={category} />
@@ -326,7 +229,13 @@ export function PostEditor({
               </datalist>
             </Field>
             <Field id="post-date" label="Post date" required error={errors.date}>
-              <Input {...bind("date")} type="date" />
+              <Input
+                id="post-date"
+                type="date"
+                value={values.date}
+                onChange={(event) => set("date", event.target.value)}
+                aria-invalid={!!errors.date}
+              />
             </Field>
             <Field
               id="post-slug"
@@ -340,7 +249,7 @@ export function PostEditor({
                 value={values.slug}
                 onChange={(event) => {
                   setSlugTouched(true);
-                  set("slug")(event.target.value.toLowerCase());
+                  set("slug", event.target.value.toLowerCase());
                 }}
                 aria-invalid={!!errors.slug}
                 autoComplete="off"

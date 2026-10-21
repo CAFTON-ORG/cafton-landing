@@ -95,6 +95,9 @@ A piece of content is a draft until it is published. Only published content is o
 **Content Editor**:
 The built-in role that writes and publishes the website's content but cannot delete it or touch anything else.
 
+**Image library**:
+The images uploaded for the website, each with a description (alt text). An image in use can't be deleted.
+
 **Bundled content**:
 The content the site shipped with, kept in `features/cms/content`. It is the seed for the database and the fallback if the database is unavailable or has never been seeded.
 

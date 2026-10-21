@@ -7,7 +7,7 @@ export const STATUS_LABEL: Record<PublishStatus, string> = {
   published: "Published",
 };
 
-/** The content types the dashboard manages. `post` has a full editor; the rest are lists for now. */
+/** The content types the dashboard manages. each has its own editor. */
 export type ContentKind = "post" | "project" | "event" | "partner";
 
 export interface AdminListRow {

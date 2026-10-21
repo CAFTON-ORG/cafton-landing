@@ -491,3 +491,28 @@ model ServiceFaq {
   @@index([serviceSlug, position])
   @@map("service_faqs")
 }
+
+// ------------------------------------------------------------------- media (Phase 2)
+
+/// An image in the media library. The bytes live in the Supabase Storage bucket `media`;
+/// this row is what the dashboard lists, describes (alt text) and protects from deletion
+/// while content still uses it.
+model Media {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Path inside the bucket: content/<uuid>.<ext>
+  path         String   @unique
+  /// The original file name, for the library only.
+  name         String
+  /// Default alt text, offered when the image is picked. Each use can still say something different.
+  alt          String   @default("")
+  mime         String
+  sizeBytes    Int      @map("size_bytes")
+  width        Int
+  height       Int
+  uploadedById String?  @map("uploaded_by") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc)])
+  @@map("media")
+}

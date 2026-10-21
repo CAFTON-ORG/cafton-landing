@@ -25,7 +25,7 @@ export default async function PartnersPage({
     <>
       <PageHeader
         title="Partners"
-        description="Organizations shown on the About page and the home page strip. Publish or unpublish them here; full editors are coming."
+        description="Organizations shown on the About page and the home page strip."
       />
       <ContentTable kind="partner" page={page} />
     </>

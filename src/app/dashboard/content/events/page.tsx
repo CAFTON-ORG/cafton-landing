@@ -23,10 +23,7 @@ export default async function EventsPage({
 
   return (
     <>
-      <PageHeader
-        title="Events"
-        description="Giveaways and campaigns on the events page. Publish or unpublish them here; full editors are coming."
-      />
+      <PageHeader title="Events" description="Giveaways and campaigns on the events page." />
       <ContentTable kind="event" page={page} />
     </>
   );

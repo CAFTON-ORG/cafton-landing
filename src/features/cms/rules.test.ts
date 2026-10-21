@@ -77,3 +77,61 @@ describe("isSafeImageSrc", () => {
     expect(isSafeImageSrc("/a\\b")).toBe(false);
   });
 });
+
+describe("links and lists", () => {
+  it("accepts paths and https links only", async () => {
+    const { isSafeHref, listFromCommas, listFromText, textFromList } = await import("./rules");
+    expect(isSafeHref("/events/some-event")).toBe(true);
+    expect(isSafeHref("https://gleam.io/abc")).toBe(true);
+    expect(isSafeHref("javascript:alert(1)")).toBe(false);
+    expect(isSafeHref("//evil.example")).toBe(false);
+    expect(listFromText("Certificate\n\n  Sash \n")).toEqual(["Certificate", "Sash"]);
+    expect(listFromText(textFromList(["A", "B"]))).toEqual(["A", "B"]);
+    expect(listFromCommas("Sponsor,  Technology partner ,")).toEqual([
+      "Sponsor",
+      "Technology partner",
+    ]);
+  });
+});
+
+describe("Manila time", () => {
+  it("converts a datetime-local value to an ISO timestamp with the +08:00 offset and back", async () => {
+    const { isoToManila, manilaToIso } = await import("./rules");
+    expect(manilaToIso("2026-10-01T09:00")).toBe("2026-10-01T09:00:00+08:00");
+    expect(new Date(manilaToIso("2026-10-01T09:00")!).toISOString()).toBe(
+      "2026-10-01T01:00:00.000Z",
+    );
+    expect(isoToManila("2026-10-01T01:00:00.000Z")).toBe("2026-10-01T09:00");
+    expect(isoToManila(manilaToIso("2026-12-31T23:30")!)).toBe("2026-12-31T23:30");
+    expect(manilaToIso("not a date")).toBeNull();
+    expect(manilaToIso("")).toBeNull();
+    expect(manilaToIso("2026-13-45T25:61")).toBeNull();
+  });
+
+  it("will not let an event end before it starts", async () => {
+    const { checkEventDates } = await import("./rules");
+    expect(checkEventDates("2026-10-02T00:00:00+08:00", "2026-10-01T00:00:00+08:00")).toMatch(
+      /can't end before/,
+    );
+    expect(checkEventDates("2026-10-01T00:00:00+08:00", "2026-10-02T00:00:00+08:00")).toBeNull();
+    expect(checkEventDates("2026-10-01T00:00:00+08:00", null)).toBeNull();
+  });
+});
+
+describe("publish completeness for projects, events and partners", () => {
+  it("names what is missing", async () => {
+    const { checkPublishEvent, checkPublishPartner, checkPublishProject } = await import("./rules");
+    const project = { title: "T", client: "C", summary: "S", description: "D" };
+    expect(checkPublishProject(project)).toBeNull();
+    expect(checkPublishProject({ ...project, summary: "" })).toMatch(/summary/);
+    expect(checkPublishProject({ ...project, client: "" })).toMatch(/client/);
+    expect(checkPublishProject({ ...project, imageLight: "/a.jpg" })).toMatch(/alt text/);
+
+    const event = { title: "T", tagline: "G", summary: "S", prizeCount: 1 };
+    expect(checkPublishEvent(event)).toBeNull();
+    expect(checkPublishEvent({ ...event, prizeCount: 0 })).toMatch(/prize/);
+
+    expect(checkPublishPartner({ name: "N", shortName: "n", logoSrc: "/x.png" })).toBeNull();
+    expect(checkPublishPartner({ name: "N", shortName: "n", logoSrc: "" })).toMatch(/logo/);
+  });
+});

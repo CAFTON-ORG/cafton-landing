@@ -13,6 +13,11 @@ const SUPABASE_ORIGIN = URL.canParse(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")
   ? ` ${new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).origin}`
   : "";
 
+/** Host of the Supabase project, for next/image and the CSP (empty when not configured). */
+const SUPABASE_HOST = URL.canParse(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname
+  : "";
+
 const CSP_REPORT_ONLY = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -21,7 +26,7 @@ const CSP_REPORT_ONLY = [
   "form-action 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://widget.gleamjs.io https://*.gleam.io",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.gleam.io https://*.gleamjs.io https://*.googleusercontent.com",
+  `img-src 'self' data: blob: https://*.gleam.io https://*.gleamjs.io https://*.googleusercontent.com${SUPABASE_ORIGIN}`,
   "media-src 'self' data: blob:",
   "font-src 'self' data:",
   `connect-src 'self' https://challenges.cloudflare.com https://*.gleam.io https://*.gleamjs.io${SUPABASE_ORIGIN}`,
@@ -29,9 +34,6 @@ const CSP_REPORT_ONLY = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  experimental: {
-    optimizePackageImports: ["lucide-react"],
-  },
   turbopack: {},
 
   // Lets a second dev server run beside the first (e.g. NEXT_DIST_DIR=.next-preview for a design review).
@@ -43,13 +45,27 @@ const nextConfig: NextConfig = {
   // Image optimization
   images: {
     formats: ["image/avif", "image/webp"],
+    // Images uploaded through the dashboard live in Supabase Storage.
+    remotePatterns: SUPABASE_HOST
+      ? [
+          {
+            protocol: "https",
+            hostname: SUPABASE_HOST,
+            pathname: "/storage/v1/object/public/media/**",
+          },
+        ]
+      : [],
+  },
+
+  // Uploads go through a Server Action; the default 1 MB body limit would reject a photo.
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+    serverActions: { bodySizeLimit: "5mb" },
   },
 
   // The product was renamed Scanato -> Scanoto; keep old links working.
   async redirects() {
-    return [
-      { source: "/portfolio/scanato", destination: "/portfolio/scanoto", permanent: true },
-    ];
+    return [{ source: "/portfolio/scanato", destination: "/portfolio/scanoto", permanent: true }];
   },
 
   // Headers for better security and performance

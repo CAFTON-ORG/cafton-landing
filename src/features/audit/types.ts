@@ -9,4 +9,4 @@ export interface AuditRow {
 }
 
 /** Entity types that appear in the log; grows as modules arrive. */
-export const AUDIT_ENTITIES = ["user", "role", "lead", "contact", "organization", "deal", "task", "post", "project", "event", "partner"] as const;
+export const AUDIT_ENTITIES = ["user", "role", "lead", "contact", "organization", "deal", "task", "post", "project", "event", "partner", "media", "faq"] as const;

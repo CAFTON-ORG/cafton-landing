@@ -67,3 +67,104 @@ export function isSafeImageSrc(value: string): boolean {
     return false;
   }
 }
+
+/* ------------------------------------------------------------------ links */
+
+/** A link target: a path on this site or a full https address. Never `javascript:`, `data:` or protocol-relative. */
+export function isSafeHref(value: string): boolean {
+  return isSafeImageSrc(value);
+}
+
+/* ---------------------------------------------------------------- lists */
+
+/** One item per line, blank lines dropped. */
+export const listFromText = (text: string): string[] =>
+  text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+export const textFromList = (items: readonly string[]) => items.join("\n");
+
+/** "Marketing partner, Sponsor" -> ["Marketing partner", "Sponsor"]. */
+export const listFromCommas = (text: string): string[] =>
+  text
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+/* -------------------------------------------------------------- date/time */
+
+/**
+ * Events are announced in Philippine time, and the site formats them in it too. The
+ * Philippines has no daylight saving, so a fixed +08:00 offset is exact.
+ */
+const MANILA = "+08:00";
+const LOCAL = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+/** "2026-10-01T09:00" (a datetime-local value, Manila time) -> "2026-10-01T09:00:00+08:00", or null if it is not one. */
+export function manilaToIso(local: string): string | null {
+  if (!LOCAL.test(local)) return null;
+  const iso = `${local}:00${MANILA}`;
+  return Number.isNaN(new Date(iso).getTime()) ? null : iso;
+}
+
+/** An ISO timestamp -> the "yyyy-MM-ddTHH:mm" a datetime-local input wants, in Manila time. */
+export function isoToManila(iso: string): string {
+  const shifted = new Date(new Date(iso).getTime() + 8 * 60 * 60 * 1000);
+  return shifted.toISOString().slice(0, 16);
+}
+
+export function checkEventDates(startsAt?: string | null, endsAt?: string | null): string | null {
+  if (startsAt && endsAt && new Date(startsAt) > new Date(endsAt))
+    return "The event can't end before it starts.";
+  return null;
+}
+
+/* ----------------------------------------------------- publish completeness */
+
+export function checkPublishProject(project: {
+  title: string;
+  client: string;
+  summary: string;
+  description: string;
+  imageLight?: string | null;
+  imageDark?: string | null;
+  imageAlt?: string | null;
+}): string | null {
+  if (!project.title.trim()) return "Add a title before publishing.";
+  if (!project.client.trim()) return "Add the client or product name before publishing.";
+  if (!project.summary.trim())
+    return "Add a short summary before publishing: it is shown on the project cards.";
+  if (!project.description.trim())
+    return "Add a description before publishing: it is the main text of the project page.";
+  if ((project.imageLight || project.imageDark) && !project.imageAlt?.trim()) {
+    return "Describe the cover image (alt text) before publishing. Screen readers read it.";
+  }
+  return null;
+}
+
+export function checkPublishEvent(event: {
+  title: string;
+  tagline: string;
+  summary: string;
+  prizeCount: number;
+}): string | null {
+  if (!event.title.trim()) return "Add a title before publishing.";
+  if (!event.tagline.trim()) return "Add a tagline before publishing.";
+  if (!event.summary.trim())
+    return "Add a summary before publishing: it is shown on the events list.";
+  if (event.prizeCount === 0) return "Add at least one prize before publishing.";
+  return null;
+}
+
+export function checkPublishPartner(partner: {
+  name: string;
+  shortName: string;
+  logoSrc: string;
+}): string | null {
+  if (!partner.name.trim() || !partner.shortName.trim())
+    return "Add the partner's name and short name before publishing.";
+  if (!partner.logoSrc.trim()) return "Choose a logo before publishing.";
+  return null;
+}

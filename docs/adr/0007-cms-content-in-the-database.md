@@ -32,11 +32,15 @@ Only `published`, not deleted, rows are public.
 
 ## Editing
 
-A built-in **Content Editor** role (`content:view/create/update/publish`, no delete) writes and publishes; Sales and Viewer can read but not change content. The blog post editor takes a title, excerpt, body (paragraphs separated by a blank line), author, category, date, web address and cover images (a path on this site or an https address, never `javascript:` or `data:`). Publishing needs a title, an excerpt, a body and alt text for any cover image, checked in the editor, in the action and (the first three) by a database constraint. Published content has to be unpublished before it can be deleted. Every change writes an audit entry in the same transaction, and the public pages that show the content are revalidated. Photo galleries inside an article are kept untouched on save until the media library exists. Projects, events and partners are listed with publish, unpublish and delete; their full editors come next.
+A built-in **Content Editor** role (`content:view/create/update/publish`, no delete) writes and publishes; Sales and Viewer can read but not change content. The blog post editor takes a title, excerpt, body (paragraphs separated by a blank line), author, category, date, web address and cover images (a path on this site or an https address, never `javascript:` or `data:`). Publishing needs a title, an excerpt, a body and alt text for any cover image, checked in the editor, in the action and (the first three) by a database constraint. Published content has to be unpublished before it can be deleted. Every change writes an audit entry in the same transaction, and the public pages that show the content are revalidated. Photo galleries inside an article are kept untouched on save until the media library exists. Projects (with gallery), events (prizes, steps, facts, promo, poster, dates in Philippine time), partners and service FAQs have the same kind of editor. A unit test per editor proves that opening an item and saving it unchanged leaves the public content identical for everything the site shipped with.
+
+## Image library
+
+Images live in the public Supabase Storage bucket `media` (raster only, 5 MB). Uploads go through a Server Action, never straight from the browser: the file is identified by its bytes (not its name or declared type), decoded, re-encoded without metadata (no EXIF or GPS), capped at 2400 px, and stored under a random `content/<uuid>.<ext>` path. Storage policies require a staff profile as a second lock. Each image has a default description (alt text) offered when it is picked; publishing content with an image requires alt text. An image can't be deleted while any content (including drafts, galleries and posters) still mentions it. Uploads are limited to 4 MB because hosts cap request bodies.
 
 ## Not in this slice
 
-- Media library on Supabase Storage (images are still paths under `public/`).
-- Scheduled publishing, revision history, SEO fields per item, live preview.
+- Scheduled publishing, revision history, SEO fields per item and live preview (Phase 8). Existing images under `public/` keep working: any address is accepted; only new uploads use the library.
+- Editing photo galleries inside a blog article (the editor keeps them untouched).
 - Editing legal pages and the cookie table (still in `content/privacy.ts`) and the service pillars (`config/services.ts`).
 - Per-request caching: static pages are regenerated on demand by the editors (`revalidatePath`) rather than cached by tag.

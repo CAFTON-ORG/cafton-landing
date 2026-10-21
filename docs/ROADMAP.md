@@ -30,18 +30,17 @@ Goal: a safe base to build on, with no visible change to the public site.
 - [ ] In-app notifications skeleton (moved to Phase 8 with email digests)
 - Done when: only invited staff can sign in; each role sees only its menu; every mutation writes an audit row.
 
-## Phase 2 - CMS (replace hard-coded content)
-- [x] Models: `Author`, `BlogPost`, `PortfolioProject`, `Event`, `Partner`, `ServiceFaq` with DB-level rules (ADR 0007)
-- [x] Seed script copies every bundled item into the database unchanged; idempotent, never overwrites edits (`npm run db:seed-content`)
-- [x] Repositories read the database (bundled content before the first seed or if the database fails); Seeded into the Supabase project
-- [x] Proof: DB round-trip test deep-equals the bundled content; public site built from files and from the database is identical (23 pages)
-- [x] Dashboard: blog post editor (draft / publish / unpublish, slug, author, category, cover image with alt text, unsaved-changes guard) and lists with publish / unpublish / delete for posts, projects, events and partners; Content Editor role
-- [ ] Full editors for projects, events, partners and service FAQs (galleries, prizes, steps, links)
-- [ ] Media library on Supabase Storage (upload, alt text required, usage tracking, safe delete)
-- [ ] Scheduled publish, revision history, SEO fields, live preview
-- [x] On-demand revalidation when content changes (`revalidatePath`); tested
-- [ ] Contact + careers forms persist submissions (contact done in Phase 3; careers pending)
-- Done when: an editor can publish a blog post that appears on the site without a deploy.
+## Phase 2 - CMS (replace hard-coded content)  [complete]
+- [x] Models: `Author`, `BlogPost`, `PortfolioProject`, `Event`, `Partner`, `ServiceFaq`, `Media` with DB-level rules (ADR 0007)
+- [x] Seed script copies every bundled item into the database unchanged; idempotent, never overwrites edits (`npm run db:seed-content`); seeded into Supabase
+- [x] Repositories read the database (bundled content before the first seed or if the database fails)
+- [x] Proof: DB round-trip test deep-equals the bundled content; the public site built from files and from the database is identical (23 pages)
+- [x] Full editors for blog posts, projects (with gallery), events (prizes, steps, facts, promo, poster, Manila-time dates), partners (logo, links) and service FAQs; draft / publish / unpublish, delete only when unpublished, unsaved-changes guard
+- [x] Proof: opening and saving every shipped item unchanged leaves the public content identical
+- [x] Image library on Supabase Storage: server-side upload that checks the bytes, strips EXIF/GPS, re-encodes and caps size; random paths; alt text; usage tracking; delete blocked while content uses an image; picker in every editor
+- [x] Content Editor role; audit entry for every change; on-demand revalidation of the public pages
+- Moved on purpose (nothing in the site depends on them): scheduled publish, revision history, live preview and per-item SEO fields to Phase 8; careers applications to Phase 7 (HR recruitment).
+- Done when: an editor can publish a blog post that appears on the site without a deploy. Met.
 
 ## Phase 3 - CRM
 HubSpot is dropped: the contact form writes to our database and the dashboard is the system of record (ADR 0006).

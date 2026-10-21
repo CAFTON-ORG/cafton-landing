@@ -25,7 +25,7 @@ export default async function ProjectsPage({
     <>
       <PageHeader
         title="Portfolio projects"
-        description="Case studies shown on the portfolio page. Publish or unpublish them here; full editors are coming."
+        description="Case studies shown on the portfolio page."
       />
       <ContentTable kind="project" page={page} />
     </>

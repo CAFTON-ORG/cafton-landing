@@ -24,6 +24,14 @@ import {
 } from "../admin/types";
 import { checkDeleteContent } from "../rules";
 
+/** Where each type's pages live in the dashboard. */
+const BASE: Record<ContentKind, string> = {
+  post: "/dashboard/content/blog",
+  project: "/dashboard/content/projects",
+  event: "/dashboard/content/events",
+  partner: "/dashboard/content/partners",
+};
+
 const COPY: Record<ContentKind, { noun: string; plural: string; search: string; empty: string }> = {
   post: {
     noun: "post",
@@ -72,16 +80,12 @@ export function ContentTable({ kind, page }: { kind: ContentKind; page: Page<Adm
       sortable: true,
       cell: (row) => (
         <div className="min-w-0">
-          {kind === "post" ? (
-            <Link
-              href={`/dashboard/content/blog/${row.id}`}
-              className="font-medium underline-offset-4 hover:underline"
-            >
-              {row.title}
-            </Link>
-          ) : (
-            <span className="font-medium">{row.title}</span>
-          )}
+          <Link
+            href={`${BASE[kind]}/${row.id}`}
+            className="font-medium underline-offset-4 hover:underline"
+          >
+            {row.title}
+          </Link>
           {row.subtitle && <p className="text-muted-foreground truncate text-xs">{row.subtitle}</p>}
         </div>
       ),
@@ -182,12 +186,11 @@ export function ContentTable({ kind, page }: { kind: ContentKind; page: Page<Adm
     },
   ];
 
-  const add =
-    kind === "post" && canCreate ? (
-      <Button nativeButton={false} render={<Link href="/dashboard/content/blog/new" />}>
-        <Plus aria-hidden="true" /> New post
-      </Button>
-    ) : undefined;
+  const add = canCreate ? (
+    <Button nativeButton={false} render={<Link href={`${BASE[kind]}/new`} />}>
+      <Plus aria-hidden="true" /> New {copy.noun}
+    </Button>
+  ) : undefined;
 
   return (
     <ResourceTable

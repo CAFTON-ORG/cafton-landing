@@ -9,9 +9,11 @@ Goal: a safe base to build on, with no visible change to the public site.
 - [x] Create feature branch; confirm CI (`.github/workflows/ci.yml`) runs lint + typecheck + build
 - [x] Add Prettier (+ tailwind plugin), Vitest, Testing Library, Playwright + axe, `verify` script, env validation (`lib/env.ts`)
 - [x] Add Prisma 7 + Supabase clients; `.env.example`; local PGlite DB script (`db:local`) from artist-app
-- [x] Move public pages into `app/(site)/` route group (URLs unchanged); prove with sitemap + route snapshot diff
-- [x] Set up base-nova: second shadcn config for `components/dashboard-ui` without touching `components/ui`; scope dashboard tokens so landing theme is unaffected
+- [x] Move public pages into `app/(marketing)/` route group (URLs unchanged); prove with sitemap + route snapshot diff
+- [x] Set up base-nova: second shadcn config for `components/dashboard` without touching `components/ui`; scope dashboard tokens so landing theme is unaffected
 - [x] ADRs: placement, monolith, auth, UI coexistence, money/soft-delete conventions
+- [x] Folder structure standardised against the template (ADR 0004): `(marketing)`, `components/{ui,shared,marketing,dashboard}`, `features/{cms,crm}`, `config/`, `providers/`
+- [ ] Playwright smoke + axe test for the public routes (needs `npx playwright install chromium`)
 - Done when: landing renders pixel-identical, all existing routes 200, CI green.
 
 ## Phase 1 - Auth, RBAC and dashboard shell

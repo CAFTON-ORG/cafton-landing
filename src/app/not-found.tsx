@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { SiteChrome } from "@/components/layout/site-chrome";
+import { SiteChrome } from "@/components/marketing/layout/site-chrome";
 import { Button } from "@/components/ui/button";
 
 export default function NotFound() {

@@ -1,0 +1,104 @@
+import type { Metadata } from "next";
+import { listPageMetadata } from "@/lib/seo";
+import {
+  PageHero,
+  PageSection,
+  PageShell,
+} from "@/components/marketing/layout/page-shell";
+import { ProjectCta } from "@/components/marketing/home/project-cta";
+import { ProjectRow } from "@/components/marketing/portfolio/project-row";
+import { Pagination } from "@/components/marketing/patterns/pagination";
+import { CategoryFilter } from "@/components/marketing/patterns/category-filter";
+import { RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
+import { Badge } from "@/components/ui/badge";
+import { listProjects } from "@/features/cms/repository/projects";
+
+const DESCRIPTION =
+  "Case studies of software Cafton has built around real problems: disaster response, restaurant and retail operations, online elections, and more.";
+
+export async function generateMetadata({ searchParams }: WorkPageProps): Promise<Metadata> {
+  const { page, category } = await searchParams;
+  return listPageMetadata({ title: "Portfolio", description: DESCRIPTION, path: "/portfolio", page, category });
+}
+
+const PAGE_SIZE = 6;
+
+interface WorkPageProps {
+  searchParams: Promise<{ page?: string; category?: string }>;
+}
+
+export default async function WorkPage({ searchParams }: WorkPageProps) {
+  const { page: pageParam, category: categoryParam } = await searchParams;
+
+  const projects = await listProjects();
+  const categories = Array.from(new Set(projects.map((project) => project.category)));
+  const category = categoryParam && categories.includes(categoryParam) ? categoryParam : undefined;
+  const filteredProjects = category
+    ? projects.filter((project) => project.category === category)
+    : projects;
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PAGE_SIZE));
+  const currentPage = Math.min(
+    totalPages,
+    Math.max(1, Number(pageParam) || 1),
+  );
+  const pageProjects = filteredProjects.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
+  return (
+    <>
+      <PageHero variant="compact">
+        <PageShell>
+          <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline" className="px-3 py-1 text-sm">Portfolio</Badge>
+            </RevealItem>
+            <RevealItem>
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+                Technology we&apos;ve built around real problems.
+              </h1>
+            </RevealItem>
+            <RevealItem>
+              <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
+                We engineer custom software, web and mobile applications, and SaaS
+                products around the way organizations actually work.
+              </p>
+            </RevealItem>
+          </RevealGroup>
+        </PageShell>
+      </PageHero>
+      <PageSection>
+        <PageShell>
+          <CategoryFilter categories={categories} active={category} basePath="/portfolio" />
+          {pageProjects.length > 0 ? (
+            <RevealGroup
+              key={`${category ?? "all"}-${currentPage}`}
+              className="mt-8"
+            >
+              {pageProjects.map((project, index) => (
+                <RevealItem key={project.slug}>
+                  <ProjectRow project={project} index={(currentPage - 1) * PAGE_SIZE + index} />
+                </RevealItem>
+              ))}
+            </RevealGroup>
+          ) : (
+            <p className="mt-8 text-center text-muted-foreground">
+              No projects in this category yet.
+            </p>
+          )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath="/portfolio"
+            query={category ? { category } : undefined}
+            totalItems={filteredProjects.length}
+            pageSize={PAGE_SIZE}
+          />
+        </PageShell>
+      </PageSection>
+      <ProjectCta />
+    </>
+  );
+}

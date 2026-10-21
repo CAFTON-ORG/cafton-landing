@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { contactSchema } from "@/lib/contact";
-import { submitContactToHubSpot } from "@/lib/hubspot";
-import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
-import { SITE_URL } from "@/lib/site";
-import { verifyTurnstileToken } from "@/lib/turnstile";
+import { contactSchema } from "@/features/crm/contact";
+import { submitContactToHubSpot } from "@/features/crm/hubspot";
+import { checkRateLimit, getClientKey } from "@/lib/security/rate-limit";
+import { SITE_URL } from "@/config/site";
+import { verifyTurnstileToken } from "@/lib/security/turnstile";
 
 /**
  * Generous for a human filling in a contact form, useless for a flood.

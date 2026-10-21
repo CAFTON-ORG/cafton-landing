@@ -1,0 +1,217 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import Image from "next/image";
+import {
+  PageHero,
+  PageSection,
+  PageShell,
+} from "@/components/marketing/layout/page-shell";
+import { DocumentLayout } from "@/components/marketing/patterns/document-layout";
+import { ProjectCta } from "@/components/marketing/home/project-cta";
+import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
+import { Badge } from "@/components/ui/badge";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Legal",
+  description:
+    "Legal information for Cafton Software Development Services, including business registration details.",
+  path: "/legal",
+});
+
+const TOC = [
+  {
+    "id": "company-information",
+    "title": "Company Information"
+  },
+  {
+    "id": "business-registration",
+    "title": "Business Registration"
+  },
+  {
+    "id": "terms-of-use",
+    "title": "Terms of Use"
+  },
+  {
+    "id": "use-of-this-website",
+    "title": "Use of This Website"
+  },
+  {
+    "id": "intellectual-property",
+    "title": "Intellectual Property"
+  },
+  {
+    "id": "limitation-of-liability",
+    "title": "Limitation of Liability"
+  },
+  {
+    "id": "governing-law",
+    "title": "Governing Law"
+  },
+  {
+    "id": "changes-to-these-terms",
+    "title": "Changes to These Terms"
+  },
+  {
+    "id": "contact",
+    "title": "Contact"
+  }
+];
+
+export default function LegalPage() {
+  return (
+    <>
+      <PageHero variant="compact">
+        <PageShell>
+          <RevealGroup>
+            <RevealItem className="mb-4">
+              <Badge variant="outline" className="px-3 py-1 text-sm">Legal</Badge>
+            </RevealItem>
+            <RevealItem>
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+                Legal Information
+              </h1>
+            </RevealItem>
+          </RevealGroup>
+        </PageShell>
+      </PageHero>
+      <PageSection>
+        <DocumentLayout toc={TOC} className="space-y-8">
+          <Reveal>
+            <section id="company-information" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Company Information</h2>
+              <p className="mt-3 text-muted-foreground">
+                Cafton Software Development Services is registered with the
+                Department of Trade and Industry (DTI) under BNN 8436511
+                (registered 21 Aug 2026) and with the Bureau of Internal
+                Revenue (BIR) (registered 2 Sep 2026).
+              </p>
+            </section>
+          </Reveal>
+
+          <Reveal>
+            <section id="business-registration" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Business Registration</h2>
+              <p className="mt-3 text-muted-foreground">
+                Cafton holds the following registrations with the Philippine
+                government.
+              </p>
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border bg-card p-5 shadow-sm dark:bg-transparent dark:shadow-none">
+                  <p className="text-sm font-semibold">
+                    DTI Business Name Registration
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Status: Registered
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    BNN 8436511 &middot; 21 Aug 2026
+                  </p>
+                </div>
+                <div className="rounded-xl border bg-card p-5 shadow-sm dark:bg-transparent dark:shadow-none">
+                  <p className="text-sm font-semibold">
+                    BIR Certificate of Registration
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Status: Registered
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    RSN 008RC20260000010999 &middot; 2 Sep 2026
+                  </p>
+                  <div className="relative mt-3 aspect-3/1 w-full overflow-hidden rounded-lg border bg-white">
+                    <Image
+                      src="/images/bir-badge-seal.jpg"
+                      alt="BIR Certificate of Registration seal"
+                      fill
+                      sizes="(min-width: 640px) 24rem, 100vw"
+                      className="object-contain p-2"
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+          </Reveal>
+
+          <Reveal>
+            <section id="terms-of-use" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Terms of Use</h2>
+              <p className="mt-3 text-muted-foreground">
+                By accessing or using this website, you agree to these terms.
+                If you do not agree with any part of them, please do not use
+                this site.
+              </p>
+            </section>
+          </Reveal>
+
+          <Reveal>
+            <section id="use-of-this-website" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Use of This Website</h2>
+              <p className="mt-3 text-muted-foreground">
+                This website and its contents are provided for general
+                information about Cafton and its services. You may browse and
+                share pages normally, but you may not copy, reproduce, or
+                redistribute any part of this site for commercial purposes
+                without our written permission.
+              </p>
+            </section>
+          </Reveal>
+
+          <Reveal>
+            <section id="intellectual-property" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Intellectual Property</h2>
+              <p className="mt-3 text-muted-foreground">
+                The Cafton name, logo, and the content of this website are the
+                property of Cafton Software Development Services unless
+                stated otherwise. Portfolio work shown belongs to the
+                respective clients and is featured with their permission.
+              </p>
+            </section>
+          </Reveal>
+
+          <Reveal>
+            <section id="limitation-of-liability" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Limitation of Liability</h2>
+              <p className="mt-3 text-muted-foreground">
+                This website is provided as is, without warranties of any
+                kind. To the fullest extent permitted by law, Cafton is not
+                liable for any loss or damage arising from your use of this
+                site.
+              </p>
+            </section>
+          </Reveal>
+
+          <Reveal>
+            <section id="governing-law" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Governing Law</h2>
+              <p className="mt-3 text-muted-foreground">
+                These terms are governed by the laws of the Republic of the
+                Philippines.
+              </p>
+            </section>
+          </Reveal>
+
+          <Reveal>
+            <section id="changes-to-these-terms" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Changes to These Terms</h2>
+              <p className="mt-3 text-muted-foreground">
+                We may update this page from time to time as our registration
+                details or business practices change. Continued use of this
+                website after an update means you accept the revised terms.
+              </p>
+            </section>
+          </Reveal>
+
+          <Reveal>
+            <section id="contact" className="scroll-mt-24">
+              <h2 className="text-2xl font-semibold">Contact</h2>
+              <p className="mt-3 text-muted-foreground">
+                For questions about these terms, contact us at
+                contact@cafton.com.
+              </p>
+            </section>
+          </Reveal>
+        </DocumentLayout>
+      </PageSection>
+      <ProjectCta />
+    </>
+  );
+}

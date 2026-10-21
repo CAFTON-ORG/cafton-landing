@@ -1,10 +1,10 @@
 import type { MetadataRoute } from "next";
 
-import { SITE_URL } from "@/lib/site";
-import { listBlogPosts } from "@/lib/repositories/blog";
-import { listEvents } from "@/lib/repositories/events";
-import { listProjects } from "@/lib/repositories/projects";
-import { servicePillars } from "@/lib/services";
+import { SITE_URL } from "@/config/site";
+import { listBlogPosts } from "@/features/cms/repository/blog";
+import { listEvents } from "@/features/cms/repository/events";
+import { listProjects } from "@/features/cms/repository/projects";
+import { servicePillars } from "@/config/services";
 
 /**
  * Every indexable URL, once, with no query strings. Pages marked `noindex`

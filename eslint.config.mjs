@@ -2,17 +2,25 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
 
-// Module boundaries (docs/ARCHITECTURE.md, "Rules"). The public site and the
-// dashboard use different primitive libraries and must not reach into each
-// other, and components never touch the database.
+// Module boundaries (docs/adr/0004-folder-structure.md). The public site
+// (components/marketing, components/ui) and the dashboard (components/dashboard)
+// use different primitive libraries and must not reach into each other.
+// components/shared is the neutral ground and may import neither. Components
+// never touch the database.
 const dashboardOnly = {
-  group: ["@/components/dashboard-ui", "@/components/dashboard-ui/*"],
-  message: "dashboard-ui belongs to the dashboard. The public site uses components/ui.",
+  group: ["@/components/dashboard", "@/components/dashboard/*"],
+  message:
+    "components/dashboard belongs to the dashboard. The public site uses components/ui and components/marketing.",
 };
 const siteOnly = {
-  group: ["@/components/ui", "@/components/ui/*"],
+  group: [
+    "@/components/ui",
+    "@/components/ui/*",
+    "@/components/marketing",
+    "@/components/marketing/*",
+  ],
   message:
-    "components/ui is the public site's Radix set. The dashboard uses components/dashboard-ui/ui.",
+    "components/ui and components/marketing belong to the public site. The dashboard uses components/dashboard.",
 };
 const noDb = {
   group: ["@/lib/db", "@/generated/*"],
@@ -26,21 +34,26 @@ const restrict = (...patterns) => ({
 export default defineConfig([
   ...nextVitals,
   ...nextTypescript,
-  // Public site code (components, pages, lib): no dashboard-ui.
+  // Everything outside the dashboard's UI: no dashboard components.
   {
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/components/**", "src/app/dashboard/**", "src/features/**"],
+    ignores: ["src/components/**", "src/app/dashboard/**", "src/features/**/components/**"],
     rules: restrict(dashboardOnly),
   },
   {
     files: ["src/components/**/*.{ts,tsx}"],
-    ignores: ["src/components/dashboard-ui/**"],
+    ignores: ["src/components/dashboard/**", "src/components/shared/**"],
     rules: restrict(dashboardOnly, noDb),
   },
-  // Dashboard code: no public-site primitives.
-  { files: ["src/components/dashboard-ui/**/*.{ts,tsx}"], rules: restrict(siteOnly, noDb) },
+  // Neutral ground: neither surface.
   {
-    files: ["src/app/dashboard/**/*.{ts,tsx}", "src/features/**/*.{ts,tsx}"],
+    files: ["src/components/shared/**/*.{ts,tsx}"],
+    rules: restrict(dashboardOnly, siteOnly, noDb),
+  },
+  // Dashboard UI: no public-site components.
+  { files: ["src/components/dashboard/**/*.{ts,tsx}"], rules: restrict(siteOnly, noDb) },
+  {
+    files: ["src/app/dashboard/**/*.{ts,tsx}", "src/features/**/components/**/*.{ts,tsx}"],
     rules: restrict(siteOnly),
   },
   globalIgnores([

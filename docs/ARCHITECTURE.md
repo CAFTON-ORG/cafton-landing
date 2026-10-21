@@ -12,7 +12,7 @@ Cafton's public website and its internal operating system (CMS, CRM, sales, deli
 | 2 | Architecture mode | Monolith (template ADR 0005): Server Components read through repositories, Server Actions write | **[decided]** |
 | 3 | Data | Postgres through Prisma 7 (`@prisma/adapter-pg`) | follows from 2, matches artist-app |
 | 4 | Auth | Supabase Auth, Google sign-in, invite-only, DB-backed RBAC; Supabase Storage for files | **[decided]** |
-| 5 | UI primitives | Landing stays on Radix `components/ui`. Dashboard uses shadcn `base-nova` (Base UI) in `components/dashboard-ui` | **[decided]** |
+| 5 | UI primitives | Landing stays on Radix `components/ui`. Dashboard uses shadcn `base-nova` (Base UI) in `components/dashboard/ui` | **[decided]** |
 | 6 | Tenancy | Single tenant (Cafton). Keep `workspace_id` out of the schema for now; artist-app's MULTI-TENANCY-PLAN shows the later cost is manageable | recommended |
 | 7 | Money | Integer minor units + ISO currency code on every amount. Never floats | recommended |
 | 8 | Deletion | Soft delete (`deletedAt`) on business records; hard delete only for drafts. Finance records are never deleted, only voided/reversed | recommended |
@@ -24,48 +24,43 @@ Cafton's public website and its internal operating system (CMS, CRM, sales, deli
 | `templates/nextjs-template` | Feature-slice layout (ADR 0002), monolith wiring (`server/repositories`, `queries.ts`, `actions.ts`), dashboard shell (sidebar, app bar, command palette, breadcrumbs, one `navigation.ts`), URL-driven `DataTable`, CSP helper, env validation, Vitest + Playwright + axe, `verify` script, Prettier | Its landing page, theme tokens, `features/auth` API/OTP flow, the `/api/[...path]` proxy (no external API), pnpm migration (stay on npm unless you ask) |
 | `projects/artist-app` | Proven auth + DAL + RBAC + audit pattern, Prisma + Supabase wiring, `runAction`/`ActionResult`, pure business-rule modules shared by UI and actions, PGlite migration tests, CRM pipeline model | Painting/scheduling domain |
 | `templates/api-*` | Nothing now. Kept as the extraction target if a mobile app or partner API appears later | |
-| `cafton-landing` | Everything visual: tokens in `globals.css`, fonts, motion, layout components, copy | Hard-coded `src/data/*` as the source of truth (moves to the database in Phase 2) |
+| `cafton-landing` | Everything visual: tokens in `globals.css`, fonts, motion, layout components, copy | Hard-coded content files as the source of truth (moves to the database in Phase 2) |
 
 The landing already isolates data behind async functions in `src/lib/repositories/*` ("moving content to a backend means changing only the bodies here"). That seam is why the CMS phase can swap data sources without touching public pages.
 
 ## Target folder layout
 
+Full rationale and the lint rules that enforce it: [ADR 0004](./adr/0004-folder-structure.md).
+
 ```
-prisma/
-  schema.prisma              source of truth; one migration per phase minimum
-  migrations/
-  seed.ts                    imports src/data/* into the CMS tables (Phase 2)
+prisma/                      schema.prisma, migrations/, seed.ts (Phase 2)
 src/
   app/
-    (site)/                  PUBLIC site: current pages move here, URLs unchanged
-    (auth)/login/            staff sign-in
-    auth/callback, signout   route handlers
-    dashboard/               INTERNAL: own layout, noindex, no public chrome
-      (overview)/ cms/ crm/ sales/ delivery/ finance/ hr/ admin/
-    api/                     only webhooks + public forms (contact, careers apply)
+    (marketing)/             PUBLIC site routes (URLs unchanged)
+    (auth)/login/            staff sign-in (Phase 1)
+    dashboard/               INTERNAL: own layout, noindex
+      cms/ crm/ sales/ delivery/ finance/ hr/ admin/
+    api/                     public form endpoints + webhooks only
   components/
-    ui/                      landing primitives (Radix) - unchanged
-    <public components>      unchanged
-    dashboard-ui/            base-nova primitives, DataTable, shell (sidebar, app-bar, palette)
-  features/                  one folder per business domain
+    ui/                      Radix shadcn primitives (public site, generated)
+    shared/                  neutral ground for both surfaces: logo, themed-image, json-ld, turnstile
+    marketing/               public-site UI: layout, patterns, decor, motion, three, consent, home, about, blog, ...
+    dashboard/               dashboard UI: ui/ (Base UI base-nova), layout/, data-table/, shared/
+  features/                  business domains
     <domain>/
       types.ts               constants + types, safe anywhere
       rules.ts               pure business rules, used by UI and actions, unit tested
-      repository.ts          reads, `server-only`, the only code that queries
+      repository.ts          reads, server-only, the only code that queries
       actions.ts             writes, "use server": requirePermission -> Zod -> Prisma -> audit -> revalidate
       schemas.ts             Zod, shared with client forms
-      components/
-  config/                    navigation.ts (single list drives sidebar/palette/breadcrumbs), site.ts
-  lib/
-    db.ts                    Prisma singleton
-    auth/                    dal.ts (getStaff, verifySession, requirePermission), permissions.ts
-    supabase/                server/client/proxy helpers, storage upload
-    audit.ts                 append-only audit writer
-    money.ts, dates.ts       shared formatting + arithmetic
-    actions.ts               ActionResult, runAction
+      components/            dashboard UI for this domain only
+    cms/  crm/  sales/  delivery/  finance/  hr/  admin/
+  config/                    site.ts, navigation.ts, services.ts, values.ts
+  providers/                 theme, consent, smooth scroll (app-wide context)
+  hooks/                     generic hooks
+  lib/                       framework-level only: utils, env, db, fonts, seo, structured-data, consent, security/, auth/ (Phase 1)
   proxy.ts                   session refresh + optimistic /dashboard redirect only
-docs/
-  ARCHITECTURE.md  ROADMAP.md  adr/
+docs/                        ARCHITECTURE.md, ROADMAP.md, adr/
 ```
 
 Rules (from the template and artist-app, enforced by lint where possible):
@@ -74,9 +69,9 @@ Rules (from the template and artist-app, enforced by lint where possible):
 2. Only `repository.ts` queries the database. Client components never import `server-only` modules.
 3. Every mutation: `requirePermission()` -> Zod parse -> transaction -> audit entry -> `revalidatePath`.
 4. The proxy is an optimistic redirect. Real authorization is the DAL, on every page and action.
-5. Features never import each other's `components/`. Cross-feature needs go through a feature's exported `repository`/`types`.
+5. Features never import each other's `components/`. Cross-feature needs go through a feature's exported `repository`/`types`. Public-site rendering of a feature's data lives in `components/marketing`, not in the feature.
 6. Rules that must hold in both UI and server (e.g. "a paid invoice can't be edited") live once in `rules.ts` and have tests.
-7. Landing components never import from `dashboard-ui`, and vice versa.
+7. Marketing and dashboard components never import each other; `components/shared` imports neither (ESLint-enforced).
 
 ## Domain map and data model
 

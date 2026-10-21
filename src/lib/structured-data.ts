@@ -1,6 +1,6 @@
-import { SITE_URL } from "@/lib/site";
-import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
-import type { Author } from "@/types/content";
+import { SITE_URL } from "@/config/site";
+import { SITE_DESCRIPTION, SITE_NAME } from "@/config/site";
+import type { Author } from "@/features/cms/types";
 
 const ORGANIZATION_ID = `${SITE_URL}/#organization`;
 const WEBSITE_ID = `${SITE_URL}/#website`;

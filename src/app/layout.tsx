@@ -3,10 +3,10 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 import { inter } from "@/lib/fonts";
-import { THEME_STORAGE_KEY } from "@/lib/theme";
+import { THEME_STORAGE_KEY } from "@/config/site";
 import { CONSENT_COOKIE } from "@/lib/consent";
-import { SITE_URL } from "@/lib/site";
-import { DEFAULT_SOCIAL_IMAGE, SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
+import { SITE_URL } from "@/config/site";
+import { DEFAULT_SOCIAL_IMAGE, SITE_DESCRIPTION, SITE_NAME } from "@/config/site";
 
 // Runs before first paint, for two reasons:
 // - applies a stored light preference so returning light-mode visitors don't

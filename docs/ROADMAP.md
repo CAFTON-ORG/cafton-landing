@@ -31,13 +31,16 @@ Goal: a safe base to build on, with no visible change to the public site.
 - Done when: only invited staff can sign in; each role sees only its menu; every mutation writes an audit row.
 
 ## Phase 2 - CMS (replace hard-coded content)
-- [ ] Models: `BlogPost`, `Author`, `PortfolioProject`, `Service`, `ServiceFaq`, `Event`, `Partner`, `JobOpening`, `LegalPage`, `Media`
+- [x] Models: `Author`, `BlogPost`, `PortfolioProject`, `Event`, `Partner`, `ServiceFaq` with DB-level rules (ADR 0007)
+- [x] Seed script copies every bundled item into the database unchanged; idempotent, never overwrites edits (`npm run db:seed-content`)
+- [x] Repositories read the database (bundled content before the first seed or if the database fails); Seeded into the Supabase project
+- [x] Proof: DB round-trip test deep-equals the bundled content; public site built from files and from the database is identical (23 pages)
+- [ ] Dashboard editors with draft / publish, per content type (in progress: blog posts first)
 - [ ] Media library on Supabase Storage (upload, alt text required, usage tracking, safe delete)
-- [ ] Editors per content type with draft / review / publish, scheduled publish, revision history, SEO fields, live preview
-- [ ] Seed script imports every item in `src/data/*`; swap bodies of `src/lib/repositories/*` to Prisma; keep return types
-- [ ] On-demand revalidation by tag when content is published; sitemap/robots/structured data driven from DB
-- [ ] Contact + careers forms persist submissions (inbox in dashboard) before the CRM phase links them
-- Done when: snapshot diff of rendered public HTML (before vs after) shows no change; an editor can publish a blog post that appears on the site without a deploy.
+- [ ] Scheduled publish, revision history, SEO fields, live preview
+- [ ] On-demand revalidation when content is published (`revalidatePath`)
+- [ ] Contact + careers forms persist submissions (contact done in Phase 3; careers pending)
+- Done when: an editor can publish a blog post that appears on the site without a deploy.
 
 ## Phase 3 - CRM
 HubSpot is dropped: the contact form writes to our database and the dashboard is the system of record (ADR 0006).

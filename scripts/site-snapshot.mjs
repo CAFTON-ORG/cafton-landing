@@ -38,6 +38,8 @@ function normalise(html) {
   return html
     .replace(/<script\b[\s\S]*?<\/script>/g, "")
     .replace(/<link\b[^>]*>/g, "")
+    // Next injects this size hint at a position that varies between builds.
+    .replace(/<meta name="next-size-adjust"[^>]*>/g, "")
     .replace(/\/_next\/static\/[^"')\s]*/g, "")
     .replace(/data-dpl-id="[^"]*"/g, "")
     .replace(/class="([^"]*)"/g, (_, value) => `class="${value.split(/\s+/).sort().join(" ")}"`)

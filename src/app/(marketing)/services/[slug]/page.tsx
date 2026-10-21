@@ -17,7 +17,7 @@ import { Breadcrumbs } from "@/components/marketing/patterns/breadcrumbs";
 import { DotPattern } from "@/components/marketing/decor/dot-pattern";
 import { RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
-import { serviceFaqs } from "@/features/cms/content/service-faqs";
+import { getServiceFaqs } from "@/features/cms/repository/service-faqs";
 import { listProjectsForService } from "@/features/cms/repository/projects";
 import { getServicePillar, servicePillars } from "@/config/services";
 
@@ -49,6 +49,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
   if (!pillar) notFound();
 
   const related = await listProjectsForService(pillar.slug);
+  const faqs = await getServiceFaqs(pillar.slug);
   const { previous, next } = neighbours(servicePillars, pillar.slug);
 
   return (
@@ -105,7 +106,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
 
       <RelatedProjects projects={related} heading="Related work" />
 
-      <ServiceFaq items={serviceFaqs[pillar.slug] ?? []} />
+      <ServiceFaq items={faqs} />
 
       <AdjacentNav
         noun="service"

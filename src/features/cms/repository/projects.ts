@@ -1,20 +1,61 @@
+import { z } from "zod";
+
 import { projects } from "@/features/cms/content/projects";
-import type { Project } from "@/features/cms/types";
+import { blogImageSchema, parseJson } from "@/features/cms/schemas";
+import type { BlogImage, Project } from "@/features/cms/types";
+import type { Prisma } from "@/generated/prisma/client";
+import { prisma } from "@/lib/db";
+import { opt, publicRows, readContent } from "./source";
 
 /**
- * Data access for portfolio projects. These are async on purpose: every page already
- * `await`s them, so moving the content from `features/cms/content` to a backend means
- * changing only the bodies here, not the pages or components that use them.
+ * Data access for portfolio projects. Async on purpose: pages already `await` them.
+ * Reads the database once it has content, the bundled content before that (see `source.ts`).
  */
 
+function toProject(row: Prisma.PortfolioProjectGetPayload<object>): Project {
+  const media = parseJson(z.array(blogImageSchema), row.media, [] as BlogImage[], `media of project ${row.slug}`);
+  return {
+    slug: row.slug,
+    authorId: row.authorId,
+    client: row.client,
+    title: row.title,
+    category: row.category,
+    services: row.services,
+    summary: row.summary,
+    description: row.description,
+    problem: opt(row.problem),
+    solution: opt(row.solution),
+    recognition: opt(row.recognition),
+    imageLight: opt(row.imageLight),
+    imageDark: opt(row.imageDark),
+    imageAlt: opt(row.imageAlt),
+    imageFit: row.imageFit === "cover" || row.imageFit === "contain" ? row.imageFit : undefined,
+    ...(media.length > 0 && { media }),
+    liveUrl: opt(row.liveUrl),
+  };
+}
+
 export async function listProjects(): Promise<Project[]> {
-  return projects;
+  return readContent(
+    "portfolio projects",
+    {
+      populated: () => prisma.portfolioProject.count(),
+      query: async () => {
+        const rows = await prisma.portfolioProject.findMany({
+          where: publicRows,
+          orderBy: [{ position: "asc" }, { createdAt: "asc" }],
+        });
+        return rows.map(toProject);
+      },
+    },
+    () => projects,
+  );
 }
 
 export async function getProject(slug: string): Promise<Project | undefined> {
-  return projects.find((project) => project.slug === slug);
+  return (await listProjects()).find((project) => project.slug === slug);
 }
 
 export async function listProjectsForService(serviceSlug: string): Promise<Project[]> {
-  return projects.filter((project) => project.services.includes(serviceSlug));
+  return (await listProjects()).filter((project) => project.services.includes(serviceSlug));
 }

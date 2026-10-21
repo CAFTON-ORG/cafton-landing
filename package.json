@@ -24,7 +24,8 @@
     "snapshot:save": "node scripts/site-snapshot.mjs save",
     "snapshot:check": "node scripts/site-snapshot.mjs check",
     "db:seed-demo": "node scripts/seed-demo.mjs",
-    "design:review": "node scripts/design-review.mjs"
+    "design:review": "node scripts/design-review.mjs",
+    "db:seed-content": "node scripts/seed-content.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

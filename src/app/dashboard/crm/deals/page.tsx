@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Columns3, Plus, Table2 } from "lucide-react";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
+import { SegmentedNav } from "@/components/dashboard/shared/segmented-nav";
 import { Button } from "@/components/dashboard/ui/button";
 import { DealDialog } from "@/features/crm/components/deal-dialog";
 import { DealsBoard } from "@/features/crm/components/deals-board";
@@ -16,7 +16,6 @@ import { dealsTableConfig } from "@/features/crm/table";
 import { actorId } from "@/lib/actions";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Deals" };
 
@@ -56,14 +55,6 @@ export default async function DealsPage({
     />
   ) : undefined;
 
-  const tab = (active: boolean) =>
-    cn(
-      "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium",
-      active
-        ? "bg-background text-foreground shadow-xs"
-        : "text-muted-foreground hover:text-foreground",
-    );
-
   return (
     <>
       <PageHeader
@@ -73,39 +64,31 @@ export default async function DealsPage({
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <nav aria-label="Deals view" className="bg-muted inline-flex rounded-lg p-0.5">
-          <Link
-            href="/dashboard/crm/deals"
-            className={tab(view === "board")}
-            aria-current={view === "board" ? "page" : undefined}
-          >
-            <Columns3 className="size-4" aria-hidden="true" /> Board
-          </Link>
-          <Link
-            href="/dashboard/crm/deals?view=table"
-            className={tab(view === "table")}
-            aria-current={view === "table" ? "page" : undefined}
-          >
-            <Table2 className="size-4" aria-hidden="true" /> Table
-          </Link>
-        </nav>
+        <SegmentedNav
+          label="Deals view"
+          items={[
+            {
+              href: "/dashboard/crm/deals",
+              label: "Board",
+              icon: Columns3,
+              active: view === "board",
+            },
+            {
+              href: "/dashboard/crm/deals?view=table",
+              label: "Table",
+              icon: Table2,
+              active: view === "table",
+            },
+          ]}
+        />
         {view === "board" && (
-          <nav aria-label="Owner filter" className="bg-muted inline-flex rounded-lg p-0.5">
-            <Link
-              href="/dashboard/crm/deals"
-              className={tab(!mine)}
-              aria-current={!mine ? "true" : undefined}
-            >
-              Everyone
-            </Link>
-            <Link
-              href="/dashboard/crm/deals?owner=me"
-              className={tab(mine)}
-              aria-current={mine ? "true" : undefined}
-            >
-              Mine
-            </Link>
-          </nav>
+          <SegmentedNav
+            label="Owner filter"
+            items={[
+              { href: "/dashboard/crm/deals", label: "Everyone", active: !mine },
+              { href: "/dashboard/crm/deals?owner=me", label: "Mine", active: mine },
+            ]}
+          />
         )}
       </div>
 

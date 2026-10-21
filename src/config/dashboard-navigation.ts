@@ -25,6 +25,7 @@ export type NavItem = {
   keywords?: string[];
 };
 
+/** An empty label means the group is shown without a heading. */
 export type NavGroup = { label: string; items: NavItem[] };
 
 /**
@@ -35,7 +36,7 @@ export type NavGroup = { label: string; items: NavItem[] };
  */
 export const navGroups: NavGroup[] = [
   {
-    label: "Overview",
+    label: "",
     items: [{ href: "/dashboard", label: "Overview", icon: LayoutDashboard, keywords: ["home", "dashboard"] }],
   },
   {

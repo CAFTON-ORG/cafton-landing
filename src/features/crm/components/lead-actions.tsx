@@ -61,9 +61,9 @@ export function LeadActions({ lead, people }: { lead: LeadView; people: PersonRe
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
       {canUpdate && (
-        <div className="grid gap-1.5">
+        <div className="grid w-full gap-1.5 sm:w-64">
           <label htmlFor="lead-owner" className="text-sm font-medium">
             Owner
           </label>

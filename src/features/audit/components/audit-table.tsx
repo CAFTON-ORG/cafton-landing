@@ -47,7 +47,7 @@ export function AuditTable({ page }: { page: Page<AuditRow> }) {
         search={table.params.q}
         onSearchChange={table.setSearch}
         searchLabel="Search the audit log"
-        searchPlaceholder="Search what happened or who did it…"
+        searchPlaceholder="Search the log…"
         filters={[
           {
             id: "entity",

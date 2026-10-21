@@ -60,6 +60,9 @@ export default defineConfig([
   },
   globalIgnores([
     ".next/**",
+    ".next-preview/**",
+    ".design-review/**",
+    ".snapshots/**",
     "out/**",
     "build/**",
     "next-env.d.ts",

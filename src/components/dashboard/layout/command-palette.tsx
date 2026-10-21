@@ -81,7 +81,7 @@ export function CommandPalette() {
             <CommandEmpty>No results.</CommandEmpty>
 
             {groups.map((group) => (
-              <CommandGroup key={group.label} heading={group.label}>
+              <CommandGroup key={group.label || "main"} heading={group.label || "Go to"}>
                 {group.items.map(({ href, label, icon: Icon, keywords }) => (
                   <CommandItem
                     key={href}

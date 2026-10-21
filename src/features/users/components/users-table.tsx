@@ -13,6 +13,7 @@ import { ConfirmDialog } from "@/components/dashboard/shared/confirm-dialog";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/dashboard/ui/avatar";
 import { Badge } from "@/components/dashboard/ui/badge";
+import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { Button } from "@/components/dashboard/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/dashboard/ui/select";
 import { formatDate, getInitials } from "@/lib/format";
@@ -120,7 +121,7 @@ export function UsersTable({
       header: "Status",
       sortable: true,
       hideBelow: "sm",
-      cell: (user) => <Badge variant={user.status === "Active" ? "default" : "outline"}>{user.status}</Badge>,
+      cell: (user) => <StatusBadge tone={user.status === "Active" ? "success" : "warning"}>{user.status}</StatusBadge>,
     },
     {
       id: "joined",
@@ -164,7 +165,7 @@ export function UsersTable({
         search={table.params.q}
         onSearchChange={table.setSearch}
         searchLabel="Search people"
-        searchPlaceholder="Search by name or email…"
+        searchPlaceholder="Search people…"
         filters={[
           {
             id: "status",

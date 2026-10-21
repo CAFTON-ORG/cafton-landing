@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
+import { SegmentedNav } from "@/components/dashboard/shared/segmented-nav";
 import { Card, CardContent } from "@/components/dashboard/ui/card";
 import { NewTaskForm, TaskRows, TasksEmpty } from "@/features/crm/components/task-list";
 import { listStaffOptions } from "@/features/crm/repository/pipeline";
 import { listTasks } from "@/features/crm/repository/tasks";
 import { actorId } from "@/lib/actions";
 import { requirePageAccess } from "@/lib/auth/dal";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Tasks" };
 
@@ -52,14 +51,6 @@ export default async function TasksPage({
     const query = search.toString();
     return query ? `/dashboard/crm/tasks?${query}` : "/dashboard/crm/tasks";
   };
-  const tab = (active: boolean) =>
-    cn(
-      "inline-flex h-8 items-center rounded-md px-2.5 text-sm font-medium",
-      active
-        ? "bg-background text-foreground shadow-xs"
-        : "text-muted-foreground hover:text-foreground",
-    );
-
   return (
     <>
       <PageHeader
@@ -68,39 +59,26 @@ export default async function TasksPage({
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <nav aria-label="Task state" className="bg-muted inline-flex rounded-lg p-0.5">
-          {STATES.map((entry) => (
-            <Link
-              key={entry.value}
-              href={href({ state: entry.value })}
-              className={tab(state === entry.value)}
-              aria-current={state === entry.value ? "page" : undefined}
-            >
-              {entry.label}
-            </Link>
-          ))}
-        </nav>
-        <nav aria-label="Whose tasks" className="bg-muted inline-flex rounded-lg p-0.5">
-          <Link
-            href={href({ scope: "mine" })}
-            className={tab(scope === "mine")}
-            aria-current={scope === "mine" ? "page" : undefined}
-          >
-            Mine
-          </Link>
-          <Link
-            href={href({ scope: "all" })}
-            className={tab(scope === "all")}
-            aria-current={scope === "all" ? "page" : undefined}
-          >
-            Everyone
-          </Link>
-        </nav>
+        <SegmentedNav
+          label="Task state"
+          items={STATES.map((entry) => ({
+            href: href({ state: entry.value }),
+            label: entry.label,
+            active: state === entry.value,
+          }))}
+        />
+        <SegmentedNav
+          label="Whose tasks"
+          items={[
+            { href: href({ scope: "mine" }), label: "Mine", active: scope === "mine" },
+            { href: href({ scope: "all" }), label: "Everyone", active: scope === "all" },
+          ]}
+        />
       </div>
 
       <Card>
         <CardContent className="grid gap-3">
-          <NewTaskForm people={people} currentUserId={staffId ?? undefined} />
+          <NewTaskForm layout="inline" people={people} currentUserId={staffId ?? undefined} />
           {tasks.length === 0 ? (
             <TasksEmpty title="All clear" description={EMPTY[state]} />
           ) : (

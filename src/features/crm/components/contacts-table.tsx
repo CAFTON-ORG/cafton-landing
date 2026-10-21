@@ -76,7 +76,7 @@ export function ContactsTable({
       getRowId={(contact) => contact.id}
       caption="Contacts"
       searchLabel="Search contacts"
-      searchPlaceholder="Search name, email or organization…"
+      searchPlaceholder="Search contacts…"
       actions={canCreate ? add : undefined}
       emptyIcon={ContactIcon}
       emptyTitle="No contacts yet"

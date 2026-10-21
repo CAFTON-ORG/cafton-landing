@@ -80,11 +80,14 @@ export function NewTaskForm({
   people,
   currentUserId,
   className,
+  layout = "stacked",
 }: {
   subject?: Subject;
   people: PersonRef[];
   currentUserId?: string;
   className?: string;
+  /** "stacked" fits a narrow side card; "inline" is one row on a full-width page. */
+  layout?: "stacked" | "inline";
 }) {
   const canCreate = useCan("tasks:create");
   const [title, setTitle] = useState("");
@@ -110,7 +113,7 @@ export function NewTaskForm({
 
   return (
     <form onSubmit={submit} noValidate className={cn("grid gap-2", className)}>
-      <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
+      <div className={cn("grid gap-2", layout === "inline" && "sm:grid-cols-[1fr_auto_auto_auto]")}>
         <Input
           value={title}
           onChange={(event) => setTitle(event.target.value)}
@@ -118,22 +121,28 @@ export function NewTaskForm({
           aria-invalid={!!error}
           placeholder="Add a task, e.g. Send the proposal"
         />
-        <Input
-          type="date"
-          value={due}
-          onChange={(event) => setDue(event.target.value)}
-          aria-label="Due date"
-          className="sm:w-40"
-        />
-        <PersonSelect
-          value={assignee}
-          onChange={setAssignee}
-          people={people}
-          aria-label="Assign to"
-          className="sm:w-40"
-        />
-        <Button type="submit" disabled={pending || !title.trim()}>
-          <Plus aria-hidden="true" /> Add
+        <div className={cn("grid grid-cols-2 gap-2", layout === "inline" && "contents")}>
+          <Input
+            type="date"
+            value={due}
+            onChange={(event) => setDue(event.target.value)}
+            aria-label="Due date"
+            className={layout === "inline" ? "sm:w-40" : undefined}
+          />
+          <PersonSelect
+            value={assignee}
+            onChange={setAssignee}
+            people={people}
+            aria-label="Assign to"
+            className={layout === "inline" ? "sm:w-40" : "w-full min-w-0"}
+          />
+        </div>
+        <Button
+          type="submit"
+          disabled={pending || !title.trim()}
+          className={layout === "stacked" ? "justify-self-end" : undefined}
+        >
+          <Plus aria-hidden="true" /> Add task
         </Button>
       </div>
       {error && (

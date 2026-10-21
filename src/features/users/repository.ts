@@ -19,33 +19,29 @@ export async function listAllUsers(): Promise<DashboardUser[]> {
   const joined = new Set(profiles.map((profile) => profile.email.toLowerCase()));
 
   return [
-    ...profiles.map(
-      (profile): DashboardUser => ({
-        id: profile.id,
-        name: profile.fullName ?? profile.email,
-        email: profile.email,
-        roleId: profile.role.id,
-        roleKey: profile.role.key,
-        roleName: profile.role.name,
-        avatarUrl: profile.avatarUrl ?? undefined,
-        status: "Active",
-        joined: profile.createdAt.toISOString().slice(0, 10),
-      }),
-    ),
+    ...profiles.map((profile): DashboardUser => ({
+      id: profile.id,
+      name: profile.fullName ?? profile.email,
+      email: profile.email,
+      roleId: profile.role.id,
+      roleKey: profile.role.key,
+      roleName: profile.role.name,
+      avatarUrl: profile.avatarUrl ?? undefined,
+      status: "Active",
+      joined: profile.createdAt.toISOString().slice(0, 10),
+    })),
     ...invites
       .filter((invite) => !joined.has(invite.email))
-      .map(
-        (invite): DashboardUser => ({
-          id: `invite:${invite.email}`,
-          name: invite.email,
-          email: invite.email,
-          roleId: invite.role.id,
-          roleKey: invite.role.key,
-          roleName: invite.role.name,
-          status: "Invited",
-          joined: invite.createdAt.toISOString().slice(0, 10),
-        }),
-      ),
+      .map((invite): DashboardUser => ({
+        id: `invite:${invite.email}`,
+        name: invite.email,
+        email: invite.email,
+        roleId: invite.role.id,
+        roleKey: invite.role.key,
+        roleName: invite.role.name,
+        status: "Invited",
+        joined: invite.createdAt.toISOString().slice(0, 10),
+      })),
   ];
 }
 
@@ -72,5 +68,8 @@ export async function listUsers(params: TableParams): Promise<Page<DashboardUser
 
 export async function listRoleOptions(): Promise<RoleOption[]> {
   if (!isDatabaseConfigured) return [];
-  return prisma.role.findMany({ orderBy: [{ isSystem: "desc" }, { name: "asc" }], select: roleSelect.select });
+  const roles = await prisma.role.findMany({ select: roleSelect.select, orderBy: { name: "asc" } });
+  const order = ["owner", "admin", "sales", "viewer"];
+  const rank = (key: string) => (order.includes(key) ? order.indexOf(key) : order.length);
+  return roles.sort((a, b) => rank(a.key) - rank(b.key) || a.name.localeCompare(b.name));
 }

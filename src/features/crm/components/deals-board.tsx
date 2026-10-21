@@ -56,7 +56,7 @@ export function DealsBoard({ stages, deals }: { stages: StageView[]; deals: Deal
                   <h2 id={`stage-${stage.key}`} className="text-sm font-semibold">
                     {stage.name}
                   </h2>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-foreground/70 text-xs">
                     {inStage.length} {inStage.length === 1 ? "deal" : "deals"} ·{" "}
                     {formatMinor(total, "PHP", { compact: true })}
                   </p>
@@ -66,7 +66,7 @@ export function DealsBoard({ stages, deals }: { stages: StageView[]; deals: Deal
 
               <ul className="grid gap-2 p-2">
                 {inStage.length === 0 && (
-                  <li className="text-muted-foreground px-1 py-4 text-center text-xs">
+                  <li className="text-foreground/70 px-1 py-4 text-center text-xs">
                     Nothing here
                   </li>
                 )}
@@ -78,13 +78,13 @@ export function DealsBoard({ stages, deals }: { stages: StageView[]; deals: Deal
                     >
                       {deal.title}
                     </Link>
-                    <p className="text-muted-foreground mt-0.5 truncate text-xs">
+                    <p className="text-foreground/70 mt-0.5 truncate text-xs">
                       {deal.organizationName ?? deal.contactName}
                     </p>
                     <p className="mt-2 text-sm font-semibold tabular-nums">
                       {formatMinor(deal.amountMinor, deal.currency, { compact: true })}
                     </p>
-                    <div className="text-muted-foreground mt-1 flex items-center justify-between gap-2 text-xs">
+                    <div className="text-foreground/70 mt-1 flex items-center justify-between gap-2 text-xs">
                       <span className="truncate">{deal.ownerName ?? "Unassigned"}</span>
                       {deal.expectedCloseDate && (
                         <span className="inline-flex shrink-0 items-center gap-1">

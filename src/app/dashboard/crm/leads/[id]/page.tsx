@@ -11,6 +11,7 @@ import { ActivityTimeline } from "@/features/crm/components/activity-timeline";
 import { LeadStatusBadge } from "@/features/crm/components/badges";
 import { LeadActions } from "@/features/crm/components/lead-actions";
 import { NewTaskForm, TaskRows, TasksEmpty } from "@/features/crm/components/task-list";
+import { getServicePillar } from "@/config/services";
 import { listActivities } from "@/features/crm/repository/activity";
 import { getLead } from "@/features/crm/repository/leads";
 import { listStaffOptions } from "@/features/crm/repository/pipeline";
@@ -54,6 +55,14 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
   if (!found) notFound();
   const { lead, answers } = found;
 
+  const answered = ANSWER_LABELS.map(([key, label]) => ({
+    label,
+    value:
+      key === "goalsCategory"
+        ? (getServicePillar(show(answers[key]))?.title ?? show(answers[key]))
+        : show(answers[key]),
+  })).filter((item) => item.value);
+
   const [activities, tasks, people] = await Promise.all([
     listActivities({ leadId: id }),
     listTasksFor({ leadId: id }),
@@ -69,6 +78,12 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
         action={<LeadStatusBadge status={lead.status} />}
       />
 
+      <Card className="mb-4">
+        <CardContent>
+          <LeadActions lead={lead} people={people} />
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
         <div className="grid content-start gap-4">
           <Card>
@@ -77,6 +92,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
             </CardHeader>
             <CardContent>
               <DefinitionList
+                hideEmpty
                 items={[
                   {
                     label: "Email",
@@ -139,9 +155,13 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
               <CardTitle>What they told us</CardTitle>
             </CardHeader>
             <CardContent>
-              <DefinitionList
-                items={ANSWER_LABELS.map(([key, label]) => ({ label, value: show(answers[key]) }))}
-              />
+              {answered.length === 0 ? (
+                <p className="text-muted-foreground text-sm">
+                  They did not fill in any of the optional questions.
+                </p>
+              ) : (
+                <DefinitionList hideEmpty items={answered} />
+              )}
             </CardContent>
           </Card>
 
@@ -153,14 +173,6 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <div className="grid content-start gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LeadActions lead={lead} people={people} />
-            </CardContent>
-          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Tasks</CardTitle>

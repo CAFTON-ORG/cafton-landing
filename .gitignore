@@ -50,3 +50,5 @@ next-env.d.ts
 
 # site snapshots (scripts/site-snapshot.mjs)
 /.snapshots
+/.next-preview
+/.design-review

@@ -13,6 +13,11 @@ export async function listRoles(): Promise<RoleSummary[]> {
     include: { permissions: true, _count: { select: { profiles: true, invites: true } } },
   });
 
+  const order = ["owner", "admin", "sales", "viewer"];
+  const rank = (role: { key: string; isSystem: boolean }) =>
+    role.isSystem ? order.indexOf(role.key) : order.length;
+  roles.sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
+
   return roles.map((role) => ({
     id: role.id,
     key: role.key,

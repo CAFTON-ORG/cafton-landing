@@ -57,7 +57,7 @@ export function OrganizationsTable({ page }: { page: Page<OrganizationView> }) {
       getRowId={(org) => org.id}
       caption="Organizations"
       searchLabel="Search organizations"
-      searchPlaceholder="Search name, industry or website…"
+      searchPlaceholder="Search organizations…"
       actions={canCreate ? add : undefined}
       emptyIcon={Building2}
       emptyTitle="No organizations yet"

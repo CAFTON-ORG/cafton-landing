@@ -67,13 +67,13 @@ export function NavLinks({
     <nav aria-label="Main" className="flex flex-col gap-4">
       {groups.map((group, index) => (
         <div
-          key={group.label}
+          key={group.label || "main"}
           role="group"
-          aria-label={group.label}
+          aria-label={group.label || "General"}
           // Collapsed: no room for headings, so groups are divided by a hairline instead.
           className={cn("flex flex-col gap-1", collapsed && index > 0 && "border-t pt-3")}
         >
-          {!collapsed && (
+          {!collapsed && group.label && (
             <p className="text-muted-foreground px-3 text-xs font-medium tracking-wide uppercase">
               {group.label}
             </p>

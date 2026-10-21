@@ -66,39 +66,39 @@ export function DealActions({
     setErrors({});
   }
 
+  const exitCriteria = stages.find((stage) => stage.id === deal.stageId)?.exitCriteria;
+
   return (
-    <div className="grid gap-4">
+    <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
       {canUpdate && deal.stageKind === "open" && (
-        <Field
-          id="deal-stage"
-          label="Stage"
-          hint={stages.find((s) => s.id === deal.stageId)?.exitCriteria}
-        >
-          <Select
-            value={deal.stageId}
-            disabled={pending}
-            onValueChange={(stageId) =>
-              run(() => moveDeal(deal.id, String(stageId)), { success: "Deal moved." })
-            }
-          >
-            <SelectTrigger id="deal-stage" className="w-full">
-              <SelectValue>
-                {(value: string) => stages.find((s) => s.id === value)?.name ?? deal.stageName}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {openStages.map((stage) => (
-                <SelectItem
-                  key={stage.id}
-                  value={stage.id}
-                  disabled={!!checkMoveDeal(state, stage)}
-                >
-                  {stage.name} ({stage.probability}%)
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
+        <div className="w-full sm:w-64">
+          <Field id="deal-stage" label="Stage">
+            <Select
+              value={deal.stageId}
+              disabled={pending}
+              onValueChange={(stageId) =>
+                run(() => moveDeal(deal.id, String(stageId)), { success: "Deal moved." })
+              }
+            >
+              <SelectTrigger id="deal-stage" className="w-full">
+                <SelectValue>
+                  {(value: string) => stages.find((s) => s.id === value)?.name ?? deal.stageName}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {openStages.map((stage) => (
+                  <SelectItem
+                    key={stage.id}
+                    value={stage.id}
+                    disabled={!!checkMoveDeal(state, stage)}
+                  >
+                    {stage.name} ({stage.probability}%)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        </div>
       )}
 
       <div className="flex flex-wrap gap-2">
@@ -146,6 +146,10 @@ export function DealActions({
           </Button>
         )}
       </div>
+
+      {canUpdate && deal.stageKind === "open" && exitCriteria && (
+        <p className="text-muted-foreground basis-full text-xs">To move on: {exitCriteria}.</p>
+      )}
 
       <Dialog open={dialog === "win"} onOpenChange={(open) => !open && !pending && close()}>
         <DialogContent>

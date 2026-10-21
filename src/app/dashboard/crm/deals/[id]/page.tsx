@@ -55,6 +55,18 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
         action={<StageBadge deal={deal} />}
       />
 
+      <Card className="mb-4">
+        <CardContent>
+          <DealActions
+            deal={deal}
+            stages={stages}
+            contacts={contacts}
+            organizations={organizations}
+            people={people}
+          />
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
         <div className="grid content-start gap-4">
           <Card>
@@ -88,7 +100,7 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
                       ""
                     ),
                   },
-                  { label: "Owner", value: deal.ownerName },
+                  { label: "Owner", value: deal.ownerName ?? "Unassigned" },
                   {
                     label: "Expected close",
                     value: deal.expectedCloseDate ? formatDate(deal.expectedCloseDate) : "",
@@ -127,20 +139,6 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <div className="grid content-start gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DealActions
-                deal={deal}
-                stages={stages}
-                contacts={contacts}
-                organizations={organizations}
-                people={people}
-              />
-            </CardContent>
-          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Tasks</CardTitle>

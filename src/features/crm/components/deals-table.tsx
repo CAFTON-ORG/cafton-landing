@@ -87,7 +87,7 @@ export function DealsTable({
       getRowId={(deal) => deal.id}
       caption="Deals"
       searchLabel="Search deals"
-      searchPlaceholder="Search title, reference, contact or organization…"
+      searchPlaceholder="Search deals…"
       filters={[
         {
           id: "stage",

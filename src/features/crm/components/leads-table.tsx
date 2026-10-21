@@ -66,7 +66,7 @@ export function LeadsTable({ page }: { page: Page<LeadView> }) {
       getRowId={(lead) => lead.id}
       caption="Website enquiries"
       searchLabel="Search leads"
-      searchPlaceholder="Search name, email, business or reference…"
+      searchPlaceholder="Search leads…"
       filters={[
         {
           id: "status",

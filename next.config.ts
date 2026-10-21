@@ -34,6 +34,9 @@ const nextConfig: NextConfig = {
   },
   turbopack: {},
 
+  // Lets a second dev server run beside the first (e.g. NEXT_DIST_DIR=.next-preview for a design review).
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+
   // Don't advertise the framework and version to scanners.
   poweredByHeader: false,
 

@@ -3,18 +3,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 import { inter } from "@/lib/fonts";
-import { THEME_STORAGE_KEY } from "@/config/site";
-import { CONSENT_COOKIE } from "@/lib/consent";
 import { SITE_URL } from "@/config/site";
 import { DEFAULT_SOCIAL_IMAGE, SITE_NAME } from "@/config/site";
 import { siteSettings } from "@/features/cms/content/site-settings";
-
-// Runs before first paint, for two reasons:
-// - applies a stored light preference so returning light-mode visitors don't
-//   see a dark flash (anything else stays dark);
-// - marks the page when a cookie choice already exists, so the server-rendered
-//   cookie notice stays hidden for returning visitors instead of flashing.
-const INIT_SCRIPT = `try{var r=document.documentElement;var t=localStorage.getItem("${THEME_STORAGE_KEY}");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches)){r.classList.remove("dark");r.classList.add("light")}if(document.cookie.indexOf("${CONSENT_COOKIE}=")>-1)r.setAttribute("data-consent","")}catch(e){}`;
 
 export const viewport: Viewport = {
   themeColor: [
@@ -62,20 +53,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       // "dark" is the default and is rendered server-side, so a first-time
       // visitor never sees a flash. A returning visitor who chose light is
-      // switched by `INIT_SCRIPT` before first paint; the class change
+      // switched by `public/theme-init.js` before first paint; the class change
       // is why this needs suppressHydrationWarning.
       className={`dark ${inter.variable} antialiased`}
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
       <head>
-        {/* Must be a plain <script> in <head>: it runs while the HTML is parsed, before first paint, so a
-            returning light-mode visitor never sees a dark flash. next/script defers it until after
-            hydration, which defeats the purpose. React 19's dev-only "script tag while rendering"
-            notice appears when the layout is re-rendered on the client (Fast Refresh, error overlay);
-            the server-rendered script has already run, so production is unaffected. */}
-        {/* eslint-disable-next-line react/no-danger -- audited: INIT_SCRIPT is a constant built only from our own constants, never from request or user data */}
-        <script dangerouslySetInnerHTML={{ __html: INIT_SCRIPT }} />
+        {/* A same-origin file, not inline HTML: no dangerouslySetInnerHTML. It must be a plain blocking
+            <script> in <head> so it runs before first paint and a returning light-mode visitor never
+            sees a dark flash (next/script would defer it until after hydration). See public/theme-init.js. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts -- intentional: must block to run before first paint */}
+        <script src="/theme-init.js" />
       </head>
       <body className={inter.className}>{children}</body>
     </html>

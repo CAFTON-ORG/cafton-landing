@@ -42,6 +42,8 @@ export interface AdminPostDetail {
   imageLight: string;
   imageDark: string;
   imageAlt: string;
+  seoTitle: string;
+  seoDescription: string;
   status: PublishStatus;
   /** Galleries placed in the article; edited elsewhere, kept untouched on save. */
   galleryCount: number;

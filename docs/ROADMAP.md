@@ -54,7 +54,7 @@ Everything else visitors read comes from the database too, so staff never need a
 
 - [x] Site settings: description, slogan, contact email, location, booking link, badges and social links; the footer, menu, event pages, home and About badges, contact, careers, privacy and legal pages, the web manifest and the search-engine data all read them (migration `site_content`; not yet applied to Supabase)
 - [x] SEO management: title, description, share image and "hide from search" for each fixed page (with a search preview); the sitemap follows the hide flag; careers hides itself until it lists a role
-- [ ] Per-item SEO fields on blog posts, projects and events (needs a migration and editor fields; not started)
+- [x] Per-item SEO: search title and description on blog posts, projects and events (a Search tab or card in each editor, with a live preview; empty uses the item's own title and text; migration `item_seo`)
 - [x] Services: the four service areas (wording, order and systems; addresses and icons stay fixed) and the services page text
 - [x] Core values editable (About page and the home page "Why Cafton"): wording and order of exactly six, since the home scroll is built for six
 - [x] About page sections editable (headline, photo, what we do, story, vision, mission, approach, where we can help)
@@ -62,7 +62,7 @@ Everything else visitors read comes from the database too, so staff never need a
 - [x] Careers: text and a list of open roles; the page indexes itself when there are roles
 - [x] Privacy policy and Legal documents editable (sections in a small safe text format, cookie table and registration cards as blocks, "last updated" date)
 - [x] Contact page text (the form's own questions stay in code)
-- [ ] Proof for each step: public HTML built from files equals HTML built from the database (done for settings; the policy pages now render through the text format, so their markup differs slightly in whitespace)
+- [x] Proof: public HTML built from the bundled files equals HTML built from the database, for all 48 pages, with every document of site content seeded (0 pages differ)
 
 ## Phase 3 - CRM
 

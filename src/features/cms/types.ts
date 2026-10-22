@@ -51,6 +51,9 @@ export interface BlogPost {
   imageLight?: string;
   imageDark?: string;
   imageAlt?: string;
+  /** Search-engine title and description for this item; empty uses its own title and text. */
+  seoTitle?: string;
+  seoDescription?: string;
 }
 
 export interface Project {
@@ -77,6 +80,9 @@ export interface Project {
   imageLight?: string;
   imageDark?: string;
   imageAlt?: string;
+  /** Search-engine title and description for this item; empty uses its own title and text. */
+  seoTitle?: string;
+  seoDescription?: string;
   /** "cover" (default) crops a screenshot to fill the frame; "contain" shows a logo/mark in full, letterboxed. */
   imageFit?: "cover" | "contain";
   /** More screenshots, shown as a gallery on the detail page. */
@@ -119,6 +125,9 @@ export interface CaftonEvent {
   type: string;
   tagline: string;
   summary: string;
+  /** Search-engine title and description for this item; empty uses its own title and text. */
+  seoTitle?: string;
+  seoDescription?: string;
   /** Public Gleam campaign URL; the entry widget is built from it. */
   campaignUrl?: string;
   /** ISO timestamps. Leave out whichever is not announced yet. */

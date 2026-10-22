@@ -40,6 +40,10 @@ Text that is not a list of items (company settings now; SEO, About, Home, Career
 
 Editable pages are registered in `features/cms/site/registry.ts` (bundled content, Zod schema, form spec). One generic editor and one server action serve them all, so a new page of text needs no new editor code; see ADR 0008 for how the forms look. Policy pages use a small text format (paragraphs, bullets, bold, links, a few tokens) rendered as React elements, never as HTML.
 
+## Search listing per item
+
+Posts, projects and events carry an optional search title (70 characters) and description (200), enforced by the editor and by a CHECK constraint. Empty means the item's own title and text, so the public pages are unchanged until someone fills them in.
+
 ## Authors
 
 Only people with a staff account can be credited. Choosing one creates (or refreshes) an author row from their profile: name and Google photo, with the byline subtitle "Software development". The id is `staff-<profile id>`, so no second list of people is kept. Bundled content keeps one internal author as its fallback; it is never offered in the editors.

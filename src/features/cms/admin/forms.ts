@@ -71,6 +71,8 @@ export const projectSchema = z.object({
   imageLight: image,
   imageDark: image,
   imageAlt: trimmed(300),
+  seoTitle: trimmed(70).default(""),
+  seoDescription: trimmed(200).default(""),
   imageFit: z.enum(["", "cover", "contain"]),
   liveUrl: trimmed(500).refine(
     (value) => !value || /^https:\/\//i.test(value),
@@ -99,6 +101,8 @@ export const eventSchema = z.object({
   authorId: z.string().min(1, "Choose who posts it."),
   type: required("Add the kind of event, e.g. Giveaway.", 60),
   tagline: trimmed(200),
+  seoTitle: trimmed(70).default(""),
+  seoDescription: trimmed(200).default(""),
   summary: trimmed(600),
   campaignUrl: trimmed(500).refine(
     (value) => !value || /^https:\/\//i.test(value),
@@ -205,6 +209,8 @@ export interface AdminProjectDetail {
   imageLight: string;
   imageDark: string;
   imageAlt: string;
+  seoTitle: string;
+  seoDescription: string;
   imageFit: "" | "cover" | "contain";
   liveUrl: string;
   gallery: { src: string; alt: string; width: number; height: number; caption: string }[];
@@ -219,6 +225,8 @@ export interface AdminEventDetail {
   authorId: string;
   type: string;
   tagline: string;
+  seoTitle: string;
+  seoDescription: string;
   summary: string;
   campaignUrl: string;
   startsAt: string;

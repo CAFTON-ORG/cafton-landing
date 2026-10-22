@@ -68,18 +68,18 @@ model Profile {
 
 /// Append-only (enforced by a trigger): who did what, to what, when.
 model AuditLog {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   /// Null for the development preview user and for system actions.
-  actorId    String?  @map("actor_id") @db.Uuid
+  actorId   String?  @map("actor_id") @db.Uuid
   /// Snapshot, so history still reads correctly after the person is removed.
-  actorName  String   @map("actor_name")
+  actorName String   @map("actor_name")
   /// Dotted verb, e.g. "user.invite", "role.update".
-  action     String
-  entity     String
-  entityId   String?  @map("entity_id")
-  summary    String
-  metadata   Json?
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  summary   String
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([createdAt(sort: Desc)])
   @@index([entity, entityId])
@@ -344,28 +344,30 @@ model Author {
 }
 
 model BlogPost {
-  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug       String
-  authorId   String        @map("author_id")
-  title      String
-  excerpt    String
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String
+  authorId       String        @map("author_id")
+  title          String
+  excerpt        String
   /// Paragraphs, in order.
-  content    String[]
+  content        String[]
   /// Photos/galleries placed after a paragraph (BlogMedia[]).
-  media      Json?
+  media          Json?
   /// The date shown on the post.
-  date       DateTime      @db.Date
-  category   String
-  imageLight String?       @map("image_light")
-  imageDark  String?       @map("image_dark")
-  imageAlt   String?       @map("image_alt")
-  status     PublishStatus @default(draft)
-  position   Int           @default(0)
-  createdBy  String?       @map("created_by") @db.Uuid
-  updatedBy  String?       @map("updated_by") @db.Uuid
-  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt  DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt  DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  date           DateTime      @db.Date
+  category       String
+  imageLight     String?       @map("image_light")
+  imageDark      String?       @map("image_dark")
+  imageAlt       String?       @map("image_alt")
+  seoTitle       String?       @map("seo_title")
+  seoDescription String?       @map("seo_description")
+  status         PublishStatus @default(draft)
+  position       Int           @default(0)
+  createdBy      String?       @map("created_by") @db.Uuid
+  updatedBy      String?       @map("updated_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
   author Author @relation(fields: [authorId], references: [id], onDelete: Restrict)
 
@@ -375,34 +377,36 @@ model BlogPost {
 }
 
 model PortfolioProject {
-  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug        String
-  authorId    String        @map("author_id")
-  client      String
-  title       String
-  category    String
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String
+  authorId       String        @map("author_id")
+  client         String
+  title          String
+  category       String
   /// Slugs of the service pillars this project belongs to.
-  services    String[]
-  summary     String
-  description String
-  problem     String?
-  solution    String?
-  recognition String?
-  imageLight  String?       @map("image_light")
-  imageDark   String?       @map("image_dark")
-  imageAlt    String?       @map("image_alt")
+  services       String[]
+  summary        String
+  description    String
+  problem        String?
+  solution       String?
+  recognition    String?
+  imageLight     String?       @map("image_light")
+  imageDark      String?       @map("image_dark")
+  imageAlt       String?       @map("image_alt")
+  seoTitle       String?       @map("seo_title")
+  seoDescription String?       @map("seo_description")
   /// "cover" or "contain".
-  imageFit    String?       @map("image_fit")
+  imageFit       String?       @map("image_fit")
   /// More screenshots (BlogImage[]).
-  media       Json?
-  liveUrl     String?       @map("live_url")
-  status      PublishStatus @default(draft)
-  position    Int           @default(0)
-  createdBy   String?       @map("created_by") @db.Uuid
-  updatedBy   String?       @map("updated_by") @db.Uuid
-  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  media          Json?
+  liveUrl        String?       @map("live_url")
+  status         PublishStatus @default(draft)
+  position       Int           @default(0)
+  createdBy      String?       @map("created_by") @db.Uuid
+  updatedBy      String?       @map("updated_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
   author Author @relation(fields: [authorId], references: [id], onDelete: Restrict)
 
@@ -412,39 +416,41 @@ model PortfolioProject {
 }
 
 model Event {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug          String
-  authorId      String        @map("author_id")
-  title         String
-  type          String
-  tagline       String
-  summary       String
-  campaignUrl   String?       @map("campaign_url")
-  startsAt      DateTime?     @map("starts_at") @db.Timestamptz(6)
-  endsAt        DateTime?     @map("ends_at") @db.Timestamptz(6)
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String
+  authorId       String        @map("author_id")
+  title          String
+  type           String
+  tagline        String
+  summary        String
+  seoTitle       String?       @map("seo_title")
+  seoDescription String?       @map("seo_description")
+  campaignUrl    String?       @map("campaign_url")
+  startsAt       DateTime?     @map("starts_at") @db.Timestamptz(6)
+  endsAt         DateTime?     @map("ends_at") @db.Timestamptz(6)
   /// Force-close regardless of dates.
-  closed        Boolean       @default(false)
+  closed         Boolean       @default(false)
   /// { src, alt, width, height }
-  poster        Json?
-  about         String[]
-  prizesHeading String?       @map("prizes_heading")
+  poster         Json?
+  about          String[]
+  prizesHeading  String?       @map("prizes_heading")
   /// EventPrize[]
-  prizes        Json
+  prizes         Json
   /// EventStep[]
-  steps         Json?
+  steps          Json?
   /// [label, value][]
-  facts         Json?
-  closedTitle   String?       @map("closed_title")
-  closedNote    String?       @map("closed_note")
+  facts          Json?
+  closedTitle    String?       @map("closed_title")
+  closedNote     String?       @map("closed_note")
   /// EventPromo
-  promo         Json?
-  status        PublishStatus @default(draft)
-  position      Int           @default(0)
-  createdBy     String?       @map("created_by") @db.Uuid
-  updatedBy     String?       @map("updated_by") @db.Uuid
-  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt     DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  promo          Json?
+  status         PublishStatus @default(draft)
+  position       Int           @default(0)
+  createdBy      String?       @map("created_by") @db.Uuid
+  updatedBy      String?       @map("updated_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
   author Author @relation(fields: [authorId], references: [id], onDelete: Restrict)
 

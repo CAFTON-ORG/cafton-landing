@@ -31,8 +31,8 @@ export async function generateMetadata({ params }: EventPageProps): Promise<Meta
   if (!event) return {};
 
   return pageMetadata({
-    title: event.title,
-    description: event.summary,
+    title: event.seoTitle || event.title,
+    description: event.seoDescription || event.summary,
     path: `/events/${event.slug}`,
     image: event.poster
       ? { url: event.poster.src, width: event.poster.width, height: event.poster.height, alt: event.poster.alt }

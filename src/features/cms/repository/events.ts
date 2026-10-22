@@ -31,6 +31,8 @@ function toEvent(row: Prisma.EventGetPayload<object>): CaftonEvent {
     title: row.title,
     type: row.type,
     tagline: row.tagline,
+    seoTitle: opt(row.seoTitle),
+    seoDescription: opt(row.seoDescription),
     summary: row.summary,
     campaignUrl: opt(row.campaignUrl),
     startsAt: row.startsAt?.toISOString(),

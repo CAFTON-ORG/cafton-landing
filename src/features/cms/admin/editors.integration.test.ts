@@ -249,6 +249,50 @@ describe("authors and covers", () => {
   }, 30_000);
 });
 
+describe("search listing per item", () => {
+  const project = {
+    title: "SEO case",
+    slug: "seo-case",
+    authorId: "cafton",
+    client: "Acme",
+    category: "Web Application",
+    services: ["operations"],
+    summary: "S",
+    description: "D",
+    problem: "",
+    solution: "",
+    recognition: "",
+    imageLight: "",
+    imageDark: "",
+    imageAlt: "",
+    imageFit: "" as const,
+    liveUrl: "",
+    gallery: [],
+  };
+
+  it("stores a custom search title and description and shows them to the public reader", async () => {
+    expect(
+      await act.saveProject(
+        { ...project, seoTitle: "A better title", seoDescription: "A better text." },
+        "publish",
+      ),
+    ).toMatchObject({ ok: true });
+    const live = (await publicProjects.listProjects()).find((p) => p.slug === "seo-case");
+    expect(live).toMatchObject({ seoTitle: "A better title", seoDescription: "A better text." });
+  });
+
+  it("leaves them empty by default, and refuses over-long ones", async () => {
+    const shipped = (await publicProjects.listProjects()).find((p) => p.slug !== "seo-case");
+    expect(shipped?.seoTitle).toBeUndefined();
+    expect(
+      await act.saveProject({ ...project, slug: "seo-long", seoTitle: "x".repeat(71) }),
+    ).toMatchObject({
+      ok: false,
+      fieldErrors: { seoTitle: expect.any(String) },
+    });
+  });
+});
+
 describe("validation", () => {
   it("rejects a taken address, an unknown service, and an unsafe or malformed link or image", async () => {
     const detail = (await read.getProjectForEdit(

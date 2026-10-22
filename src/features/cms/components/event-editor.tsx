@@ -21,6 +21,7 @@ import { checkEventDates, checkPublishEvent, manilaToIso, slugify } from "../rul
 import { AuthorField } from "./author-field";
 import { EditorTab, EditorTabs, PublishPanel, Repeater, useContentEditor } from "./editor-kit";
 import { ImageField } from "./image-field";
+import { SeoListingCard } from "./seo-listing-card";
 
 const BLANK: AdminEventDetail = {
   id: "",
@@ -29,6 +30,8 @@ const BLANK: AdminEventDetail = {
   authorId: "",
   type: "",
   tagline: "",
+  seoTitle: "",
+  seoDescription: "",
   summary: "",
   campaignUrl: "",
   startsAt: "",
@@ -220,6 +223,7 @@ export function EventEditor({
           { value: "prizes", label: "Prizes", fields: ["prizes"] },
           { value: "join", label: "How to join", fields: ["steps", "facts"] },
           { value: "promo", label: "Poster and promotion", fields: ["poster", "promo", "closed"] },
+          { value: "search", label: "Search", fields: ["seo"] },
         ]}
         errors={errors}
       >
@@ -531,6 +535,18 @@ export function EventEditor({
               </fieldset>
             </CardContent>
           </Card>
+        </EditorTab>
+        <EditorTab value="search">
+          <SeoListingCard
+            idPrefix="event"
+            title={values.seoTitle}
+            description={values.seoDescription}
+            onTitle={(value) => set("seoTitle", value)}
+            onDescription={(value) => set("seoDescription", value)}
+            defaultTitle={values.title}
+            defaultDescription={values.summary}
+            errors={errors}
+          />
         </EditorTab>
       </EditorTabs>
     </form>

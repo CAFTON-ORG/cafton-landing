@@ -285,6 +285,8 @@ export async function getPost(id: string): Promise<AdminPostDetail | null> {
     imageLight: row.imageLight ?? "",
     imageDark: row.imageDark ?? "",
     imageAlt: row.imageAlt ?? "",
+    seoTitle: row.seoTitle ?? "",
+    seoDescription: row.seoDescription ?? "",
     status: row.status,
     galleryCount: galleries,
     updatedAt: row.updatedAt.toISOString(),

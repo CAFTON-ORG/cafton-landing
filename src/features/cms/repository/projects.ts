@@ -35,6 +35,8 @@ function toProject(row: Prisma.PortfolioProjectGetPayload<object>): Project {
     imageLight: opt(row.imageLight) ?? opt(row.imageDark),
     imageDark: opt(row.imageDark) ?? opt(row.imageLight),
     imageAlt: opt(row.imageAlt),
+    seoTitle: opt(row.seoTitle),
+    seoDescription: opt(row.seoDescription),
     imageFit: row.imageFit === "cover" || row.imageFit === "contain" ? row.imageFit : undefined,
     ...(media.length > 0 && { media }),
     liveUrl: opt(row.liveUrl),

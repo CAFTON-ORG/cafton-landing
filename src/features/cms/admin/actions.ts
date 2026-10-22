@@ -90,6 +90,8 @@ export async function savePost(
         imageLight: data.imageLight || null,
         imageDark: data.imageDark || null,
         imageAlt: data.imageAlt || null,
+        seoTitle: data.seoTitle || null,
+        seoDescription: data.seoDescription || null,
         status,
         updatedBy: actorId(actor),
       } as const;

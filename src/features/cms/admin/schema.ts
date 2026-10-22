@@ -37,6 +37,12 @@ export const postSchema = z.object({
   imageLight: optionalImage,
   imageDark: optionalImage,
   imageAlt: z.string().trim().max(300),
+  seoTitle: z.string().trim().max(70, "Keep the search title under 70 characters.").default(""),
+  seoDescription: z
+    .string()
+    .trim()
+    .max(200, "Keep the search description under 200 characters.")
+    .default(""),
 });
 
 export type PostInput = z.input<typeof postSchema>;

@@ -32,6 +32,8 @@ function toBlogPost(row: Prisma.BlogPostGetPayload<object>): BlogPost {
     imageLight: opt(row.imageLight) ?? opt(row.imageDark),
     imageDark: opt(row.imageDark) ?? opt(row.imageLight),
     imageAlt: opt(row.imageAlt),
+    seoTitle: opt(row.seoTitle),
+    seoDescription: opt(row.seoDescription),
   };
 }
 

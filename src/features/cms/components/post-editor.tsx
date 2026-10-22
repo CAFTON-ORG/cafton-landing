@@ -18,6 +18,7 @@ import type { AdminPostDetail, AuthorOption } from "../admin/types";
 import { checkPublishPost, paragraphsFromText, slugify } from "../rules";
 import { AuthorField } from "./author-field";
 import { PublishPanel, useContentEditor } from "./editor-kit";
+import { SeoListingCard } from "./seo-listing-card";
 import { CoverImageFields } from "./cover-image-fields";
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -34,6 +35,8 @@ const BLANK: AdminPostDetail = {
   imageLight: "",
   imageDark: "",
   imageAlt: "",
+  seoTitle: "",
+  seoDescription: "",
   status: "draft",
   galleryCount: 0,
   updatedAt: "",
@@ -245,6 +248,16 @@ export function PostEditor({
             />
           </CardContent>
         </Card>
+        <SeoListingCard
+          idPrefix="post"
+          title={values.seoTitle}
+          description={values.seoDescription}
+          onTitle={(value) => set("seoTitle", value)}
+          onDescription={(value) => set("seoDescription", value)}
+          defaultTitle={values.title}
+          defaultDescription={values.excerpt}
+          errors={errors}
+        />
       </EditorLayout>
     </form>
   );

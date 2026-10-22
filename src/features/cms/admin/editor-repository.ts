@@ -48,6 +48,8 @@ export async function getProjectForEdit(id: string): Promise<AdminProjectDetail 
     imageLight: row.imageLight ?? "",
     imageDark: row.imageDark ?? "",
     imageAlt: row.imageAlt ?? "",
+    seoTitle: row.seoTitle ?? "",
+    seoDescription: row.seoDescription ?? "",
     imageFit: row.imageFit === "cover" || row.imageFit === "contain" ? row.imageFit : "",
     liveUrl: row.liveUrl ?? "",
     gallery: gallery.map((image) => ({
@@ -79,6 +81,8 @@ export async function getEventForEdit(id: string): Promise<AdminEventDetail | nu
     authorId: row.authorId,
     type: row.type,
     tagline: row.tagline,
+    seoTitle: row.seoTitle ?? "",
+    seoDescription: row.seoDescription ?? "",
     summary: row.summary,
     campaignUrl: row.campaignUrl ?? "",
     startsAt: row.startsAt ? isoToManila(row.startsAt.toISOString()) : "",

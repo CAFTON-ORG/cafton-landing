@@ -36,8 +36,8 @@ export async function generateMetadata({
   if (!post) return {};
 
   return pageMetadata({
-    title: post.title,
-    description: post.excerpt,
+    title: post.seoTitle || post.title,
+    description: post.seoDescription || post.excerpt,
     path: `/blog/${post.slug}`,
     type: "article",
   });

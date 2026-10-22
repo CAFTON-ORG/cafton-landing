@@ -27,6 +27,7 @@ import { AuthorField } from "./author-field";
 import { EditorTab, EditorTabs, PublishPanel, Repeater, useContentEditor } from "./editor-kit";
 import { CoverImageFields } from "./cover-image-fields";
 import { ImageField } from "./image-field";
+import { SeoListingCard } from "./seo-listing-card";
 import { useState } from "react";
 
 const BLANK: AdminProjectDetail = {
@@ -45,6 +46,8 @@ const BLANK: AdminProjectDetail = {
   imageLight: "",
   imageDark: "",
   imageAlt: "",
+  seoTitle: "",
+  seoDescription: "",
   imageFit: "",
   liveUrl: "",
   gallery: [],
@@ -237,6 +240,7 @@ export function ProjectEditor({
           { value: "about", label: "Project", fields: ["title", "summary", "description"] },
           { value: "story", label: "Story", fields: ["problem", "solution", "recognition"] },
           { value: "images", label: "Images", fields: ["image", "gallery"] },
+          { value: "search", label: "Search", fields: ["seo"] },
         ]}
         errors={errors}
       >
@@ -393,6 +397,18 @@ export function ProjectEditor({
               />
             </CardContent>
           </Card>
+        </EditorTab>
+        <EditorTab value="search">
+          <SeoListingCard
+            idPrefix="project"
+            title={values.seoTitle}
+            description={values.seoDescription}
+            onTitle={(value) => set("seoTitle", value)}
+            onDescription={(value) => set("seoDescription", value)}
+            defaultTitle={`${values.client}: ${values.title}`}
+            defaultDescription={values.summary}
+            errors={errors}
+          />
         </EditorTab>
       </EditorTabs>
     </form>

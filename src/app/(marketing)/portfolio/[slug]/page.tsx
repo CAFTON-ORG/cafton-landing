@@ -34,8 +34,8 @@ export async function generateMetadata({
   if (!project) return {};
 
   return pageMetadata({
-    title: `${project.client}: ${project.title}`,
-    description: project.summary,
+    title: project.seoTitle || `${project.client}: ${project.title}`,
+    description: project.seoDescription || project.summary,
     path: `/portfolio/${project.slug}`,
   });
 }

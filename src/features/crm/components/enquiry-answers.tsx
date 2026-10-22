@@ -1,16 +1,8 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  Briefcase,
-  Compass,
-  Megaphone,
-  StickyNote,
-  Target,
-  TriangleAlert,
-  Wallet,
-} from "lucide-react";
+import { Briefcase, Megaphone, StickyNote, Target, TriangleAlert, Wallet } from "lucide-react";
 
 import { Badge } from "@/components/dashboard/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
+import { Card, CardContent } from "@/components/dashboard/ui/card";
 
 const text = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 const list = (value: unknown): string[] =>
@@ -20,6 +12,7 @@ const list = (value: unknown): string[] =>
       ? text(value).split(/;\s*/).filter(Boolean)
       : [];
 
+/** A titled block inside the one enquiry card (sections are divided by a line, not boxed). */
 function Section({
   icon: Icon,
   title,
@@ -30,14 +23,12 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Icon className="text-muted-foreground size-4" aria-hidden="true" /> {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
+    <section className="grid gap-2 py-4 first:pt-0 last:pb-0">
+      <h3 className="text-muted-foreground flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
+        <Icon className="size-3.5" aria-hidden="true" /> {title}
+      </h3>
+      {children}
+    </section>
   );
 }
 
@@ -100,74 +91,62 @@ export function EnquiryAnswers({
   }
 
   return (
-    <div className="grid gap-4">
-      {(budget || timeline) && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {[
-            [Wallet, "Budget", budget],
-            [Compass, "Timeline", timeline],
-          ].map(([Icon, label, value]) => {
-            const I = Icon as LucideIcon;
-            return value ? (
-              <div
-                key={label as string}
-                className="bg-card flex items-center gap-3 rounded-xl border p-4"
-              >
-                <span className="bg-muted flex size-9 items-center justify-center rounded-lg">
-                  <I className="size-4" aria-hidden="true" />
-                </span>
-                <div>
-                  <p className="text-muted-foreground text-xs">{label as string}</p>
-                  <p className="font-medium">{value as string}</p>
-                </div>
+    <Card>
+      <CardContent className="divide-y">
+        {(budget || timeline) && (
+          <Section icon={Wallet} title="Budget and timing">
+            <Facts
+              items={[
+                ["Budget", budget],
+                ["Timeline", timeline],
+              ]}
+            />
+          </Section>
+        )}
+
+        {(area || goals) && (
+          <Section icon={Target} title="What they want">
+            {area && (
+              <div>
+                <Badge variant="secondary">{area}</Badge>
               </div>
-            ) : null;
-          })}
-        </div>
-      )}
+            )}
+            {goals && <p className="text-sm">{goals}</p>}
+          </Section>
+        )}
 
-      {(area || goals) && (
-        <Section icon={Target} title="What they want">
-          {area && (
-            <Badge variant="secondary" className="mb-2">
-              {area}
-            </Badge>
-          )}
-          {goals && <p className="text-sm">{goals}</p>}
-        </Section>
-      )}
+        {challenges.length > 0 && (
+          <Section icon={TriangleAlert} title="What is getting in their way">
+            <ul className="flex flex-wrap gap-2">
+              {challenges.map((challenge) => (
+                <li key={challenge}>
+                  <Badge variant="outline" className="h-auto py-1 whitespace-normal">
+                    {challenge}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )}
 
-      {challenges.length > 0 && (
-        <Section icon={TriangleAlert} title="What is getting in their way">
-          <ul className="flex flex-wrap gap-2">
-            {challenges.map((challenge) => (
-              <li key={challenge}>
-                <Badge variant="outline" className="h-auto py-1 whitespace-normal">
-                  {challenge}
-                </Badge>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
+        {project.some(([, value]) => value) && (
+          <Section icon={Briefcase} title="About them">
+            <Facts items={project} />
+          </Section>
+        )}
 
-      {project.some(([, value]) => value) && (
-        <Section icon={Briefcase} title="About them">
-          <Facts items={project} />
-        </Section>
-      )}
+        {referral && (
+          <Section icon={Megaphone} title="How they found us">
+            <p className="text-sm">{referral}</p>
+          </Section>
+        )}
 
-      {referral && (
-        <Section icon={Megaphone} title="How they found us">
-          <p className="text-sm">{referral}</p>
-        </Section>
-      )}
-
-      {notes && (
-        <Section icon={StickyNote} title="Their notes">
-          <p className="text-sm whitespace-pre-wrap">{notes}</p>
-        </Section>
-      )}
-    </div>
+        {notes && (
+          <Section icon={StickyNote} title="Their notes">
+            <p className="text-sm whitespace-pre-wrap">{notes}</p>
+          </Section>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -6,7 +6,7 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { Person } from "@/components/dashboard/shared/person";
-import { Card, CardContent } from "@/components/dashboard/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
 import { getServices } from "@/features/cms/repository/services";
 import { ActivityTimeline } from "@/features/crm/components/activity-timeline";
@@ -279,6 +279,9 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
 
           <TabsContent value="tasks" className="mt-4">
             <Card>
+              <CardHeader>
+                <CardTitle>Tasks</CardTitle>
+              </CardHeader>
               <CardContent className="grid gap-3">
                 {canAddTask && (
                   <NewTaskForm

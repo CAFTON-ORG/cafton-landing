@@ -7,7 +7,8 @@ import { FileSignature, Plus } from "lucide-react";
 import { useCan } from "@/components/dashboard/layout/staff-context";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Button } from "@/components/dashboard/ui/button";
-import { Card, CardContent } from "@/components/dashboard/ui/card";
+import { IconTile } from "@/components/dashboard/shared/icon-tile";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
@@ -31,6 +32,8 @@ export function DealQuotesPanel({
 
   const start = (
     <Button
+      size="sm"
+      variant="outline"
       disabled={pending || closedLost}
       title={closedLost ? "Reopen the deal to make a quote" : undefined}
       onClick={() =>
@@ -46,6 +49,10 @@ export function DealQuotesPanel({
 
   return (
     <Card>
+      <CardHeader className="flex-row items-center justify-between gap-2">
+        <CardTitle>Quotes</CardTitle>
+        {canCreate && start}
+      </CardHeader>
       <CardContent className="grid gap-3">
         {quotes.length === 0 ? (
           <EmptyState
@@ -53,17 +60,13 @@ export function DealQuotesPanel({
             icon={FileSignature}
             title="No quotes yet"
             description="Price the work, send it to the client and let them accept it online."
-            action={canCreate ? start : undefined}
           />
         ) : (
-          <>
-            {canCreate && <div>{start}</div>}
-            <ul className="divide-y">
-              {quotes.map((quote) => (
-                <li
-                  key={quote.id}
-                  className="flex flex-wrap items-center justify-between gap-3 py-3"
-                >
+          <ul className="divide-y">
+            {quotes.map((quote) => (
+              <li key={quote.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <IconTile icon={FileSignature} />
                   <div className="min-w-0">
                     <Link
                       href={`/dashboard/sales/quotes/${quote.id}`}
@@ -78,16 +81,16 @@ export function DealQuotesPanel({
                       {quote.title} · made {formatDate(quote.createdAt)}
                     </p>
                   </div>
-                  <span className="flex items-center gap-3 text-sm">
-                    <QuoteStatusBadge status={quote.status} />
-                    <span className="tabular-nums">
-                      {formatMinor(quote.totalMinor, quote.currency)}
-                    </span>
+                </div>
+                <span className="flex items-center gap-3 text-sm">
+                  <QuoteStatusBadge status={quote.status} />
+                  <span className="tabular-nums">
+                    {formatMinor(quote.totalMinor, quote.currency)}
                   </span>
-                </li>
-              ))}
-            </ul>
-          </>
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </CardContent>
     </Card>

@@ -9,7 +9,7 @@ import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Person } from "@/components/dashboard/shared/person";
 import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
-import { Card, CardContent } from "@/components/dashboard/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
 import { ActivityTimeline } from "@/features/crm/components/activity-timeline";
 import { StageBadge } from "@/features/crm/components/badges";
@@ -183,6 +183,9 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
 
           <TabsContent value="tasks" className="mt-4">
             <Card>
+              <CardHeader>
+                <CardTitle>Tasks</CardTitle>
+              </CardHeader>
               <CardContent className="grid gap-3">
                 <NewTaskForm
                   subject={{ contactId: id }}

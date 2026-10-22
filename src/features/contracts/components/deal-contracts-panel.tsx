@@ -9,7 +9,8 @@ import { useCan } from "@/components/dashboard/layout/staff-context";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Field } from "@/components/dashboard/shared/field";
 import { Button } from "@/components/dashboard/ui/button";
-import { Card, CardContent } from "@/components/dashboard/ui/card";
+import { IconTile } from "@/components/dashboard/shared/icon-tile";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
 import {
   Dialog,
   DialogBody,
@@ -54,6 +55,8 @@ export function DealContractsPanel({
 
   const start = (
     <Button
+      size="sm"
+      variant="outline"
       disabled={closedLost || templates.length === 0}
       title={
         closedLost
@@ -70,6 +73,10 @@ export function DealContractsPanel({
 
   return (
     <Card>
+      <CardHeader className="flex-row items-center justify-between gap-2">
+        <CardTitle>Contracts</CardTitle>
+        {canCreate && start}
+      </CardHeader>
       <CardContent className="grid gap-3">
         {contracts.length === 0 ? (
           <EmptyState
@@ -81,17 +88,16 @@ export function DealContractsPanel({
                 ? "Once the client accepts a quote, draft the agreement here and have them sign it online."
                 : "Draft the agreement or statement of work from a template and have the client sign it online."
             }
-            action={canCreate ? start : undefined}
           />
         ) : (
-          <>
-            {canCreate && <div>{start}</div>}
-            <ul className="divide-y">
-              {contracts.map((contract) => (
-                <li
-                  key={contract.id}
-                  className="flex flex-wrap items-center justify-between gap-3 py-3"
-                >
+          <ul className="divide-y">
+            {contracts.map((contract) => (
+              <li
+                key={contract.id}
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <IconTile icon={FileText} />
                   <div className="min-w-0">
                     <Link
                       href={`/dashboard/sales/contracts/${contract.id}`}
@@ -104,11 +110,11 @@ export function DealContractsPanel({
                       {formatDate(contract.createdAt)}
                     </p>
                   </div>
-                  <ContractStatusBadge status={contract.status} />
-                </li>
-              ))}
-            </ul>
-          </>
+                </div>
+                <ContractStatusBadge status={contract.status} />
+              </li>
+            ))}
+          </ul>
         )}
       </CardContent>
       {open && (

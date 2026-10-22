@@ -34,62 +34,10 @@ const DEV_STAFF: Staff = {
   permissions: ALL_PERMISSIONS,
 };
 
-interface ProfileRow {
-  id: string;
-  email: string;
-  fullName: string | null;
-  avatarUrl: string | null;
-  role: {
-    id: string;
-    key: string;
-    name: string;
-    isSystem: boolean;
-    permissions: { permission: string }[];
-  };
-}
+const profileInclude = { role: { include: { permissions: true } } } as const;
 
-/**
- * The profile with its role and permissions in ONE round trip. Loading them with Prisma's
- * include takes three sequential queries, and when the database is far away each one costs
- * hundreds of milliseconds on every page.
- */
-async function findProfile(id: string): Promise<ProfileRow | null> {
-  const rows = await prisma.$queryRaw<
-    {
-      id: string;
-      email: string;
-      full_name: string | null;
-      avatar_url: string | null;
-      role_id: string;
-      role_key: string;
-      role_name: string;
-      is_system: boolean;
-      permissions: string[];
-    }[]
-  >`
-    SELECT p.id, p.email, p.full_name, p.avatar_url,
-           r.id AS role_id, r.key AS role_key, r.name AS role_name, r.is_system,
-           COALESCE(array_agg(rp.permission) FILTER (WHERE rp.permission IS NOT NULL), '{}') AS permissions
-    FROM profiles p
-    JOIN roles r ON r.id = p.role_id
-    LEFT JOIN role_permissions rp ON rp.role_id = r.id
-    WHERE p.id = ${id}::uuid
-    GROUP BY p.id, r.id`;
-  const row = rows[0];
-  if (!row) return null;
-  return {
-    id: row.id,
-    email: row.email,
-    fullName: row.full_name,
-    avatarUrl: row.avatar_url,
-    role: {
-      id: row.role_id,
-      key: row.role_key,
-      name: row.role_name,
-      isSystem: row.is_system,
-      permissions: row.permissions.map((permission) => ({ permission })),
-    },
-  };
+function findProfile(id: string) {
+  return prisma.profile.findUnique({ where: { id }, include: profileInclude });
 }
 
 /**
@@ -126,13 +74,11 @@ async function claimInvite(
 }
 
 /**
- * Current signed-in staff member, or null. Identity is the verified Supabase session; the role and
- * permissions are read from the database on every request (never cached across requests, so a
- * removed or demoted person loses access at once).
+ * Current signed-in staff member, or null. Memoized per request.
  * Identity comes from Supabase Auth (verified JWT claims); the role and its
  * permissions come from our own tables through Prisma.
  */
-async function resolveStaff(): Promise<Staff | null> {
+export const getStaff = cache(async (): Promise<Staff | null> => {
   if (!isSupabaseConfigured || !isDatabaseConfigured) {
     return isProduction ? null : DEV_STAFF;
   }
@@ -175,10 +121,7 @@ async function resolveStaff(): Promise<Staff | null> {
     permissions: resolvePermissions(profile.role),
     avatarUrl: profile.avatarUrl ?? undefined,
   };
-}
-
-/** Memoized per request (React cache), as the Next.js data-access-layer guide recommends. */
-export const getStaff = cache(resolveStaff);
+});
 
 export async function verifySession(): Promise<Staff> {
   const staff = await getStaff();

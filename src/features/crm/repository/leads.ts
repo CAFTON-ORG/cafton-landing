@@ -4,7 +4,7 @@ import { withActivity } from "./summary";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import { fetchPage, type Page } from "@/lib/pagination";
+import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
 import { live, namesFor, toLead } from "../mappers";
 import type { LeadView } from "../types";
@@ -52,11 +52,15 @@ export async function listLeads(
         ? { status: dir }
         : { createdAt: dir };
 
-  const { rows, base } = await fetchPage(
-    params,
-    () => prisma.lead.count({ where }),
-    (skip, take) => prisma.lead.findMany({ where, include, orderBy, skip, take }),
-  );
+  const total = await prisma.lead.count({ where });
+  const base = paginate(new Array(total), params.page, params.pageSize); // page maths only
+  const rows = await prisma.lead.findMany({
+    where,
+    include,
+    orderBy,
+    skip: (base.page - 1) * base.pageSize,
+    take: base.pageSize,
+  });
   const names = await namesFor(rows.map((row) => row.ownerId));
   return {
     ...base,

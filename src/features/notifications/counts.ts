@@ -3,7 +3,6 @@ import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import { ttlCache } from "@/lib/ttl-cache";
 
 /** The numbers shown as badges: in the sidebar and on the bell. */
 export interface NavCounts {
@@ -40,5 +39,4 @@ async function load(userId: string): Promise<NavCounts> {
   };
 }
 
-/** Kept for 10 seconds per person. Anything that changes these numbers clears it (see refreshCrm). */
-export const navCounts = ttlCache(10_000, load, (userId) => userId);
+export const navCounts = load;

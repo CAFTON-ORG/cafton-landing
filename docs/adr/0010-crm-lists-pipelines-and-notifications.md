@@ -15,12 +15,6 @@
 `Email logging, custom fields, lead scoring and assignment rules, files on records, merging leads, per-stage required fields, multi-currency totals.
 `
 
-## Speed (added later)
+## Speed
 
-The database is in Mumbai and people work from the Philippines, so every query costs hundreds of milliseconds (measured: about 500 ms a query, seconds to open a connection). A page that makes five queries one after another feels broken. What we do about it, in order of effect:
-
-- **Run the app next to the database** in production: `vercel.json` pins functions to `bom1`. Locally, `next dev` against the hosted database stays slow by nature.
-- **Fewer round trips per page.** The signed-in person's profile, role and permissions are one SQL query (Prisma's include took three in a row). A list counts and reads its page at the same time (`fetchPage`). Detail pages ask for everything in one `Promise.all`. Sidebar badges and the bell's unread count come from a single query.
-- **Do not ask twice** (`lib/ttl-cache.ts`): the staff directory (60 s), pipelines (30 s) and the badge counts (10 s). Nothing security-related is cached across requests: who someone is and what they may do is read on every request and only memoized within it (React `cache`, as the Next.js data-access-layer guide says), so removing or demoting a person takes effect at once.
-- **Keep connections warm** (`lib/db.ts`): connections idle for ten minutes instead of ten seconds, so reading a page no longer means paying the connection cost on the next click.
-- **Read lazily.** The bell's list is fetched when it is opened, not on every page.
+The database is in Mumbai, so each query costs hundreds of milliseconds from the Philippines. The app reads data the plain way (no cross-request caches, no custom data-access tricks); the lever we use is placing the functions next to the database: `vercel.json` pins them to `bom1`. Sidebar badges and the bell's unread count are one SQL query, and the bell's list is read when it is opened.

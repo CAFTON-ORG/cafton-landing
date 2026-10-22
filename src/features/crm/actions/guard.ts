@@ -2,7 +2,6 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 
-import { navCounts } from "@/features/notifications/counts";
 import { ActionError, NOT_CONFIGURED } from "@/lib/actions";
 import { requirePermission } from "@/lib/auth/dal";
 import type { Permission } from "@/lib/auth/permissions";
@@ -17,8 +16,6 @@ export async function guard(permission: Permission) {
 
 /** Everything a CRM change can affect. Cheap, and avoids a stale list after a write. */
 export function refreshCrm() {
-  // The sidebar badges count new leads, meeting requests and overdue tasks.
-  navCounts.clear();
   for (const path of [
     "/dashboard",
     "/dashboard/crm",

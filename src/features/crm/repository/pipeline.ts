@@ -4,22 +4,21 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { DEFAULT_CURRENCY, weightedMinor } from "@/lib/money";
 import { fromManila, manilaDate } from "@/features/schedule/slots";
-import { live, staffDirectory, toStage } from "../mappers";
-import { ttlCache } from "@/lib/ttl-cache";
+import { live, toStage } from "../mappers";
 import type { ForecastView, PersonRef, PipelineView, StageView } from "../types";
 
 /** The stages of one pipeline (the default one when none is named), in order. */
 export async function listStages(pipelineId?: string): Promise<StageView[]> {
   if (!isDatabaseConfigured) return [];
-  const pipelines = await listPipelines();
-  const pipeline = pipelineId
-    ? pipelines.find((item) => item.id === pipelineId)
-    : pipelines.find((item) => item.isDefault);
-  return pipeline?.stages ?? [];
+  const stages = await prisma.pipelineStage.findMany({
+    where: pipelineId ? { pipelineId } : { pipeline: { isDefault: true } },
+    orderBy: { position: "asc" },
+  });
+  return stages.map(toStage);
 }
 
-/** Every pipeline with its stages and how many live deals it holds. Default first. Kept for 30 seconds; the editor clears it. */
-async function loadPipelines(): Promise<PipelineView[]> {
+/** Every pipeline with its stages and how many live deals it holds. Default first. */
+export async function listPipelines(): Promise<PipelineView[]> {
   if (!isDatabaseConfigured) return [];
   const rows = await prisma.pipeline.findMany({
     orderBy: [{ isDefault: "desc" }, { position: "asc" }, { name: "asc" }],
@@ -41,12 +40,18 @@ async function loadPipelines(): Promise<PipelineView[]> {
   }));
 }
 
-export const listPipelines = ttlCache(30_000, loadPipelines);
-
 /** Staff who can own records, for pickers. */
 export async function listStaffOptions(): Promise<PersonRef[]> {
   if (!isDatabaseConfigured) return [];
-  return staffDirectory();
+  const people = await prisma.profile.findMany({
+    orderBy: [{ fullName: "asc" }, { email: "asc" }],
+    select: { id: true, fullName: true, email: true, avatarUrl: true },
+  });
+  return people.map((person) => ({
+    id: person.id,
+    name: person.fullName || person.email,
+    avatarUrl: person.avatarUrl ?? undefined,
+  }));
 }
 
 /**

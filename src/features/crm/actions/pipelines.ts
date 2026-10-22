@@ -18,7 +18,6 @@ import {
   slugKey,
   uniqueKey,
 } from "../pipelines";
-import { listPipelines } from "../repository/pipeline";
 import { guard, refreshCrm } from "./guard";
 import type { Tx } from "./shared";
 
@@ -32,7 +31,6 @@ const criteria = z
   .transform((value) => value || undefined);
 
 function refresh() {
-  listPipelines.clear();
   refreshCrm();
   revalidatePath("/dashboard/crm/pipelines");
 }

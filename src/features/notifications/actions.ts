@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { actorId, runAction, type ActionResult } from "@/lib/actions";
 import { verifySession } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
-import { navCounts } from "./counts";
 import { listNotifications } from "./server";
 import type { NotificationView } from "./types";
 
@@ -22,7 +21,6 @@ export async function markNotificationRead(id: string): Promise<ActionResult> {
       where: { id, userId, readAt: null },
       data: { readAt: new Date() },
     });
-    navCounts.clear();
     revalidatePath("/dashboard", "layout");
   });
 }
@@ -35,7 +33,6 @@ export async function markAllNotificationsRead(): Promise<ActionResult> {
       where: { userId, readAt: null },
       data: { readAt: new Date() },
     });
-    navCounts.clear();
     revalidatePath("/dashboard", "layout");
   });
 }

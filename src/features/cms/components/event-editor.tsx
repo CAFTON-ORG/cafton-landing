@@ -19,7 +19,8 @@ import type { AdminEventDetail } from "../admin/forms";
 import type { AuthorOption } from "../admin/types";
 import { checkEventDates, checkPublishEvent, manilaToIso, slugify } from "../rules";
 import { AuthorField } from "./author-field";
-import { ImageField, PublishPanel, Repeater, useContentEditor } from "./editor-kit";
+import { EditorTab, EditorTabs, PublishPanel, Repeater, useContentEditor } from "./editor-kit";
+import { ImageField } from "./image-field";
 
 const BLANK: AdminEventDetail = {
   id: "",
@@ -110,306 +111,325 @@ export function EventEditor({
       }}
       className="grid gap-4 lg:grid-cols-[1fr_20rem]"
     >
-      <div className="grid content-start gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>The event</CardTitle>
-            <CardDescription>
-              What visitors read on the events list and the event page.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <Field id="event-title" label="Title" required error={errors.title}>
-              <Input
-                id="event-title"
-                value={values.title}
-                aria-invalid={!!errors.title}
-                autoComplete="off"
-                onChange={(e) =>
+      <EditorTabs
+        tabs={[
+          { value: "about", label: "Event", fields: ["title", "tagline", "summary", "aboutText"] },
+          { value: "prizes", label: "Prizes", fields: ["prizes"] },
+          { value: "join", label: "How to join", fields: ["steps", "facts"] },
+          { value: "promo", label: "Poster and promotion", fields: ["poster", "promo", "closed"] },
+        ]}
+        errors={errors}
+      >
+        <EditorTab value="about">
+          <Card>
+            <CardHeader>
+              <CardTitle>The event</CardTitle>
+              <CardDescription>
+                What visitors read on the events list and the event page.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <Field id="event-title" label="Title" required error={errors.title}>
+                <Input
+                  id="event-title"
+                  value={values.title}
+                  aria-invalid={!!errors.title}
+                  autoComplete="off"
+                  onChange={(e) =>
+                    setValues((c) => ({
+                      ...c,
+                      title: e.target.value,
+                      ...(slugTouched ? {} : { slug: slugify(e.target.value) }),
+                    }))
+                  }
+                />
+              </Field>
+              <Field id="event-tagline" label="Tagline" error={errors.tagline}>
+                <Input {...text("tagline")} />
+              </Field>
+              <Field
+                id="event-summary"
+                label="Summary"
+                error={errors.summary}
+                hint="Shown on the events list."
+              >
+                <Textarea {...area("summary", 3)} />
+              </Field>
+              <Field
+                id="event-aboutText"
+                label="About the event"
+                error={errors.aboutText}
+                hint="Separate paragraphs with a blank line."
+              >
+                <Textarea {...area("aboutText", 8)} />
+              </Field>
+            </CardContent>
+          </Card>
+        </EditorTab>
+
+        <EditorTab value="prizes">
+          <Card>
+            <CardHeader>
+              <CardTitle>Prizes</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <Field
+                id="event-prizesHeading"
+                label="Heading above the prizes"
+                error={errors.prizesHeading}
+                hint="Optional."
+              >
+                <Input {...text("prizesHeading")} />
+              </Field>
+              <Repeater
+                label="Prize rows"
+                itemName="Prize"
+                items={values.prizes}
+                onChange={(prizes) => set("prizes", prizes)}
+                create={() => ({
+                  rank: "",
+                  name: "",
+                  itemsText: "",
+                  image: "",
+                  imageAlt: "",
+                  cutout: false,
+                })}
+                error={errors.prizes}
+                render={(prize, index, update) => (
+                  <div className="grid gap-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Field id={`prize-${index}-rank`} label="Place or package" required>
+                        <Input
+                          id={`prize-${index}-rank`}
+                          value={prize.rank}
+                          onChange={(e) => update({ rank: e.target.value })}
+                          placeholder="1st place"
+                        />
+                      </Field>
+                      <Field id={`prize-${index}-name`} label="Prize" required>
+                        <Input
+                          id={`prize-${index}-name`}
+                          value={prize.name}
+                          onChange={(e) => update({ name: e.target.value })}
+                        />
+                      </Field>
+                    </div>
+                    <Field
+                      id={`prize-${index}-items`}
+                      label="What is included"
+                      hint="One item per line."
+                    >
+                      <Textarea
+                        id={`prize-${index}-items`}
+                        rows={3}
+                        value={prize.itemsText}
+                        onChange={(e) => update({ itemsText: e.target.value })}
+                      />
+                    </Field>
+                    <ImageField
+                      id={`prize-${index}-image`}
+                      label="Photo"
+                      value={prize.image}
+                      onChange={(image) => update({ image })}
+                      onPicked={(item) =>
+                        !prize.imageAlt && item.alt && update({ imageAlt: item.alt })
+                      }
+                      hint="Optional. Without one a typographic plate is shown."
+                    />
+                    <Field id={`prize-${index}-alt`} label="Describe the photo">
+                      <Input
+                        id={`prize-${index}-alt`}
+                        value={prize.imageAlt}
+                        onChange={(e) => update({ imageAlt: e.target.value })}
+                      />
+                    </Field>
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id={`prize-${index}-cutout`}
+                        checked={prize.cutout}
+                        onCheckedChange={(checked) => update({ cutout: checked === true })}
+                      />
+                      <Label
+                        htmlFor={`prize-${index}-cutout`}
+                        className="text-sm leading-snug font-normal"
+                      >
+                        Transparent cut-out (shown on a studio backdrop)
+                      </Label>
+                    </div>
+                  </div>
+                )}
+              />
+            </CardContent>
+          </Card>
+        </EditorTab>
+
+        <EditorTab value="join">
+          <Card>
+            <CardHeader>
+              <CardTitle>How to join and quick facts</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+              <Repeater
+                label="Steps"
+                itemName="Step"
+                items={values.steps}
+                onChange={(steps) => set("steps", steps)}
+                create={() => ({ title: "", description: "" })}
+                error={errors.steps}
+                render={(step, index, update) => (
+                  <div className="grid gap-3">
+                    <Field id={`step-${index}-title`} label="Step" required>
+                      <Input
+                        id={`step-${index}-title`}
+                        value={step.title}
+                        onChange={(e) => update({ title: e.target.value })}
+                      />
+                    </Field>
+                    <Field id={`step-${index}-description`} label="Details">
+                      <Textarea
+                        id={`step-${index}-description`}
+                        rows={2}
+                        value={step.description}
+                        onChange={(e) => update({ description: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+                )}
+              />
+              <Repeater
+                label="Quick facts"
+                hint="Replaces the default When / Prizes / Enter facts. Leave empty to keep the defaults."
+                itemName="Fact"
+                max={10}
+                items={values.facts}
+                onChange={(facts) => set("facts", facts)}
+                create={() => ({ label: "", value: "" })}
+                error={errors.facts}
+                render={(fact, index, update) => (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field id={`fact-${index}-label`} label="Label" required>
+                      <Input
+                        id={`fact-${index}-label`}
+                        value={fact.label}
+                        onChange={(e) => update({ label: e.target.value })}
+                      />
+                    </Field>
+                    <Field id={`fact-${index}-value`} label="Value" required>
+                      <Input
+                        id={`fact-${index}-value`}
+                        value={fact.value}
+                        onChange={(e) => update({ value: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+                )}
+              />
+            </CardContent>
+          </Card>
+        </EditorTab>
+
+        <EditorTab value="promo">
+          <Card>
+            <CardHeader>
+              <CardTitle>Poster and promotion</CardTitle>
+              <CardDescription>
+                All optional. Without a poster one is composed from the prize photos.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <ImageField
+                id="event-posterSrc"
+                label="Poster"
+                value={values.posterSrc}
+                onChange={(posterSrc) => set("posterSrc", posterSrc)}
+                onPicked={(item) =>
                   setValues((c) => ({
                     ...c,
-                    title: e.target.value,
-                    ...(slugTouched ? {} : { slug: slugify(e.target.value) }),
+                    posterWidth: item.width,
+                    posterHeight: item.height,
+                    posterAlt: c.posterAlt || item.alt,
                   }))
                 }
+                error={errors.posterSrc}
               />
-            </Field>
-            <Field id="event-tagline" label="Tagline" error={errors.tagline}>
-              <Input {...text("tagline")} />
-            </Field>
-            <Field
-              id="event-summary"
-              label="Summary"
-              error={errors.summary}
-              hint="Shown on the events list."
-            >
-              <Textarea {...area("summary", 3)} />
-            </Field>
-            <Field
-              id="event-aboutText"
-              label="About the event"
-              error={errors.aboutText}
-              hint="Separate paragraphs with a blank line."
-            >
-              <Textarea {...area("aboutText", 8)} />
-            </Field>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Prizes</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <Field
-              id="event-prizesHeading"
-              label="Heading above the prizes"
-              error={errors.prizesHeading}
-              hint="Optional."
-            >
-              <Input {...text("prizesHeading")} />
-            </Field>
-            <Repeater
-              label="Prize rows"
-              itemName="Prize"
-              items={values.prizes}
-              onChange={(prizes) => set("prizes", prizes)}
-              create={() => ({
-                rank: "",
-                name: "",
-                itemsText: "",
-                image: "",
-                imageAlt: "",
-                cutout: false,
-              })}
-              error={errors.prizes}
-              render={(prize, index, update) => (
-                <div className="grid gap-3">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Field id={`prize-${index}-rank`} label="Place or package" required>
-                      <Input
-                        id={`prize-${index}-rank`}
-                        value={prize.rank}
-                        onChange={(e) => update({ rank: e.target.value })}
-                        placeholder="1st place"
-                      />
-                    </Field>
-                    <Field id={`prize-${index}-name`} label="Prize" required>
-                      <Input
-                        id={`prize-${index}-name`}
-                        value={prize.name}
-                        onChange={(e) => update({ name: e.target.value })}
-                      />
-                    </Field>
-                  </div>
-                  <Field
-                    id={`prize-${index}-items`}
-                    label="What is included"
-                    hint="One item per line."
-                  >
-                    <Textarea
-                      id={`prize-${index}-items`}
-                      rows={3}
-                      value={prize.itemsText}
-                      onChange={(e) => update({ itemsText: e.target.value })}
-                    />
-                  </Field>
-                  <ImageField
-                    id={`prize-${index}-image`}
-                    label="Photo"
-                    value={prize.image}
-                    onChange={(image) => update({ image })}
-                    onPicked={(item) =>
-                      !prize.imageAlt && item.alt && update({ imageAlt: item.alt })
+              <Field id="event-posterAlt" label="Describe the poster" error={errors.posterAlt}>
+                <Input {...text("posterAlt")} />
+              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field id="event-posterWidth" label="Poster width (px)" error={errors.posterWidth}>
+                  <Input
+                    id="event-posterWidth"
+                    type="number"
+                    min={1}
+                    value={values.posterWidth}
+                    onChange={(e) =>
+                      set("posterWidth", e.target.value === "" ? "" : Number(e.target.value))
                     }
-                    hint="Optional. Without one a typographic plate is shown."
                   />
-                  <Field id={`prize-${index}-alt`} label="Describe the photo">
-                    <Input
-                      id={`prize-${index}-alt`}
-                      value={prize.imageAlt}
-                      onChange={(e) => update({ imageAlt: e.target.value })}
-                    />
-                  </Field>
-                  <div className="flex items-start gap-2">
-                    <Checkbox
-                      id={`prize-${index}-cutout`}
-                      checked={prize.cutout}
-                      onCheckedChange={(checked) => update({ cutout: checked === true })}
-                    />
-                    <Label
-                      htmlFor={`prize-${index}-cutout`}
-                      className="text-sm leading-snug font-normal"
-                    >
-                      Transparent cut-out (shown on a studio backdrop)
-                    </Label>
-                  </div>
-                </div>
-              )}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>How to join and quick facts</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            <Repeater
-              label="Steps"
-              itemName="Step"
-              items={values.steps}
-              onChange={(steps) => set("steps", steps)}
-              create={() => ({ title: "", description: "" })}
-              error={errors.steps}
-              render={(step, index, update) => (
-                <div className="grid gap-3">
-                  <Field id={`step-${index}-title`} label="Step" required>
-                    <Input
-                      id={`step-${index}-title`}
-                      value={step.title}
-                      onChange={(e) => update({ title: e.target.value })}
-                    />
-                  </Field>
-                  <Field id={`step-${index}-description`} label="Details">
-                    <Textarea
-                      id={`step-${index}-description`}
-                      rows={2}
-                      value={step.description}
-                      onChange={(e) => update({ description: e.target.value })}
-                    />
-                  </Field>
-                </div>
-              )}
-            />
-            <Repeater
-              label="Quick facts"
-              hint="Replaces the default When / Prizes / Enter facts. Leave empty to keep the defaults."
-              itemName="Fact"
-              max={10}
-              items={values.facts}
-              onChange={(facts) => set("facts", facts)}
-              create={() => ({ label: "", value: "" })}
-              error={errors.facts}
-              render={(fact, index, update) => (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Field id={`fact-${index}-label`} label="Label" required>
-                    <Input
-                      id={`fact-${index}-label`}
-                      value={fact.label}
-                      onChange={(e) => update({ label: e.target.value })}
-                    />
-                  </Field>
-                  <Field id={`fact-${index}-value`} label="Value" required>
-                    <Input
-                      id={`fact-${index}-value`}
-                      value={fact.value}
-                      onChange={(e) => update({ value: e.target.value })}
-                    />
-                  </Field>
-                </div>
-              )}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Poster and promotion</CardTitle>
-            <CardDescription>
-              All optional. Without a poster one is composed from the prize photos.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <ImageField
-              id="event-posterSrc"
-              label="Poster"
-              value={values.posterSrc}
-              onChange={(posterSrc) => set("posterSrc", posterSrc)}
-              onPicked={(item) =>
-                setValues((c) => ({
-                  ...c,
-                  posterWidth: item.width,
-                  posterHeight: item.height,
-                  posterAlt: c.posterAlt || item.alt,
-                }))
-              }
-              error={errors.posterSrc}
-            />
-            <Field id="event-posterAlt" label="Describe the poster" error={errors.posterAlt}>
-              <Input {...text("posterAlt")} />
-            </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field id="event-posterWidth" label="Poster width (px)" error={errors.posterWidth}>
-                <Input
-                  id="event-posterWidth"
-                  type="number"
-                  min={1}
-                  value={values.posterWidth}
-                  onChange={(e) =>
-                    set("posterWidth", e.target.value === "" ? "" : Number(e.target.value))
-                  }
-                />
-              </Field>
-              <Field id="event-posterHeight" label="Poster height (px)" error={errors.posterHeight}>
-                <Input
-                  id="event-posterHeight"
-                  type="number"
-                  min={1}
-                  value={values.posterHeight}
-                  onChange={(e) =>
-                    set("posterHeight", e.target.value === "" ? "" : Number(e.target.value))
-                  }
-                />
-              </Field>
-            </div>
-
-            <fieldset className="grid gap-3 border-t pt-4">
-              <legend className="text-sm font-medium">Promotion for a product or service</legend>
-              <p className="text-muted-foreground -mt-1 text-xs">
-                Fill in all five parts, or leave them empty.
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field id="event-promoEyebrow" label="Small label" error={errors.promoEyebrow}>
-                  <Input {...text("promoEyebrow")} />
                 </Field>
-                <Field id="event-promoCta" label="Button text" error={errors.promoCta}>
-                  <Input {...text("promoCta")} />
+                <Field
+                  id="event-posterHeight"
+                  label="Poster height (px)"
+                  error={errors.posterHeight}
+                >
+                  <Input
+                    id="event-posterHeight"
+                    type="number"
+                    min={1}
+                    value={values.posterHeight}
+                    onChange={(e) =>
+                      set("posterHeight", e.target.value === "" ? "" : Number(e.target.value))
+                    }
+                  />
                 </Field>
               </div>
-              <Field id="event-promoTitle" label="Title" error={errors.promoTitle}>
-                <Input {...text("promoTitle")} />
-              </Field>
-              <Field
-                id="event-promoDescription"
-                label="Description"
-                error={errors.promoDescription}
-              >
-                <Textarea {...area("promoDescription", 2)} />
-              </Field>
-              <Field
-                id="event-promoHref"
-                label="Button goes to"
-                error={errors.promoHref}
-                hint="A path on this site or a full https:// address."
-              >
-                <Input {...text("promoHref")} />
-              </Field>
-            </fieldset>
 
-            <fieldset className="grid gap-3 border-t pt-4">
-              <legend className="text-sm font-medium">When the event has closed</legend>
-              <Field id="event-closedTitle" label="Heading" error={errors.closedTitle}>
-                <Input {...text("closedTitle")} placeholder="This event has closed" />
-              </Field>
-              <Field id="event-closedNote" label="Note" error={errors.closedNote}>
-                <Textarea {...area("closedNote", 2)} />
-              </Field>
-            </fieldset>
-          </CardContent>
-        </Card>
-      </div>
+              <fieldset className="grid gap-3 border-t pt-4">
+                <legend className="text-sm font-medium">Promotion for a product or service</legend>
+                <p className="text-muted-foreground -mt-1 text-xs">
+                  Fill in all five parts, or leave them empty.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field id="event-promoEyebrow" label="Small label" error={errors.promoEyebrow}>
+                    <Input {...text("promoEyebrow")} />
+                  </Field>
+                  <Field id="event-promoCta" label="Button text" error={errors.promoCta}>
+                    <Input {...text("promoCta")} />
+                  </Field>
+                </div>
+                <Field id="event-promoTitle" label="Title" error={errors.promoTitle}>
+                  <Input {...text("promoTitle")} />
+                </Field>
+                <Field
+                  id="event-promoDescription"
+                  label="Description"
+                  error={errors.promoDescription}
+                >
+                  <Textarea {...area("promoDescription", 2)} />
+                </Field>
+                <Field
+                  id="event-promoHref"
+                  label="Button goes to"
+                  error={errors.promoHref}
+                  hint="A path on this site or a full https:// address."
+                >
+                  <Input {...text("promoHref")} />
+                </Field>
+              </fieldset>
 
+              <fieldset className="grid gap-3 border-t pt-4">
+                <legend className="text-sm font-medium">When the event has closed</legend>
+                <Field id="event-closedTitle" label="Heading" error={errors.closedTitle}>
+                  <Input {...text("closedTitle")} placeholder="This event has closed" />
+                </Field>
+                <Field id="event-closedNote" label="Note" error={errors.closedNote}>
+                  <Textarea {...area("closedNote", 2)} />
+                </Field>
+              </fieldset>
+            </CardContent>
+          </Card>
+        </EditorTab>
+      </EditorTabs>
       <div className="grid content-start gap-4">
         <PublishPanel
           status={values.status}

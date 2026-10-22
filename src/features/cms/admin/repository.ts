@@ -6,6 +6,7 @@ import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
 import { textFromParagraphs } from "../rules";
+import { displayName, staffAuthorId } from "./authors";
 import type { AdminListRow, AdminPostDetail, AuthorOption, ContentKind } from "./types";
 
 /**
@@ -65,7 +66,14 @@ export async function listPosts(params: TableParams): Promise<Page<AdminListRow>
   return paged(
     params,
     () => prisma.blogPost.count({ where }),
-    (skip, take) => prisma.blogPost.findMany({ where, orderBy: order(params), skip, take }),
+    (skip, take) =>
+      prisma.blogPost.findMany({
+        where,
+        orderBy: order(params),
+        include: { author: { select: { name: true, avatar: true } } },
+        skip,
+        take,
+      }),
     (row) => ({
       id: row.id,
       title: row.title,
@@ -75,6 +83,8 @@ export async function listPosts(params: TableParams): Promise<Page<AdminListRow>
       updatedAt: row.updatedAt.toISOString(),
       date: row.date.toISOString().slice(0, 10),
       publicHref: `/blog/${row.slug}`,
+      image: row.imageLight ?? row.imageDark ?? undefined,
+      author: { name: row.author.name, avatar: row.author.avatar ?? undefined },
     }),
   );
 }
@@ -106,6 +116,7 @@ export async function listProjects(params: TableParams): Promise<Page<AdminListR
             : params.sort === "updated"
               ? { updatedAt: params.dir }
               : { position: "asc" },
+        include: { author: { select: { name: true, avatar: true } } },
         skip,
         take,
       }),
@@ -117,6 +128,8 @@ export async function listProjects(params: TableParams): Promise<Page<AdminListR
       status: row.status,
       updatedAt: row.updatedAt.toISOString(),
       publicHref: `/portfolio/${row.slug}`,
+      image: row.imageLight ?? row.imageDark ?? undefined,
+      author: { name: row.author.name, avatar: row.author.avatar ?? undefined },
     }),
   );
 }
@@ -148,6 +161,7 @@ export async function listEvents(params: TableParams): Promise<Page<AdminListRow
             : params.sort === "updated"
               ? { updatedAt: params.dir }
               : { position: "asc" },
+        include: { author: { select: { name: true, avatar: true } } },
         skip,
         take,
       }),
@@ -159,6 +173,8 @@ export async function listEvents(params: TableParams): Promise<Page<AdminListRow
       status: row.status,
       updatedAt: row.updatedAt.toISOString(),
       publicHref: `/events/${row.slug}`,
+      image: (row.poster as { src?: string } | null)?.src,
+      author: { name: row.author.name, avatar: row.author.avatar ?? undefined },
     }),
   );
 }
@@ -201,6 +217,7 @@ export async function listPartners(params: TableParams): Promise<Page<AdminListR
       status: row.status,
       updatedAt: row.updatedAt.toISOString(),
       publicHref: "/about",
+      image: (row.logo as { src?: string } | null)?.src,
     }),
   );
 }
@@ -228,13 +245,33 @@ export async function getPost(id: string): Promise<AdminPostDetail | null> {
   };
 }
 
-export async function listAuthorOptions(): Promise<AuthorOption[]> {
+/**
+ * Who can be credited: the people with a staff account, the signed-in person first. Staff
+ * get an author row the first time they are chosen (see `ensureAuthor`).
+ */
+export async function listAuthorOptions(
+  currentProfileId?: string,
+  /** The author the item being edited already has, even if it is not a staff account. */
+  keepAuthorId?: string,
+): Promise<AuthorOption[]> {
   if (!isDatabaseConfigured) return [];
-  const rows = await prisma.author.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
-  return rows;
+  const profiles = await prisma.profile.findMany({ orderBy: { createdAt: "asc" } });
+  const staff = profiles.map((profile): AuthorOption => ({
+    id: staffAuthorId(profile.id),
+    name: displayName(profile),
+    avatar: profile.avatarUrl ?? undefined,
+    staff: true,
+  }));
+  staff.sort(
+    (a, b) =>
+      Number(b.id === staffAuthorId(currentProfileId ?? "")) -
+        Number(a.id === staffAuthorId(currentProfileId ?? "")) || a.name.localeCompare(b.name),
+  );
+  if (keepAuthorId && !staff.some((option) => option.id === keepAuthorId)) {
+    const kept = await prisma.author.findUnique({ where: { id: keepAuthorId } });
+    if (kept) staff.push({ id: kept.id, name: kept.name, avatar: kept.avatar ?? undefined });
+  }
+  return staff;
 }
 
 /** Distinct categories already in use, so the editor can suggest them. */

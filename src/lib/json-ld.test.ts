@@ -11,12 +11,18 @@ describe("serializeJsonLd", () => {
   });
 
   it("still round-trips to exactly the same data", () => {
-    const data = { "@type": "Article", headline: "A & B <3   line", list: [1, "two", { three: true }] };
+    const data = {
+      "@type": "Article",
+      headline: "A & B <3   line",
+      list: [1, "two", { three: true }],
+    };
     expect(JSON.parse(serializeJsonLd(data))).toEqual(data);
   });
 
   it("leaves no raw line or paragraph separator in the output", () => {
-    const out = serializeJsonLd({ x: "a" + String.fromCharCode(0x2028) + "b" + String.fromCharCode(0x2029) });
+    const out = serializeJsonLd({
+      x: "a" + String.fromCharCode(0x2028) + "b" + String.fromCharCode(0x2029),
+    });
     expect(out.includes(String.fromCharCode(0x2028))).toBe(false);
     expect(out.includes(String.fromCharCode(0x2029))).toBe(false);
   });

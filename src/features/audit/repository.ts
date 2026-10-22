@@ -8,7 +8,8 @@ import type { AuditRow } from "./types";
 
 /** Newest first. Filters by free text (summary, person, action) and entity type. */
 export async function listAudit(params: TableParams): Promise<Page<AuditRow>> {
-  if (!isDatabaseConfigured) return { items: [], total: 0, page: 1, pageSize: params.pageSize, pageCount: 1 };
+  if (!isDatabaseConfigured)
+    return { items: [], total: 0, page: 1, pageSize: params.pageSize, pageCount: 1 };
 
   const q = params.q.trim();
   const where = {

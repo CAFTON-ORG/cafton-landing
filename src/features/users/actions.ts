@@ -2,7 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 
-import { ActionError, NOT_CONFIGURED, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
+import {
+  ActionError,
+  NOT_CONFIGURED,
+  actorId,
+  parse,
+  runAction,
+  type ActionResult,
+} from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/dal";
 import { resolvePermissions, type Permission } from "@/lib/auth/permissions";
@@ -24,8 +31,12 @@ function refresh() {
 }
 
 async function loadRole(roleId: string) {
-  const role = await prisma.role.findUnique({ where: { id: roleId }, include: { permissions: true } });
-  if (!role) throw new ActionError("That role no longer exists.", "rule", { roleId: "Choose a role." });
+  const role = await prisma.role.findUnique({
+    where: { id: roleId },
+    include: { permissions: true },
+  });
+  if (!role)
+    throw new ActionError("That role no longer exists.", "rule", { roleId: "Choose a role." });
   return role;
 }
 
@@ -52,7 +63,9 @@ export async function inviteUser(input: InviteInput): Promise<ActionResult> {
     if (denied) throw new ActionError(denied, "rule");
 
     if (await findProfile(email)) {
-      throw new ActionError("This person already has access.", "rule", { email: "This person already has access." });
+      throw new ActionError("This person already has access.", "rule", {
+        email: "This person already has access.",
+      });
     }
 
     await prisma.$transaction(async (tx) => {

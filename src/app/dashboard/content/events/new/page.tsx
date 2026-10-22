@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "New event" };
 export default async function NewEventPage() {
   const staff = await requirePageAccess("content:create");
   if (!staff) return <AccessDenied area="creating content" />;
-  const authors = await listAuthorOptions();
+  const authors = await listAuthorOptions(staff.id);
 
   return (
     <>

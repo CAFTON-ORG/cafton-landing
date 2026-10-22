@@ -39,7 +39,12 @@ export default defineConfig([
   // Everything outside the dashboard's UI: no dashboard components.
   {
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/components/**", "src/app/dashboard/**", "src/app/(auth)/**", "src/features/**/components/**"],
+    ignores: [
+      "src/components/**",
+      "src/app/dashboard/**",
+      "src/app/(auth)/**",
+      "src/features/**/components/**",
+    ],
     rules: restrict(dashboardOnly),
   },
   {
@@ -55,7 +60,11 @@ export default defineConfig([
   // Dashboard UI: no public-site components.
   { files: ["src/components/dashboard/**/*.{ts,tsx}"], rules: restrict(siteOnly, noDb) },
   {
-    files: ["src/app/dashboard/**/*.{ts,tsx}", "src/app/(auth)/**/*.{ts,tsx}", "src/features/**/components/**/*.{ts,tsx}"],
+    files: [
+      "src/app/dashboard/**/*.{ts,tsx}",
+      "src/app/(auth)/**/*.{ts,tsx}",
+      "src/features/**/components/**/*.{ts,tsx}",
+    ],
     rules: restrict(siteOnly),
   },
   globalIgnores([

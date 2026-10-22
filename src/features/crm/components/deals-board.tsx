@@ -66,9 +66,7 @@ export function DealsBoard({ stages, deals }: { stages: StageView[]; deals: Deal
 
               <ul className="grid gap-2 p-2">
                 {inStage.length === 0 && (
-                  <li className="text-foreground/70 px-1 py-4 text-center text-xs">
-                    Nothing here
-                  </li>
+                  <li className="text-foreground/70 px-1 py-4 text-center text-xs">Nothing here</li>
                 )}
                 {inStage.map((deal) => (
                   <li key={deal.id} className="bg-card rounded-lg border p-3 shadow-xs">

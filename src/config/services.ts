@@ -63,18 +63,15 @@ export const servicePillars: ServicePillar[] = [
     systems: [
       {
         title: "Lead Capture & Funnels",
-        description:
-          "Landing pages and forms that catch interest before it disappears.",
+        description: "Landing pages and forms that catch interest before it disappears.",
       },
       {
         title: "CRM & Pipeline",
-        description:
-          "One place to track every client, conversation, and deal stage.",
+        description: "One place to track every client, conversation, and deal stage.",
       },
       {
         title: "Appointments & Booking",
-        description:
-          "Scheduling that fills calendars without the back-and-forth messages.",
+        description: "Scheduling that fills calendars without the back-and-forth messages.",
       },
       {
         title: "Marketing Automation",
@@ -144,8 +141,7 @@ export const servicePillars: ServicePillar[] = [
       },
       {
         title: "System Modernization",
-        description:
-          "Replace a system that's outgrown itself without losing the data it holds.",
+        description: "Replace a system that's outgrown itself without losing the data it holds.",
       },
     ],
   },

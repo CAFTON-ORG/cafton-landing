@@ -34,6 +34,14 @@ Only `published`, not deleted, rows are public.
 
 A built-in **Content Editor** role (`content:view/create/update/publish`, no delete) writes and publishes; Sales and Viewer can read but not change content. The blog post editor takes a title, excerpt, body (paragraphs separated by a blank line), author, category, date, web address and cover images (a path on this site or an https address, never `javascript:` or `data:`). Publishing needs a title, an excerpt, a body and alt text for any cover image, checked in the editor, in the action and (the first three) by a database constraint. Published content has to be unpublished before it can be deleted. Every change writes an audit entry in the same transaction, and the public pages that show the content are revalidated. Photo galleries inside an article are kept untouched on save until the media library exists. Projects (with gallery), events (prizes, steps, facts, promo, poster, dates in Philippine time), partners and service FAQs have the same kind of editor. A unit test per editor proves that opening an item and saving it unchanged leaves the public content identical for everything the site shipped with.
 
+## Site documents
+
+Text that is not a list of items (company settings now; SEO, About, Home, Careers, Privacy and Legal next) lives in one table, `site_content`: one row per key, the value a JSON object whose shape is a Zod schema in code. It follows the same rules as the lists: the bundled value is the fallback before the first seed, when the database fails, and when a stored document no longer matches its schema (logged, never a crash). Saving needs the `settings:update` permission, is audited, and refreshes the whole site. The database only guarantees that the key is a short lower-case name and the value an object; the application owns the rest.
+
+## Authors
+
+Only people with a staff account can be credited. Choosing one creates (or refreshes) an author row from their profile: name and Google photo, with the byline subtitle "Software development". The id is `staff-<profile id>`, so no second list of people is kept. Bundled content keeps one internal author as its fallback; it is never offered in the editors.
+
 ## Image library
 
 Images live in the public Supabase Storage bucket `media` (raster only, 5 MB). Uploads go through a Server Action, never straight from the browser: the file is identified by its bytes (not its name or declared type), decoded, re-encoded without metadata (no EXIF or GPS), capped at 2400 px, and stored under a random `content/<uuid>.<ext>` path. Storage policies require a staff profile as a second lock. Each image has a default description (alt text) offered when it is picked; publishing content with an image requires alt text. An image can't be deleted while any content (including drafts, galleries and posters) still mentions it. Uploads are limited to 4 MB because hosts cap request bodies.

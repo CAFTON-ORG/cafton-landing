@@ -15,7 +15,13 @@ export function paginate<T>(rows: T[], page: number, pageSize: number): Page<T> 
   const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
   const current = Math.min(Math.max(1, page), pageCount);
   const start = (current - 1) * pageSize;
-  return { items: rows.slice(start, start + pageSize), total: rows.length, page: current, pageSize, pageCount };
+  return {
+    items: rows.slice(start, start + pageSize),
+    total: rows.length,
+    page: current,
+    pageSize,
+    pageCount,
+  };
 }
 
 export type PageItem = number | "ellipsis-start" | "ellipsis-end";
@@ -33,10 +39,12 @@ export function getPageItems(page: number, pageCount: number, siblings = 1): Pag
   const right = Math.min(page + siblings, pageCount);
   const showStartEllipsis = left > 2;
   const showEndEllipsis = right < pageCount - 1;
-  const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  const range = (from: number, to: number) =>
+    Array.from({ length: to - from + 1 }, (_, i) => from + i);
 
   if (!showStartEllipsis) return [...range(1, siblings * 2 + 3), "ellipsis-end", pageCount];
-  if (!showEndEllipsis) return [1, "ellipsis-start", ...range(pageCount - (siblings * 2 + 2), pageCount)];
+  if (!showEndEllipsis)
+    return [1, "ellipsis-start", ...range(pageCount - (siblings * 2 + 2), pageCount)];
   return [1, "ellipsis-start", ...range(left, right), "ellipsis-end", pageCount];
 }
 

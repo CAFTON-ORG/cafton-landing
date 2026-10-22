@@ -10,6 +10,7 @@ import { JsonLd } from "@/components/shared/json-ld";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { THEME_STORAGE_KEY } from "@/config/site";
 import { siteJsonLd } from "@/lib/structured-data";
+import { getSiteSettings } from "@/features/cms/repository/site";
 
 /**
  * Everything the public website wraps its pages in: loader, theme, cookie
@@ -17,7 +18,8 @@ import { siteJsonLd } from "@/lib/structured-data";
  * dashboard can share the document without any of this. Used by the (marketing)
  * layout and by the root 404.
  */
-export function SiteChrome({ children }: { children: ReactNode }) {
+export async function SiteChrome({ children }: { children: ReactNode }) {
+  const settings = await getSiteSettings();
   return (
     <>
       <a
@@ -27,7 +29,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <SiteLoader />
-      <JsonLd data={siteJsonLd} />
+      <JsonLd data={siteJsonLd(settings)} />
       {/* Dark by default; visitors can switch with the navbar toggle. A
           new storage key (not the old "nextjs-ui-theme") so stale values
           from the dark-only period can't override the dark default. */}

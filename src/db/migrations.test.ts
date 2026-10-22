@@ -97,7 +97,9 @@ describe("crm migration", () => {
       "INSERT INTO contacts (first_name, last_name, email, updated_at) VALUES ('Grace', 'Hopper', 'Grace@Example.com', now()) RETURNING id",
     );
     contactId = contact.rows[0].id;
-    const stage = await db.query<{ id: string }>("SELECT id FROM pipeline_stages WHERE key = 'new'");
+    const stage = await db.query<{ id: string }>(
+      "SELECT id FROM pipeline_stages WHERE key = 'new'",
+    );
     stageId = stage.rows[0].id;
   });
 
@@ -109,7 +111,14 @@ describe("crm migration", () => {
     const { rows } = await db.query<{ key: string; probability: number; kind: string }>(
       "SELECT key, probability, kind FROM pipeline_stages ORDER BY position",
     );
-    expect(rows.map((row) => row.key)).toEqual(["new", "discovery", "proposal", "negotiation", "won", "lost"]);
+    expect(rows.map((row) => row.key)).toEqual([
+      "new",
+      "discovery",
+      "proposal",
+      "negotiation",
+      "won",
+      "lost",
+    ]);
     expect(rows.filter((row) => row.kind === "won")).toHaveLength(1);
     expect(rows.find((row) => row.key === "lost")?.probability).toBe(0);
     expect(rows.find((row) => row.key === "won")?.probability).toBe(100);
@@ -132,17 +141,20 @@ describe("crm migration", () => {
   });
 
   it("allows one live contact per email, ignoring case, and frees it on soft delete", async () => {
-    const insert = "INSERT INTO contacts (first_name, last_name, email, updated_at) VALUES ('G', 'H', 'grace@example.com', now())";
+    const insert =
+      "INSERT INTO contacts (first_name, last_name, email, updated_at) VALUES ('G', 'H', 'grace@example.com', now())";
     expect(await fails(insert)).toMatch(/contacts_email_live_key|unique/);
     await db.exec(`UPDATE contacts SET deleted_at = now() WHERE id = '${contactId}'`);
     expect(await fails(insert)).toBeNull();
-    await db.exec(`UPDATE contacts SET deleted_at = NULL WHERE id = '${contactId}'`).catch(() => undefined);
+    await db
+      .exec(`UPDATE contacts SET deleted_at = NULL WHERE id = '${contactId}'`)
+      .catch(() => undefined);
   });
 
   it("refuses a deal that is both won and lost, lost without a reason, or won without an amount", async () => {
-    expect(await fails(newDeal("won_at, lost_at, lost_reason, amount_minor|now(), now(), 'x', 100"))).toMatch(
-      /deals_not_won_and_lost/,
-    );
+    expect(
+      await fails(newDeal("won_at, lost_at, lost_reason, amount_minor|now(), now(), 'x', 100")),
+    ).toMatch(/deals_not_won_and_lost/);
     expect(await fails(newDeal("lost_at|now()"))).toMatch(/deals_lost_has_reason/);
     expect(await fails(newDeal("won_at|now()"))).toMatch(/deals_won_has_amount/);
     expect(await fails(newDeal("amount_minor|-1"))).toMatch(/deals_amount_not_negative/);
@@ -151,15 +163,19 @@ describe("crm migration", () => {
 
   it("will not delete a contact that still has deals", async () => {
     const owner = await db.query<{ id: string }>("SELECT contact_id AS id FROM deals LIMIT 1");
-    expect(await fails(`DELETE FROM contacts WHERE id = '${owner.rows[0].id}'`)).toMatch(/foreign key constraint/);
+    expect(await fails(`DELETE FROM contacts WHERE id = '${owner.rows[0].id}'`)).toMatch(
+      /foreign key constraint/,
+    );
   });
 
   it("requires a timeline entry to belong to a lead, contact or deal", async () => {
-    expect(await fails("INSERT INTO activities (body, created_by_name) VALUES ('orphan', 'Test')")).toMatch(
-      /activities_has_subject/,
-    );
     expect(
-      await fails(`INSERT INTO activities (body, created_by_name, contact_id) VALUES ('ok', 'Test', '${contactId}')`),
+      await fails("INSERT INTO activities (body, created_by_name) VALUES ('orphan', 'Test')"),
+    ).toMatch(/activities_has_subject/);
+    expect(
+      await fails(
+        `INSERT INTO activities (body, created_by_name, contact_id) VALUES ('ok', 'Test', '${contactId}')`,
+      ),
     ).toBeNull();
   });
 });

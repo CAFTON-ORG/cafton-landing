@@ -6,25 +6,25 @@ Cafton's public website and its internal operating system (CMS, CRM, sales, deli
 
 ## Decisions
 
-| # | Decision | Choice | Source |
-| --- | --- | --- | --- |
-| 1 | Placement | Same app, admin under `/dashboard` | **[decided]** |
-| 2 | Architecture mode | Monolith (template ADR 0005): Server Components read through repositories, Server Actions write | **[decided]** |
-| 3 | Data | Postgres through Prisma 7 (`@prisma/adapter-pg`) | follows from 2, matches artist-app |
-| 4 | Auth | Supabase Auth, Google sign-in, invite-only, DB-backed RBAC; Supabase Storage for files | **[decided]** |
-| 5 | UI primitives | Landing stays on Radix `components/ui`. Dashboard uses shadcn `base-nova` (Base UI) in `components/dashboard/ui` | **[decided]** |
-| 6 | Tenancy | Single tenant (Cafton). Keep `workspace_id` out of the schema for now; artist-app's MULTI-TENANCY-PLAN shows the later cost is manageable | recommended |
-| 7 | Money | Integer minor units + ISO currency code on every amount. Never floats | recommended |
-| 8 | Deletion | Soft delete (`deletedAt`) on business records; hard delete only for drafts. Finance records are never deleted, only voided/reversed | recommended |
+| #   | Decision          | Choice                                                                                                                                    | Source                             |
+| --- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| 1   | Placement         | Same app, admin under `/dashboard`                                                                                                        | **[decided]**                      |
+| 2   | Architecture mode | Monolith (template ADR 0005): Server Components read through repositories, Server Actions write                                           | **[decided]**                      |
+| 3   | Data              | Postgres through Prisma 7 (`@prisma/adapter-pg`)                                                                                          | follows from 2, matches artist-app |
+| 4   | Auth              | Supabase Auth, Google sign-in, invite-only, DB-backed RBAC; Supabase Storage for files                                                    | **[decided]**                      |
+| 5   | UI primitives     | Landing stays on Radix `components/ui`. Dashboard uses shadcn `base-nova` (Base UI) in `components/dashboard/ui`                          | **[decided]**                      |
+| 6   | Tenancy           | Single tenant (Cafton). Keep `workspace_id` out of the schema for now; artist-app's MULTI-TENANCY-PLAN shows the later cost is manageable | recommended                        |
+| 7   | Money             | Integer minor units + ISO currency code on every amount. Never floats                                                                     | recommended                        |
+| 8   | Deletion          | Soft delete (`deletedAt`) on business records; hard delete only for drafts. Finance records are never deleted, only voided/reversed       | recommended                        |
 
 ## What we take from each source
 
-| Source | We adopt | We do not adopt |
-| --- | --- | --- |
+| Source                      | We adopt                                                                                                                                                                                                                                                                                              | We do not adopt                                                                                                                                         |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `templates/nextjs-template` | Feature-slice layout (ADR 0002), monolith wiring (`server/repositories`, `queries.ts`, `actions.ts`), dashboard shell (sidebar, app bar, command palette, breadcrumbs, one `navigation.ts`), URL-driven `DataTable`, CSP helper, env validation, Vitest + Playwright + axe, `verify` script, Prettier | Its landing page, theme tokens, `features/auth` API/OTP flow, the `/api/[...path]` proxy (no external API), pnpm migration (stay on npm unless you ask) |
-| `projects/artist-app` | Proven auth + DAL + RBAC + audit pattern, Prisma + Supabase wiring, `runAction`/`ActionResult`, pure business-rule modules shared by UI and actions, PGlite migration tests, CRM pipeline model | Painting/scheduling domain |
-| `templates/api-*` | Nothing now. Kept as the extraction target if a mobile app or partner API appears later | |
-| `cafton-landing` | Everything visual: tokens in `globals.css`, fonts, motion, layout components, copy | Hard-coded content files as the source of truth (moves to the database in Phase 2) |
+| `projects/artist-app`       | Proven auth + DAL + RBAC + audit pattern, Prisma + Supabase wiring, `runAction`/`ActionResult`, pure business-rule modules shared by UI and actions, PGlite migration tests, CRM pipeline model                                                                                                       | Painting/scheduling domain                                                                                                                              |
+| `templates/api-*`           | Nothing now. Kept as the extraction target if a mobile app or partner API appears later                                                                                                                                                                                                               |                                                                                                                                                         |
+| `cafton-landing`            | Everything visual: tokens in `globals.css`, fonts, motion, layout components, copy                                                                                                                                                                                                                    | Hard-coded content files as the source of truth (moves to the database in Phase 2)                                                                      |
 
 The landing already isolates data behind async functions in `src/lib/repositories/*` ("moving content to a backend means changing only the bodies here"). That seam is why the CMS phase can swap data sources without touching public pages.
 
@@ -78,15 +78,15 @@ Rules (from the template and artist-app, enforced by lint where possible):
 
 Shared spine: `Profile` (staff account) -> `Role` -> `RolePermission`; `AuditLog`; `Media`; `Notification`; `Setting`; `Tag`; `Attachment` (polymorphic file link); `Note`/`Activity` (polymorphic timeline).
 
-| Domain | Core entities | Key relationships |
-| --- | --- | --- |
-| **CMS** | `BlogPost`, `Author`, `PortfolioProject`, `Service`, `ServiceFaq`, `Event`, `Partner`, `JobOpening`, `LegalPage`, `SeoMeta` | Replaces `src/data/*`. Draft -> review -> published workflow, scheduled publish, revision history |
-| **CRM** | `Organization`, `Contact`, `Lead`, `Deal`, `PipelineStage`, `Activity`, `Task` | Contact form creates a Lead (linked to an existing contact by email); a Lead converts to Contact + Organization + Deal. HubSpot is not used (ADR 0006) |
-| **Sales** | `CatalogItem`, `Quote`, `QuoteLine`, `Contract`, `Subscription` (retainers) | Deal -> Quote -> Contract; accepted quote seeds Project and Invoice schedule |
-| **Delivery** | `Project`, `Milestone`, `ProjectTask`, `TimeEntry`, `ProjectMember` | Won deal -> Project; time entries feed invoicing and cost reports |
-| **Finance** | `Account` (chart of accounts), `JournalEntry` + `JournalLine` (double entry), `Invoice`, `InvoiceLine`, `Payment`, `Bill`, `Expense`, `Vendor`, `TaxRate`, `BankAccount`, `BankTransaction`, `FiscalPeriod` | Invoice/payment/bill/payroll post balanced journal entries; closed periods are immutable; reports derive from the ledger only |
-| **HR** | `Employee`, `Department`, `Position`, `EmploymentContract`, `LeaveType`, `LeaveRequest`, `Attendance`, `PayrollRun`, `Payslip`, `Applicant`, `Application`, `PerformanceReview`, `EmployeeDocument` | `Employee` links to `Profile`. Careers form creates `Application`. Payroll run posts to the ledger |
-| **Admin** | `Profile`, `Role`, `StaffInvite`, `AuditLog`, `Setting` | |
+| Domain       | Core entities                                                                                                                                                                                               | Key relationships                                                                                                                                      |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **CMS**      | `BlogPost`, `Author`, `PortfolioProject`, `Service`, `ServiceFaq`, `Event`, `Partner`, `JobOpening`, `LegalPage`, `SeoMeta`                                                                                 | Replaces `src/data/*`. Draft -> review -> published workflow, scheduled publish, revision history                                                      |
+| **CRM**      | `Organization`, `Contact`, `Lead`, `Deal`, `PipelineStage`, `Activity`, `Task`                                                                                                                              | Contact form creates a Lead (linked to an existing contact by email); a Lead converts to Contact + Organization + Deal. HubSpot is not used (ADR 0006) |
+| **Sales**    | `CatalogItem`, `Quote`, `QuoteLine`, `Contract`, `Subscription` (retainers)                                                                                                                                 | Deal -> Quote -> Contract; accepted quote seeds Project and Invoice schedule                                                                           |
+| **Delivery** | `Project`, `Milestone`, `ProjectTask`, `TimeEntry`, `ProjectMember`                                                                                                                                         | Won deal -> Project; time entries feed invoicing and cost reports                                                                                      |
+| **Finance**  | `Account` (chart of accounts), `JournalEntry` + `JournalLine` (double entry), `Invoice`, `InvoiceLine`, `Payment`, `Bill`, `Expense`, `Vendor`, `TaxRate`, `BankAccount`, `BankTransaction`, `FiscalPeriod` | Invoice/payment/bill/payroll post balanced journal entries; closed periods are immutable; reports derive from the ledger only                          |
+| **HR**       | `Employee`, `Department`, `Position`, `EmploymentContract`, `LeaveType`, `LeaveRequest`, `Attendance`, `PayrollRun`, `Payslip`, `Applicant`, `Application`, `PerformanceReview`, `EmployeeDocument`         | `Employee` links to `Profile`. Careers form creates `Application`. Payroll run posts to the ledger                                                     |
+| **Admin**    | `Profile`, `Role`, `StaffInvite`, `AuditLog`, `Setting`                                                                                                                                                     |                                                                                                                                                        |
 
 Sensitive data (payroll, salary, national IDs, bank details): separate permissions (`hr:salary:view`), field-level redaction in repositories, and no inclusion in search, logs or exports unless the permission is held.
 

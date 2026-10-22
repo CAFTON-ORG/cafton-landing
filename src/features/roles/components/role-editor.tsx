@@ -16,7 +16,12 @@ import {
 import { Input } from "@/components/dashboard/ui/input";
 import { Label } from "@/components/dashboard/ui/label";
 import { Textarea } from "@/components/dashboard/ui/textarea";
-import { RESOURCES, normalisePermissions, type Permission, type Resource } from "@/lib/auth/permissions";
+import {
+  RESOURCES,
+  normalisePermissions,
+  type Permission,
+  type Resource,
+} from "@/lib/auth/permissions";
 import { saveRole } from "../actions";
 import type { RoleSummary } from "../types";
 
@@ -57,7 +62,12 @@ export function RoleEditor({
   function submit(event: React.FormEvent) {
     event.preventDefault();
     start(async () => {
-      const result = await saveRole({ id: role?.id, name, description, permissions: [...selected] });
+      const result = await saveRole({
+        id: role?.id,
+        name,
+        description,
+        permissions: [...selected],
+      });
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
         toast.error(result.error);
@@ -73,7 +83,9 @@ export function RoleEditor({
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl">
         <form onSubmit={submit} noValidate className="grid gap-4">
           <DialogHeader>
-            <DialogTitle>{role ? (readOnly ? role.name : `Edit ${role.name}`) : "New role"}</DialogTitle>
+            <DialogTitle>
+              {role ? (readOnly ? role.name : `Edit ${role.name}`) : "New role"}
+            </DialogTitle>
             <DialogDescription>
               {readOnly
                 ? "Built-in roles can't be edited. Create a custom role to change what someone can do."
@@ -143,7 +155,12 @@ export function RoleEditor({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={pending}
+            >
               {readOnly ? "Close" : "Cancel"}
             </Button>
             {!readOnly && (

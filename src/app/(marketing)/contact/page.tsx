@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Clock3, Mail } from "lucide-react";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
+import { getSiteSettings } from "@/features/cms/repository/site";
 
 export const metadata: Metadata = pageMetadata({
   title: "Contact",
@@ -21,7 +22,8 @@ export const metadata: Metadata = pageMetadata({
   path: "/contact",
 });
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const { email } = await getSiteSettings();
   return (
     <>
       <PageHero>
@@ -61,7 +63,7 @@ export default function ContactPage() {
                   anything useful for us to know.
                 </p>
                 <Button className="mt-4 cursor-pointer" asChild>
-                  <a href={`mailto:contact@cafton.com`}>Contact Email</a>
+                  <a href={`mailto:${email}`}>Contact Email</a>
                 </Button>
               </div>
 

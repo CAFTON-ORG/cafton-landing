@@ -24,7 +24,8 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { savePartner } from "../admin/editor-actions";
 import type { AdminPartnerDetail } from "../admin/forms";
 import { checkPublishPartner, slugify } from "../rules";
-import { ImageField, PublishPanel, Repeater, useContentEditor } from "./editor-kit";
+import { PublishPanel, Repeater, useContentEditor } from "./editor-kit";
+import { ImageField } from "./image-field";
 
 const BLANK: AdminPartnerDetail = {
   id: "",

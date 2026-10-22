@@ -37,8 +37,7 @@ export function Turnstile({ onTokenChange }: TurnstileProps) {
     if (!siteKey || !containerRef.current || widgetIdRef.current) return;
 
     const render = () => {
-      if (!window.turnstile || !containerRef.current || widgetIdRef.current)
-        return;
+      if (!window.turnstile || !containerRef.current || widgetIdRef.current) return;
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: siteKey,
         callback: (token) => onTokenChangeRef.current(token),
@@ -57,15 +56,14 @@ export function Turnstile({ onTokenChange }: TurnstileProps) {
     render();
     return () => {
       window.clearInterval(intervalId);
-      if (widgetIdRef.current && window.turnstile)
-        window.turnstile.remove(widgetIdRef.current);
+      if (widgetIdRef.current && window.turnstile) window.turnstile.remove(widgetIdRef.current);
       widgetIdRef.current = undefined;
     };
   }, []);
 
   if (!siteKey) {
     return (
-      <p className="text-sm text-destructive" role="alert">
+      <p className="text-destructive text-sm" role="alert">
         This form is temporarily unavailable. Please email us directly.
       </p>
     );
@@ -81,7 +79,7 @@ export function Turnstile({ onTokenChange }: TurnstileProps) {
       />
       <div ref={containerRef} />
       {loadError && (
-        <p className="mt-2 text-sm text-destructive" role="alert">
+        <p className="text-destructive mt-2 text-sm" role="alert">
           Security verification could not load. Please refresh and try again.
         </p>
       )}

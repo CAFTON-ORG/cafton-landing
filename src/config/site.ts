@@ -7,9 +7,6 @@ export const SITE_URL = "https://cafton.com";
 
 export const SITE_NAME = "CAFTON";
 
-export const SITE_DESCRIPTION =
-  "Cafton builds custom software, web apps, and mobile apps for businesses and organizations. Based in Baguio City, serving clients across the Philippines.";
-
 export interface SocialImage {
   url: string;
   width: number;

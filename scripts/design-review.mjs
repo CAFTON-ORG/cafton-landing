@@ -22,7 +22,10 @@ const OUT = ".design-review";
 const only = process.argv[2]; // optional substring filter, e.g. "deals"
 
 async function recordIds() {
-  const client = new pg.Client({ connectionString: process.env.DATABASE_URL || "postgresql://postgres:postgres@127.0.0.1:5544/postgres" });
+  const client = new pg.Client({
+    connectionString:
+      process.env.DATABASE_URL || "postgresql://postgres:postgres@127.0.0.1:5544/postgres",
+  });
   await client.connect();
   const one = async (sql) => (await client.query(sql)).rows[0]?.id;
   const ids = {
@@ -55,6 +58,7 @@ const PAGES = [
   ["organization-detail", `/dashboard/crm/organizations/${ids.org}`],
   ["tasks", "/dashboard/crm/tasks"],
   ["blog-posts", "/dashboard/content/blog"],
+  ["site-settings", "/dashboard/content/site"],
   ["post-new", "/dashboard/content/blog/new"],
   ["post-edit", `/dashboard/content/blog/${ids.post}`],
   ["content-projects", "/dashboard/content/projects"],
@@ -85,8 +89,13 @@ const INTERACTIONS = [
   ["organizations", "Add organization", "dialog-add-organization"],
   ["roles", "New role", "dialog-new-role"],
   ["people", "Invite person", "dialog-invite"],
-  ["post-edit", "Choose image", "dialog-image-picker"],
-  ["project-edit", "Add image", "gallery-add-image"],
+  // "a|b" tries each name; "tab:Name" clicks a tab instead of a button.
+  ["post-edit", "Replace|Choose from library", "dialog-image-picker"],
+  ["project-edit", "tab:Images", "tab-images"],
+  ["project-edit", "tab:Story", "tab-story"],
+  ["event-edit", "tab:Prizes", "tab-prizes"],
+  ["event-edit", "tab:How to join", "tab-join"],
+  ["event-edit", "tab:Poster and promotion", "tab-poster"],
 ];
 
 const VIEWPORTS = {
@@ -104,7 +113,10 @@ const browser = await chromium.launch();
 const problems = [];
 
 for (const [theme, viewport] of RUNS) {
-  const context = await browser.newContext({ viewport: VIEWPORTS[viewport], reducedMotion: "reduce" });
+  const context = await browser.newContext({
+    viewport: VIEWPORTS[viewport],
+    reducedMotion: "reduce",
+  });
   await context.addInitScript((value) => {
     try {
       localStorage.setItem("cafton-theme", value);
@@ -127,15 +139,25 @@ for (const [theme, viewport] of RUNS) {
     // Accessibility on every theme and viewport: contrast differs between light and dark.
     let violations = [];
     {
-      const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
-      violations = result.violations.map((v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target?.join(" ")}`);
+      const result = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+        .analyze();
+      violations = result.violations.map(
+        (v) => `${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target?.join(" ")}`,
+      );
     }
     // Horizontal overflow check (the page must never scroll sideways).
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
     if (overflow > 1) violations.push(`horizontal-overflow: ${overflow}px`);
 
     for (const [pageName, label, shot] of INTERACTIONS.filter(([pageName]) => pageName === name)) {
-      const button = page.getByRole("button", { name: label, exact: true }).first();
+      const [role, names] = label.startsWith("tab:") ? ["tab", label.slice(4)] : ["button", label];
+      let button = page.getByRole(role, { name: names.split("|")[0], exact: true }).first();
+      for (const alt of names.split("|").slice(1))
+        if ((await button.count()) === 0)
+          button = page.getByRole(role, { name: alt, exact: true }).first();
       if ((await button.count()) === 0) {
         problems.push(`[${theme}/${viewport}] ${pageName}: button "${label}" not found`);
         continue;
@@ -144,14 +166,20 @@ for (const [theme, viewport] of RUNS) {
       await page.waitForTimeout(400);
       await page.screenshot({ path: path.join(dir, `${shot}.png`) });
       {
-        const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
-        for (const v of result.violations) violations.push(`${shot}: ${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target?.join(" ")}`);
+        const result = await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+          .analyze();
+        for (const v of result.violations)
+          violations.push(
+            `${shot}: ${v.id} (${v.impact}) x${v.nodes.length}: ${v.nodes[0]?.target?.join(" ")}`,
+          );
       }
       await page.keyboard.press("Escape");
       await page.waitForTimeout(250);
     }
 
-    for (const message of [...errors, ...violations]) problems.push(`[${theme}/${viewport}] ${name}: ${message}`);
+    for (const message of [...errors, ...violations])
+      problems.push(`[${theme}/${viewport}] ${name}: ${message}`);
     await page.close();
   }
   await context.close();

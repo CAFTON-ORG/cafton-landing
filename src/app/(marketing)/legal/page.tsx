@@ -11,6 +11,8 @@ import { ProjectCta } from "@/components/marketing/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 
+import { getSiteSettings } from "@/features/cms/repository/site";
+
 export const metadata: Metadata = pageMetadata({
   title: "Legal",
   description:
@@ -57,7 +59,8 @@ const TOC = [
   }
 ];
 
-export default function LegalPage() {
+export default async function LegalPage() {
+  const { email } = await getSiteSettings();
   return (
     <>
       <PageHero variant="compact">
@@ -204,8 +207,7 @@ export default function LegalPage() {
             <section id="contact" className="scroll-mt-24">
               <h2 className="text-2xl font-semibold">Contact</h2>
               <p className="mt-3 text-muted-foreground">
-                For questions about these terms, contact us at
-                contact@cafton.com.
+                {`For questions about these terms, contact us at ${email}.`}
               </p>
             </section>
           </Reveal>

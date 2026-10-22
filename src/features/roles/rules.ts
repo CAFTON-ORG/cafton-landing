@@ -10,8 +10,13 @@ export function slugifyRoleName(value: string) {
 }
 
 /** You can only hand out what you hold yourself. */
-export function checkGrantable(actorPermissions: readonly string[], granted: readonly string[]): string | null {
-  return canGrantAll(actorPermissions, granted) ? null : "You can't grant permissions that you don't have yourself.";
+export function checkGrantable(
+  actorPermissions: readonly string[],
+  granted: readonly string[],
+): string | null {
+  return canGrantAll(actorPermissions, granted)
+    ? null
+    : "You can't grant permissions that you don't have yourself.";
 }
 
 export function checkEditable(role: { isSystem: boolean }): string | null {

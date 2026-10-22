@@ -8,7 +8,13 @@ import { useCan, useStaff } from "@/components/dashboard/layout/staff-context";
 import { ConfirmDialog } from "@/components/dashboard/shared/confirm-dialog";
 import { Badge } from "@/components/dashboard/ui/badge";
 import { Button } from "@/components/dashboard/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/dashboard/ui/card";
 import { checkDeletable } from "../rules";
 import { deleteRole } from "../actions";
 import type { RoleSummary } from "../types";
@@ -64,7 +70,8 @@ export function RolesView({ roles }: { roles: RoleSummary[] }) {
                 </CardHeader>
                 <CardContent className="flex items-center justify-between gap-2">
                   <p className="text-muted-foreground text-sm">
-                    {role.people} {role.people === 1 ? "person" : "people"} · {role.permissions.length} permissions
+                    {role.people} {role.people === 1 ? "person" : "people"} ·{" "}
+                    {role.permissions.length} permissions
                   </p>
                   <div className="flex gap-1">
                     <Button

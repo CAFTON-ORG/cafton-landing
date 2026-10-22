@@ -23,8 +23,12 @@ describe("checkEditable / checkDeletable", () => {
   });
 
   it("refuses to delete a role in use, with a readable count", () => {
-    expect(checkDeletable({ isSystem: false, people: 1 })).toBe("1 person has this role. Reassign them first.");
-    expect(checkDeletable({ isSystem: false, people: 3 })).toBe("3 people have this role. Reassign them first.");
+    expect(checkDeletable({ isSystem: false, people: 1 })).toBe(
+      "1 person has this role. Reassign them first.",
+    );
+    expect(checkDeletable({ isSystem: false, people: 3 })).toBe(
+      "3 people have this role. Reassign them first.",
+    );
     expect(checkDeletable({ isSystem: false, people: 0 })).toBeNull();
   });
 });

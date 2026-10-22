@@ -28,8 +28,9 @@ function toBlogPost(row: Prisma.BlogPostGetPayload<object>): BlogPost {
     ...(media.length > 0 && { media }),
     date: row.date.toISOString().slice(0, 10),
     category: row.category,
-    imageLight: opt(row.imageLight),
-    imageDark: opt(row.imageDark),
+    // One cover is enough: the other theme reuses it (the site shows a cover only when both are set).
+    imageLight: opt(row.imageLight) ?? opt(row.imageDark),
+    imageDark: opt(row.imageDark) ?? opt(row.imageLight),
     imageAlt: opt(row.imageAlt),
   };
 }

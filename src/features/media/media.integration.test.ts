@@ -19,7 +19,10 @@ import { serviceFaqs } from "../cms/content/service-faqs";
  */
 
 const session = vi.hoisted(() => ({ role: "editor" as "owner" | "editor" | "viewer" }));
-const bucket = vi.hoisted(() => ({ objects: new Map<string, { data: Buffer; contentType: string }>(), failRemove: false }));
+const bucket = vi.hoisted(() => ({
+  objects: new Map<string, { data: Buffer; contentType: string }>(),
+  failRemove: false,
+}));
 
 const staff = () => ({
   id: "33333333-3333-4333-8333-333333333333",
@@ -69,13 +72,17 @@ const file = async (name: string, bytes: Buffer, type: string) => {
   body.set("file", new File([new Uint8Array(bytes)], name, { type }));
   return body;
 };
-const png = (w = 64, h = 32) => sharp({ create: { width: w, height: h, channels: 3, background: "#123456" } }).png().toBuffer();
+const png = (w = 64, h = 32) =>
+  sharp({ create: { width: w, height: h, channels: 3, background: "#123456" } })
+    .png()
+    .toBuffer();
 
 beforeAll(async () => {
   db = (await createDatabase()) as PGlite;
   server = new PGLiteSocketServer({ db, port: 0, host: "127.0.0.1", maxConnections: 4 });
   await server.start();
-  const port = (server as unknown as { server: { address(): { port: number } } }).server.address().port;
+  const port = (server as unknown as { server: { address(): { port: number } } }).server.address()
+    .port;
   process.env.DATABASE_URL = `postgresql://postgres:postgres@127.0.0.1:${port}/postgres`;
   process.env.DATABASE_POOL_MAX = "1";
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://abc.supabase.co";
@@ -94,11 +101,19 @@ describe("uploading", () => {
   let item: Awaited<ReturnType<typeof repo.getMedia>>;
 
   it("stores a cleaned copy under a random path and lists it with its real size", async () => {
-    const result = await actions.uploadMedia(await file("Team photo (final).PNG", await png(64, 32), "image/png"));
+    const result = await actions.uploadMedia(
+      await file("Team photo (final).PNG", await png(64, 32), "image/png"),
+    );
     expect(result.ok).toBe(true);
     item = (result as { data: NonNullable<typeof item> }).data;
 
-    expect(item).toMatchObject({ width: 64, height: 32, mime: "image/png", name: "Team photo (final).PNG", uses: 0 });
+    expect(item).toMatchObject({
+      width: 64,
+      height: 32,
+      mime: "image/png",
+      name: "Team photo (final).PNG",
+      uses: 0,
+    });
     expect(item!.path).toMatch(/^content\/[0-9a-f-]{36}\.png$/);
     expect(item!.url).toBe(`https://abc.supabase.co/storage/v1/object/public/media/${item!.path}`);
     expect(bucket.objects.get(item!.path)?.contentType).toBe("image/png");
@@ -107,39 +122,65 @@ describe("uploading", () => {
 
   it("refuses an SVG with a script in it, a file that lies about its type, and an oversized file", async () => {
     const svg = Buffer.from("<svg xmlns='http://www.w3.org/2000/svg' onload='alert(1)'/>");
-    expect(await actions.uploadMedia(await file("x.svg", svg, "image/svg+xml"))).toMatchObject({ ok: false, error: expect.stringMatching(/isn't a JPG, PNG or WebP/) });
-    expect(await actions.uploadMedia(await file("fake.png", svg, "image/png"))).toMatchObject({ ok: false, error: expect.stringMatching(/JPG, PNG or WebP/) });
+    expect(await actions.uploadMedia(await file("x.svg", svg, "image/svg+xml"))).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/isn't a JPG, PNG or WebP/),
+    });
+    expect(await actions.uploadMedia(await file("fake.png", svg, "image/png"))).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/JPG, PNG or WebP/),
+    });
     const big = Buffer.concat([await png(), Buffer.alloc(4 * 1024 * 1024 + 1)]);
-    expect(await actions.uploadMedia(await file("big.png", big, "image/png"))).toMatchObject({ ok: false, error: expect.stringMatching(/4 MB/) });
+    expect(await actions.uploadMedia(await file("big.png", big, "image/png"))).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/4 MB/),
+    });
     expect(bucket.objects.size).toBe(1); // nothing from the refused files reached storage
   });
 
   it("keeps a viewer from uploading", async () => {
     session.role = "viewer";
-    expect(await actions.uploadMedia(await file("a.png", await png(), "image/png"))).toMatchObject({ ok: false, error: expect.stringMatching(/permission/) });
+    expect(await actions.uploadMedia(await file("a.png", await png(), "image/png"))).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/permission/),
+    });
     session.role = "editor";
   });
 
   it("saves a description, but not a file name posing as one", async () => {
-    expect(await actions.updateMediaAlt(item!.id, "The Cafton team around a table")).toMatchObject({ ok: true });
+    expect(await actions.updateMediaAlt(item!.id, "The Cafton team around a table")).toMatchObject({
+      ok: true,
+    });
     expect((await repo.getMedia(item!.id))?.alt).toBe("The Cafton team around a table");
     expect(await actions.updateMediaAlt(item!.id, "IMG_0042.jpg")).toMatchObject({ ok: false });
   });
 
   it("is protected while content uses it, and deletable by someone who may delete once it is free", async () => {
-    await db.query("UPDATE blog_posts SET image_light = $1 WHERE slug = $2", [item!.url, blogPosts[0].slug]);
+    await db.query("UPDATE blog_posts SET image_light = $1 WHERE slug = $2", [
+      item!.url,
+      blogPosts[0].slug,
+    ]);
     expect((await repo.getMedia(item!.id))?.uses).toBe(1);
 
     session.role = "editor";
-    expect(await actions.deleteMedia(item!.id)).toMatchObject({ ok: false, error: expect.stringMatching(/permission/) });
+    expect(await actions.deleteMedia(item!.id)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/permission/),
+    });
 
     session.role = "owner";
-    expect(await actions.deleteMedia(item!.id)).toMatchObject({ ok: false, error: expect.stringMatching(/used in 1 place/) });
+    expect(await actions.deleteMedia(item!.id)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/used in 1 place/),
+    });
     expect(bucket.objects.has(item!.path)).toBe(true);
 
     await db.query("UPDATE blog_posts SET image_light = NULL WHERE slug = $1", [blogPosts[0].slug]);
     bucket.failRemove = true;
-    expect(await actions.deleteMedia(item!.id)).toMatchObject({ ok: false, error: expect.stringMatching(/storage/) });
+    expect(await actions.deleteMedia(item!.id)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/storage/),
+    });
     expect(await repo.getMedia(item!.id)).not.toBeNull(); // the row stays if the file could not be removed
 
     bucket.failRemove = false;
@@ -158,7 +199,11 @@ describe("uploading", () => {
     ]);
     expect((await repo.getMedia(gallery.id))?.uses).toBe(1);
 
-    const { rows } = await db.query<{ action: string }>("SELECT action FROM audit_log WHERE entity = 'media'");
-    expect(rows.map((r) => r.action)).toEqual(expect.arrayContaining(["media.upload", "media.update", "media.delete"]));
+    const { rows } = await db.query<{ action: string }>(
+      "SELECT action FROM audit_log WHERE entity = 'media'",
+    );
+    expect(rows.map((r) => r.action)).toEqual(
+      expect.arrayContaining(["media.upload", "media.update", "media.delete"]),
+    );
   });
 });

@@ -516,3 +516,15 @@ model Media {
   @@index([createdAt(sort: Desc)])
   @@map("media")
 }
+
+/// One editable document per area of the public site (settings, SEO, About text...). The
+/// shape of `data` for each `key` is defined and validated in code (features/cms/site).
+model SiteContent {
+  key         String   @id
+  data        Json
+  updatedById String?  @map("updated_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("site_content")
+}

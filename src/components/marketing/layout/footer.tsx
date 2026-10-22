@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { CalendarDays, Mail, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,8 @@ import { Logo } from "@/components/shared/logo";
 import { DotPattern } from "@/components/marketing/decor/dot-pattern";
 import { RegistrationMark } from "@/components/marketing/decor/registration-mark";
 import { BackToTop } from "@/components/marketing/layout/back-to-top";
-import { socialLinks } from "@/components/marketing/layout/social-links";
+import { resolveSocialLinks } from "@/components/marketing/layout/social-links";
+import { getSiteSettings } from "@/features/cms/repository/site";
 import { CookieSettingsButton } from "@/components/marketing/consent/cookie-settings-button";
 import { servicePillars } from "@/config/services";
 
@@ -43,7 +45,9 @@ function FooterColumn({
   );
 }
 
-export function Footer() {
+export async function Footer() {
+  const settings = await getSiteSettings();
+  const socialLinks = resolveSocialLinks(settings.socials);
   return (
     <footer className="relative overflow-hidden border-t">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
@@ -65,41 +69,45 @@ export function Footer() {
               <span className="text-xl font-bold uppercase tracking-tight">Cafton</span>
             </Link>
             <p className="mt-5 text-lg font-medium leading-snug">
-              Build Better.
-              <br />
-              Solve Smarter.
+              {settings.tagline.map((line, index) => (
+                <Fragment key={line}>
+                  {index > 0 && <br />}
+                  {line}
+                </Fragment>
+              ))}
             </p>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              A software development company in Baguio City, building practical systems for
-              businesses, organizations, and new ventures.
+              {settings.footerBlurb}
             </p>
 
             <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
               <li>
                 <a
-                  href="mailto:contact@cafton.com"
+                  href={`mailto:${settings.email}`}
                   className="inline-flex items-center gap-2 py-0.5 transition-colors hover:text-foreground"
                 >
                   <Mail className="size-4" aria-hidden="true" />
-                  contact@cafton.com
+                  {settings.email}
                 </a>
               </li>
               <li className="inline-flex items-center gap-2 py-0.5">
                 <MapPin className="size-4" aria-hidden="true" />
-                Baguio City, Philippines
+                {`${settings.city}, ${settings.country}`}
               </li>
             </ul>
 
-            <Button asChild className="mt-7 cursor-pointer">
-              <Link
-                href="https://calendly.com/cafton-company/consultation"
+            {settings.bookingUrl && (
+              <Button asChild className="mt-7 cursor-pointer">
+                <Link
+                  href={settings.bookingUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <CalendarDays className="size-4" aria-hidden="true" />
                 Book a call
               </Link>
-            </Button>
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3">

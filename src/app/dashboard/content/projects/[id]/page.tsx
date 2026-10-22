@@ -19,7 +19,7 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const project = await getProjectForEdit(id);
   if (!project) notFound();
-  const authors = await listAuthorOptions();
+  const authors = await listAuthorOptions(staff.id, project.authorId);
   const readOnly = !can(staff, "content:update");
 
   return (

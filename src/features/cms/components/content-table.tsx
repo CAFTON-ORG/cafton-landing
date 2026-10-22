@@ -2,13 +2,26 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ExternalLink, Eye, EyeOff, FileText, Plus, Trash2 } from "lucide-react";
+import {
+  CalendarDays,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  FileText,
+  FolderKanban,
+  Handshake,
+  Plus,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 
 import type { Column } from "@/components/dashboard/data-table/data-table";
 import { ResourceTable } from "@/components/dashboard/data-table/resource-table";
 import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { useCan } from "@/components/dashboard/layout/staff-context";
 import { ConfirmDialog } from "@/components/dashboard/shared/confirm-dialog";
+import { Thumbnail } from "@/components/dashboard/shared/thumbnail";
+import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { Button } from "@/components/dashboard/ui/button";
 import { useServerAction } from "@/hooks/use-server-action";
@@ -23,6 +36,24 @@ import {
   type ContentKind,
 } from "../admin/types";
 import { checkDeleteContent } from "../rules";
+
+const KIND_ICON: Record<ContentKind, LucideIcon> = {
+  post: FileText,
+  project: FolderKanban,
+  event: CalendarDays,
+  partner: Handshake,
+};
+
+/** Thumbnail of the cover, poster or logo; the type's icon when there is none. */
+function Thumb({ kind, row }: { kind: ContentKind; row: AdminListRow }) {
+  return (
+    <Thumbnail
+      src={row.image}
+      icon={KIND_ICON[kind]}
+      fit={kind === "partner" ? "contain" : "cover"}
+    />
+  );
+}
 
 /** Where each type's pages live in the dashboard. */
 const BASE: Record<ContentKind, string> = {
@@ -79,17 +110,40 @@ export function ContentTable({ kind, page }: { kind: ContentKind; page: Page<Adm
       header: copy.noun.charAt(0).toUpperCase() + copy.noun.slice(1),
       sortable: true,
       cell: (row) => (
-        <div className="min-w-0">
-          <Link
-            href={`${BASE[kind]}/${row.id}`}
-            className="font-medium underline-offset-4 hover:underline"
-          >
-            {row.title}
-          </Link>
-          {row.subtitle && <p className="text-muted-foreground truncate text-xs">{row.subtitle}</p>}
+        <div className="flex min-w-0 items-center gap-3">
+          <Thumb kind={kind} row={row} />
+          <div className="min-w-0">
+            <Link
+              href={`${BASE[kind]}/${row.id}`}
+              className="font-medium underline-offset-4 hover:underline"
+            >
+              {row.title}
+            </Link>
+            {row.subtitle && (
+              <p className="text-muted-foreground truncate text-xs">{row.subtitle}</p>
+            )}
+          </div>
         </div>
       ),
     },
+    ...(kind === "partner"
+      ? []
+      : [
+          {
+            id: "author",
+            header: "By",
+            hideBelow: "lg" as const,
+            cell: (row: AdminListRow) =>
+              row.author ? (
+                <span className="flex items-center gap-2">
+                  <UserAvatar name={row.author.name} src={row.author.avatar} size="sm" />
+                  <span className="truncate">{row.author.name}</span>
+                </span>
+              ) : (
+                "—"
+              ),
+          },
+        ]),
     {
       id: "status",
       header: "Status",

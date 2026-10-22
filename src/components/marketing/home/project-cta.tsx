@@ -5,11 +5,11 @@ import { DotPattern } from "@/components/marketing/decor/dot-pattern";
 import { MarkWatermark } from "@/components/marketing/decor/mark-watermark";
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal } from "@/components/marketing/motion/reveal";
-
-const facts = ["Est. 2026", "Baguio City", "Remote, nationwide"];
+import { getSiteSettings } from "@/features/cms/repository/site";
 
 /** Closing call to action shared by the home, portfolio, blog, and service pages. */
-export function ProjectCta() {
+export async function ProjectCta() {
+  const { facts, email, bookingUrl } = await getSiteSettings();
   return (
     <PageSection>
       <PageShell>
@@ -58,27 +58,29 @@ export function ProjectCta() {
                     />
                   </Link>
                 </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-12 cursor-pointer rounded-full px-7"
-                  asChild
-                >
-                  <Link
-                    href="https://calendly.com/cafton-company/consultation"
+                {bookingUrl && (
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-12 cursor-pointer rounded-full px-7"
+                    asChild
+                  >
+                    <Link
+                      href={bookingUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <CalendarDays className="size-4" aria-hidden="true" />
                     Book a call
                   </Link>
-                </Button>
+                  </Button>
+                )}
                 <a
-                  href="mailto:contact@cafton.com"
+                  href={`mailto:${email}`}
                   className="inline-flex items-center gap-2 rounded-full py-2 text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring sm:ps-1"
                 >
                   <Mail className="size-4" aria-hidden="true" />
-                  contact@cafton.com
+                  {email}
                 </a>
               </div>
             </div>

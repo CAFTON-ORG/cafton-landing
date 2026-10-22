@@ -14,6 +14,7 @@ import type { Permission } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { checkDeleteContent, checkPublishPost, paragraphsFromText } from "../rules";
+import { ensureAuthor } from "./authors";
 import { revalidatePublicContent } from "./revalidate";
 import { postSchema, type PostInput, type PublishIntent } from "./schema";
 import type { ContentKind } from "./types";
@@ -53,14 +54,7 @@ export async function savePost(
         : null;
       if (data.id && !existing) throw new ActionError("That post no longer exists.");
 
-      const author = await tx.author.findUnique({
-        where: { id: data.authorId },
-        select: { id: true },
-      });
-      if (!author)
-        throw new ActionError("Choose who wrote it.", "validation", {
-          authorId: "That author no longer exists.",
-        });
+      await ensureAuthor(tx, data.authorId);
 
       const clash = await tx.blogPost.findFirst({
         where: {

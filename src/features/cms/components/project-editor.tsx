@@ -25,7 +25,9 @@ import type { AdminProjectDetail } from "../admin/forms";
 import type { AuthorOption } from "../admin/types";
 import { checkPublishProject, slugify } from "../rules";
 import { AuthorField } from "./author-field";
-import { ImageField, PublishPanel, Repeater, useContentEditor } from "./editor-kit";
+import { EditorTab, EditorTabs, PublishPanel, Repeater, useContentEditor } from "./editor-kit";
+import { CoverImageFields } from "./cover-image-fields";
+import { ImageField } from "./image-field";
 import { useState } from "react";
 
 const BLANK: AdminProjectDetail = {
@@ -99,172 +101,169 @@ export function ProjectEditor({
       }}
       className="grid gap-4 lg:grid-cols-[1fr_20rem]"
     >
-      <div className="grid content-start gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>The project</CardTitle>
-            <CardDescription>
-              What visitors read on the portfolio page and the project&rsquo;s own page.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <Field id="project-title" label="Headline" required error={errors.title}>
-              <Input
-                id="project-title"
-                value={values.title}
-                aria-invalid={!!errors.title}
-                autoComplete="off"
-                onChange={(event) =>
-                  setValues((current) => ({
-                    ...current,
-                    title: event.target.value,
-                    ...(slugTouched ? {} : { slug: slugify(event.target.value) }),
-                  }))
-                }
-              />
-            </Field>
-            <Field
-              id="project-summary"
-              label="Summary"
-              error={errors.summary}
-              hint="A sentence or two for the cards on the home and portfolio pages."
-            >
-              <Textarea {...area("summary", 3)} />
-            </Field>
-            <Field
-              id="project-description"
-              label="Description"
-              error={errors.description}
-              hint="The main text of the project page."
-            >
-              <Textarea {...area("description", 6)} />
-            </Field>
-          </CardContent>
-        </Card>
+      <EditorTabs
+        tabs={[
+          { value: "about", label: "Project", fields: ["title", "summary", "description"] },
+          { value: "story", label: "Story", fields: ["problem", "solution", "recognition"] },
+          { value: "images", label: "Images", fields: ["image", "gallery"] },
+        ]}
+        errors={errors}
+      >
+        <EditorTab value="about">
+          <Card>
+            <CardHeader>
+              <CardTitle>The project</CardTitle>
+              <CardDescription>
+                What visitors read on the portfolio page and the project&rsquo;s own page.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <Field id="project-title" label="Headline" required error={errors.title}>
+                <Input
+                  id="project-title"
+                  value={values.title}
+                  aria-invalid={!!errors.title}
+                  autoComplete="off"
+                  onChange={(event) =>
+                    setValues((current) => ({
+                      ...current,
+                      title: event.target.value,
+                      ...(slugTouched ? {} : { slug: slugify(event.target.value) }),
+                    }))
+                  }
+                />
+              </Field>
+              <Field
+                id="project-summary"
+                label="Summary"
+                error={errors.summary}
+                hint="A sentence or two for the cards on the home and portfolio pages."
+              >
+                <Textarea {...area("summary", 3)} />
+              </Field>
+              <Field
+                id="project-description"
+                label="Description"
+                error={errors.description}
+                hint="The main text of the project page."
+              >
+                <Textarea {...area("description", 6)} />
+              </Field>
+            </CardContent>
+          </Card>
+        </EditorTab>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>The story</CardTitle>
-            <CardDescription>
-              Optional. Each one shows as its own section when filled in.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <Field id="project-problem" label="The problem" error={errors.problem}>
-              <Textarea {...area("problem", 3)} />
-            </Field>
-            <Field id="project-solution" label="What we built" error={errors.solution}>
-              <Textarea {...area("solution", 3)} />
-            </Field>
-            <Field
-              id="project-recognition"
-              label="Recognition"
-              error={errors.recognition}
-              hint="Awards, finalist places, press."
-            >
-              <Textarea {...area("recognition", 2)} />
-            </Field>
-          </CardContent>
-        </Card>
+        <EditorTab value="story">
+          <Card>
+            <CardHeader>
+              <CardTitle>The story</CardTitle>
+              <CardDescription>
+                Optional. Each one shows as its own section when filled in.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <Field id="project-problem" label="The problem" error={errors.problem}>
+                <Textarea {...area("problem", 3)} />
+              </Field>
+              <Field id="project-solution" label="What we built" error={errors.solution}>
+                <Textarea {...area("solution", 3)} />
+              </Field>
+              <Field
+                id="project-recognition"
+                label="Recognition"
+                error={errors.recognition}
+                hint="Awards, finalist places, press."
+              >
+                <Textarea {...area("recognition", 2)} />
+              </Field>
+            </CardContent>
+          </Card>
+        </EditorTab>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Images</CardTitle>
-            <CardDescription>
-              Without a cover the project shows the Cafton cover art.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ImageField
-                id="project-imageLight"
-                label="Cover (light theme)"
-                value={values.imageLight}
-                onChange={(value) => set("imageLight", value)}
-                onPicked={(item) => !values.imageAlt && item.alt && set("imageAlt", item.alt)}
-                error={errors.imageLight}
+        <EditorTab value="images">
+          <Card>
+            <CardHeader>
+              <CardTitle>Images</CardTitle>
+              <CardDescription>
+                Without a cover the project shows the Cafton cover art.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <CoverImageFields
+                idPrefix="project"
+                noun="project"
+                light={values.imageLight}
+                dark={values.imageDark}
+                alt={values.imageAlt}
+                onLight={(value) => set("imageLight", value)}
+                onDark={(value) => set("imageDark", value)}
+                onAlt={(value) => set("imageAlt", value)}
+                errors={errors}
               />
-              <ImageField
-                id="project-imageDark"
-                label="Cover (dark theme)"
-                value={values.imageDark}
-                onChange={(value) => set("imageDark", value)}
-                error={errors.imageDark}
-              />
-            </div>
-            <Field
-              id="project-imageAlt"
-              label="Describe the cover"
-              error={errors.imageAlt}
-              hint="Required to publish when there is a cover: screen readers read it."
-            >
-              <Input
-                id="project-imageAlt"
-                value={values.imageAlt}
-                onChange={(event) => set("imageAlt", event.target.value)}
-                aria-invalid={!!errors.imageAlt}
-              />
-            </Field>
-            <Repeater
-              label="Gallery"
-              hint="More screenshots, shown on the project page."
-              itemName="Image"
-              items={values.gallery}
-              onChange={(gallery) => set("gallery", gallery)}
-              create={() => ({ src: "", alt: "", width: 1200, height: 800, caption: "" })}
-              error={errors.gallery}
-              render={(image, index, update) => (
-                <div className="grid gap-3">
-                  <ImageField
-                    id={`gallery-${index}-src`}
-                    label="Image"
-                    value={image.src}
-                    onChange={(src) => update({ src })}
-                    onPicked={(item) =>
-                      update({ width: item.width, height: item.height, alt: image.alt || item.alt })
-                    }
-                  />
-                  <Field id={`gallery-${index}-alt`} label="Describe it" required>
-                    <Input
-                      id={`gallery-${index}-alt`}
-                      value={image.alt}
-                      onChange={(event) => update({ alt: event.target.value })}
+              <Repeater
+                label="Gallery"
+                hint="More screenshots, shown on the project page."
+                itemName="Image"
+                items={values.gallery}
+                onChange={(gallery) => set("gallery", gallery)}
+                create={() => ({ src: "", alt: "", width: 1200, height: 800, caption: "" })}
+                error={errors.gallery}
+                render={(image, index, update) => (
+                  <div className="grid gap-3">
+                    <ImageField
+                      id={`gallery-${index}-src`}
+                      label="Image"
+                      value={image.src}
+                      onChange={(src) => update({ src })}
+                      onPicked={(item) =>
+                        update({
+                          width: item.width,
+                          height: item.height,
+                          alt: image.alt || item.alt,
+                        })
+                      }
                     />
-                  </Field>
-                  <Field id={`gallery-${index}-caption`} label="Caption">
-                    <Input
-                      id={`gallery-${index}-caption`}
-                      value={image.caption}
-                      onChange={(event) => update({ caption: event.target.value })}
-                    />
-                  </Field>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field id={`gallery-${index}-width`} label="Width (px)">
+                    <Field id={`gallery-${index}-alt`} label="Describe it" required>
                       <Input
-                        id={`gallery-${index}-width`}
-                        type="number"
-                        min={1}
-                        value={image.width}
-                        onChange={(event) => update({ width: Number(event.target.value) })}
+                        id={`gallery-${index}-alt`}
+                        value={image.alt}
+                        onChange={(event) => update({ alt: event.target.value })}
                       />
                     </Field>
-                    <Field id={`gallery-${index}-height`} label="Height (px)">
+                    <Field id={`gallery-${index}-caption`} label="Caption">
                       <Input
-                        id={`gallery-${index}-height`}
-                        type="number"
-                        min={1}
-                        value={image.height}
-                        onChange={(event) => update({ height: Number(event.target.value) })}
+                        id={`gallery-${index}-caption`}
+                        value={image.caption}
+                        onChange={(event) => update({ caption: event.target.value })}
                       />
                     </Field>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field id={`gallery-${index}-width`} label="Width (px)">
+                        <Input
+                          id={`gallery-${index}-width`}
+                          type="number"
+                          min={1}
+                          value={image.width}
+                          onChange={(event) => update({ width: Number(event.target.value) })}
+                        />
+                      </Field>
+                      <Field id={`gallery-${index}-height`} label="Height (px)">
+                        <Input
+                          id={`gallery-${index}-height`}
+                          type="number"
+                          min={1}
+                          value={image.height}
+                          onChange={(event) => update({ height: Number(event.target.value) })}
+                        />
+                      </Field>
+                    </div>
                   </div>
-                </div>
-              )}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
+                )}
+              />
+            </CardContent>
+          </Card>
+        </EditorTab>
+      </EditorTabs>
       <div className="grid content-start gap-4">
         <PublishPanel
           status={values.status}

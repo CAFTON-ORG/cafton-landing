@@ -9,12 +9,7 @@ import { isDatabaseConfigured, isProduction } from "@/lib/env";
 import { isSupabaseConfigured } from "@/lib/env.public";
 import { createClient } from "@/lib/supabase/server";
 import { googleAvatarUrl, googleName } from "./identity";
-import {
-  ALL_PERMISSIONS,
-  hasPermission,
-  resolvePermissions,
-  type Permission,
-} from "./permissions";
+import { ALL_PERMISSIONS, hasPermission, resolvePermissions, type Permission } from "./permissions";
 import { inviteEmailFromClaims } from "./provision";
 
 export interface Staff {
@@ -94,7 +89,8 @@ export const getStaff = cache(async (): Promise<Staff | null> => {
   if (!userId) return null;
 
   const metadata = data?.claims?.user_metadata as Record<string, unknown> | undefined;
-  const profile = (await findProfile(userId)) ?? (await claimInvite(userId, data?.claims, metadata));
+  const profile =
+    (await findProfile(userId)) ?? (await claimInvite(userId, data?.claims, metadata));
   if (!profile) return null;
 
   // Keep the photo and name in step with the Google account they signed in with.

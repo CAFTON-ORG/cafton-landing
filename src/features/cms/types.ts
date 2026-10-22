@@ -172,3 +172,34 @@ export interface FaqItem {
   question: string;
   answer: string;
 }
+
+/** The social networks the site can link to. The icon and the label come from the code. */
+export type SocialPlatform = "facebook" | "instagram" | "linkedin" | "tiktok" | "x" | "youtube";
+
+export interface SocialLink {
+  platform: SocialPlatform;
+  url: string;
+}
+
+/** Facts about the company that appear in several places (footer, contact, legal pages, search results). */
+export interface SiteSettings {
+  /** Default description in search results and link previews, for pages with none of their own. */
+  description: string;
+  /** The footer's two-line slogan, one line per item. */
+  tagline: string[];
+  /** The short paragraph under the slogan in the footer. */
+  footerBlurb: string;
+  email: string;
+  /** Shown as "City, Country". */
+  city: string;
+  country: string;
+  /** ISO 3166-1 alpha-2, for search-engine data. */
+  countryCode: string;
+  /** Year the company was founded. */
+  established: string;
+  /** Where "Book a call" goes. */
+  bookingUrl: string;
+  /** Short badges such as "Est. 2026", shown under the home and about headlines. */
+  facts: string[];
+  socials: SocialLink[];
+}

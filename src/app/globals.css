@@ -146,7 +146,8 @@
    svh, not vh or dvh: vh is the height with the mobile browser toolbar hidden
    (too tall at first), and dvh changes as the toolbar slides away, which
    resizes anything sized from it. */
-main {
+/* The dashboard's <main> is its own scroll area sized by the shell, so it opts out. */
+main:not([data-app-main]) {
   min-height: 100svh;
 }
 

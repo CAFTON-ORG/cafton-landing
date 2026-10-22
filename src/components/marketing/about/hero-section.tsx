@@ -2,10 +2,10 @@ import { PageHero } from "@/components/marketing/layout/page-shell";
 import { RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { TeamPhoto } from "@/components/marketing/about/team-photo";
+import { getSiteSettings } from "@/features/cms/repository/site";
 
-const facts = ["Est. 2026", "Baguio City", "Remote, nationwide"];
-
-export function AboutHero() {
+export async function AboutHero() {
+  const { facts } = await getSiteSettings();
   return (
     <>
     <PageHero image={<TeamPhoto />}>

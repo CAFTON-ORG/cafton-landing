@@ -10,6 +10,7 @@ import {
 import { ProjectCta } from "@/components/marketing/home/project-cta";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
+import { getSiteSettings } from "@/features/cms/repository/site";
 
 export const metadata: Metadata = pageMetadata({
   title: "Careers",
@@ -22,7 +23,8 @@ export const metadata: Metadata = pageMetadata({
   noindex: true,
 });
 
-export default function CareersPage() {
+export default async function CareersPage() {
+  const { email } = await getSiteSettings();
   return (
     <>
       <PageHero>
@@ -54,7 +56,7 @@ export default function CareersPage() {
               your work or portfolio.
             </p>
             <Button asChild className="mt-6 cursor-pointer">
-              <Link href="mailto:contact@cafton.com?subject=Careers%20at%20Cafton">
+              <Link href={`mailto:${email}?subject=Careers%20at%20Cafton`}>
                 Introduce yourself
               </Link>
             </Button>

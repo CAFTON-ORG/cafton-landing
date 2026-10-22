@@ -19,7 +19,10 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
   const post = await getPost(id);
   if (!post) notFound();
 
-  const [authors, categories] = await Promise.all([listAuthorOptions(), listPostCategories()]);
+  const [authors, categories] = await Promise.all([
+    listAuthorOptions(staff.id, post.authorId),
+    listPostCategories(),
+  ]);
   const readOnly = !can(staff, "content:update");
 
   return (

@@ -22,7 +22,7 @@ export function MobileNav() {
       >
         <Menu aria-hidden="true" />
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0">
+      <SheetContent side="left" className="bg-sidebar text-sidebar-foreground w-72 p-0">
         <SheetTitle className="sr-only">Navigation</SheetTitle>
         <div className="flex h-full flex-col gap-6 p-4">
           <Link href="/dashboard" onClick={() => setOpen(false)} className="px-2">
@@ -31,7 +31,7 @@ export function MobileNav() {
           <div className="flex-1 overflow-y-auto">
             <NavLinks onNavigate={() => setOpen(false)} />
           </div>
-          <div className="border-t pt-4">
+          <div className="border-sidebar-border border-t pt-4">
             <SidebarUserMenu />
           </div>
         </div>

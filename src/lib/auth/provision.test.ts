@@ -12,14 +12,21 @@ describe("inviteEmailFromClaims", () => {
 
   it("accepts google among several providers", () => {
     expect(
-      inviteEmailFromClaims({ email: "a@b.co", app_metadata: { provider: "email", providers: ["email", "google"] } }),
+      inviteEmailFromClaims({
+        email: "a@b.co",
+        app_metadata: { provider: "email", providers: ["email", "google"] },
+      }),
     ).toBe("a@b.co");
   });
 
   it("refuses non-Google sign-ins and malformed claims", () => {
-    expect(inviteEmailFromClaims({ email: "a@b.co", app_metadata: { provider: "email" } })).toBeNull();
+    expect(
+      inviteEmailFromClaims({ email: "a@b.co", app_metadata: { provider: "email" } }),
+    ).toBeNull();
     expect(inviteEmailFromClaims({ email: 5, app_metadata: { provider: "google" } })).toBeNull();
-    expect(inviteEmailFromClaims({ email: "not-an-email", app_metadata: { provider: "google" } })).toBeNull();
+    expect(
+      inviteEmailFromClaims({ email: "not-an-email", app_metadata: { provider: "google" } }),
+    ).toBeNull();
     expect(inviteEmailFromClaims(null)).toBeNull();
   });
 });

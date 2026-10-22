@@ -13,7 +13,9 @@ await server.start();
 
 const url = `postgresql://postgres:postgres@127.0.0.1:${port}/postgres`;
 console.log(`Local database ready on ${url}`);
-console.log("Point DATABASE_URL and DIRECT_URL at it, and leave the Supabase variables empty to use the dev sign-in.");
+console.log(
+  "Point DATABASE_URL and DIRECT_URL at it, and leave the Supabase variables empty to use the dev sign-in.",
+);
 
 const stop = async () => {
   await server.stop();

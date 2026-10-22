@@ -1,6 +1,7 @@
 "use client";
 
 import { Field } from "@/components/dashboard/shared/field";
+import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import {
   Select,
   SelectContent,
@@ -30,15 +31,29 @@ export function AuthorField({
       <Select value={value} onValueChange={(next) => onChange(String(next))}>
         <SelectTrigger id={id} className="w-full" aria-invalid={!!error}>
           <SelectValue>
-            {(current: string) =>
-              authors.find((author) => author.id === current)?.name ?? "Choose an author"
-            }
+            {(current: string) => {
+              const author = authors.find((option) => option.id === current);
+              return author ? (
+                <span className="flex items-center gap-2">
+                  <UserAvatar name={author.name} src={author.avatar} size="sm" />
+                  {author.name}
+                </span>
+              ) : (
+                "Choose an author"
+              );
+            }}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {authors.map((author) => (
             <SelectItem key={author.id} value={author.id}>
-              {author.name}
+              <span className="flex items-center gap-2">
+                <UserAvatar name={author.name} src={author.avatar} size="sm" />
+                {author.name}
+                {author.staff ? null : (
+                  <span className="text-muted-foreground text-xs">shared account</span>
+                )}
+              </span>
             </SelectItem>
           ))}
         </SelectContent>

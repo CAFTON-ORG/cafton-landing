@@ -2,7 +2,10 @@
 
 const DEFAULT_LOCALE = "en-US";
 
-export function formatDate(value: string | Date, options: Intl.DateTimeFormatOptions = { dateStyle: "medium" }) {
+export function formatDate(
+  value: string | Date,
+  options: Intl.DateTimeFormatOptions = { dateStyle: "medium" },
+) {
   return new Intl.DateTimeFormat(DEFAULT_LOCALE, options).format(new Date(value));
 }
 

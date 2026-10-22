@@ -52,11 +52,16 @@ export function LoginForm({ next = "/dashboard" }: { next?: string }) {
     return (
       <div className="space-y-4">
         <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-sm">
-          Supabase isn&rsquo;t configured, so Google sign-in is off. In development you are signed in automatically as
-          a preview owner. Set <code>NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
+          Supabase isn&rsquo;t configured, so Google sign-in is off. In development you are signed
+          in automatically as a preview owner. Set <code>NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
           <code>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code> to turn it on.
         </p>
-        <Button render={<Link href="/dashboard" />} size="lg" className="w-full" nativeButton={false}>
+        <Button
+          render={<Link href="/dashboard" />}
+          size="lg"
+          className="w-full"
+          nativeButton={false}
+        >
           Open the dashboard preview
         </Button>
       </div>
@@ -76,7 +81,9 @@ export function LoginForm({ next = "/dashboard" }: { next?: string }) {
         <GoogleIcon className="size-5" />
         {pending ? "Redirecting…" : "Continue with Google"}
       </Button>
-      <p className="text-muted-foreground text-center text-sm">Access is limited to invited team members.</p>
+      <p className="text-muted-foreground text-center text-sm">
+        Access is limited to invited team members.
+      </p>
     </div>
   );
 }

@@ -1,12 +1,13 @@
 import type { MetadataRoute } from "next";
 
-import { SITE_DESCRIPTION, SITE_NAME } from "@/config/site";
+import { SITE_NAME } from "@/config/site";
+import { getSiteSettings } from "@/features/cms/repository/site";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
   return {
     name: "Cafton Software Development Services",
     short_name: SITE_NAME,
-    description: SITE_DESCRIPTION,
+    description: (await getSiteSettings()).description,
     start_url: "/",
     display: "browser",
     background_color: "#0a0a0a",

@@ -95,6 +95,12 @@ A piece of content is a draft until it is published. Only published content is o
 **Content Editor**:
 The built-in role that writes and publishes the website's content but cannot delete it or touch anything else.
 
+**Site settings**:
+The company facts shown across the public site: description, slogan, contact email, location, booking link, badges and social links. Edited under Website settings.
+
+**Author**:
+The person credited on a post, project or event: always a staff member, shown with their name and photo.
+
 **Image library**:
 The images uploaded for the website, each with a description (alt text). An image in use can't be deleted.
 

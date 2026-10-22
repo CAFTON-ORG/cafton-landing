@@ -22,7 +22,7 @@ const json = (value) => (value === undefined || value === null ? null : JSON.str
 
 /**
  * @param client a connected `pg` client (or PGlite-compatible `query`)
- * @param content { authors, blogPosts, projects, events, partners, serviceFaqs }
+ * @param content { authors, blogPosts, projects, events, partners, serviceFaqs, siteContent }
  * @param options { overwrite?: boolean }
  * @returns counts per table: { inserted, updated, skipped }
  */
@@ -32,16 +32,26 @@ export async function seedContent(client, content, { overwrite = false } = {}) {
 
   // Insert when missing; update when `overwrite`; otherwise leave alone.
   async function upsertBySlug(table, slug, columns, values) {
-    const found = await client.query(`SELECT id FROM ${table} WHERE slug = $1 AND deleted_at IS NULL`, [slug]);
+    const found = await client.query(
+      `SELECT id FROM ${table} WHERE slug = $1 AND deleted_at IS NULL`,
+      [slug],
+    );
     const count = tally(table);
     if (found.rows.length > 0) {
       if (!overwrite) return void count.skipped++;
-      const sets = columns.map((column, i) => `${column.name} = $${i + 2}${column.cast ?? ""}`).join(", ");
-      await client.query(`UPDATE ${table} SET ${sets}, updated_at = now() WHERE id = $1`, [found.rows[0].id, ...values]);
+      const sets = columns
+        .map((column, i) => `${column.name} = $${i + 2}${column.cast ?? ""}`)
+        .join(", ");
+      await client.query(`UPDATE ${table} SET ${sets}, updated_at = now() WHERE id = $1`, [
+        found.rows[0].id,
+        ...values,
+      ]);
       return void count.updated++;
     }
     const names = ["slug", ...columns.map((column) => column.name)].join(", ");
-    const params = ["$1", ...columns.map((column, i) => `$${i + 2}${column.cast ?? ""}`)].join(", ");
+    const params = ["$1", ...columns.map((column, i) => `$${i + 2}${column.cast ?? ""}`)].join(
+      ", ",
+    );
     await client.query(`INSERT INTO ${table} (${names}) VALUES (${params})`, [slug, ...values]);
     count.inserted++;
   }
@@ -56,7 +66,14 @@ export async function seedContent(client, content, { overwrite = false } = {}) {
            : "NOTHING"
        }
        RETURNING (xmax = 0) AS inserted`,
-      [author.id, author.kind, author.name, author.role ?? null, author.avatar ?? null, author.url ?? null],
+      [
+        author.id,
+        author.kind,
+        author.name,
+        author.role ?? null,
+        author.avatar ?? null,
+        author.url ?? null,
+      ],
     );
     const count = tally("authors");
     if (result.rows.length === 0) count.skipped++;
@@ -82,7 +99,20 @@ export async function seedContent(client, content, { overwrite = false } = {}) {
         { name: "status", cast: "::publish_status" },
         { name: "position" },
       ],
-      [post.authorId, post.title, post.excerpt, post.content, json(post.media), post.date, post.category, post.imageLight ?? null, post.imageDark ?? null, post.imageAlt ?? null, "published", position],
+      [
+        post.authorId,
+        post.title,
+        post.excerpt,
+        post.content,
+        json(post.media),
+        post.date,
+        post.category,
+        post.imageLight ?? null,
+        post.imageDark ?? null,
+        post.imageAlt ?? null,
+        "published",
+        position,
+      ],
     );
   }
 
@@ -110,7 +140,26 @@ export async function seedContent(client, content, { overwrite = false } = {}) {
         { name: "status", cast: "::publish_status" },
         { name: "position" },
       ],
-      [project.authorId, project.client, project.title, project.category, project.services, project.summary, project.description, project.problem ?? null, project.solution ?? null, project.recognition ?? null, project.imageLight ?? null, project.imageDark ?? null, project.imageAlt ?? null, project.imageFit ?? null, json(project.media), project.liveUrl ?? null, "published", position],
+      [
+        project.authorId,
+        project.client,
+        project.title,
+        project.category,
+        project.services,
+        project.summary,
+        project.description,
+        project.problem ?? null,
+        project.solution ?? null,
+        project.recognition ?? null,
+        project.imageLight ?? null,
+        project.imageDark ?? null,
+        project.imageAlt ?? null,
+        project.imageFit ?? null,
+        json(project.media),
+        project.liveUrl ?? null,
+        "published",
+        position,
+      ],
     );
   }
 
@@ -140,7 +189,28 @@ export async function seedContent(client, content, { overwrite = false } = {}) {
         { name: "status", cast: "::publish_status" },
         { name: "position" },
       ],
-      [event.authorId, event.title, event.type, event.tagline, event.summary, event.campaignUrl ?? null, event.startsAt ?? null, event.endsAt ?? null, event.closed ?? false, json(event.poster), event.about ?? [], event.prizesHeading ?? null, json(event.prizes), json(event.steps), json(event.facts), event.closedTitle ?? null, event.closedNote ?? null, json(event.promo), "published", position],
+      [
+        event.authorId,
+        event.title,
+        event.type,
+        event.tagline,
+        event.summary,
+        event.campaignUrl ?? null,
+        event.startsAt ?? null,
+        event.endsAt ?? null,
+        event.closed ?? false,
+        json(event.poster),
+        event.about ?? [],
+        event.prizesHeading ?? null,
+        json(event.prizes),
+        json(event.steps),
+        json(event.facts),
+        event.closedTitle ?? null,
+        event.closedNote ?? null,
+        json(event.promo),
+        "published",
+        position,
+      ],
     );
   }
 
@@ -159,25 +229,67 @@ export async function seedContent(client, content, { overwrite = false } = {}) {
         { name: "status", cast: "::publish_status" },
         { name: "position" },
       ],
-      [partner.name, partner.shortName, json(partner.logo), partner.roles ?? [], partner.featured ?? false, partner.description ?? null, json(partner.links), "published", position],
+      [
+        partner.name,
+        partner.shortName,
+        json(partner.logo),
+        partner.roles ?? [],
+        partner.featured ?? false,
+        partner.description ?? null,
+        json(partner.links),
+        "published",
+        position,
+      ],
     );
   }
 
   for (const [serviceSlug, items] of Object.entries(content.serviceFaqs)) {
     for (const [position, item] of items.entries()) {
-      const found = await client.query("SELECT id FROM service_faqs WHERE service_slug = $1 AND question = $2", [serviceSlug, item.question]);
+      const found = await client.query(
+        "SELECT id FROM service_faqs WHERE service_slug = $1 AND question = $2",
+        [serviceSlug, item.question],
+      );
       const count = tally("service_faqs");
       if (found.rows.length > 0) {
         if (!overwrite) {
           count.skipped++;
           continue;
         }
-        await client.query("UPDATE service_faqs SET answer = $2, position = $3, updated_at = now() WHERE id = $1", [found.rows[0].id, item.answer, position]);
+        await client.query(
+          "UPDATE service_faqs SET answer = $2, position = $3, updated_at = now() WHERE id = $1",
+          [found.rows[0].id, item.answer, position],
+        );
         count.updated++;
       } else {
-        await client.query("INSERT INTO service_faqs (service_slug, question, answer, position) VALUES ($1, $2, $3, $4)", [serviceSlug, item.question, item.answer, position]);
+        await client.query(
+          "INSERT INTO service_faqs (service_slug, question, answer, position) VALUES ($1, $2, $3, $4)",
+          [serviceSlug, item.question, item.answer, position],
+        );
         count.inserted++;
       }
+    }
+  }
+
+  // Site documents (settings, ...): one row per key.
+  for (const [key, data] of Object.entries(content.siteContent ?? {})) {
+    const found = await client.query("SELECT 1 FROM site_content WHERE key = $1", [key]);
+    const count = tally("site_content");
+    if (found.rows.length > 0) {
+      if (!overwrite) {
+        count.skipped++;
+        continue;
+      }
+      await client.query(
+        "UPDATE site_content SET data = $2::jsonb, updated_at = now() WHERE key = $1",
+        [key, JSON.stringify(data)],
+      );
+      count.updated++;
+    } else {
+      await client.query("INSERT INTO site_content (key, data) VALUES ($1, $2::jsonb)", [
+        key,
+        JSON.stringify(data),
+      ]);
+      count.inserted++;
     }
   }
 
@@ -205,18 +317,28 @@ async function main() {
     events: (await load("events.ts")).events,
     partners: (await load("partners.ts")).partners,
     serviceFaqs: (await load("service-faqs.ts")).serviceFaqs,
+    siteContent: { settings: (await load("site-settings.ts")).siteSettings },
   };
 
   const local = /@(localhost|127\.0\.0\.1)(:|\/)/.test(url);
-  const client = new pg.Client({ connectionString: url, ssl: local ? false : { rejectUnauthorized: false } });
+  const client = new pg.Client({
+    connectionString: url,
+    ssl: local ? false : { rejectUnauthorized: false },
+  });
   await client.connect();
   try {
     await client.query("BEGIN");
     const counts = await seedContent(client, content, { overwrite });
     await client.query("COMMIT");
-    console.log(overwrite ? "Reset content from the files:" : "Seeded content (existing rows were left alone):");
+    console.log(
+      overwrite
+        ? "Reset content from the files:"
+        : "Seeded content (existing rows were left alone):",
+    );
     for (const [table, count] of Object.entries(counts)) {
-      console.log(`  ${table.padEnd(20)} inserted ${count.inserted}, updated ${count.updated}, skipped ${count.skipped}`);
+      console.log(
+        `  ${table.padEnd(20)} inserted ${count.inserted}, updated ${count.updated}, skipped ${count.skipped}`,
+      );
     }
   } catch (error) {
     await client.query("ROLLBACK");

@@ -23,6 +23,10 @@ export interface AdminListRow {
   date?: string;
   /** Where it lives on the public site (only meaningful when published). */
   publicHref: string;
+  /** Cover, poster or logo, for the thumbnail in the list. */
+  image?: string;
+  /** Who it is credited to (not partners). */
+  author?: { name: string; avatar?: string };
 }
 
 export interface AdminPostDetail {
@@ -47,4 +51,8 @@ export interface AdminPostDetail {
 export interface AuthorOption {
   id: string;
   name: string;
+  /** Photo address, when the person has one (staff: their Google photo). */
+  avatar?: string;
+  /** A staff member (as opposed to the shared team account). */
+  staff?: boolean;
 }

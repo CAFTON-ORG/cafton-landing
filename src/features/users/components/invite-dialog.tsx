@@ -16,7 +16,13 @@ import {
 } from "@/components/dashboard/ui/dialog";
 import { Input } from "@/components/dashboard/ui/input";
 import { Label } from "@/components/dashboard/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/dashboard/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/dashboard/ui/select";
 import { inviteUser } from "../actions";
 import type { RoleOption } from "../types";
 
@@ -93,7 +99,9 @@ export function InviteDialog({ roles }: { roles: RoleOption[] }) {
             <Select value={roleId} onValueChange={(value) => setRoleId(String(value))}>
               <SelectTrigger id="invite-role" aria-invalid={!!errors.roleId} className="w-full">
                 <SelectValue placeholder="Choose a role">
-                  {(value: string) => roles.find((role) => role.id === value)?.name ?? "Choose a role"}
+                  {(value: string) =>
+                    roles.find((role) => role.id === value)?.name ?? "Choose a role"
+                  }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -108,7 +116,12 @@ export function InviteDialog({ roles }: { roles: RoleOption[] }) {
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={pending}>

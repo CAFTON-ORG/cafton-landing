@@ -36,7 +36,8 @@ export function checkRoleChange(input: {
   if (target && same(target.email, actor.email)) return "You can't change your own role.";
   if (target?.roleKey === "owner") {
     if (actor.roleKey !== "owner") return "Only an owner can change another owner's role.";
-    if (newRoleKey !== "owner" && ownerCount <= 1) return "There must always be at least one owner.";
+    if (newRoleKey !== "owner" && ownerCount <= 1)
+      return "There must always be at least one owner.";
   }
   return null;
 }

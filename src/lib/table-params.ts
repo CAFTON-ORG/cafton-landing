@@ -25,7 +25,10 @@ export type TableParamsConfig = {
 type SearchParamsLike = { get(name: string): string | null };
 
 /** Parse and sanitise untrusted URL params into a valid `TableParams`. */
-export function parseTableParams(searchParams: SearchParamsLike, config: TableParamsConfig): TableParams {
+export function parseTableParams(
+  searchParams: SearchParamsLike,
+  config: TableParamsConfig,
+): TableParams {
   const sort = searchParams.get("sort") ?? "";
   const dir = searchParams.get("dir");
   const page = Number.parseInt(searchParams.get("page") ?? "", 10);
@@ -68,7 +71,9 @@ export function hasActiveFilters(params: TableParams) {
 }
 
 /** Next.js hands pages `searchParams` as a plain record; the parser wants `.get()`. */
-export function searchParamsFromRecord(record: Record<string, string | string[] | undefined>): URLSearchParams {
+export function searchParamsFromRecord(
+  record: Record<string, string | string[] | undefined>,
+): URLSearchParams {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(record)) {
     if (typeof value === "string") search.set(key, value);

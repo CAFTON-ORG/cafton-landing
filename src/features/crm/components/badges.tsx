@@ -15,7 +15,8 @@ export function LeadStatusBadge({ status }: { status: LeadStatus }) {
 
 /** Open stages read as "in progress" (blue); closing stages as the outcome they are. */
 export function StageBadge({ deal }: { deal: Pick<DealView, "stageName" | "stageKind"> }) {
-  const tone: StatusTone = deal.stageKind === "won" ? "success" : deal.stageKind === "lost" ? "danger" : "info";
+  const tone: StatusTone =
+    deal.stageKind === "won" ? "success" : deal.stageKind === "lost" ? "danger" : "info";
   return <StatusBadge tone={tone}>{deal.stageName}</StatusBadge>;
 }
 
@@ -28,6 +29,12 @@ const URGENCY: Record<ReturnType<typeof taskUrgency>, { label: string; tone: Sta
 };
 
 export function UrgencyBadge({ dueAt, doneAt }: { dueAt?: string; doneAt?: string }) {
-  const { label, tone } = URGENCY[taskUrgency({ dueAt: dueAt ? new Date(dueAt) : null, doneAt: doneAt ? new Date(doneAt) : null })];
+  const { label, tone } =
+    URGENCY[
+      taskUrgency({
+        dueAt: dueAt ? new Date(dueAt) : null,
+        doneAt: doneAt ? new Date(doneAt) : null,
+      })
+    ];
   return <StatusBadge tone={tone}>{label}</StatusBadge>;
 }

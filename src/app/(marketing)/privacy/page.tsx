@@ -15,6 +15,8 @@ import { PolicySection } from "@/components/marketing/privacy/policy-section";
 import { PRIVACY_LAST_UPDATED, rights } from "@/features/cms/content/privacy";
 import { CookieSettingsButton } from "@/components/marketing/consent/cookie-settings-button";
 
+import { getSiteSettings } from "@/features/cms/repository/site";
+
 export const metadata: Metadata = pageMetadata({
   title: "Privacy Policy",
   description:
@@ -61,7 +63,8 @@ const TOC = [
   }
 ];
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const { email, city, country } = await getSiteSettings();
   return (
     <>
       <PageHero variant="compact">
@@ -90,16 +93,12 @@ export default function PrivacyPage() {
         <DocumentLayout toc={TOC} className="space-y-10">
           <PolicySection title="Who we are">
             <p>
-              This website is run by Cafton Software Development Services
-              (&ldquo;Cafton&rdquo;), based in Baguio City, Philippines. We are
-              the personal information controller for the information described
-              here, and we process it in line with the Data Privacy Act of 2012
-              (Republic Act No. 10173). You can reach us at{" "}
+              {`This website is run by Cafton Software Development Services (“Cafton”), based in ${city}, ${country}. We are the personal information controller for the information described here, and we process it in line with the Data Privacy Act of 2012 (Republic Act No. 10173). You can reach us at`}{" "}
               <a
-                href="mailto:contact@cafton.com"
+                href={`mailto:${email}`}
                 className="font-medium text-foreground underline underline-offset-4"
               >
-                contact@cafton.com
+                {email}
               </a>
               .
             </p>
@@ -222,10 +221,10 @@ export default function PrivacyPage() {
             <p>
               To use any of these, email{" "}
               <a
-                href="mailto:contact@cafton.com"
+                href={`mailto:${email}`}
                 className="font-medium text-foreground underline underline-offset-4"
               >
-                contact@cafton.com
+                {email}
               </a>
               . If you believe your data has been mishandled you may also
               complain to the{" "}

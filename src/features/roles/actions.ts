@@ -51,7 +51,9 @@ export async function saveRole(input: RoleInput): Promise<ActionResult<{ id: str
       await prisma.$transaction(async (tx) => {
         await tx.role.update({ where: { id }, data: { name, description: description || null } });
         await tx.rolePermission.deleteMany({ where: { roleId: id } });
-        await tx.rolePermission.createMany({ data: granted.map((permission) => ({ roleId: id, permission })) });
+        await tx.rolePermission.createMany({
+          data: granted.map((permission) => ({ roleId: id, permission })),
+        });
         await recordAudit(
           actor,
           {
@@ -108,14 +110,22 @@ export async function deleteRole(id: string): Promise<ActionResult> {
     });
     if (!role) throw new ActionError("Role not found.");
 
-    const blocked = checkDeletable({ isSystem: role.isSystem, people: role._count.profiles + role._count.invites });
+    const blocked = checkDeletable({
+      isSystem: role.isSystem,
+      people: role._count.profiles + role._count.invites,
+    });
     if (blocked) throw new ActionError(blocked, "rule");
 
     await prisma.$transaction(async (tx) => {
       await tx.role.delete({ where: { id } });
       await recordAudit(
         actor,
-        { action: "role.delete", entity: "role", entityId: id, summary: `Deleted the ${role.name} role` },
+        {
+          action: "role.delete",
+          entity: "role",
+          entityId: id,
+          summary: `Deleted the ${role.name} role`,
+        },
         tx,
       );
     });

@@ -20,8 +20,7 @@ export function useResolvedTheme(): "light" | "dark" {
   useEffect(() => {
     const root = document.documentElement;
 
-    const read = () =>
-      setResolved(root.classList.contains("dark") ? "dark" : "light");
+    const read = () => setResolved(root.classList.contains("dark") ? "dark" : "light");
 
     read();
 

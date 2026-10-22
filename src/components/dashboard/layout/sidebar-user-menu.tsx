@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ChevronRight, LogOut, Settings } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/dashboard/ui/avatar";
+import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/dashboard/ui/dropdown-menu";
-import { getInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { signOut } from "./sign-out";
 import { useCan, useStaff } from "./staff-context";
@@ -30,25 +29,23 @@ export function SidebarUserMenu({ collapsed }: { collapsed?: boolean }) {
           <button
             type="button"
             className={cn(
-              "hover:bg-accent/50 flex w-full items-center gap-2 rounded-md p-2 text-left transition-colors",
+              "hover:bg-sidebar-accent flex w-full items-center gap-2 rounded-md p-2 text-left transition-colors",
               collapsed && "justify-center",
             )}
           >
-            <Avatar className="size-8 shrink-0">
-              {staff.avatarUrl && (
-                <AvatarImage src={staff.avatarUrl} alt="" referrerPolicy="no-referrer" />
-              )}
-              <AvatarFallback className="text-foreground">
-                {getInitials(staff.name, staff.email)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              name={staff.name}
+              email={staff.email}
+              src={staff.avatarUrl}
+              className="shrink-0"
+            />
             {!collapsed && (
               <>
                 <div className="min-w-0 flex-1">
-                  <p className="text-muted-foreground truncate text-xs">{staff.roleName}</p>
+                  <p className="text-sidebar-foreground/70 truncate text-xs">{staff.roleName}</p>
                   <p className="truncate text-sm font-medium">{staff.name}</p>
                 </div>
-                <ChevronRight className="text-muted-foreground size-4 shrink-0" />
+                <ChevronRight className="text-sidebar-foreground/70 size-4 shrink-0" />
               </>
             )}
           </button>

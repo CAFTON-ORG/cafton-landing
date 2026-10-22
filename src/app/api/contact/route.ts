@@ -36,10 +36,7 @@ const requestSchema = z.object({
     // "//evil.com" is a protocol-relative URL: it starts with "/" but
     // resolves to another origin entirely. Backslashes get normalised to
     // slashes by some parsers, so they're out too.
-    .refine(
-      (value) => !value.startsWith("//") && !value.includes("\\"),
-      "Invalid page path",
-    ),
+    .refine((value) => !value.startsWith("//") && !value.includes("\\"), "Invalid page path"),
   turnstileToken: z.string().min(1).max(2_048),
 });
 

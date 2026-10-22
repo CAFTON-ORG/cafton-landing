@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
-import { SITE_DESCRIPTION } from "@/config/site";
+import { getSiteSettings } from "@/features/cms/repository/site";
 import { HomeHero } from "@/components/marketing/home/home-hero";
 import { ServicesOverview } from "@/components/marketing/home/services-overview";
 import { Differentiators } from "@/components/marketing/home/differentiators";
@@ -9,12 +9,14 @@ import { PartnersStrip } from "@/components/marketing/partners/partners-section"
 import { LatestWriting } from "@/components/marketing/home/latest-writing";
 import { ProjectCta } from "@/components/marketing/home/project-cta";
 
-export const metadata: Metadata = pageMetadata({
-  title: "CAFTON - Software Development in Baguio City, Philippines",
-  absoluteTitle: true,
-  description: SITE_DESCRIPTION,
-  path: "/",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  return pageMetadata({
+    title: "CAFTON - Software Development in Baguio City, Philippines",
+    absoluteTitle: true,
+    description: (await getSiteSettings()).description,
+    path: "/",
+  });
+}
 
 export default function LandingPage() {
   return (

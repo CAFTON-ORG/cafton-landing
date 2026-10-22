@@ -39,20 +39,20 @@ Without Supabase configured, `npm run dev` signs you in automatically as a previ
 
 ## Scripts
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` / `build` / `start` | Next.js |
-| `npm run lint` / `typecheck` / `test` | ESLint, `next typegen` + `tsc`, Vitest |
-| `npm run verify` | lint + typecheck + test + build (what CI runs) |
-| `npm run e2e` | Playwright against a production build (`npm run build` first) |
-| `npm run format` / `format:check` | Prettier |
-| `npm run db:generate` / `db:deploy` / `db:status` / `db:studio` | Prisma |
-| `npm run db:local` | throw-away local Postgres |
-| `npm run staff:invite -- <email> [role]` | invite a person from the command line (first owner) |
-| `npm run db:seed-content` | copy the site's bundled content into the database (adds what is missing; `-- --overwrite` resets) |
-| `npm run db:seed-demo` | sample CRM data in a LOCAL database (refuses anything else) |
-| `npm run design:review` | screenshots of every dashboard screen (light/dark, desktop/phone) plus axe accessibility and overflow checks |
-| `npm run snapshot:save` / `snapshot:check` | prove the public site's markup did not change |
+| Script                                                          | Purpose                                                                                                      |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `npm run dev` / `build` / `start`                               | Next.js                                                                                                      |
+| `npm run lint` / `typecheck` / `test`                           | ESLint, `next typegen` + `tsc`, Vitest                                                                       |
+| `npm run verify`                                                | lint + typecheck + test + build (what CI runs)                                                               |
+| `npm run e2e`                                                   | Playwright against a production build (`npm run build` first)                                                |
+| `npm run format` / `format:check`                               | Prettier                                                                                                     |
+| `npm run db:generate` / `db:deploy` / `db:status` / `db:studio` | Prisma                                                                                                       |
+| `npm run db:local`                                              | throw-away local Postgres                                                                                    |
+| `npm run staff:invite -- <email> [role]`                        | invite a person from the command line (first owner)                                                          |
+| `npm run db:seed-content`                                       | copy the site's bundled content into the database (adds what is missing; `-- --overwrite` resets)            |
+| `npm run db:seed-demo`                                          | sample CRM data in a LOCAL database (refuses anything else)                                                  |
+| `npm run design:review`                                         | screenshots of every dashboard screen (light/dark, desktop/phone) plus axe accessibility and overflow checks |
+| `npm run snapshot:save` / `snapshot:check`                      | prove the public site's markup did not change                                                                |
 
 ## Where things go
 

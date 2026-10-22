@@ -22,5 +22,4 @@ const initialState: ThemeProviderState = {
   setTheme: () => null,
 };
 
-export const ThemeProviderContext =
-  React.createContext<ThemeProviderState>(initialState);
+export const ThemeProviderContext = React.createContext<ThemeProviderState>(initialState);

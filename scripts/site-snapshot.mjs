@@ -35,19 +35,26 @@ function htmlFiles(dir) {
 }
 
 function normalise(html) {
-  return html
-    .replace(/<script\b[\s\S]*?<\/script>/g, "")
-    .replace(/<link\b[^>]*>/g, "")
-    // Next injects this size hint at a position that varies between builds.
-    .replace(/<meta name="next-size-adjust"[^>]*>/g, "")
-    .replace(/\/_next\/static\/[^"')\s]*/g, "")
-    .replace(/data-dpl-id="[^"]*"/g, "")
-    .replace(/class="([^"]*)"/g, (_, value) => `class="${value.split(/\s+/).sort().join(" ")}"`)
-    .replace(/radix-_R_[a-z0-9_]+_/gi, "radix-ID")
-    .replace(/></g, ">\n<");
+  return (
+    html
+      .replace(/<script\b[\s\S]*?<\/script>/g, "")
+      .replace(/<link\b[^>]*>/g, "")
+      // Next injects this size hint at a position that varies between builds.
+      .replace(/<meta name="next-size-adjust"[^>]*>/g, "")
+      .replace(/\/_next\/static\/[^"')\s]*/g, "")
+      .replace(/data-dpl-id="[^"]*"/g, "")
+      .replace(/class="([^"]*)"/g, (_, value) => `class="${value.split(/\s+/).sort().join(" ")}"`)
+      .replace(/radix-_R_[a-z0-9_]+_/gi, "radix-ID")
+      .replace(/></g, ">\n<")
+  );
 }
 
-const current = new Map(htmlFiles(APP).map((file) => [path.relative(APP, file), normalise(fs.readFileSync(file, "utf8"))]));
+const current = new Map(
+  htmlFiles(APP).map((file) => [
+    path.relative(APP, file),
+    normalise(fs.readFileSync(file, "utf8")),
+  ]),
+);
 
 if (mode === "save") {
   fs.rmSync(SNAP, { recursive: true, force: true });
@@ -64,7 +71,9 @@ if (!fs.existsSync(SNAP)) {
   process.exit(2);
 }
 
-const saved = new Map(htmlFiles(SNAP).map((file) => [path.relative(SNAP, file), fs.readFileSync(file, "utf8")]));
+const saved = new Map(
+  htmlFiles(SNAP).map((file) => [path.relative(SNAP, file), fs.readFileSync(file, "utf8")]),
+);
 let changed = 0;
 for (const rel of new Set([...saved.keys(), ...current.keys()])) {
   if (!saved.has(rel)) {
@@ -84,5 +93,9 @@ for (const rel of new Set([...saved.keys(), ...current.keys()])) {
     changed++;
   }
 }
-console.log(changed === 0 ? `All ${current.size} pages match "${name}".` : `${changed} page(s) differ from "${name}".`);
+console.log(
+  changed === 0
+    ? `All ${current.size} pages match "${name}".`
+    : `${changed} page(s) differ from "${name}".`,
+);
 process.exit(changed === 0 ? 0 : 1);

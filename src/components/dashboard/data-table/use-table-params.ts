@@ -40,7 +40,8 @@ export function useTableParams(config: TableParamsConfig) {
   return {
     params,
     setSearch: (q: string) => update({ q }, { resetPage: true }),
-    setFilter: (id: string, value: string) => update({ filters: { [id]: value } }, { resetPage: true }),
+    setFilter: (id: string, value: string) =>
+      update({ filters: { [id]: value } }, { resetPage: true }),
     setSort: (sort: string, dir: SortDirection) => update({ sort, dir }, { resetPage: true }),
     setPage: (page: number) => update({ page }),
     setPageSize: (pageSize: number) => update({ pageSize }, { resetPage: true }),

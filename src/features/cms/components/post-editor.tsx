@@ -16,7 +16,8 @@ import { savePost } from "../admin/actions";
 import type { AdminPostDetail, AuthorOption } from "../admin/types";
 import { checkPublishPost, paragraphsFromText, slugify } from "../rules";
 import { AuthorField } from "./author-field";
-import { ImageField, PublishPanel, useContentEditor } from "./editor-kit";
+import { PublishPanel, useContentEditor } from "./editor-kit";
+import { CoverImageFields } from "./cover-image-fields";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -139,43 +140,20 @@ export function PostEditor({
         <Card>
           <CardHeader>
             <CardTitle>Cover image</CardTitle>
-            <CardDescription>
-              Optional. Without one the post shows the Cafton cover art.
-            </CardDescription>
+            <CardDescription>Optional.</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ImageField
-                id="post-imageLight"
-                label="Light theme image"
-                value={values.imageLight}
-                onChange={(value) => set("imageLight", value)}
-                onPicked={(item) => !values.imageAlt && item.alt && set("imageAlt", item.alt)}
-                error={errors.imageLight}
-                placeholder="/images/cover-light.jpg"
-              />
-              <ImageField
-                id="post-imageDark"
-                label="Dark theme image"
-                value={values.imageDark}
-                onChange={(value) => set("imageDark", value)}
-                error={errors.imageDark}
-                placeholder="/images/cover-dark.jpg"
-              />
-            </div>
-            <Field
-              id="post-imageAlt"
-              label="Describe the image"
-              error={errors.imageAlt}
-              hint="Required to publish when there is an image: screen readers read it."
-            >
-              <Input
-                id="post-imageAlt"
-                value={values.imageAlt}
-                onChange={(event) => set("imageAlt", event.target.value)}
-                aria-invalid={!!errors.imageAlt}
-              />
-            </Field>
+          <CardContent>
+            <CoverImageFields
+              idPrefix="post"
+              noun="post"
+              light={values.imageLight}
+              dark={values.imageDark}
+              alt={values.imageAlt}
+              onLight={(value) => set("imageLight", value)}
+              onDark={(value) => set("imageDark", value)}
+              onAlt={(value) => set("imageAlt", value)}
+              errors={errors}
+            />
           </CardContent>
         </Card>
       </div>

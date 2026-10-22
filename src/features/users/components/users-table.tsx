@@ -15,7 +15,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/dashboard/ui/a
 import { Badge } from "@/components/dashboard/ui/badge";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { Button } from "@/components/dashboard/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/dashboard/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/dashboard/ui/select";
 import { formatDate, getInitials } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
 import { hasActiveFilters } from "@/lib/table-params";
@@ -60,7 +66,9 @@ export function UsersTable({
     start(async () => {
       const result = await removeUser(user.email);
       if (result.ok) {
-        toast.success(user.status === "Invited" ? "Invitation cancelled." : `${user.email} was removed.`);
+        toast.success(
+          user.status === "Invited" ? "Invitation cancelled." : `${user.email} was removed.`,
+        );
         setRemoving(null);
       } else {
         toast.error(result.error);
@@ -76,12 +84,18 @@ export function UsersTable({
       cell: (user) => (
         <div className="flex items-center gap-3">
           <Avatar className="size-8">
-            {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" referrerPolicy="no-referrer" />}
+            {user.avatarUrl && (
+              <AvatarImage src={user.avatarUrl} alt="" referrerPolicy="no-referrer" />
+            )}
             <AvatarFallback>{getInitials(user.name, user.email)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate font-medium">{user.status === "Invited" ? user.email : user.name}</p>
-            {user.status === "Active" && <p className="text-muted-foreground truncate text-xs">{user.email}</p>}
+            <p className="truncate font-medium">
+              {user.status === "Invited" ? user.email : user.name}
+            </p>
+            {user.status === "Active" && (
+              <p className="text-muted-foreground truncate text-xs">{user.email}</p>
+            )}
           </div>
         </div>
       ),
@@ -101,9 +115,15 @@ export function UsersTable({
           }) === "You can't change your own role.";
         if (blocked) return <Badge variant="secondary">{user.roleName}</Badge>;
         return (
-          <Select value={user.roleId} onValueChange={(value) => changeRole(user, String(value))} disabled={pending}>
+          <Select
+            value={user.roleId}
+            onValueChange={(value) => changeRole(user, String(value))}
+            disabled={pending}
+          >
             <SelectTrigger size="sm" aria-label={`Role for ${user.email}`} className="w-36">
-              <SelectValue>{(value: string) => roles.find((role) => role.id === value)?.name ?? user.roleName}</SelectValue>
+              <SelectValue>
+                {(value: string) => roles.find((role) => role.id === value)?.name ?? user.roleName}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {roles.map((role) => (
@@ -121,7 +141,11 @@ export function UsersTable({
       header: "Status",
       sortable: true,
       hideBelow: "sm",
-      cell: (user) => <StatusBadge tone={user.status === "Active" ? "success" : "warning"}>{user.status}</StatusBadge>,
+      cell: (user) => (
+        <StatusBadge tone={user.status === "Active" ? "success" : "warning"}>
+          {user.status}
+        </StatusBadge>
+      ),
     },
     {
       id: "joined",
@@ -198,12 +222,26 @@ export function UsersTable({
           <EmptyState
             icon={Users}
             title={filtered ? "No one matches those filters" : "No one has access yet"}
-            description={filtered ? "Try a different search or clear the filters." : "Invite your first teammate to get started."}
-            action={filtered ? <Button variant="outline" onClick={table.clear}>Clear filters</Button> : undefined}
+            description={
+              filtered
+                ? "Try a different search or clear the filters."
+                : "Invite your first teammate to get started."
+            }
+            action={
+              filtered ? (
+                <Button variant="outline" onClick={table.clear}>
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
           />
         }
       />
-      <DataTablePagination page={page} onPageChange={table.setPage} onPageSizeChange={table.setPageSize} />
+      <DataTablePagination
+        page={page}
+        onPageChange={table.setPage}
+        onPageSizeChange={table.setPageSize}
+      />
 
       <ConfirmDialog
         open={!!removing}

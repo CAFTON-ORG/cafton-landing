@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { hasActiveFilters, parseTableParams, toSearchString, type TableParamsConfig } from "./table-params";
+import {
+  hasActiveFilters,
+  parseTableParams,
+  toSearchString,
+  type TableParamsConfig,
+} from "./table-params";
 
 const config: TableParamsConfig = {
   filters: { status: ["active", "paused"] },
@@ -33,7 +38,13 @@ describe("parseTableParams", () => {
 
   it("ignores anything it does not recognise", () => {
     const params = parse("status=hacked&sort=password&dir=sideways&page=-4&pageSize=9999");
-    expect(params).toMatchObject({ filters: { status: "" }, sort: "name", dir: "asc", page: 1, pageSize: 10 });
+    expect(params).toMatchObject({
+      filters: { status: "" },
+      sort: "name",
+      dir: "asc",
+      page: 1,
+      pageSize: 10,
+    });
   });
 
   it("caps the search length", () => {

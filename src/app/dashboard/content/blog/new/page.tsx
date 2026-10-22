@@ -13,7 +13,10 @@ export default async function NewPostPage() {
   const staff = await requirePageAccess("content:create");
   if (!staff) return <AccessDenied area="creating content" />;
 
-  const [authors, categories] = await Promise.all([listAuthorOptions(), listPostCategories()]);
+  const [authors, categories] = await Promise.all([
+    listAuthorOptions(staff.id),
+    listPostCategories(),
+  ]);
 
   return (
     <>

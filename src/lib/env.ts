@@ -38,7 +38,9 @@ const parsed = schema.safeParse(
 );
 
 if (!parsed.success) {
-  throw new Error(`Invalid environment: ${parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ")}`);
+  throw new Error(
+    `Invalid environment: ${parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ")}`,
+  );
 }
 
 export const env = parsed.data;

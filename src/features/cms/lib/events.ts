@@ -9,10 +9,7 @@ export function getEventFacts(event: CaftonEvent): [string, string][] {
   ];
 }
 
-export function getEventStatus(
-  event: CaftonEvent,
-  now: Date = new Date(),
-): EventStatus {
+export function getEventStatus(event: CaftonEvent, now: Date = new Date()): EventStatus {
   if (event.closed) return "closed";
   if (event.endsAt && now > new Date(event.endsAt)) return "closed";
   if (event.startsAt && now < new Date(event.startsAt)) return "upcoming";

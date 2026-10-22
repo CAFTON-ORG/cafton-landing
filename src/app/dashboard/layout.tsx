@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { AppBar } from "@/components/dashboard/layout/app-bar";
+import { MainScroll } from "@/components/dashboard/layout/main-scroll";
 import { Sidebar } from "@/components/dashboard/layout/sidebar";
 import { SidebarProvider } from "@/components/dashboard/layout/sidebar-context";
 import { StaffProvider } from "@/components/dashboard/layout/staff-context";
@@ -30,17 +31,11 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         }}
       >
         <SidebarProvider>
-          <div className="flex min-h-svh">
+          <div className="relative flex h-dvh overflow-hidden">
             <Sidebar />
-            <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
               <AppBar />
-              <main
-                id="main"
-                tabIndex={-1}
-                className="mx-auto w-full max-w-7xl flex-1 p-4 outline-none sm:p-6"
-              >
-                {children}
-              </main>
+              <MainScroll>{children}</MainScroll>
             </div>
           </div>
         </SidebarProvider>

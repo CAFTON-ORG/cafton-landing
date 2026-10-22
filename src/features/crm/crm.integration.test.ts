@@ -81,13 +81,16 @@ beforeAll(async () => {
   db = (await createDatabase()) as PGlite;
   server = new PGLiteSocketServer({ db, port: 0, host: "127.0.0.1", maxConnections: 4 });
   await server.start();
-  const port = (server as unknown as { server: { address(): { port: number } } }).server.address().port;
+  const port = (server as unknown as { server: { address(): { port: number } } }).server.address()
+    .port;
 
   process.env.DATABASE_URL = `postgresql://postgres:postgres@127.0.0.1:${port}/postgres`;
   process.env.DATABASE_POOL_MAX = "1";
 
   // The OWNER must exist as a profile for foreign keys used by `ownerId`.
-  await db.exec(`INSERT INTO auth.users (id, email) VALUES ('${OWNER.id}', '${OWNER.email}')`).catch(() => undefined);
+  await db
+    .exec(`INSERT INTO auth.users (id, email) VALUES ('${OWNER.id}', '${OWNER.email}')`)
+    .catch(() => undefined);
   await db.exec(
     `INSERT INTO profiles (id, email, full_name, role_id)
      SELECT '${OWNER.id}', '${OWNER.email}', '${OWNER.name}', id FROM roles WHERE key = 'owner'
@@ -142,13 +145,18 @@ describe("website enquiry to won deal", () => {
     );
     expect(tasks).toHaveLength(1);
     expect(tasks[0].title).toContain("Reply to Ada Lovelace");
-    const { rows: activity } = await db.query("SELECT 1 FROM activities WHERE lead_id = $1", [leadId]);
+    const { rows: activity } = await db.query("SELECT 1 FROM activities WHERE lead_id = $1", [
+      leadId,
+    ]);
     expect(activity).toHaveLength(1);
   });
 
   it("qualifies, refuses to qualify twice, and refuses to disqualify without a reason", async () => {
     expect(await m.leads.qualifyLead(leadId)).toMatchObject({ ok: true });
-    expect(await m.leads.qualifyLead(leadId)).toMatchObject({ ok: false, error: expect.stringMatching(/already/) });
+    expect(await m.leads.qualifyLead(leadId)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/already/),
+    });
     expect(await m.leads.disqualifyLead(leadId, "  ")).toMatchObject({ ok: false });
   });
 
@@ -168,21 +176,31 @@ describe("website enquiry to won deal", () => {
 
     const detail = await m.leadRepo.getLead(leadId);
     expect(detail?.lead).toMatchObject({ status: "converted", dealId });
-    expect(await m.leads.convertLead(leadId)).toMatchObject({ ok: false, error: expect.stringMatching(/already/) });
+    expect(await m.leads.convertLead(leadId)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/already/),
+    });
   });
 
   it("reuses the existing contact when the same person writes in again", async () => {
-    await m.intake.createLeadFromWebsite(form({ email: "ADA@example.com", businessName: "" }) as never, {
-      leadSource: "Homepage",
-      pageName: "Home",
-      pagePath: "/",
-    });
-    const second = (await m.leadRepo.listLeads(tableParams({ q: "ada" }))).items.find((l) => l.status === "new");
+    await m.intake.createLeadFromWebsite(
+      form({ email: "ADA@example.com", businessName: "" }) as never,
+      {
+        leadSource: "Homepage",
+        pageName: "Home",
+        pagePath: "/",
+      },
+    );
+    const second = (await m.leadRepo.listLeads(tableParams({ q: "ada" }))).items.find(
+      (l) => l.status === "new",
+    );
     expect(second?.contactId).toBeTruthy(); // linked on arrival
 
     const converted = await m.leads.convertLead(second!.id);
     expect(converted.ok).toBe(true);
-    const { rows } = await db.query("SELECT 1 FROM contacts WHERE lower(email) = 'ada@example.com' AND deleted_at IS NULL");
+    const { rows } = await db.query(
+      "SELECT 1 FROM contacts WHERE lower(email) = 'ada@example.com' AND deleted_at IS NULL",
+    );
     expect(rows).toHaveLength(1);
   });
 
@@ -191,7 +209,10 @@ describe("website enquiry to won deal", () => {
     const proposal = stages.find((s) => s.key === "proposal")!;
     const won = stages.find((s) => s.key === "won")!;
     expect(await m.deals.moveDeal(dealId, proposal.id)).toMatchObject({ ok: true });
-    expect(await m.deals.moveDeal(dealId, won.id)).toMatchObject({ ok: false, error: expect.stringMatching(/Mark as won/) });
+    expect(await m.deals.moveDeal(dealId, won.id)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/Mark as won/),
+    });
   });
 
   it("wins the deal, locks its value, and blocks tasks, deletion and moves on the closed deal", async () => {
@@ -206,23 +227,35 @@ describe("website enquiry to won deal", () => {
       amount: "999",
     });
     expect(edit).toMatchObject({ ok: false, error: expect.stringMatching(/locked/) });
-    expect(await m.deals.deleteDeal(dealId)).toMatchObject({ ok: false, error: expect.stringMatching(/can't be deleted/) });
-    expect(
-      await m.activity.createTask({ title: "Too late", subject: { dealId } }),
-    ).toMatchObject({ ok: false, error: expect.stringMatching(/closed/) });
+    expect(await m.deals.deleteDeal(dealId)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/can't be deleted/),
+    });
+    expect(await m.activity.createTask({ title: "Too late", subject: { dealId } })).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/closed/),
+    });
   });
 
   it("reopens a won deal, then loses it with a reason, completing its open tasks", async () => {
     expect(await m.deals.reopenDeal(dealId)).toMatchObject({ ok: true });
     expect((await m.dealRepo.getDeal(dealId))?.stageKey).toBe("negotiation");
 
-    expect(await m.activity.createTask({ title: "Chase signature", subject: { dealId } })).toMatchObject({ ok: true });
+    expect(
+      await m.activity.createTask({ title: "Chase signature", subject: { dealId } }),
+    ).toMatchObject({ ok: true });
     expect(await m.deals.loseDeal(dealId, "")).toMatchObject({ ok: false });
     expect(await m.deals.loseDeal(dealId, "Went with a competitor")).toMatchObject({ ok: true });
 
-    const { rows } = await db.query<{ done_at: string | null }>("SELECT done_at FROM tasks WHERE deal_id = $1", [dealId]);
+    const { rows } = await db.query<{ done_at: string | null }>(
+      "SELECT done_at FROM tasks WHERE deal_id = $1",
+      [dealId],
+    );
     expect(rows.every((row) => row.done_at !== null)).toBe(true);
-    expect(await m.deals.winDeal(dealId, "1")).toMatchObject({ ok: false, error: expect.stringMatching(/Reopen/) });
+    expect(await m.deals.winDeal(dealId, "1")).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/Reopen/),
+    });
   });
 
   it("keeps a timeline of every stage change and writes an audit row for each action", async () => {
@@ -239,7 +272,15 @@ describe("website enquiry to won deal", () => {
 
     const { rows: audit } = await db.query<{ action: string }>("SELECT action FROM audit_log");
     const actions = new Set(audit.map((row) => row.action));
-    for (const expected of ["lead.create", "lead.qualify", "lead.convert", "deal.move", "deal.win", "deal.reopen", "deal.lose"]) {
+    for (const expected of [
+      "lead.create",
+      "lead.qualify",
+      "lead.convert",
+      "deal.move",
+      "deal.win",
+      "deal.reopen",
+      "deal.lose",
+    ]) {
       expect(actions).toContain(expected);
     }
   });
@@ -252,10 +293,18 @@ describe("contacts and organizations", () => {
       lastName: "Clone",
       email: "ada@example.com",
     });
-    expect(dup).toMatchObject({ ok: false, fieldErrors: { email: expect.stringMatching(/already exists/) } });
+    expect(dup).toMatchObject({
+      ok: false,
+      fieldErrors: { email: expect.stringMatching(/already exists/) },
+    });
 
-    const { rows } = await db.query<{ id: string }>("SELECT id FROM contacts WHERE lower(email) = 'ada@example.com'");
-    expect(await m.contacts.deleteContact(rows[0].id)).toMatchObject({ ok: false, error: expect.stringMatching(/deal/) });
+    const { rows } = await db.query<{ id: string }>(
+      "SELECT id FROM contacts WHERE lower(email) = 'ada@example.com'",
+    );
+    expect(await m.contacts.deleteContact(rows[0].id)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/deal/),
+    });
   });
 
   it("reports pipeline totals without counting closed deals", async () => {

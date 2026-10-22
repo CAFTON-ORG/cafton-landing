@@ -16,13 +16,13 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "bg-background sticky top-0 hidden h-screen shrink-0 flex-col border-r transition-[width] duration-200 motion-reduce:transition-none md:flex",
+        "bg-sidebar text-sidebar-foreground border-sidebar-border hidden h-full shrink-0 flex-col border-r transition-[width] duration-200 motion-reduce:transition-none md:flex",
         collapsed ? "w-[72px]" : "w-64",
       )}
     >
       <div
         className={cn(
-          "flex h-14 shrink-0 items-center border-b px-4",
+          "border-sidebar-border flex h-14 shrink-0 items-center border-b px-4",
           collapsed && "justify-center px-0",
         )}
       >
@@ -34,11 +34,11 @@ export function Sidebar() {
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 [scrollbar-width:thin] overflow-y-auto p-3">
         <NavLinks collapsed={collapsed} />
       </div>
 
-      <div className="border-t p-3">
+      <div className="border-sidebar-border border-t p-3">
         <SidebarUserMenu collapsed={collapsed} />
       </div>
     </aside>

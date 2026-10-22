@@ -48,12 +48,12 @@ src/
 
 ## Enforced by ESLint (`no-restricted-imports`)
 
-| Code in | May not import |
-| --- | --- |
-| everything except dashboard UI | `components/dashboard` |
-| `components/dashboard`, `app/dashboard`, `features/*/components` | `components/ui`, `components/marketing` |
-| `components/shared` | `components/dashboard`, `components/ui`, `components/marketing` |
-| any `components/**` | `lib/db`, `generated/*` |
+| Code in                                                          | May not import                                                  |
+| ---------------------------------------------------------------- | --------------------------------------------------------------- |
+| everything except dashboard UI                                   | `components/dashboard`                                          |
+| `components/dashboard`, `app/dashboard`, `features/*/components` | `components/ui`, `components/marketing`                         |
+| `components/shared`                                              | `components/dashboard`, `components/ui`, `components/marketing` |
+| any `components/**`                                              | `lib/db`, `generated/*`                                         |
 
 ## Deliberately not adopted from the template
 

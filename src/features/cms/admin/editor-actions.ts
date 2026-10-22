@@ -2,6 +2,7 @@
 
 import { servicePillars } from "@/config/services";
 import { Prisma } from "@/generated/prisma/client";
+import { ensureAuthor } from "./authors";
 import {
   ActionError,
   NOT_CONFIGURED,
@@ -51,8 +52,6 @@ async function guard(permission: Permission) {
   return staff;
 }
 
-type Tx = Prisma.TransactionClient;
-
 function statusFor(intent: PublishIntent, existing: PublishStatus | undefined): PublishStatus {
   return intent === "publish"
     ? "published"
@@ -69,14 +68,6 @@ const verbFor = (existed: boolean, intent: PublishIntent) =>
       : intent === "unpublish"
         ? "Unpublished"
         : "Updated";
-
-async function requireAuthor(tx: Tx, authorId: string) {
-  const author = await tx.author.findUnique({ where: { id: authorId }, select: { id: true } });
-  if (!author)
-    throw new ActionError("Choose who made it.", "validation", {
-      authorId: "That author no longer exists.",
-    });
-}
 
 function slugTaken(message = "Another item already uses this web address.") {
   return new ActionError(message, "rule", { slug: message });
@@ -111,7 +102,7 @@ export async function saveProject(
         ? await tx.portfolioProject.findFirst({ where: { id: data.id, deletedAt: null } })
         : null;
       if (data.id && !existing) throw new ActionError("That project no longer exists.");
-      await requireAuthor(tx, data.authorId);
+      await ensureAuthor(tx, data.authorId);
       if (
         await tx.portfolioProject.findFirst({
           where: {
@@ -232,7 +223,7 @@ export async function saveEvent(
         ? await tx.event.findFirst({ where: { id: data.id, deletedAt: null } })
         : null;
       if (data.id && !existing) throw new ActionError("That event no longer exists.");
-      await requireAuthor(tx, data.authorId);
+      await ensureAuthor(tx, data.authorId);
       if (
         await tx.event.findFirst({
           where: {

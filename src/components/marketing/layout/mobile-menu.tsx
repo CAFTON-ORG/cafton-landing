@@ -10,7 +10,8 @@ import { ModeToggle } from "@/components/marketing/layout/mode-toggle";
 import { DotPattern } from "@/components/marketing/decor/dot-pattern";
 import { Logo } from "@/components/shared/logo";
 import { navigationItems } from "@/config/navigation";
-import { socialLinks } from "@/components/marketing/layout/social-links";
+import { resolveSocialLinks } from "@/components/marketing/layout/social-links";
+import { useSiteSettings } from "@/providers/site-settings";
 import { servicePillars } from "@/config/services";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +38,7 @@ const ENTER =
  *   re-composited over a moving page on every frame.
  */
 export function MobileMenu() {
+  const socialLinks = resolveSocialLinks(useSiteSettings().socials);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const close = () => setOpen(false);

@@ -1,7 +1,9 @@
-import { socialLinks } from "@/components/marketing/layout/social-links";
+import { resolveSocialLinks } from "@/components/marketing/layout/social-links";
+import { getSiteSettings } from "@/features/cms/repository/site";
 
 /** A row of the social channels, for the bottom of an event page. */
-export function FollowAlong() {
+export async function FollowAlong() {
+  const socialLinks = resolveSocialLinks((await getSiteSettings()).socials);
   return (
     <div className="mt-12 flex flex-col items-center gap-4 border-t pt-8">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">

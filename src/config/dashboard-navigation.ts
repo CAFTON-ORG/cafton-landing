@@ -15,6 +15,7 @@ import {
   ListChecks,
   Settings,
   ShieldCheck,
+  SlidersHorizontal,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -89,6 +90,13 @@ export const navGroups: NavGroup[] = [
         icon: MessageCircleQuestion,
         permission: "content:view",
         keywords: ["faq", "questions", "answers", "services"],
+      },
+      {
+        href: "/dashboard/content/site",
+        label: "Website settings",
+        icon: SlidersHorizontal,
+        permission: "settings:view",
+        keywords: ["contact", "email", "social", "footer", "company"],
       },
       {
         href: "/dashboard/content/media",

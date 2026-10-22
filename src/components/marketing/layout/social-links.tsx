@@ -1,4 +1,5 @@
-import type { SVGProps } from "react";
+import type { ReactNode, SVGProps } from "react";
+import type { SocialLink, SocialPlatform } from "@/features/cms/types";
 import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 
 /** No official TikTok mark ships in lucide-react's icon set -- hand-drawn to match its outline weight/style rather than dropping in a mismatched solid glyph. */
@@ -30,35 +31,20 @@ function XIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-export const socialLinks = [
-  {
-    href: "https://www.facebook.com/profile.php?id=61593222069389",
-    label: "Facebook",
-    icon: <Facebook className="size-4" />,
-  },
-  {
-    href: "https://www.instagram.com/cafton.official",
-    label: "Instagram",
-    icon: <Instagram className="size-4" />,
-  },
-  {
-    href: "https://www.linkedin.com/company/cafton",
-    label: "LinkedIn",
-    icon: <Linkedin className="size-4" />,
-  },
-  {
-    href: "https://www.tiktok.com/@cafton.official",
-    label: "TikTok",
-    icon: <TikTokIcon className="size-4" />,
-  },
-  {
-    href: "https://x.com/cafton_official",
-    label: "X (Twitter)",
-    icon: <XIcon className="size-4" />,
-  },
-  {
-    href: "https://www.youtube.com/@caftonofficial",
-    label: "YouTube",
-    icon: <Youtube className="size-4" />,
-  },
-];
+const SOCIAL: Record<SocialPlatform, { label: string; icon: ReactNode }> = {
+  facebook: { label: "Facebook", icon: <Facebook className="size-4" /> },
+  instagram: { label: "Instagram", icon: <Instagram className="size-4" /> },
+  linkedin: { label: "LinkedIn", icon: <Linkedin className="size-4" /> },
+  tiktok: { label: "TikTok", icon: <TikTokIcon className="size-4" /> },
+  x: { label: "X (Twitter)", icon: <XIcon className="size-4" /> },
+  youtube: { label: "YouTube", icon: <Youtube className="size-4" /> },
+};
+
+/** The links the site shows, in the order set in the dashboard. Icons and labels live here. */
+export function resolveSocialLinks(socials: SocialLink[]) {
+  return socials.map((link) => ({
+    href: link.url,
+    label: SOCIAL[link.platform].label,
+    icon: SOCIAL[link.platform].icon,
+  }));
+}

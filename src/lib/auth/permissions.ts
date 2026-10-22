@@ -112,7 +112,13 @@ export function isPermission(value: string): value is Permission {
 export type SystemRoleKey = "owner" | "admin" | "editor" | "sales" | "viewer";
 
 /** The order built-in roles are listed in, most powerful first. Custom roles follow, A to Z. */
-export const SYSTEM_ROLE_ORDER: readonly SystemRoleKey[] = ["owner", "admin", "editor", "sales", "viewer"];
+export const SYSTEM_ROLE_ORDER: readonly SystemRoleKey[] = [
+  "owner",
+  "admin",
+  "editor",
+  "sales",
+  "viewer",
+];
 
 /**
  * Built-in roles live in code. Owner can do everything. Admin can do
@@ -165,7 +171,8 @@ export const SYSTEM_ROLE_META: Record<SystemRoleKey, { name: string; description
   },
   editor: {
     name: "Content Editor",
-    description: "Writes and publishes the website's blog, portfolio, events and partners. Cannot delete content.",
+    description:
+      "Writes and publishes the website's blog, portfolio, events and partners. Cannot delete content.",
   },
   sales: {
     name: "Sales",

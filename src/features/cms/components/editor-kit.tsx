@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowDown, ArrowUp, ExternalLink, Eye, EyeOff, Plus, Save, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ExternalLink, Eye, EyeOff, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useCan } from "@/components/dashboard/layout/staff-context";
-import { Field } from "@/components/dashboard/shared/field";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { Button } from "@/components/dashboard/ui/button";
 import {
@@ -17,9 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/dashboard/ui/card";
-import { Input } from "@/components/dashboard/ui/input";
-import { MediaPicker } from "@/features/media/components/media-picker";
-import type { MediaItem } from "@/features/media/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
 import { useServerAction } from "@/hooks/use-server-action";
 import type { ActionResult } from "@/lib/actions";
 import type { PublishIntent } from "../admin/schema";
@@ -198,68 +195,71 @@ export function PublishPanel({
   );
 }
 
-/* --------------------------------------------------------------- image field */
+/* -------------------------------------------------------------------- tabs */
+
+export interface EditorTabSpec {
+  value: string;
+  label: string;
+  /** Field names (prefixes) that live on this tab, so errors can point at it. */
+  fields: string[];
+}
 
 /**
- * An image address with a thumbnail, a button that opens the image library, and a clear
- * button. The address can also be typed (a path under /public or an https URL). When a
- * library image is chosen, `onPicked` also receives its size and default description.
+ * Splits a long editor into sections instead of one tall column of cards. A tab with a
+ * problem gets a marker, and the first tab with a problem opens itself after a failed save.
  */
-export function ImageField({
-  id,
-  label,
-  value,
-  onChange,
-  onPicked,
-  error,
-  hint,
-  placeholder = "/images/example.jpg",
+export function EditorTabs({
+  tabs,
+  errors,
+  children,
 }: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  onPicked?: (item: MediaItem) => void;
-  error?: string;
-  hint?: string;
-  placeholder?: string;
+  tabs: EditorTabSpec[];
+  errors: Record<string, string>;
+  children: ReactNode;
 }) {
+  const [active, setActive] = useState(tabs[0].value);
+  const hasError = (tab: EditorTabSpec) =>
+    Object.keys(errors).some((key) => tab.fields.some((field) => key.startsWith(field)));
+  const firstBad = tabs.find(hasError)?.value;
+
+  // A new set of errors opens the first tab that has one (not when the person just switches tabs).
+  const [seen, setSeen] = useState(errors);
+  if (errors !== seen) {
+    setSeen(errors);
+    if (firstBad) setActive(firstBad);
+  }
+
   return (
-    <Field id={id} label={label} error={error} hint={hint}>
-      <div className="flex items-start gap-3">
-        {value && (
-          // eslint-disable-next-line @next/next/no-img-element -- editor thumbnail of an arbitrary address
-          <img
-            src={value}
-            alt=""
-            className="bg-muted size-16 shrink-0 rounded-lg border object-contain"
-          />
-        )}
-        <div className="grid min-w-0 flex-1 gap-2">
-          <Input
-            id={id}
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
-            aria-invalid={!!error}
-            placeholder={placeholder}
-            autoComplete="off"
-          />
-          <div className="flex flex-wrap gap-2">
-            <MediaPicker
-              onPick={(item) => {
-                onChange(item.url);
-                onPicked?.(item);
-              }}
-            />
-            {value && (
-              <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>
-                <X aria-hidden="true" /> Remove
-              </Button>
-            )}
-          </div>
-        </div>
+    <Tabs
+      value={active}
+      onValueChange={(value) => setActive(String(value))}
+      className="min-w-0 content-start gap-4"
+    >
+      <div className="max-w-full overflow-x-auto">
+        <TabsList variant="line" className="h-9! border-b-0">
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value} className="px-3">
+              {tab.label}
+              {hasError(tab) && (
+                <>
+                  <span className="bg-destructive size-1.5 rounded-full" aria-hidden="true" />
+                  <span className="sr-only">has problems</span>
+                </>
+              )}
+            </TabsTrigger>
+          ))}
+        </TabsList>
       </div>
-    </Field>
+      {children}
+    </Tabs>
+  );
+}
+
+export function EditorTab({ value, children }: { value: string; children: ReactNode }) {
+  return (
+    <TabsContent value={value} className="grid content-start gap-4">
+      {children}
+    </TabsContent>
   );
 }
 

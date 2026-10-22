@@ -4,7 +4,7 @@ export const authors: Author[] = [
   {
     id: "cafton",
     kind: "organization",
-    name: "Cafton Team",
+    name: "Cafton",
     role: "Software development",
   },
 ];

@@ -19,7 +19,7 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const event = await getEventForEdit(id);
   if (!event) notFound();
-  const authors = await listAuthorOptions();
+  const authors = await listAuthorOptions(staff.id, event.authorId);
   const readOnly = !can(staff, "content:update");
 
   return (

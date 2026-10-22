@@ -11,9 +11,7 @@ const buckets = new Map<string, Bucket>();
  */
 const MAX_TRACKED_KEYS = 10_000;
 
-export type RateLimitResult =
-  | { allowed: true }
-  | { allowed: false; retryAfterSeconds: number };
+export type RateLimitResult = { allowed: true } | { allowed: false; retryAfterSeconds: number };
 
 export type RateLimitOptions = {
   limit: number;

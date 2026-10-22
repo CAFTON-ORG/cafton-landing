@@ -20,12 +20,16 @@ if (!url) {
   process.exit(1);
 }
 
-const client = new pg.Client({ connectionString: url, ssl: /localhost|127\.0\.0\.1/.test(url) ? false : { rejectUnauthorized: false } });
+const client = new pg.Client({
+  connectionString: url,
+  ssl: /localhost|127\.0\.0\.1/.test(url) ? false : { rejectUnauthorized: false },
+});
 await client.connect();
 try {
   await client.query("BEGIN");
   const role = await client.query("SELECT id, name FROM roles WHERE key = $1", [roleKey]);
-  if (role.rowCount === 0) throw new Error(`No role with key "${roleKey}". Run the migrations first.`);
+  if (role.rowCount === 0)
+    throw new Error(`No role with key "${roleKey}". Run the migrations first.`);
 
   const address = email.trim().toLowerCase();
   const existing = await client.query("SELECT 1 FROM profiles WHERE lower(email) = $1", [address]);
@@ -42,7 +46,9 @@ try {
     [address, `Invited ${address} as ${role.rows[0].name}`],
   );
   await client.query("COMMIT");
-  console.log(`Invited ${address} as ${role.rows[0].name}. They can now sign in at /login with that Google account.`);
+  console.log(
+    `Invited ${address} as ${role.rows[0].name}. They can now sign in at /login with that Google account.`,
+  );
 } catch (error) {
   await client.query("ROLLBACK");
   console.error(error.message);

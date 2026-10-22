@@ -27,7 +27,12 @@ const columns: Column<AuditRow>[] = [
       </time>
     ),
   },
-  { id: "actor", header: "Who", hideBelow: "sm", cell: (row) => <span className="font-medium">{row.actor}</span> },
+  {
+    id: "actor",
+    header: "Who",
+    hideBelow: "sm",
+    cell: (row) => <span className="font-medium">{row.actor}</span>,
+  },
   { id: "summary", header: "What happened", cell: (row) => row.summary },
   {
     id: "entity",
@@ -73,12 +78,26 @@ export function AuditTable({ page }: { page: Page<AuditRow> }) {
           <EmptyState
             icon={History}
             title={filtered ? "Nothing matches those filters" : "No activity yet"}
-            description={filtered ? "Try a different search or clear the filters." : "Changes made in the dashboard will appear here."}
-            action={filtered ? <Button variant="outline" onClick={table.clear}>Clear filters</Button> : undefined}
+            description={
+              filtered
+                ? "Try a different search or clear the filters."
+                : "Changes made in the dashboard will appear here."
+            }
+            action={
+              filtered ? (
+                <Button variant="outline" onClick={table.clear}>
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
           />
         }
       />
-      <DataTablePagination page={page} onPageChange={table.setPage} onPageSizeChange={table.setPageSize} />
+      <DataTablePagination
+        page={page}
+        onPageChange={table.setPage}
+        onPageSizeChange={table.setPageSize}
+      />
     </div>
   );
 }

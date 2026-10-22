@@ -31,8 +31,9 @@ function toProject(row: Prisma.PortfolioProjectGetPayload<object>): Project {
     problem: opt(row.problem),
     solution: opt(row.solution),
     recognition: opt(row.recognition),
-    imageLight: opt(row.imageLight),
-    imageDark: opt(row.imageDark),
+    // One cover is enough: the other theme reuses it (the site shows a cover only when both are set).
+    imageLight: opt(row.imageLight) ?? opt(row.imageDark),
+    imageDark: opt(row.imageDark) ?? opt(row.imageLight),
     imageAlt: opt(row.imageAlt),
     imageFit: row.imageFit === "cover" || row.imageFit === "contain" ? row.imageFit : undefined,
     ...(media.length > 0 && { media }),

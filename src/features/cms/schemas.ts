@@ -69,3 +69,53 @@ export function parseJson<T>(schema: z.ZodType<T>, value: unknown, fallback: T, 
   console.error(`Ignoring malformed ${where}:`, result.error.issues[0]?.message);
   return fallback;
 }
+
+/* ------------------------------------------------------------ site settings */
+
+const httpsUrl = z
+  .string()
+  .trim()
+  .url("Enter a full address starting with https://")
+  .refine((value) => value.startsWith("https://"), "The address must start with https://");
+
+export const SOCIAL_PLATFORMS = [
+  "facebook",
+  "instagram",
+  "linkedin",
+  "tiktok",
+  "x",
+  "youtube",
+] as const;
+
+export const siteSettingsSchema = z.object({
+  description: z
+    .string()
+    .trim()
+    .min(20, "Write at least a sentence.")
+    .max(300, "Keep it under 300 characters."),
+  tagline: z
+    .array(z.string().trim().min(1, "Leave no line empty.").max(60))
+    .min(1, "Add at least one line.")
+    .max(3),
+  footerBlurb: z.string().trim().min(1, "Add a short description.").max(300),
+  email: z.string().trim().email("Enter a valid email address."),
+  city: z.string().trim().min(1, "Enter the city.").max(80),
+  country: z.string().trim().min(1, "Enter the country.").max(80),
+  countryCode: z
+    .string()
+    .trim()
+    .regex(/^[A-Z]{2}$/, "Two capital letters, e.g. PH."),
+  established: z
+    .string()
+    .trim()
+    .regex(/^\d{4}$/, "A four-digit year."),
+  bookingUrl: z.union([httpsUrl, z.literal("")]),
+  facts: z.array(z.string().trim().min(1, "Leave no badge empty.").max(40)).max(6),
+  socials: z
+    .array(z.object({ platform: z.enum(SOCIAL_PLATFORMS), url: httpsUrl }))
+    .max(SOCIAL_PLATFORMS.length)
+    .refine(
+      (links) => new Set(links.map((link) => link.platform)).size === links.length,
+      "Each network can be listed once.",
+    ),
+});

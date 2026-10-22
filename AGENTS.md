@@ -1,3 +1,62 @@
+# Agent guide
+
+Cafton's public website and its internal operating system (CMS, CRM, later sales, delivery,
+finance, HR) are **one Next.js 16 app** (App Router, Server Components, Server Actions,
+Prisma 7 on Supabase Postgres, Supabase Auth and Storage). Read `CONTEXT.md` for the
+vocabulary, `docs/ARCHITECTURE.md` for the whole picture, `docs/ROADMAP.md` for what is done
+and next, and the ADRs in `docs/adr/` before changing structure.
+
+## Layout
+
+```
+prisma/                     schema.prisma and migrations (never edit an applied one)
+src/
+├── app/
+│   ├── (marketing)/        the public site (URLs and look must not change by accident)
+│   ├── (auth)/login/       staff sign-in
+│   ├── dashboard/          the internal system: noindex, its own layout
+│   └── api/                public form endpoints only
+├── components/
+│   ├── ui/                 Radix shadcn primitives: public site only
+│   ├── marketing/          public-site UI
+│   ├── dashboard/          dashboard UI: ui/ (Base UI base-nova), layout/, data-table/, shared/
+│   └── shared/             neutral ground: imports neither surface
+├── features/<domain>/      rules.ts, repository, actions.ts, schemas.ts, components/ (ADR 0004)
+├── config/                 site.ts, navigation, dashboard-navigation.ts, services.ts, values.ts
+└── lib/                    framework-level helpers: env, db, auth/, security/, seo
+```
+
+## Rules that matter
+
+- **Public site first.** Do not change how the public site looks unless the task says so.
+  Prove it with `npm run snapshot:save` / `snapshot:check` (CONTRIBUTING step 4).
+- **Content comes from the database** with the bundled content as fallback (`features/cms`).
+  New editable content follows ADR 0007: seed, repository with fallback, round-trip test.
+- **Every mutation:** `requirePermission()` → Zod parse → transaction → audit entry →
+  `revalidatePath`. The proxy is only an optimistic redirect; authorisation lives in
+  `lib/auth/dal.ts` and runs on every page and action.
+- **Business rules** live once in a feature's `rules.ts`, used by UI and server, unit tested.
+- **Components never touch the database** and never import across surfaces (ESLint enforces
+  it). No `dangerouslySetInnerHTML` (ESLint error); user-supplied links and images go through
+  the safe validators in `lib/security`.
+- **Money** is integer minor units plus a currency code, never a float. **Deletion** is soft
+  for business records. Finance records are voided, not deleted.
+- **Dashboard UI:** status colours only through `StatusBadge`; list pages use `ResourceTable`
+  with URL-driven params; people use `UserAvatar` (circle), things use `Thumbnail` (rounded
+  square); long forms use tabs; the shell is one screen tall and `MainScroll` is the only
+  scroll area (never give the dashboard `<main>` a global `min-height`).
+
+## Commands
+
+`npm run dev` · `npm run verify` (format, lint, typecheck, unit and integration tests, build)
+· `npm run e2e` after a build · `npm run design:review` for dashboard UI changes (see the
+header of `scripts/design-review.mjs`) · `npm run db:local` for an in-memory Postgres.
+
+## Git
+
+Branch per feature or phase step. Commit only when asked. Never push. Never add AI
+attribution lines to commits or pull requests.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

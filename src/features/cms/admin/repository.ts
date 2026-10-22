@@ -42,9 +42,15 @@ async function paged<T>(
   rows: (skip: number, take: number) => Promise<T[]>,
   map: (row: T) => AdminListRow,
 ): Promise<Page<AdminListRow>> {
-  const total = await count();
+  // Count and rows in one round trip: the page asked for is almost always a valid one.
+  const [total, first] = await Promise.all([
+    count(),
+    rows((params.page - 1) * params.pageSize, params.pageSize),
+  ]);
   const base = paginate(new Array(total), params.page, params.pageSize); // page maths only
-  const found = await rows((base.page - 1) * base.pageSize, base.pageSize);
+  // Only when the page was past the end (after a delete) is a second read needed.
+  const found =
+    base.page === params.page ? first : await rows((base.page - 1) * base.pageSize, base.pageSize);
   return { ...base, items: found.map(map) };
 }
 
@@ -70,7 +76,18 @@ export async function listPosts(params: TableParams): Promise<Page<AdminListRow>
       prisma.blogPost.findMany({
         where,
         orderBy: order(params),
-        include: { author: { select: { name: true, avatar: true } } },
+        select: {
+          id: true,
+          title: true,
+          category: true,
+          slug: true,
+          status: true,
+          updatedAt: true,
+          date: true,
+          imageLight: true,
+          imageDark: true,
+          author: { select: { name: true, avatar: true } },
+        },
         skip,
         take,
       }),
@@ -116,7 +133,18 @@ export async function listProjects(params: TableParams): Promise<Page<AdminListR
             : params.sort === "updated"
               ? { updatedAt: params.dir }
               : { position: "asc" },
-        include: { author: { select: { name: true, avatar: true } } },
+        select: {
+          id: true,
+          title: true,
+          client: true,
+          category: true,
+          slug: true,
+          status: true,
+          updatedAt: true,
+          imageLight: true,
+          imageDark: true,
+          author: { select: { name: true, avatar: true } },
+        },
         skip,
         take,
       }),
@@ -161,7 +189,16 @@ export async function listEvents(params: TableParams): Promise<Page<AdminListRow
             : params.sort === "updated"
               ? { updatedAt: params.dir }
               : { position: "asc" },
-        include: { author: { select: { name: true, avatar: true } } },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          slug: true,
+          status: true,
+          updatedAt: true,
+          poster: true,
+          author: { select: { name: true, avatar: true } },
+        },
         skip,
         take,
       }),
@@ -206,6 +243,15 @@ export async function listPartners(params: TableParams): Promise<Page<AdminListR
             : params.sort === "updated"
               ? { updatedAt: params.dir }
               : { position: "asc" },
+        select: {
+          id: true,
+          name: true,
+          roles: true,
+          slug: true,
+          status: true,
+          updatedAt: true,
+          logo: true,
+        },
         skip,
         take,
       }),

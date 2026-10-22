@@ -5,7 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { servicePillars } from "@/config/services";
+import { useServicePillars } from "@/providers/site-settings";
 import { CornerBrackets } from "@/components/marketing/decor/corner-brackets";
 
 /** Hold time on the picked tile before closing, so the pick reads as confirmed rather than instant. */
@@ -26,6 +26,7 @@ interface ServiceSelectOverlayProps {
  * own full-bleed screen instead of a floating panel.
  */
 export function ServiceSelectOverlay({ onProceed, onSkip }: ServiceSelectOverlayProps) {
+  const servicePillars = useServicePillars();
   const reduceMotion = useReducedMotion();
   const [open, setOpen] = useState(true);
   const [pickedTitle, setPickedTitle] = useState<string | null>(null);

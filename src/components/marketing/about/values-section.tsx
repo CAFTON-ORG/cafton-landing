@@ -1,13 +1,15 @@
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
-import { coreValues as values } from "@/config/values";
+import { getCoreValues, getValuesHeader } from "@/features/cms/repository/services";
 
 // Filled with the page colour (stroke painted first) so the overlapping
 // contours of the variable font don't show as lines inside the glyphs.
 const OUTLINE =
   "text-background [-webkit-text-stroke:1.5px_var(--foreground)] [paint-order:stroke]";
 
-export function CoreValues() {
+export async function CoreValues() {
+  const values = await getCoreValues();
+  const header = await getValuesHeader();
   return (
     <>
     <PageSection>
@@ -17,11 +19,10 @@ export function CoreValues() {
             Core values
           </p>
           <h2 className="mt-4 text-balance text-3xl font-bold tracking-tight sm:text-5xl">
-            What guides our work.
+            {header.heading}
           </h2>
           <p className="mt-5 max-w-sm text-muted-foreground">
-            Six commitments we hold ourselves to, on every project and in
-            every conversation.
+            {header.intro}
           </p>
         </Reveal>
         <RevealGroup>

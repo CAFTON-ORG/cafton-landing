@@ -1,38 +1,22 @@
+import { getDocument } from "@/features/cms/repository/documents";
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 
-const chapters = [
-  {
-    label: "The spark",
-    text: "Cafton began with a shared interest in software engineering and a common goal: to use technology to solve real-world problems.",
-  },
-  {
-    label: "Baguio City, 2026",
-    text: "It was built on the idea that businesses of different sizes should have access to digital solutions suited to their needs.",
-  },
-  {
-    label: "From vision to practice",
-    text: "What started as a shared vision has grown into a business focused on helping clients turn ideas into functional systems and everyday challenges into opportunities for improvement.",
-  },
-  {
-    label: "Today",
-    text: "We keep building our foundation through client projects, collaboration, and new software products that can benefit businesses and communities.",
-  },
-];
-
 // Filled with the page colour (stroke painted first) so the overlapping
 // contours of the variable font don't show as lines inside the glyphs.
-export function OurStory() {
+export async function OurStory() {
+  const { story } = await getDocument("about");
+  const chapters = story.chapters;
   return (
     <>
     <PageSection className="border-t">
       <PageShell className="grid gap-14 lg:grid-cols-[1fr_1.1fr] lg:gap-24">
         <Reveal className="lg:sticky lg:top-28 lg:self-start">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Our story
+            {story.eyebrow}
           </p>
           <h2 className="mt-4 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-            Where the name comes from.
+            {story.heading}
           </h2>
            <div aria-label="CAF plus TON makes CAFTON" className="mt-10 flex items-start gap-3 sm:gap-5">
             <div>
@@ -72,8 +56,7 @@ export function OurStory() {
             </div>
           </div>
           <p className="mt-6 max-w-sm text-sm leading-6 text-muted-foreground">
-            CAF is the first letters of our three founders&apos; names. TON
-            completes it into a name that is distinct and easy to remember.
+            {story.nameCaption}
           </p>
         </Reveal>
          <RevealGroup>

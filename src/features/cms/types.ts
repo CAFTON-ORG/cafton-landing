@@ -203,3 +203,194 @@ export interface SiteSettings {
   facts: string[];
   socials: SocialLink[];
 }
+
+/** What search engines are told about a fixed page when nothing has been changed. */
+export interface SeoPageDefaults {
+  key: string;
+  label: string;
+  path: string;
+  title: string;
+  /** Leave out to use the site description (the home page). */
+  description?: string;
+  /** Use the title exactly, without the site name added after it. */
+  absoluteTitle?: boolean;
+  /** Hidden from search by default. */
+  noindex?: boolean;
+}
+
+/** The share image shown when the page is posted on social media. */
+export interface SeoImage {
+  url: string;
+  width: number;
+  height: number;
+}
+
+/** What staff changed for one page. Anything left out keeps its default. */
+export interface SeoOverride {
+  title?: string;
+  description?: string;
+  /** true hides the page from search, false shows one that is hidden by default. */
+  noindex?: boolean;
+  image?: SeoImage;
+}
+
+export interface SeoDocument {
+  pages: Record<string, SeoOverride>;
+}
+
+/* ------------------------------------------------------------------ careers */
+
+export interface CareerRole {
+  title: string;
+  /** Full-time, part-time, internship... */
+  type: string;
+  location: string;
+  summary: string;
+}
+
+export interface CareersContent {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  /** Shown when there are no open roles. */
+  emptyTitle: string;
+  emptyText: string;
+  buttonLabel: string;
+  roles: CareerRole[];
+}
+
+/* ------------------------------------------------------------ services, values */
+
+export interface ServiceSystem {
+  title: string;
+  description: string;
+}
+
+/** One service area. The slug is its web address and never changes; the rest is editable. */
+export interface ServiceContent {
+  slug: string;
+  title: string;
+  /** Short line for cards and grids. */
+  tagline: string;
+  /** Longer paragraph for the detail page. */
+  summary: string;
+  /** A photo or drawing to show instead of the built-in illustration. Optional. */
+  image?: string;
+  imageAlt?: string;
+  systems: ServiceSystem[];
+}
+
+export const VALUE_ICON_NAMES = [
+  "lightbulb",
+  "shield-check",
+  "users",
+  "badge-check",
+  "refresh",
+  "handshake",
+] as const;
+export type ValueIcon = (typeof VALUE_ICON_NAMES)[number];
+
+export interface CoreValueContent {
+  icon: ValueIcon;
+  title: string;
+  description: string;
+}
+
+export interface ServicesDocument {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  pillars: ServiceContent[];
+}
+
+export interface ValuesDocument {
+  heading: string;
+  intro: string;
+  items: CoreValueContent[];
+}
+
+/* ----------------------------------------------------------- privacy, legal */
+
+/** One titled section of a long document. `body` uses the small text format of `rich-text.tsx`. */
+export interface PolicySection {
+  /** Web anchor; empty uses the title. */
+  id: string;
+  title: string;
+  body: string;
+}
+
+export interface PolicyDocument {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  lastUpdated: string;
+  sections: PolicySection[];
+}
+
+export interface LegalRegistration {
+  name: string;
+  status: string;
+  detail: string;
+  /** Optional seal or badge. */
+  image: string;
+  imageAlt: string;
+}
+
+export interface LegalDocument {
+  eyebrow: string;
+  heading: string;
+  registrations: LegalRegistration[];
+  sections: PolicySection[];
+}
+
+/* ------------------------------------------------------------- about, home */
+
+export interface AboutContent {
+  hero: {
+    eyebrow: string;
+    headlineStart: string;
+    headlineEmphasis: string;
+    headlineEnd: string;
+    intro: string;
+    photo: string;
+    photoAlt: string;
+  };
+  whatWeDo: { eyebrow: string; heading: string; paragraphs: string[]; specialties: string[] };
+  story: {
+    eyebrow: string;
+    heading: string;
+    nameCaption: string;
+    chapters: { label: string; text: string }[];
+  };
+  vision: {
+    eyebrow: string;
+    statement: string;
+    mission: { initial: string; label: string; text: string };
+    goal: { initial: string; label: string; text: string };
+  };
+  approach: { eyebrow: string; heading: string; intro: string };
+  help: { heading: string; intro: string; linkLabel: string };
+}
+
+export interface HomeContent {
+  heroEyebrow: string;
+  services: { heading: string; intro: string; linkLabel: string };
+  work: { heading: string; intro: string; buttonLabel: string };
+  writing: { heading: string; intro: string; buttonLabel: string };
+  cta: {
+    eyebrow: string;
+    heading: string;
+    text: string;
+    contactLabel: string;
+    bookLabel: string;
+  };
+}
+
+export interface ContactContent {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  email: { heading: string; text: string; buttonLabel: string };
+  expect: { heading: string; text: string; note: string };
+  faqHeading: string;
+}

@@ -1,3 +1,4 @@
+import { getDocument } from "@/features/cms/repository/documents";
 import { ArrowRight, CalendarDays, Mail } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { getSiteSettings } from "@/features/cms/repository/site";
 /** Closing call to action shared by the home, portfolio, blog, and service pages. */
 export async function ProjectCta() {
   const { facts, email, bookingUrl } = await getSiteSettings();
+  const { cta } = await getDocument("home");
   return (
     <PageSection>
       <PageShell>
@@ -30,14 +32,13 @@ export async function ProjectCta() {
               <div>
                 <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                   <span aria-hidden="true" className="h-px w-8 bg-foreground/40" />
-                  Let&apos;s talk
+                  {cta.eyebrow}
                 </p>
                 <h2 className="mt-5 max-w-2xl text-balance text-4xl font-bold tracking-tight sm:text-5xl">
-                  Have a problem worth solving?
+                  {cta.heading}
                 </h2>
                 <p className="mt-5 max-w-xl text-balance text-muted-foreground sm:text-lg">
-                  Tell us what you&apos;re trying to accomplish. We&apos;ll help
-                  you figure out what technology can do about it.
+                  {cta.text}
                 </p>
                 <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80">
                   {facts.map((fact) => (
@@ -51,7 +52,7 @@ export async function ProjectCta() {
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:flex-col lg:items-start">
                 <Button size="lg" className="group h-12 cursor-pointer rounded-full px-7" asChild>
                   <Link href="/contact">
-                    Contact Us
+                    {cta.contactLabel}
                     <ArrowRight
                       className="ms-2 size-4 transition-transform group-hover:translate-x-1"
                       aria-hidden="true"
@@ -71,7 +72,7 @@ export async function ProjectCta() {
                     rel="noopener noreferrer"
                   >
                     <CalendarDays className="size-4" aria-hidden="true" />
-                    Book a call
+                    {cta.bookLabel}
                   </Link>
                   </Button>
                 )}

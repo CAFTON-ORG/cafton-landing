@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { listPageMetadata } from "@/lib/seo";
+import { resolveSeo } from "@/features/cms/repository/seo";
 import {
   PageHero,
   PageSection,
@@ -13,12 +14,10 @@ import { RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { listProjects } from "@/features/cms/repository/projects";
 
-const DESCRIPTION =
-  "Case studies of software Cafton has built around real problems: disaster response, restaurant and retail operations, online elections, and more.";
-
 export async function generateMetadata({ searchParams }: WorkPageProps): Promise<Metadata> {
   const { page, category } = await searchParams;
-  return listPageMetadata({ title: "Portfolio", description: DESCRIPTION, path: "/portfolio", page, category });
+  const seo = await resolveSeo("portfolio");
+  return listPageMetadata({ title: seo.title, description: seo.description, path: "/portfolio", page, category });
 }
 
 const PAGE_SIZE = 6;

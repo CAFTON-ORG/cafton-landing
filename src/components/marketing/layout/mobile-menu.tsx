@@ -11,8 +11,8 @@ import { DotPattern } from "@/components/marketing/decor/dot-pattern";
 import { Logo } from "@/components/shared/logo";
 import { navigationItems } from "@/config/navigation";
 import { resolveSocialLinks } from "@/components/marketing/layout/social-links";
-import { useSiteSettings } from "@/providers/site-settings";
-import { servicePillars } from "@/config/services";
+import { useServicePillars, useSiteSettings } from "@/providers/site-settings";
+
 import { cn } from "@/lib/utils";
 
 /** Staggered entrance for the items inside the open menu; off for reduced motion. */
@@ -38,6 +38,7 @@ const ENTER =
  *   re-composited over a moving page on every frame.
  */
 export function MobileMenu() {
+  const servicePillars = useServicePillars();
   const socialLinks = resolveSocialLinks(useSiteSettings().socials);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();

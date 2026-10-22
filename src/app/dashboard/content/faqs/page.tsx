@@ -4,7 +4,7 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { countFaqsByService, getFaqsForEdit } from "@/features/cms/admin/editor-repository";
 import { FaqEditor } from "@/features/cms/components/faq-editor";
-import { servicePillars } from "@/config/services";
+import { getServices } from "@/features/cms/repository/services";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Service FAQs" };
@@ -17,6 +17,7 @@ export default async function FaqsPage({
   const staff = await requirePageAccess("content:view");
   if (!staff) return <AccessDenied area="website content" />;
 
+  const servicePillars = await getServices();
   const raw = await searchParams;
   const requested = typeof raw.service === "string" ? raw.service : "";
   const serviceSlug =
@@ -35,7 +36,6 @@ export default async function FaqsPage({
         title="Service questions"
         description="The questions people ask before starting, shown on each service page."
       />
-      {/* Keyed by service so switching tabs starts the editor from that service's saved questions. */}
       <FaqEditor key={serviceSlug} services={services} serviceSlug={serviceSlug} initial={items} />
     </>
   );

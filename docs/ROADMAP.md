@@ -45,6 +45,7 @@ Goal: a safe base to build on, with no visible change to the public site.
 - [x] Content Editor role; audit entry for every change; on-demand revalidation of the public pages
 - [x] Dashboard polish: image drop zone with preview and direct upload, tabs for long editors, staff as authors (name and photo), thumbnails in lists, one-screen app shell with a single scroll area, foldable sidebar groups
 - Moved on purpose (nothing in the site depends on them): scheduled publish, revision history and live preview to Phase 8 (per-item SEO moved to Phase 2b); careers applications to Phase 7 (HR recruitment).
+- Website navigation and forms were reorganised: Website > Content (Pages, Blog, Portfolio, Events, Partners, Service questions), Media, Site settings (General and Search and sharing tabs); one-level tree in the sidebar with a hover flyout when collapsed; a sticky save bar on every document form; a Website overview page.
 - Done when: an editor can publish a blog post that appears on the site without a deploy. Met.
 
 ## Phase 2b - Website content and SEO management
@@ -52,16 +53,16 @@ Goal: a safe base to build on, with no visible change to the public site.
 Everything else visitors read comes from the database too, so staff never need a developer to change wording, contact details, social links or search-engine text. Same method as Phase 2: bundled defaults stay as the fallback, and every step is proven by building the public site both ways and comparing the HTML.
 
 - [x] Site settings: description, slogan, contact email, location, booking link, badges and social links; the footer, menu, event pages, home and About badges, contact, careers, privacy and legal pages, the web manifest and the search-engine data all read them (migration `site_content`; not yet applied to Supabase)
-- [ ] SEO management: site defaults plus title, description, share image and "hide from search" for each page; the sitemap follows the hide flag
-- [ ] Per-item SEO fields on blog posts, projects and events
-- [ ] Services: the four service areas and their systems editable (icon from a fixed set), plus the services page text
-- [ ] Core values editable (About page and the home page "Why Cafton")
-- [ ] About page sections editable
-- [ ] Home page sections editable (hero, what makes us different, call to action)
-- [ ] Careers: intro text and a list of open roles; the page indexes itself when there are roles
-- [ ] Privacy policy and Legal documents editable, with a "last updated" date
-- [ ] Contact page text and the service choices on the form
-- [ ] Proof for each step: public HTML built from files equals HTML built from the database
+- [x] SEO management: title, description, share image and "hide from search" for each fixed page (with a search preview); the sitemap follows the hide flag; careers hides itself until it lists a role
+- [ ] Per-item SEO fields on blog posts, projects and events (needs a migration and editor fields; not started)
+- [x] Services: the four service areas (wording, order and systems; addresses and icons stay fixed) and the services page text
+- [x] Core values editable (About page and the home page "Why Cafton"): wording and order of exactly six, since the home scroll is built for six
+- [x] About page sections editable (headline, photo, what we do, story, vision, mission, approach, where we can help)
+- [x] Home page section text editable (headings, intros, buttons, call to action); the animated headline stays in code
+- [x] Careers: text and a list of open roles; the page indexes itself when there are roles
+- [x] Privacy policy and Legal documents editable (sections in a small safe text format, cookie table and registration cards as blocks, "last updated" date)
+- [x] Contact page text (the form's own questions stay in code)
+- [ ] Proof for each step: public HTML built from files equals HTML built from the database (done for settings; the policy pages now render through the text format, so their markup differs slightly in whitespace)
 
 ## Phase 3 - CRM
 

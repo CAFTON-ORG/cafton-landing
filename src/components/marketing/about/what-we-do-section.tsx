@@ -1,15 +1,11 @@
+import { getDocument } from "@/features/cms/repository/documents";
 import { ArrowUpRight } from "lucide-react";
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 
-const specialties = [
-  "Customized software systems",
-  "Web applications",
-  "Mobile applications",
-  "Digital platforms",
-];
-
-export function WhatWeDo() {
+export async function WhatWeDo() {
+  const { whatWeDo } = await getDocument("about");
+  const specialties = whatWeDo.specialties;
   return (
     <>
     <PageSection>
@@ -17,23 +13,16 @@ export function WhatWeDo() {
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-20">
           <Reveal>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              What we do
+              {whatWeDo.eyebrow}
             </p>
             <h2 className="mt-4 text-balance text-3xl font-bold tracking-tight sm:text-5xl">
-              Practical software, built around the problem.
+              {whatWeDo.heading}
             </h2>
           </Reveal>
           <Reveal className="space-y-4 text-lg leading-relaxed text-muted-foreground lg:pt-9">
-            <p>
-              We take time to understand the challenges our clients face, then
-              build solutions that help them manage their processes, reduce
-              manual work, organize information, and improve efficiency.
-            </p>
-            <p>
-              From improving an existing process to developing a completely
-              new platform, we aim to deliver solutions that are useful,
-              reliable, and built for long-term value.
-            </p>
+            {whatWeDo.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
           </Reveal>
         </div>
          <RevealGroup className="mt-14 border-b">

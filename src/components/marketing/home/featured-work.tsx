@@ -1,3 +1,4 @@
+import { getDocument } from "@/features/cms/repository/documents";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { PageShell } from "@/components/marketing/layout/page-shell";
 
 async function FeaturedWork() {
   const featuredProjects = (await listProjects()).slice(0, 3);
+  const { work } = await getDocument("home");
   if (featuredProjects.length === 0) return null;
 
   return (
@@ -18,11 +20,10 @@ async function FeaturedWork() {
       <PageShell>
         <Reveal className="mb-12 max-w-2xl">
           <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-            Built for real problems
+            {work.heading}
           </h2>
           <p className="text-lg text-muted-foreground">
-            Work that begins with a real need and ends with technology people
-            can use.
+            {work.intro}
           </p>
         </Reveal>
 
@@ -31,7 +32,7 @@ async function FeaturedWork() {
         <Reveal className="mt-10 flex justify-center">
           <Button variant="outline" className="group cursor-pointer" asChild>
             <Link href="/portfolio">
-              View all work
+              {work.buttonLabel}
               <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </Button>

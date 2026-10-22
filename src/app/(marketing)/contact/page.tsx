@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { pageSeo } from "@/features/cms/repository/seo";
 import { Suspense } from "react";
 import {
   PageHero,
@@ -13,34 +13,32 @@ import { Button } from "@/components/ui/button";
 import { Clock3, Mail } from "lucide-react";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
+import { getDocument } from "@/features/cms/repository/documents";
 import { getSiteSettings } from "@/features/cms/repository/site";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Contact",
-  description:
-    "Tell us what you are building, what is not working, or what you would like to improve. We usually reply within one business day.",
-  path: "/contact",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  return pageSeo("contact");
+}
 
 export default async function ContactPage() {
   const { email } = await getSiteSettings();
+  const page = await getDocument("contact");
   return (
     <>
       <PageHero>
         <PageShell>
           <RevealGroup>
             <RevealItem className="mb-4">
-              <Badge variant="outline" className="px-3 py-1 text-sm">Contact</Badge>
+              <Badge variant="outline" className="px-3 py-1 text-sm">{page.eyebrow}</Badge>
             </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Have a problem worth solving?
+                {page.heading}
               </h1>
             </RevealItem>
             <RevealItem>
               <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-                Tell us what you&apos;re building, what isn&apos;t working, or
-                what you&apos;d like to improve.
+                {page.intro}
               </p>
             </RevealItem>
           </RevealGroup>
@@ -56,28 +54,26 @@ export default async function ContactPage() {
               <div>
                 <h2 className="flex items-center gap-2 text-lg font-semibold">
                   <Mail className="h-5 w-5 text-foreground" />
-                  Email us directly
+                  {page.email.heading}
                 </h2>
                 <p className="mt-3 text-muted-foreground">
-                  Send us the problem you&apos;re solving, your timeline, and
-                  anything useful for us to know.
+                  {page.email.text}
                 </p>
                 <Button className="mt-4 cursor-pointer" asChild>
-                  <a href={`mailto:${email}`}>Contact Email</a>
+                  <a href={`mailto:${email}`}>{page.email.buttonLabel}</a>
                 </Button>
               </div>
 
               <div className="border-t border-border pt-8">
                 <h2 className="flex items-center gap-2 text-lg font-semibold">
                   <Clock3 className="h-5 w-5 text-foreground" />
-                  What to expect
+                  {page.expect.heading}
                 </h2>
                 <p className="mt-3 text-muted-foreground">
-                  We usually reply within 1 business day.
+                  {page.expect.text}
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Please include a short description of your request so we can
-                  route it properly.
+                  {page.expect.note}
                 </p>
               </div>
             </Reveal>
@@ -100,7 +96,7 @@ export default async function ContactPage() {
         <PageShell className="max-w-3xl">
           <Reveal>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              Questions people ask before reaching out
+              {page.faqHeading}
             </h2>
           </Reveal>
           <Reveal className="mt-8">

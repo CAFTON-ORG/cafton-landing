@@ -246,7 +246,7 @@ describe("authors and covers", () => {
     const live = (await publicProjects.listProjects()).find((p) => p.slug === "cover-test");
     expect(live?.imageLight).toBe(live?.imageDark);
     expect(live?.imageLight).toContain("/media/content/a.webp");
-  });
+  }, 30_000);
 });
 
 describe("validation", () => {

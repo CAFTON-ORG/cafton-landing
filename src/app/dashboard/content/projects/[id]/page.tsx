@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { getProjectForEdit } from "@/features/cms/admin/editor-repository";
 import { listAuthorOptions } from "@/features/cms/admin/repository";
 import { ProjectEditor } from "@/features/cms/components/project-editor";
+import { getServices } from "@/features/cms/repository/services";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";
 
@@ -19,7 +20,12 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const project = await getProjectForEdit(id);
   if (!project) notFound();
-  const authors = await listAuthorOptions(staff.id, project.authorId);
+  // Independent reads go out together: each one is a round trip to the database.
+  const [authors, services] = await Promise.all([
+    listAuthorOptions(staff.id, project.authorId),
+    getServices(),
+  ]);
+  const servicePillars = services.map(({ slug, title }) => ({ slug, title }));
   const readOnly = !can(staff, "content:update");
 
   return (
@@ -31,7 +37,12 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
       />
       {/* Keyed by the last edit, so the form restarts from the saved values after each save. */}
       <fieldset disabled={readOnly} className="contents">
-        <ProjectEditor key={project.updatedAt} project={project} authors={authors} />
+        <ProjectEditor
+          key={project.updatedAt}
+          project={project}
+          authors={authors}
+          servicePillars={servicePillars}
+        />
       </fieldset>
     </>
   );

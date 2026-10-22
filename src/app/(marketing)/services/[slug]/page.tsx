@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -19,7 +20,8 @@ import { RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { getServiceFaqs } from "@/features/cms/repository/service-faqs";
 import { listProjectsForService } from "@/features/cms/repository/projects";
-import { getServicePillar, servicePillars } from "@/config/services";
+import { servicePillars } from "@/config/services";
+import { getService, getServices } from "@/features/cms/repository/services";
 
 interface ServicePageProps {
   params: Promise<{ slug: string }>;
@@ -33,7 +35,7 @@ export async function generateMetadata({
   params,
 }: ServicePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const pillar = getServicePillar(slug);
+  const pillar = await getService(slug);
   if (!pillar) return {};
 
   return pageMetadata({
@@ -45,12 +47,12 @@ export async function generateMetadata({
 
 export default async function ServiceDetailPage({ params }: ServicePageProps) {
   const { slug } = await params;
-  const pillar = getServicePillar(slug);
+  const pillar = await getService(slug);
   if (!pillar) notFound();
 
   const related = await listProjectsForService(pillar.slug);
   const faqs = await getServiceFaqs(pillar.slug);
-  const { previous, next } = neighbours(servicePillars, pillar.slug);
+  const { previous, next } = neighbours(await getServices(), pillar.slug);
 
   return (
     <>
@@ -65,11 +67,21 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
         image={
           <div className="relative size-full overflow-hidden rounded-xl border bg-background/60">
             <DotPattern size="sm" opacity="low" fadeStyle="none" />
-            <PillarIllustration
-              slug={pillar.slug}
-              className="absolute inset-0 size-full"
-              aria-hidden="true"
-            />
+            {pillar.image ? (
+              <Image
+                src={pillar.image}
+                alt={pillar.imageAlt ?? ""}
+                fill
+                sizes="(min-width: 1024px) 40vw, 100vw"
+                className="object-cover"
+              />
+            ) : (
+              <PillarIllustration
+                slug={pillar.slug}
+                className="absolute inset-0 size-full"
+                aria-hidden="true"
+              />
+            )}
           </div>
         }
       >

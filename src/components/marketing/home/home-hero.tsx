@@ -11,7 +11,7 @@ import { useCanShow3D } from "@/components/marketing/three/use-can-show-3d";
 import { cn } from "@/lib/utils";
 import { CanvasErrorBoundary } from "@/components/marketing/three/canvas-error-boundary";
 import { useInViewport } from "@/hooks/use-in-viewport";
-import { useSiteSettings } from "@/providers/site-settings";
+import { useHomeContent, useSiteSettings } from "@/providers/site-settings";
 import { ServiceSelectOverlay } from "@/components/marketing/home/service-select-overlay";
 
 // The scene pulls in three.js + react-three-fiber, the heaviest chunk on the
@@ -49,6 +49,7 @@ function rise(delay: number) {
 
 export function HomeHero() {
   const { facts } = useSiteSettings();
+  const homeContent = useHomeContent();
   const router = useRouter();
   const canShow3D = useCanShow3D();
   const [heroRef, heroInViewport] = useInViewport<HTMLElement>("100px 0px");
@@ -105,7 +106,7 @@ export function HomeHero() {
               style={rise(DELAY.headline)}
             >
               <span aria-hidden="true" className="h-px w-8 bg-foreground/40" />
-              Software development &middot; Baguio City
+              {homeContent.heroEyebrow}
             </p>
 
             <h1

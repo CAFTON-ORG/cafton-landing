@@ -11,7 +11,7 @@ import {
   buildingForOptions,
   type ContactFormData,
 } from "@/features/crm/contact";
-import { getServicePillar } from "@/config/services";
+import { useServicePillars } from "@/providers/site-settings";
 import { STEP_FIELDS, STEP_SCHEMAS } from "@/components/marketing/contact/step-config";
 import { buildSteps, type FieldErrors, type StepId } from "@/components/marketing/contact/types";
 import { ProgressHeader } from "@/components/marketing/contact/progress-header";
@@ -32,6 +32,8 @@ type ContactFormProps = {
 };
 
 export function ContactForm({ leadSource, pageName, className = "" }: ContactFormProps) {
+  const servicePillars = useServicePillars();
+  const getServicePillar = (slug: string) => servicePillars.find((pillar) => pillar.slug === slug);
   const searchParams = useSearchParams();
 
   // Arriving from the hero's build-and-pick flow -- a chosen service area

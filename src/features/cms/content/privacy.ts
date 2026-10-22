@@ -1,5 +1,3 @@
-export const PRIVACY_LAST_UPDATED = "9 October 2026";
-
 export const cookies = [
   {
     name: "cafton_consent",
@@ -33,12 +31,3 @@ export const cookies = [
   },
 ];
 
-export const rights = [
-  "Be informed about how your personal data is processed.",
-  "Access the personal data we hold about you.",
-  "Correct data that is inaccurate or out of date.",
-  "Object to processing, or ask us to suspend, remove, or block your data.",
-  "Receive your data in a structured, commonly used format.",
-  "Withdraw consent you have given, at any time.",
-  "Be compensated for damages from inaccurate, incomplete, outdated, false, unlawfully obtained, or unauthorized use of your data.",
-];

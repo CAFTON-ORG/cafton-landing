@@ -1,3 +1,4 @@
+import { getDocument } from "@/features/cms/repository/documents";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { PageShell } from "@/components/marketing/layout/page-shell";
 async function LatestWriting() {
   const [posts, authors] = await Promise.all([listBlogPosts(), getAuthorMap()]);
   const latestPosts = posts.slice(0, 3);
+  const { writing } = await getDocument("home");
   if (latestPosts.length === 0) return null;
 
   return (
@@ -17,11 +19,10 @@ async function LatestWriting() {
       <PageShell>
         <Reveal className="mb-12 max-w-2xl">
           <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-            Latest from the blog
+            {writing.heading}
           </h2>
           <p className="text-lg text-muted-foreground">
-            Notes on how we work, what we&apos;re building, and what we&apos;re
-            learning along the way.
+            {writing.intro}
           </p>
         </Reveal>
 
@@ -30,7 +31,7 @@ async function LatestWriting() {
         <Reveal className="mt-10 flex justify-center">
           <Button variant="outline" className="group cursor-pointer" asChild>
             <Link href="/blog">
-              Read the blog
+              {writing.buttonLabel}
               <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </Button>

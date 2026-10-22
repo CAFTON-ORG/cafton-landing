@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { listPageMetadata } from "@/lib/seo";
+import { resolveSeo } from "@/features/cms/repository/seo";
 import {
   PageHero,
   PageSection,
@@ -15,12 +16,10 @@ import { Badge } from "@/components/ui/badge";
 import { getAuthorMap } from "@/features/cms/repository/authors";
 import { listBlogPosts } from "@/features/cms/repository/blog";
 
-const DESCRIPTION =
-  "Insights from Cafton on building useful technology: process, engineering, and lessons from real projects.";
-
 export async function generateMetadata({ searchParams }: BlogPageProps): Promise<Metadata> {
   const { page, category } = await searchParams;
-  return listPageMetadata({ title: "Blog", description: DESCRIPTION, path: "/blog", page, category });
+  const seo = await resolveSeo("blog");
+  return listPageMetadata({ title: seo.title, description: seo.description, path: "/blog", page, category });
 }
 
 const PAGE_SIZE = 6;

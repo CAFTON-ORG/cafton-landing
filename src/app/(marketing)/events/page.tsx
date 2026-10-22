@@ -7,15 +7,12 @@ import { EventList } from "@/components/marketing/events/event-list";
 import { FeaturedEvent } from "@/components/marketing/events/featured-event";
 import { getEventStatus } from "@/features/cms/lib/events";
 import { listEvents } from "@/features/cms/repository/events";
-import { pageMetadata } from "@/lib/seo";
+import { pageSeo } from "@/features/cms/repository/seo";
 import type { EventStatus } from "@/features/cms/types";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Events",
-  description:
-    "Giveaways, merch drops, and community events from Cafton. See what is open now, what you can win, and how to join.",
-  path: "/events",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  return pageSeo("events");
+}
 
 // Status depends on the current date, so refresh the static page regularly.
 export const revalidate = 600;

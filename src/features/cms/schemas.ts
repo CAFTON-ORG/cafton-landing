@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isSafeImageSrc } from "./rules";
+
 /**
  * Shapes of the JSON columns. They are validated when content is read and (in the
  * editors) when it is written, so a malformed edit can never reach a public page
@@ -118,4 +120,23 @@ export const siteSettingsSchema = z.object({
       (links) => new Set(links.map((link) => link.platform)).size === links.length,
       "Each network can be listed once.",
     ),
+});
+
+/* ---------------------------------------------------------------------- SEO */
+
+export const seoOverrideSchema = z.object({
+  title: z.string().trim().max(70, "Keep the title under 70 characters.").optional(),
+  description: z.string().trim().max(200, "Keep the description under 200 characters.").optional(),
+  noindex: z.boolean().optional(),
+  image: z
+    .object({
+      url: z.string().refine(isSafeImageSrc, "Use an uploaded image or an https address."),
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+    })
+    .optional(),
+});
+
+export const seoDocumentSchema = z.object({
+  pages: z.record(z.string(), seoOverrideSchema),
 });

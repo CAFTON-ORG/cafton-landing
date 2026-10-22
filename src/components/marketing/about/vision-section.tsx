@@ -1,3 +1,4 @@
+import { getDocument } from "@/features/cms/repository/documents";
 import { PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { DotPattern } from "@/components/marketing/decor/dot-pattern";
@@ -7,7 +8,8 @@ import { DotPattern } from "@/components/marketing/decor/dot-pattern";
 const OUTLINE =
   "text-background [-webkit-text-stroke:1.5px_var(--foreground)] [paint-order:stroke]";
 
-export function VisionMission() {
+export async function VisionMission() {
+  const { vision } = await getDocument("about");
   return (
     <>
     <section className="relative overflow-hidden border-y bg-muted/30 py-20 sm:py-24 lg:py-32">
@@ -27,27 +29,14 @@ export function VisionMission() {
             &ldquo;
           </span>
           <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Our vision
+            {vision.eyebrow}
           </p>
           <p className="relative mt-5 text-balance text-3xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-            To become a trusted technology company that transforms ideas and
-            real-world challenges into innovative digital solutions that
-            create lasting value for businesses and communities.
+            {vision.statement}
           </p>
         </Reveal>
          <RevealGroup className="mt-16 grid gap-12 md:grid-cols-2 md:gap-16 lg:mt-24">
-          {[
-            {
-              initial: "M",
-              label: "Our mission",
-              text: "To help businesses, organizations, and emerging ventures solve real-world challenges through reliable, user-centered, and innovative digital solutions, combining software engineering and collaborative development to turn ideas into practical products.",
-            },
-            {
-              initial: "G",
-              label: "Our goal",
-              text: "To establish Cafton as a sustainable software development company that delivers practical and innovative solutions while building long-term client relationships, developing its own products, and contributing to the digital transformation of businesses and communities.",
-            },
-          ].map((item) => (
+          {[vision.mission, vision.goal].map((item) => (
             <RevealItem key={item.label} className="grid grid-cols-[auto_1fr] gap-6 border-t pt-6">
               <span
                 aria-hidden="true"

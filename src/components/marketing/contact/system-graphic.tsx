@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { SystemHub } from "@/components/marketing/contact/system-hub";
-import { servicePillars } from "@/config/services";
+import { useServicePillars } from "@/providers/site-settings";
 
 interface NodeOffset {
   x: number;
@@ -38,6 +38,7 @@ const AUTO_CYCLE_MS = 2800;
  * resolved state, static.
  */
 export function SystemGraphic() {
+  const servicePillars = useServicePillars();
   const reduceMotion = useReducedMotion();
   const [hovered, setHovered] = useState(false);
   const [autoConnected, setAutoConnected] = useState(true);

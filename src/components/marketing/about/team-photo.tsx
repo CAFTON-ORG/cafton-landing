@@ -4,7 +4,13 @@ import Image from "next/image";
  * The team photo with reticle marks standing off its corners (the same nod
  * the nav, tiles and event poster use).
  */
-export function TeamPhoto() {
+export function TeamPhoto({
+  src = "/images/cafton-team.jpg",
+  alt = "The Cafton team",
+}: {
+  src?: string;
+  alt?: string;
+}) {
   return (
     <div className="group relative h-full w-full">
       <span aria-hidden="true" className="pointer-events-none absolute -left-3 -top-3 z-10 size-6 border-l-2 border-t-2 border-foreground/60" />
@@ -13,8 +19,8 @@ export function TeamPhoto() {
       <span aria-hidden="true" className="pointer-events-none absolute -bottom-3 -right-3 z-10 size-6 border-b-2 border-r-2 border-foreground/60" />
       <div className="relative h-full w-full overflow-hidden rounded-xl border bg-muted/40">
         <Image
-          src="/images/cafton-team.jpg"
-          alt="The Cafton team"
+          src={src}
+          alt={alt}
           fill
           sizes="(min-width: 1024px) 40vw, 100vw"
           priority

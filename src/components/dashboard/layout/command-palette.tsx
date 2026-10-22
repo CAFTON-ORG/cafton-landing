@@ -15,7 +15,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/dashboard/ui/command";
-import { visibleNavGroups } from "@/config/dashboard-navigation";
+import { leavesOf, visibleNavGroups } from "@/config/dashboard-navigation";
 import { useResolvedTheme } from "@/hooks/use-resolved-theme";
 import { useTheme } from "@/hooks/use-theme";
 import { signOut } from "./sign-out";
@@ -82,7 +82,7 @@ export function CommandPalette() {
 
             {groups.map((group) => (
               <CommandGroup key={group.label || "main"} heading={group.label || "Go to"}>
-                {group.items.map(({ href, label, icon: Icon, keywords }) => (
+                {leavesOf(group.items).map(({ href, label, icon: Icon, keywords }) => (
                   <CommandItem
                     key={href}
                     value={`${label} ${keywords?.join(" ") ?? ""}`}

@@ -12,10 +12,11 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Logo } from "@/components/shared/logo";
-import { servicePillars } from "@/config/services";
+import { useServicePillars } from "@/providers/site-settings";
 
 /** Hover/focus mega menu for the "Services" nav item -- a promo panel plus the 4 service pillars. */
 export function ServicesNavMenu() {
+  const servicePillars = useServicePillars();
   const pathname = usePathname();
   const isActive = pathname === "/services" || pathname.startsWith("/services/");
 

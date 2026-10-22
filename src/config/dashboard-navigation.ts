@@ -1,18 +1,19 @@
 import {
   Building2,
-  Contact,
   CalendarDays,
+  Contact,
   FileText,
   FolderKanban,
-  Images,
-  MessageCircleQuestion,
-  Handshake as Partnership,
   Handshake,
   History,
+  Images,
   Inbox,
   LayoutDashboard,
   LayoutList,
+  LayoutTemplate,
   ListChecks,
+  MessageCircleQuestion,
+  Newspaper,
   Settings,
   ShieldCheck,
   SlidersHorizontal,
@@ -22,7 +23,8 @@ import {
 
 import type { Permission } from "@/lib/auth/permissions";
 
-export type NavItem = {
+/** A page. */
+export type NavLeaf = {
   href: string;
   label: string;
   icon: LucideIcon;
@@ -32,14 +34,28 @@ export type NavItem = {
   keywords?: string[];
 };
 
+/** A heading that holds pages (one level only: deeper trees are hard to scan and to use on a phone). */
+export type NavParent = { label: string; icon: LucideIcon; children: NavLeaf[] };
+
+export type NavItem = NavLeaf | NavParent;
+
 /** An empty label means the group is shown without a heading. */
 export type NavGroup = { label: string; items: NavItem[] };
+
+export const isParent = (item: NavItem): item is NavParent => "children" in item;
+
+/** Every page of a list of items, with parents opened up. */
+export const leavesOf = (items: NavItem[]): NavLeaf[] =>
+  items.flatMap((item) => (isParent(item) ? item.children : [item]));
 
 /**
  * The dashboard's navigation: the sidebar, the mobile drawer, the breadcrumbs
  * and the command palette all read this one list. Add a page here and it shows
- * up everywhere, for exactly the people who may open it. Each roadmap phase adds
- * its group (CMS, CRM, Sales, ...) here.
+ * up everywhere, for exactly the people who may open it.
+ *
+ * Shape (the usual answer to "too many sidebar items"): a few top-level groups that fold,
+ * and inside a group at most one level of parent, so the person sees only the section they
+ * are working in. Everything else is one keystroke away in the command palette (Ctrl/⌘ K).
  */
 export const navGroups: NavGroup[] = [
   {
@@ -57,53 +73,77 @@ export const navGroups: NavGroup[] = [
     label: "Website",
     items: [
       {
-        href: "/dashboard/content/blog",
-        label: "Blog posts",
-        icon: FileText,
-        permission: "content:view",
-        keywords: ["articles", "writing", "news", "cms"],
-      },
-      {
-        href: "/dashboard/content/projects",
-        label: "Projects",
-        icon: FolderKanban,
-        permission: "content:view",
-        keywords: ["portfolio", "case studies", "work"],
-      },
-      {
-        href: "/dashboard/content/events",
-        label: "Events",
-        icon: CalendarDays,
-        permission: "content:view",
-        keywords: ["giveaway", "campaign"],
-      },
-      {
-        href: "/dashboard/content/partners",
-        label: "Partners",
-        icon: Partnership,
-        permission: "content:view",
-        keywords: ["sponsors", "logos"],
-      },
-      {
-        href: "/dashboard/content/faqs",
-        label: "Service questions",
-        icon: MessageCircleQuestion,
-        permission: "content:view",
-        keywords: ["faq", "questions", "answers", "services"],
-      },
-      {
-        href: "/dashboard/content/site",
-        label: "Website settings",
-        icon: SlidersHorizontal,
-        permission: "settings:view",
-        keywords: ["contact", "email", "social", "footer", "company"],
+        label: "Content",
+        icon: Newspaper,
+        children: [
+          {
+            href: "/dashboard/content/pages",
+            label: "Pages",
+            icon: LayoutTemplate,
+            permission: "content:view",
+            keywords: [
+              "about",
+              "careers",
+              "privacy",
+              "legal",
+              "services",
+              "home",
+              "contact",
+              "values",
+              "text",
+              "wording",
+            ],
+          },
+          {
+            href: "/dashboard/content/blog",
+            label: "Blog posts",
+            icon: FileText,
+            permission: "content:view",
+            keywords: ["articles", "writing", "news", "cms"],
+          },
+          {
+            href: "/dashboard/content/projects",
+            label: "Portfolio",
+            icon: FolderKanban,
+            permission: "content:view",
+            keywords: ["projects", "case studies", "work"],
+          },
+          {
+            href: "/dashboard/content/events",
+            label: "Events",
+            icon: CalendarDays,
+            permission: "content:view",
+            keywords: ["giveaway", "campaign"],
+          },
+          {
+            href: "/dashboard/content/partners",
+            label: "Partners",
+            icon: Handshake,
+            permission: "content:view",
+            keywords: ["sponsors", "logos"],
+          },
+          {
+            href: "/dashboard/content/faqs",
+            label: "Service questions",
+            icon: MessageCircleQuestion,
+            permission: "content:view",
+            keywords: ["faq", "questions", "answers", "services"],
+          },
+        ],
       },
       {
         href: "/dashboard/content/media",
-        label: "Image library",
+        label: "Media",
         icon: Images,
         permission: "content:view",
-        keywords: ["photos", "uploads", "pictures", "media"],
+        keywords: ["photos", "uploads", "pictures", "images", "library"],
+      },
+      {
+        href: "/dashboard/content/site",
+        label: "Site settings",
+        icon: SlidersHorizontal,
+        permission: "settings:view",
+        keywords: ["contact", "email", "social", "footer", "company", "seo", "google", "share"],
       },
     ],
   },
@@ -189,13 +229,15 @@ export const navGroups: NavGroup[] = [
   },
 ];
 
-export const navItems = navGroups.flatMap((group) => group.items);
+/** Every page in the navigation, flat. */
+export const navItems = navGroups.flatMap((group) => leavesOf(group.items));
 
 /** Labels for breadcrumb segments that are not a nav item of their own. */
 export const segmentLabels: Record<string, string> = {
   dashboard: "Overview",
   crm: "CRM",
   content: "Website",
+  seo: "Search and sharing",
 };
 
 export function isActivePath(pathname: string, href: string) {
@@ -206,14 +248,17 @@ export function isActivePath(pathname: string, href: string) {
   return !navItems.some((other) => other.href.length > href.length && matches(other.href));
 }
 
-/** The groups a staff member may see, dropping empty ones. */
+/** The groups a staff member may see, dropping parents and groups left empty. */
 export function visibleNavGroups(permissions: readonly string[]): NavGroup[] {
+  const allowed = (leaf: NavLeaf) => !leaf.permission || permissions.includes(leaf.permission);
   return navGroups
     .map((group) => ({
       ...group,
-      items: group.items.filter(
-        (item) => !item.permission || permissions.includes(item.permission),
-      ),
+      items: group.items.flatMap((item): NavItem[] => {
+        if (!isParent(item)) return allowed(item) ? [item] : [];
+        const children = item.children.filter(allowed);
+        return children.length > 0 ? [{ ...item, children }] : [];
+      }),
     }))
     .filter((group) => group.items.length > 0);
 }

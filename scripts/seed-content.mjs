@@ -317,7 +317,22 @@ async function main() {
     events: (await load("events.ts")).events,
     partners: (await load("partners.ts")).partners,
     serviceFaqs: (await load("service-faqs.ts")).serviceFaqs,
-    siteContent: { settings: (await load("site-settings.ts")).siteSettings },
+    // One row per document of site content. Files are loaded one by one because Node needs the
+    // ".ts" extension on every import.
+    siteContent: {
+      settings: (await load("site-settings.ts")).siteSettings,
+      careers: (await load("careers.ts")).careers,
+      services: {
+        ...(await load("services.ts")).servicesPage,
+        pillars: (await load("services.ts")).serviceContent,
+      },
+      values: (await load("values.ts")).valuesDocument,
+      privacy: (await load("privacy-policy.ts")).privacyPolicy,
+      legal: (await load("legal.ts")).legal,
+      about: (await load("about.ts")).about,
+      home: (await load("home.ts")).home,
+      contact: (await load("contact.ts")).contact,
+    },
   };
 
   const local = /@(localhost|127\.0\.0\.1)(:|\/)/.test(url);

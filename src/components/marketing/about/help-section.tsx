@@ -1,10 +1,13 @@
+import { getDocument } from "@/features/cms/repository/documents";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
-import { servicePillars } from "@/config/services";
+import { getServices } from "@/features/cms/repository/services";
 
-export function WhereWeCanHelp() {
+export async function WhereWeCanHelp() {
+  const servicePillars = await getServices();
+  const { help } = await getDocument("about");
   return (
     <>
     <section id="services" className="border-t py-14 sm:py-16 lg:py-20">
@@ -12,18 +15,17 @@ export function WhereWeCanHelp() {
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-xl">
             <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-5xl">
-              Where we can help.
+              {help.heading}
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Four areas we build in, from the back office to a product that
-              doesn&apos;t exist yet.
+              {help.intro}
             </p>
           </div>
           <Link
             href="/services"
             className="group inline-flex items-center text-sm font-medium text-foreground"
           >
-            View all services
+            {help.linkLabel}
             <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </Reveal>

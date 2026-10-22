@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { Field } from "@/components/dashboard/shared/field";
 import {
   Card,
@@ -49,7 +50,7 @@ const FIT_LABEL = {
 } as const;
 
 export function PartnerEditor({ partner }: { partner?: AdminPartnerDetail }) {
-  const { values, set, setValues, errors, pending, dirty, submit } = useContentEditor({
+  const { values, set, setValues, errors, pending, dirty, submit, reset } = useContentEditor({
     initial: partner ?? BLANK,
     isNew: !partner,
     save: (form, intent) => savePartner({ ...form, id: partner?.id || undefined }, intent),
@@ -66,9 +67,62 @@ export function PartnerEditor({ partner }: { partner?: AdminPartnerDetail }) {
         e.preventDefault();
         submit("save");
       }}
-      className="grid gap-4 lg:grid-cols-[1fr_20rem]"
     >
-      <div className="grid content-start gap-4">
+      <EditorLayout
+        rail={
+          <>
+            <PublishPanel
+              status={values.status}
+              readiness={readiness}
+              listHref="/dashboard/content/partners"
+              listLabel="Back to all partners"
+              publicHref={partner ? "/about" : undefined}
+              liveNote="This partner is live on the website. Saving updates it immediately."
+              pending={pending}
+              dirty={dirty}
+              isNew={!partner}
+              onSubmit={submit}
+              onDiscard={reset}
+              error={errors.form}
+            />
+            <Card>
+              <CardHeader>
+                <CardTitle>Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id="partner-featured"
+                    checked={values.featured}
+                    onCheckedChange={(checked) => set("featured", checked === true)}
+                  />
+                  <Label htmlFor="partner-featured" className="text-sm leading-snug font-normal">
+                    Featured: gets a full entry with story and links even in the compact wall
+                  </Label>
+                </div>
+                <Field
+                  id="partner-slug"
+                  label="Internal key"
+                  required
+                  error={errors.slug}
+                  hint="Only used to tell partners apart."
+                >
+                  <Input
+                    id="partner-slug"
+                    value={values.slug}
+                    onChange={(e) => {
+                      setSlugTouched(true);
+                      set("slug", e.target.value.toLowerCase());
+                    }}
+                    aria-invalid={!!errors.slug}
+                    autoComplete="off"
+                  />
+                </Field>
+              </CardContent>
+            </Card>
+          </>
+        }
+      >
         <Card>
           <CardHeader>
             <CardTitle>The partner</CardTitle>
@@ -226,58 +280,7 @@ export function PartnerEditor({ partner }: { partner?: AdminPartnerDetail }) {
             />
           </CardContent>
         </Card>
-      </div>
-
-      <div className="grid content-start gap-4">
-        <PublishPanel
-          status={values.status}
-          readiness={readiness}
-          pending={pending}
-          dirty={dirty}
-          isNew={!partner}
-          onSubmit={submit}
-          listHref="/dashboard/content/partners"
-          listLabel="Back to all partners"
-          publicHref={partner ? "/about" : undefined}
-          error={errors.form}
-          liveNote="This partner is live on the website. Saving updates it immediately."
-        />
-        <Card>
-          <CardHeader>
-            <CardTitle>Details</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="partner-featured"
-                checked={values.featured}
-                onCheckedChange={(checked) => set("featured", checked === true)}
-              />
-              <Label htmlFor="partner-featured" className="text-sm leading-snug font-normal">
-                Featured: gets a full entry with story and links even in the compact wall
-              </Label>
-            </div>
-            <Field
-              id="partner-slug"
-              label="Internal key"
-              required
-              error={errors.slug}
-              hint="Only used to tell partners apart."
-            >
-              <Input
-                id="partner-slug"
-                value={values.slug}
-                onChange={(e) => {
-                  setSlugTouched(true);
-                  set("slug", e.target.value.toLowerCase());
-                }}
-                aria-invalid={!!errors.slug}
-                autoComplete="off"
-              />
-            </Field>
-          </CardContent>
-        </Card>
-      </div>
+      </EditorLayout>
     </form>
   );
 }

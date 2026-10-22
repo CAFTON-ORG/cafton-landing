@@ -1,4 +1,4 @@
-import { servicePillars } from "@/config/services";
+import { useServicePillars } from "@/providers/site-settings";
 import { cn } from "@/lib/utils";
 
 interface GoalsAreaStepProps {
@@ -9,6 +9,7 @@ interface GoalsAreaStepProps {
 
 /** First of the two Goals screens: pick one of the 4 service pillars before seeing its specific systems. */
 export function GoalsAreaStep({ value, onChange, error }: GoalsAreaStepProps) {
+  const servicePillars = useServicePillars();
   return (
     <div className="grid gap-3">
       <p className="text-sm text-muted-foreground">Which area is closest to what you need?</p>

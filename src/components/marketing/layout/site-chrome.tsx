@@ -10,7 +10,9 @@ import { JsonLd } from "@/components/shared/json-ld";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { THEME_STORAGE_KEY } from "@/config/site";
 import { siteJsonLd } from "@/lib/structured-data";
+import { getDocument } from "@/features/cms/repository/documents";
 import { getSiteSettings } from "@/features/cms/repository/site";
+import { SiteSettingsProvider } from "@/providers/site-settings";
 
 /**
  * Everything the public website wraps its pages in: loader, theme, cookie
@@ -19,9 +21,20 @@ import { getSiteSettings } from "@/features/cms/repository/site";
  * layout and by the root 404.
  */
 export async function SiteChrome({ children }: { children: ReactNode }) {
-  const settings = await getSiteSettings();
+  const [settings, services, values, home] = await Promise.all([
+    getSiteSettings(),
+    getDocument("services"),
+    getDocument("values"),
+    getDocument("home"),
+  ]);
   return (
-    <>
+    <SiteSettingsProvider
+      settings={settings}
+      services={services.pillars}
+      values={values.items}
+      valuesHeader={{ heading: values.heading, intro: values.intro }}
+      home={home}
+    >
       <a
         href="#main"
         className="sr-only fixed left-3 top-3 z-110 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background focus:not-sr-only focus:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
@@ -46,6 +59,6 @@ export async function SiteChrome({ children }: { children: ReactNode }) {
           <Footer />
         </ConsentProvider>
       </ThemeProvider>
-    </>
+    </SiteSettingsProvider>
   );
 }

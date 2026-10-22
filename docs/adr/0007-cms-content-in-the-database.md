@@ -38,6 +38,8 @@ A built-in **Content Editor** role (`content:view/create/update/publish`, no del
 
 Text that is not a list of items (company settings now; SEO, About, Home, Careers, Privacy and Legal next) lives in one table, `site_content`: one row per key, the value a JSON object whose shape is a Zod schema in code. It follows the same rules as the lists: the bundled value is the fallback before the first seed, when the database fails, and when a stored document no longer matches its schema (logged, never a crash). Saving needs the `settings:update` permission, is audited, and refreshes the whole site. The database only guarantees that the key is a short lower-case name and the value an object; the application owns the rest.
 
+Editable pages are registered in `features/cms/site/registry.ts` (bundled content, Zod schema, form spec). One generic editor and one server action serve them all, so a new page of text needs no new editor code; see ADR 0008 for how the forms look. Policy pages use a small text format (paragraphs, bullets, bold, links, a few tokens) rendered as React elements, never as HTML.
+
 ## Authors
 
 Only people with a staff account can be credited. Choosing one creates (or refreshes) an author row from their profile: name and Google photo, with the byline subtitle "Software development". The id is `staff-<profile id>`, so no second list of people is kept. Bundled content keeps one internal author as its fallback; it is never offered in the editors.

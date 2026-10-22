@@ -11,7 +11,7 @@ import { ActivityTimeline } from "@/features/crm/components/activity-timeline";
 import { LeadStatusBadge } from "@/features/crm/components/badges";
 import { LeadActions } from "@/features/crm/components/lead-actions";
 import { NewTaskForm, TaskRows, TasksEmpty } from "@/features/crm/components/task-list";
-import { getServicePillar } from "@/config/services";
+import { getServices } from "@/features/cms/repository/services";
 import { listActivities } from "@/features/crm/repository/activity";
 import { getLead } from "@/features/crm/repository/leads";
 import { listStaffOptions } from "@/features/crm/repository/pipeline";
@@ -55,11 +55,13 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
   if (!found) notFound();
   const { lead, answers } = found;
 
+  const services = await getServices();
   const answered = ANSWER_LABELS.map(([key, label]) => ({
     label,
     value:
       key === "goalsCategory"
-        ? (getServicePillar(show(answers[key]))?.title ?? show(answers[key]))
+        ? (services.find((pillar) => pillar.slug === show(answers[key]))?.title ??
+          show(answers[key]))
         : show(answers[key]),
   })).filter((item) => item.value);
 

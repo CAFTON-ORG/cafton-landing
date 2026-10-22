@@ -2,11 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Save } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 import { useCan } from "@/components/dashboard/layout/staff-context";
+import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { Field } from "@/components/dashboard/shared/field";
-import { SegmentedNav } from "@/components/dashboard/shared/segmented-nav";
+import { FormActions } from "@/components/dashboard/shared/form-action-bar";
 import { Button } from "@/components/dashboard/ui/button";
 import {
   Card,
@@ -16,6 +17,14 @@ import {
   CardTitle,
 } from "@/components/dashboard/ui/card";
 import { Input } from "@/components/dashboard/ui/input";
+import { Label } from "@/components/dashboard/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { saveServiceFaqs } from "../admin/editor-actions";
@@ -49,41 +58,116 @@ export function FaqEditor({
   const current = services.find((service) => service.slug === serviceSlug);
 
   return (
-    <div className="grid gap-4">
-      <SegmentedNav
-        label="Service"
-        items={services.map((service) => ({
-          href: `/dashboard/content/faqs?service=${service.slug}`,
-          label: `${service.title} (${service.count})`,
-          active: service.slug === serviceSlug,
-        }))}
-      />
-      <form
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          setError("");
-          run(() => saveServiceFaqs({ serviceSlug, items }), {
-            success: "Saved. The questions are live.",
-            onSuccess: () => router.refresh(),
-            onFieldErrors: (errors) => setError(errors.form ?? Object.values(errors)[0] ?? ""),
-          });
-        }}
-      >
-        <fieldset disabled={!canEdit} className="contents">
+    <form
+      noValidate
+      onSubmit={(event) => {
+        event.preventDefault();
+        setError("");
+        run(() => saveServiceFaqs({ serviceSlug, items }), {
+          success: "Saved. The questions are live.",
+          onSuccess: () => router.refresh(),
+          onFieldErrors: (errors) => setError(errors.form ?? Object.values(errors)[0] ?? ""),
+        });
+      }}
+    >
+      <fieldset disabled={!canEdit || pending} className="min-w-0">
+        <EditorLayout
+          rail={
+            <>
+              {canEdit ? (
+                <FormActions
+                  description={`The questions on the ${current?.title ?? "service"} page.`}
+                  dirty={dirty}
+                  pending={pending}
+                  error={error}
+                  saveLabel="Save questions"
+                  onDiscard={() => {
+                    setItems(initial);
+                    setError("");
+                  }}
+                  links={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      nativeButton={false}
+                      render={
+                        <a
+                          href={`/services/${serviceSlug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
+                      }
+                    >
+                      <ExternalLink aria-hidden="true" /> View on the site
+                    </Button>
+                  }
+                />
+              ) : (
+                <Card>
+                  <CardContent className="text-muted-foreground text-sm">
+                    You can read these questions but not change them.
+                  </CardContent>
+                </Card>
+              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Good to know</CardTitle>
+                </CardHeader>
+                <CardContent className="text-muted-foreground grid gap-2 text-sm">
+                  <p>They appear at the bottom of the service page, in this order.</p>
+                  <p>
+                    Keep answers general: the scope decides the specifics, so promise no price or
+                    date.
+                  </p>
+                </CardContent>
+              </Card>
+            </>
+          }
+        >
           <Card>
             <CardHeader>
-              <CardTitle>{current?.title ?? "Questions"}</CardTitle>
-              <CardDescription>
-                Shown at the bottom of this service&rsquo;s page, in this order. Answers should stay
-                general: scope decides specifics, so promise no price or date.
-              </CardDescription>
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div className="min-w-0">
+                  <CardTitle>{current?.title ?? "Questions"}</CardTitle>
+                  <CardDescription>
+                    {items.length} question{items.length === 1 ? "" : "s"}
+                  </CardDescription>
+                </div>
+                <div>
+                  <Label htmlFor="faq-service" className="sr-only">
+                    Service
+                  </Label>
+                  <Select
+                    value={serviceSlug}
+                    onValueChange={(next) => {
+                      if (next === serviceSlug) return;
+                      if (dirty && !window.confirm("Leave without saving your changes?")) return;
+                      router.push(`/dashboard/content/faqs?service=${next}`);
+                    }}
+                  >
+                    <SelectTrigger id="faq-service" className="w-full sm:w-64">
+                      <SelectValue>
+                        {(value: string) => services.find((s) => s.slug === value)?.title}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {services.map((service) => (
+                        <SelectItem key={service.slug} value={service.slug}>
+                          {service.title} ({service.count})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="grid gap-4">
               <Repeater
                 label="Questions"
                 itemName="Question"
                 max={30}
+                collapsible
+                summary={(item) => item.question}
                 items={items}
                 onChange={setItems}
                 create={() => ({ question: "", answer: "" })}
@@ -108,20 +192,10 @@ export function FaqEditor({
                   </div>
                 )}
               />
-              {canEdit && (
-                <div>
-                  <Button type="submit" disabled={pending || !dirty}>
-                    <Save aria-hidden="true" /> {pending ? "Saving…" : "Save questions"}
-                  </Button>
-                  {!dirty && (
-                    <span className="text-muted-foreground ml-3 text-sm">No changes to save.</span>
-                  )}
-                </div>
-              )}
             </CardContent>
           </Card>
-        </fieldset>
-      </form>
-    </div>
+        </EditorLayout>
+      </fieldset>
+    </form>
   );
 }

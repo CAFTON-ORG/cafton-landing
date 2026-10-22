@@ -9,7 +9,7 @@ import { BackToTop } from "@/components/marketing/layout/back-to-top";
 import { resolveSocialLinks } from "@/components/marketing/layout/social-links";
 import { getSiteSettings } from "@/features/cms/repository/site";
 import { CookieSettingsButton } from "@/components/marketing/consent/cookie-settings-button";
-import { servicePillars } from "@/config/services";
+import { getServices } from "@/features/cms/repository/services";
 
 const companyLinks = [
   { href: "/about", label: "About" },
@@ -47,6 +47,7 @@ function FooterColumn({
 
 export async function Footer() {
   const settings = await getSiteSettings();
+  const servicePillars = await getServices();
   const socialLinks = resolveSocialLinks(settings.socials);
   return (
     <footer className="relative overflow-hidden border-t">

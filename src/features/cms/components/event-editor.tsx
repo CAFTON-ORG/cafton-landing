@@ -61,7 +61,7 @@ export function EventEditor({
   event?: AdminEventDetail;
   authors: AuthorOption[];
 }) {
-  const { values, set, setValues, errors, pending, dirty, submit } = useContentEditor({
+  const { values, set, setValues, errors, pending, dirty, submit, reset } = useContentEditor({
     initial: event ?? { ...BLANK, authorId: authors[0]?.id ?? "" },
     isNew: !event,
     save: (form, intent) => saveEvent({ ...form, id: event?.id || undefined }, intent),
@@ -109,9 +109,112 @@ export function EventEditor({
         e.preventDefault();
         submit("save");
       }}
-      className="grid gap-4 lg:grid-cols-[1fr_20rem]"
     >
       <EditorTabs
+        rail={
+          <>
+            <PublishPanel
+              status={values.status}
+              readiness={readiness}
+              listHref="/dashboard/content/events"
+              listLabel="Back to all events"
+              publicHref={event ? `/events/${event.slug}` : undefined}
+              pending={pending}
+              dirty={dirty}
+              isNew={!event}
+              onSubmit={submit}
+              onDiscard={reset}
+              error={errors.form}
+            />
+            <Card>
+              <CardHeader>
+                <CardTitle>Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <Field
+                  id="event-type"
+                  label="Kind of event"
+                  required
+                  error={errors.type}
+                  hint="e.g. Giveaway, Awards."
+                >
+                  <Input {...text("type")} />
+                </Field>
+                <AuthorField
+                  id="event-authorId"
+                  label="Posted by"
+                  value={values.authorId}
+                  onChange={(v) => set("authorId", v)}
+                  authors={authors}
+                  error={errors.authorId}
+                />
+                <Field
+                  id="event-startsAt"
+                  label="Starts"
+                  error={errors.startsAt}
+                  hint="Philippine time. Leave empty if not announced."
+                >
+                  <Input
+                    id="event-startsAt"
+                    type="datetime-local"
+                    value={values.startsAt}
+                    onChange={(e) => set("startsAt", e.target.value)}
+                    aria-invalid={!!errors.startsAt}
+                  />
+                </Field>
+                <Field
+                  id="event-endsAt"
+                  label="Ends"
+                  error={errors.endsAt ?? datesProblem ?? undefined}
+                >
+                  <Input
+                    id="event-endsAt"
+                    type="datetime-local"
+                    value={values.endsAt}
+                    onChange={(e) => set("endsAt", e.target.value)}
+                    aria-invalid={!!errors.endsAt || !!datesProblem}
+                  />
+                </Field>
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id="event-closed"
+                    checked={values.closed}
+                    onCheckedChange={(checked) => set("closed", checked === true)}
+                  />
+                  <Label htmlFor="event-closed" className="text-sm leading-snug font-normal">
+                    Mark as closed now, whatever the dates say
+                  </Label>
+                </div>
+                <Field
+                  id="event-campaignUrl"
+                  label="Entry form (Gleam)"
+                  error={errors.campaignUrl}
+                  hint="The public campaign address; the entry form is built from it."
+                >
+                  <Input {...text("campaignUrl")} type="url" placeholder="https://gleam.io/…" />
+                </Field>
+                <Field
+                  id="event-slug"
+                  label="Web address"
+                  required
+                  error={errors.slug}
+                  hint={`cafton.com/events/${values.slug || "…"}`}
+                >
+                  <Input
+                    id="event-slug"
+                    value={values.slug}
+                    onChange={(e) => {
+                      setSlugTouched(true);
+                      set("slug", e.target.value.toLowerCase());
+                    }}
+                    aria-invalid={!!errors.slug}
+                    autoComplete="off"
+                  />
+                </Field>
+              </CardContent>
+            </Card>
+          </>
+        }
         tabs={[
           { value: "about", label: "Event", fields: ["title", "tagline", "summary", "aboutText"] },
           { value: "prizes", label: "Prizes", fields: ["prizes"] },
@@ -430,107 +533,6 @@ export function EventEditor({
           </Card>
         </EditorTab>
       </EditorTabs>
-      <div className="grid content-start gap-4">
-        <PublishPanel
-          status={values.status}
-          readiness={readiness}
-          pending={pending}
-          dirty={dirty}
-          isNew={!event}
-          onSubmit={submit}
-          listHref="/dashboard/content/events"
-          listLabel="Back to all events"
-          publicHref={event ? `/events/${event.slug}` : undefined}
-          error={errors.form}
-        />
-        <Card>
-          <CardHeader>
-            <CardTitle>Details</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <Field
-              id="event-type"
-              label="Kind of event"
-              required
-              error={errors.type}
-              hint="e.g. Giveaway, Awards."
-            >
-              <Input {...text("type")} />
-            </Field>
-            <AuthorField
-              id="event-authorId"
-              label="Posted by"
-              value={values.authorId}
-              onChange={(v) => set("authorId", v)}
-              authors={authors}
-              error={errors.authorId}
-            />
-            <Field
-              id="event-startsAt"
-              label="Starts"
-              error={errors.startsAt}
-              hint="Philippine time. Leave empty if not announced."
-            >
-              <Input
-                id="event-startsAt"
-                type="datetime-local"
-                value={values.startsAt}
-                onChange={(e) => set("startsAt", e.target.value)}
-                aria-invalid={!!errors.startsAt}
-              />
-            </Field>
-            <Field
-              id="event-endsAt"
-              label="Ends"
-              error={errors.endsAt ?? datesProblem ?? undefined}
-            >
-              <Input
-                id="event-endsAt"
-                type="datetime-local"
-                value={values.endsAt}
-                onChange={(e) => set("endsAt", e.target.value)}
-                aria-invalid={!!errors.endsAt || !!datesProblem}
-              />
-            </Field>
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="event-closed"
-                checked={values.closed}
-                onCheckedChange={(checked) => set("closed", checked === true)}
-              />
-              <Label htmlFor="event-closed" className="text-sm leading-snug font-normal">
-                Mark as closed now, whatever the dates say
-              </Label>
-            </div>
-            <Field
-              id="event-campaignUrl"
-              label="Entry form (Gleam)"
-              error={errors.campaignUrl}
-              hint="The public campaign address; the entry form is built from it."
-            >
-              <Input {...text("campaignUrl")} type="url" placeholder="https://gleam.io/…" />
-            </Field>
-            <Field
-              id="event-slug"
-              label="Web address"
-              required
-              error={errors.slug}
-              hint={`cafton.com/events/${values.slug || "…"}`}
-            >
-              <Input
-                id="event-slug"
-                value={values.slug}
-                onChange={(e) => {
-                  setSlugTouched(true);
-                  set("slug", e.target.value.toLowerCase());
-                }}
-                aria-invalid={!!errors.slug}
-                autoComplete="off"
-              />
-            </Field>
-          </CardContent>
-        </Card>
-      </div>
     </form>
   );
 }

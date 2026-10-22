@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { Field } from "@/components/dashboard/shared/field";
 import {
   Card,
@@ -48,13 +49,14 @@ export function PostEditor({
   authors: AuthorOption[];
   categories: string[];
 }) {
-  const { values, set, setValues, errors, pending, dirty, submit, published } = useContentEditor({
-    initial: post ?? { ...BLANK, authorId: authors[0]?.id ?? "" },
-    isNew: !post,
-    save: (form, intent) => savePost({ ...form, id: post?.id || undefined }, intent),
-    editHref: (id) => `/dashboard/content/blog/${id}`,
-    listHref: "/dashboard/content/blog",
-  });
+  const { values, set, setValues, errors, pending, dirty, submit, reset, published } =
+    useContentEditor({
+      initial: post ?? { ...BLANK, authorId: authors[0]?.id ?? "" },
+      isNew: !post,
+      save: (form, intent) => savePost({ ...form, id: post?.id || undefined }, intent),
+      editHref: (id) => `/dashboard/content/blog/${id}`,
+      listHref: "/dashboard/content/blog",
+    });
   const [slugTouched, setSlugTouched] = useState(Boolean(post));
 
   const readiness = checkPublishPost({
@@ -74,9 +76,96 @@ export function PostEditor({
         event.preventDefault();
         submit("save");
       }}
-      className="grid gap-4 lg:grid-cols-[1fr_20rem]"
     >
-      <div className="grid content-start gap-4">
+      <EditorLayout
+        rail={
+          <>
+            <PublishPanel
+              status={values.status}
+              readiness={readiness}
+              listHref="/dashboard/content/blog"
+              listLabel="Back to all posts"
+              publicHref={post ? `/blog/${post.slug}` : undefined}
+              pending={pending}
+              dirty={dirty}
+              isNew={!post}
+              onSubmit={submit}
+              onDiscard={reset}
+              error={errors.form}
+            />
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <AuthorField
+                  id="post-authorId"
+                  label="Written by"
+                  value={values.authorId}
+                  onChange={(value) => set("authorId", value)}
+                  authors={authors}
+                  error={errors.authorId}
+                />
+                <Field
+                  id="post-category"
+                  label="Category"
+                  required
+                  error={errors.category}
+                  hint="Becomes a filter tab on the blog page."
+                >
+                  <Input
+                    id="post-category"
+                    value={values.category}
+                    onChange={(event) => set("category", event.target.value)}
+                    list="post-categories"
+                    autoComplete="off"
+                    aria-invalid={!!errors.category}
+                  />
+                  <datalist id="post-categories">
+                    {categories.map((category) => (
+                      <option key={category} value={category} />
+                    ))}
+                  </datalist>
+                </Field>
+                <Field id="post-date" label="Post date" required error={errors.date}>
+                  <Input
+                    id="post-date"
+                    type="date"
+                    value={values.date}
+                    onChange={(event) => set("date", event.target.value)}
+                    aria-invalid={!!errors.date}
+                  />
+                </Field>
+                <Field
+                  id="post-slug"
+                  label="Web address"
+                  required
+                  error={errors.slug}
+                  hint={`cafton.com/blog/${values.slug || "…"}`}
+                >
+                  <Input
+                    id="post-slug"
+                    value={values.slug}
+                    onChange={(event) => {
+                      setSlugTouched(true);
+                      set("slug", event.target.value.toLowerCase());
+                    }}
+                    aria-invalid={!!errors.slug}
+                    autoComplete="off"
+                  />
+                </Field>
+                {post && published && values.slug !== post.slug && (
+                  <p className="bg-muted text-muted-foreground rounded-lg px-3 py-2 text-xs">
+                    Changing the address of a live post breaks links people already have. Only do it
+                    if you must.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        }
+      >
         <Card>
           <CardHeader>
             <CardTitle>Article</CardTitle>
@@ -156,92 +245,7 @@ export function PostEditor({
             />
           </CardContent>
         </Card>
-      </div>
-
-      <div className="grid content-start gap-4">
-        <PublishPanel
-          status={values.status}
-          readiness={readiness}
-          pending={pending}
-          dirty={dirty}
-          isNew={!post}
-          onSubmit={submit}
-          listHref="/dashboard/content/blog"
-          listLabel="Back to all posts"
-          publicHref={post ? `/blog/${post.slug}` : undefined}
-          error={errors.form}
-        />
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Details</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <AuthorField
-              id="post-authorId"
-              label="Written by"
-              value={values.authorId}
-              onChange={(value) => set("authorId", value)}
-              authors={authors}
-              error={errors.authorId}
-            />
-            <Field
-              id="post-category"
-              label="Category"
-              required
-              error={errors.category}
-              hint="Becomes a filter tab on the blog page."
-            >
-              <Input
-                id="post-category"
-                value={values.category}
-                onChange={(event) => set("category", event.target.value)}
-                list="post-categories"
-                autoComplete="off"
-                aria-invalid={!!errors.category}
-              />
-              <datalist id="post-categories">
-                {categories.map((category) => (
-                  <option key={category} value={category} />
-                ))}
-              </datalist>
-            </Field>
-            <Field id="post-date" label="Post date" required error={errors.date}>
-              <Input
-                id="post-date"
-                type="date"
-                value={values.date}
-                onChange={(event) => set("date", event.target.value)}
-                aria-invalid={!!errors.date}
-              />
-            </Field>
-            <Field
-              id="post-slug"
-              label="Web address"
-              required
-              error={errors.slug}
-              hint={`cafton.com/blog/${values.slug || "…"}`}
-            >
-              <Input
-                id="post-slug"
-                value={values.slug}
-                onChange={(event) => {
-                  setSlugTouched(true);
-                  set("slug", event.target.value.toLowerCase());
-                }}
-                aria-invalid={!!errors.slug}
-                autoComplete="off"
-              />
-            </Field>
-            {post && published && values.slug !== post.slug && (
-              <p className="bg-muted text-muted-foreground rounded-lg px-3 py-2 text-xs">
-                Changing the address of a live post breaks links people already have. Only do it if
-                you must.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      </EditorLayout>
     </form>
   );
 }

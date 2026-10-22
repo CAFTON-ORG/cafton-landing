@@ -9,7 +9,7 @@ import { useCanShow3D } from "@/components/marketing/three/use-can-show-3d";
 import { useNearViewport } from "@/hooks/use-near-viewport";
 import { onHeroReady } from "@/components/marketing/motion/hero-ready";
 import { CanvasErrorBoundary } from "@/components/marketing/three/canvas-error-boundary";
-import { coreValues as values } from "@/config/values";
+import { useCoreValues, useValuesHeader } from "@/providers/site-settings";
 import { cn } from "@/lib/utils";
 
 const DifferentiatorsMark = dynamic(
@@ -30,6 +30,8 @@ const HALO = "[text-shadow:0_0_24px_var(--background),0_0_8px_var(--background)]
 
 /** Fallback for reduced-motion / no-WebGL visitors: the same six values as the About page, as a plain list. */
 function StaticDifferentiators() {
+  const values = useCoreValues();
+  const header = useValuesHeader();
   return (
     <section id="why-cafton" className="relative border-t py-14 sm:py-16 lg:py-20">
       <PageShell className="relative grid gap-12 lg:grid-cols-[1fr_2fr] lg:gap-24">
@@ -38,11 +40,10 @@ function StaticDifferentiators() {
             Why Cafton
           </p>
           <h2 className="mt-4 text-balance text-3xl font-bold tracking-tight sm:text-5xl">
-            What guides our work.
+            {header.heading}
           </h2>
           <p className="mt-5 max-w-sm text-muted-foreground">
-            Six commitments we hold ourselves to, on every project and in
-            every conversation.
+            {header.intro}
           </p>
         </Reveal>
 
@@ -73,9 +74,10 @@ function StaticDifferentiators() {
   );
 }
 
-const HOLD_SEGMENTS = values.length + 1;
-
 function ScrollDifferentiators() {
+  const values = useCoreValues();
+  const header = useValuesHeader();
+  const HOLD_SEGMENTS = values.length + 1;
   const sectionRef = useRef<HTMLElement>(null);
   const progress = useRef(0);
   const lastIndex = useRef(0);
@@ -154,7 +156,7 @@ function ScrollDifferentiators() {
       window.removeEventListener("resize", onResize);
       if (frame) cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [HOLD_SEGMENTS, values.length]);
 
   const active = values[activeIndex];
   const number = String(activeIndex + 1).padStart(2, "0");
@@ -167,7 +169,7 @@ function ScrollDifferentiators() {
       // One viewport of scrolling per value, so each gets its moment.
       style={{ height: `${values.length * 100}svh` }}
     >
-      <h2 className="sr-only">What guides our work</h2>
+      <h2 className="sr-only">{header.heading.replace(/\.$/, "")}</h2>
 
       {/* svh so the pinned stage (and its canvas) keeps one size while a phone's toolbar collapses. */}
       <div className="sticky top-16 h-[calc(100svh-4rem)] overflow-hidden border-y">

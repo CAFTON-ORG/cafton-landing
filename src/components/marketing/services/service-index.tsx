@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, type ComponentType, type SVGProps } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
@@ -11,7 +12,7 @@ import {
   OperationsIllustration,
   ProductBuildsIllustration,
 } from "@/components/marketing/services/pillar-illustrations";
-import { servicePillars } from "@/config/services";
+import { useServicePillars } from "@/providers/site-settings";
 import { cn } from "@/lib/utils";
 
 /** Visual order -- distinct from `servicePillars`' own order, which matches the contact form's Goals step. */
@@ -23,10 +24,6 @@ const ILLUSTRATIONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   "industry-platforms": IndustryPlatformsIllustration,
   "product-builds": ProductBuildsIllustration,
 };
-
-const pillars = ORDER.map((slug) =>
-  servicePillars.find((pillar) => pillar.slug === slug),
-).filter((pillar): pillar is NonNullable<typeof pillar> => Boolean(pillar));
 
 interface ServiceIndexProps {
   /** Homepage teaser: tighter rows, no list of the systems inside. */
@@ -42,6 +39,10 @@ interface ServiceIndexProps {
  * alone.
  */
 export function ServiceIndex({ compact = false }: ServiceIndexProps) {
+  const servicePillars = useServicePillars();
+  const pillars = ORDER.map((slug) => servicePillars.find((pillar) => pillar.slug === slug)).filter(
+    (pillar): pillar is NonNullable<typeof pillar> => Boolean(pillar),
+  );
   const [active, setActive] = useState(0);
   const current = pillars[active];
   const Illustration = ILLUSTRATIONS[current.slug];
@@ -119,7 +120,17 @@ export function ServiceIndex({ compact = false }: ServiceIndexProps) {
               key={current.slug}
               className="absolute inset-0 animate-in fade-in duration-500 motion-reduce:animate-none"
             >
-              <Illustration className="size-full" />
+              {current.image ? (
+                <Image
+                  src={current.image}
+                  alt={current.imageAlt ?? ""}
+                  fill
+                  sizes="(min-width: 1024px) 40vw, 100vw"
+                  className="object-cover"
+                />
+              ) : (
+                <Illustration className="size-full" />
+              )}
             </div>
             <span aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-3 border-l border-t border-foreground/60" />
             <span aria-hidden="true" className="pointer-events-none absolute right-3 top-3 size-3 border-r border-t border-foreground/60" />

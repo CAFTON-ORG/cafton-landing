@@ -95,6 +95,9 @@ A piece of content is a draft until it is published. Only published content is o
 **Content Editor**:
 The built-in role that writes and publishes the website's content but cannot delete it or touch anything else.
 
+**Page content**:
+The wording of a fixed page of the website (About, Home, Services, Careers, Contact, Privacy, Legal), edited under Website > Content > Pages.
+
 **Site settings**:
 The company facts shown across the public site: description, slogan, contact email, location, booking link, badges and social links. Edited under Website settings.
 

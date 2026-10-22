@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { getServicePillar } from "@/config/services";
+import { useServicePillar } from "@/providers/site-settings";
 
 interface GoalsSystemsStepProps {
   goalsCategory: string;
@@ -15,7 +15,7 @@ export function GoalsSystemsStep({
   onToggle,
   error,
 }: GoalsSystemsStepProps) {
-  const pillar = getServicePillar(goalsCategory);
+  const pillar = useServicePillar(goalsCategory);
 
   // Guarded by the "goalsArea" step's own validation before this one is
   // ever reachable -- this is a defensive fallback, not an expected path.

@@ -92,10 +92,10 @@ HubSpot is dropped: the contact form writes to our database and the dashboard is
 
 ## Phase 4 - Sales
 
-- [ ] Service/product catalog with pricing models (fixed, hourly, retainer), tax category
-- [ ] Quotes: builder, numbering, versions, approval rule, PDF (react-pdf), email send, public accept link
+- [x] Service/product catalog with pricing models (fixed, hourly, retainer) and VAT on or off per item
+- [x] Quotes: builder with live totals, numbering (QT-2026-0001), versions, approval above P250,000 by a second person, PDF (react-pdf), email with the PDF, a secret public link to accept or decline with an e-acceptance record, frozen once accepted
 - [ ] Contracts/SOW templates and e-acceptance record
-- [ ] Won quote creates Project (Phase 5) and invoice schedule (Phase 6) via domain events, not direct imports
+- [ ] Won quote creates Project (Phase 5) and invoice schedule (Phase 6) via domain events, not direct imports (the event bus and the `quote.accepted` event exist; the Delivery and Finance handlers come with those phases)
 - [ ] Sales dashboard: pipeline value, win rate, cycle time, per-owner targets
 - Done when: a deal produces a sent, accepted, auditable quote.
 

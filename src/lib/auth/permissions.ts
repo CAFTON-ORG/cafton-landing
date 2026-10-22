@@ -70,6 +70,21 @@ export const RESOURCES = {
     label: "Pipelines",
     actions: { view: "View pipelines", manage: "Create and edit pipelines and their stages" },
   },
+  catalog: {
+    label: "Services and prices",
+    actions: { view: "View the catalog", manage: "Add and edit services, products and prices" },
+  },
+  quotes: {
+    label: "Quotes",
+    actions: {
+      view: "View quotes",
+      create: "Make quotes and new versions",
+      update: "Edit draft quotes and submit them",
+      approve: "Approve quotes over the approval limit",
+      send: "Send quotes to clients",
+      delete: "Delete draft quotes",
+    },
+  },
   meetings: {
     label: "Meetings",
     actions: {
@@ -150,6 +165,8 @@ const ADMINISTRATION: Permission[] = [
   "roles:view",
   "roles:manage",
   "pipelines:manage",
+  "quotes:approve",
+  "catalog:manage",
   "audit:view",
   "settings:update",
   "owners:manage",

@@ -33,6 +33,9 @@ import { listStages, listStaffOptions } from "@/features/crm/repository/pipeline
 import { listTagOptions } from "@/features/crm/repository/tags";
 import { listTasksFor } from "@/features/crm/repository/tasks";
 import { checkAddTaskToDeal } from "@/features/crm/rules";
+import { DealQuotesPanel } from "@/features/sales/components/deal-quotes-panel";
+import { listQuotesForDeal } from "@/features/sales/repository";
+import { can } from "@/lib/auth/dal";
 import { MeetingsPanel } from "@/features/schedule/components/meetings-panel";
 import { listMeetingsFor } from "@/features/schedule/repository";
 import { actorId } from "@/lib/actions";
@@ -53,18 +56,29 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
   if (!deal) notFound();
 
   // The rest is asked for at once: each round trip to the database is slow.
-  const [stages, activities, tasks, contacts, organizations, people, meetings, tagOptions, origin] =
-    await Promise.all([
-      listStages(deal.pipelineId),
-      listActivities({ dealId: id }),
-      listTasksFor({ dealId: id }),
-      listContactOptions(),
-      listOrganizationOptions(),
-      listStaffOptions(),
-      listMeetingsFor({ dealId: id }),
-      listTagOptions("deal"),
-      deal.leadId ? getLead(deal.leadId) : Promise.resolve(null),
-    ]);
+  const [
+    stages,
+    activities,
+    tasks,
+    contacts,
+    organizations,
+    people,
+    meetings,
+    tagOptions,
+    origin,
+    quotes,
+  ] = await Promise.all([
+    listStages(deal.pipelineId),
+    listActivities({ dealId: id }),
+    listTasksFor({ dealId: id }),
+    listContactOptions(),
+    listOrganizationOptions(),
+    listStaffOptions(),
+    listMeetingsFor({ dealId: id }),
+    listTagOptions("deal"),
+    deal.leadId ? getLead(deal.leadId) : Promise.resolve(null),
+    can(staff, "quotes:view") ? listQuotesForDeal(id) : Promise.resolve([]),
+  ]);
   const services = origin ? await getServices() : [];
   const canAddTask = !checkAddTaskToDeal({
     stageKind: deal.stageKind,
@@ -171,6 +185,12 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
+            {can(staff, "quotes:view") && (
+              <TabsTrigger value="quotes">
+                Quotes
+                <TabCount n={quotes.filter((q) => q.status !== "superseded").length} />
+              </TabsTrigger>
+            )}
             <TabsTrigger value="tasks">
               Tasks
               <TabCount n={openTasks} />
@@ -220,6 +240,12 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
               currentUserId={actorId(staff) ?? undefined}
             />
           </TabsContent>
+
+          {can(staff, "quotes:view") && (
+            <TabsContent value="quotes" className="mt-4">
+              <DealQuotesPanel dealId={id} quotes={quotes} closedLost={deal.stageKind === "lost"} />
+            </TabsContent>
+          )}
 
           <TabsContent value="tasks" className="mt-4">
             <Card>

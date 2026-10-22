@@ -36,6 +36,10 @@ async function recordIds() {
     post: await one("SELECT id FROM blog_posts ORDER BY date DESC LIMIT 1"),
     project: await one("SELECT id FROM portfolio_projects ORDER BY position LIMIT 1"),
     event: await one("SELECT id FROM events ORDER BY position LIMIT 1"),
+    quote: await one("SELECT id FROM quotes WHERE status = 'draft' LIMIT 1"),
+    sentQuote: (
+      await client.query("SELECT public_token AS id FROM quotes WHERE status = 'sent' LIMIT 1")
+    ).rows[0]?.id,
     partner: await one("SELECT id FROM partners WHERE featured LIMIT 1"),
   };
   await client.end();
@@ -58,6 +62,10 @@ const PAGES = [
   ["organization-detail", `/dashboard/crm/organizations/${ids.org}`],
   ["tasks", "/dashboard/crm/tasks"],
   ["pipelines", "/dashboard/crm/pipelines"],
+  ["quotes", "/dashboard/sales/quotes"],
+  ["quote-detail", `/dashboard/sales/quotes/${ids.quote}`],
+  ["catalog", "/dashboard/sales/catalog"],
+  ["public-quote", `/q/${ids.sentQuote}`],
   ["duplicates", "/dashboard/crm/duplicates"],
   ["schedule", "/dashboard/crm/schedule"],
   ["schedule-week", "/dashboard/crm/schedule?view=week"],

@@ -279,6 +279,7 @@ model Deal {
   meetings     Meeting[]
   /// Free-form labels, lower case, for filtering and grouping.
   tags         String[]      @default([])
+  quotes       Quote[]
 
   @@index([stageId])
   @@index([contactId])
@@ -665,4 +666,118 @@ model Notification {
 
   @@index([userId, readAt, createdAt(sort: Desc)])
   @@map("notifications")
+}
+
+enum PricingModel {
+  fixed
+  hourly
+  retainer
+
+  @@map("pricing_model")
+}
+
+enum QuoteStatus {
+  draft
+  pending_approval
+  approved
+  sent
+  accepted
+  declined
+  expired
+  superseded
+
+  @@map("quote_status")
+}
+
+/// What we sell: a service or product with a price and how it is charged.
+model CatalogItem {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  description    String?
+  pricingModel   PricingModel @default(fixed) @map("pricing_model")
+  /// Integer minor units (centavos) per unit.
+  unitPriceMinor BigInt       @map("unit_price_minor")
+  /// What one unit is: "project", "hour", "month".
+  unitLabel      String       @default("project") @map("unit_label")
+  /// Whether VAT is added to it.
+  taxable        Boolean      @default(true)
+  active         Boolean      @default(true)
+  createdBy      String?      @map("created_by") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lines QuoteLine[]
+
+  @@index([active, name])
+  @@map("catalog_items")
+}
+
+/// A priced offer for a deal. A revision is a new row with the next version number.
+model Quote {
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// "QT-2026-0001". Every version of one quote shares it.
+  reference          String
+  version            Int         @default(1)
+  dealId             String      @map("deal_id") @db.Uuid
+  title              String
+  intro              String?
+  terms              String?
+  currency           String      @default("PHP")
+  status             QuoteStatus @default(draft)
+  /// Percent VAT applied to taxable lines, frozen when the quote is made.
+  taxRatePct         Int         @default(12) @map("tax_rate_pct")
+  subtotalMinor      BigInt      @default(0) @map("subtotal_minor")
+  taxMinor           BigInt      @default(0) @map("tax_minor")
+  totalMinor         BigInt      @default(0) @map("total_minor")
+  validUntil         DateTime?   @map("valid_until") @db.Date
+  /// Secret in the public link; set when the quote is first sent.
+  publicToken        String?     @unique @map("public_token")
+  approvedBy         String?     @map("approved_by") @db.Uuid
+  approvedAt         DateTime?   @map("approved_at") @db.Timestamptz(6)
+  sentAt             DateTime?   @map("sent_at") @db.Timestamptz(6)
+  sentTo             String?     @map("sent_to")
+  viewedAt           DateTime?   @map("viewed_at") @db.Timestamptz(6)
+  acceptedAt         DateTime?   @map("accepted_at") @db.Timestamptz(6)
+  /// The e-acceptance record: who typed their name, from where, and what they agreed to.
+  acceptedByName     String?     @map("accepted_by_name")
+  acceptedByEmail    String?     @map("accepted_by_email")
+  acceptedIp         String?     @map("accepted_ip")
+  acceptedUserAgent  String?     @map("accepted_user_agent")
+  acceptedTotalMinor BigInt?     @map("accepted_total_minor")
+  declinedAt         DateTime?   @map("declined_at") @db.Timestamptz(6)
+  declinedReason     String?     @map("declined_reason")
+  createdBy          String?     @map("created_by") @db.Uuid
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  deal  Deal        @relation(fields: [dealId], references: [id], onDelete: Restrict)
+  lines QuoteLine[]
+
+  @@unique([reference, version])
+  @@index([dealId])
+  @@index([status])
+  @@map("quotes")
+}
+
+model QuoteLine {
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quoteId        String  @map("quote_id") @db.Uuid
+  position       Int
+  catalogItemId  String? @map("catalog_item_id") @db.Uuid
+  description    String
+  /// Quantity in thousandths (1.5 hours = 1500), so no floating point.
+  quantityMilli  Int     @map("quantity_milli")
+  unitLabel      String  @default("unit") @map("unit_label")
+  unitPriceMinor BigInt  @map("unit_price_minor")
+  /// Discount in whole percent, 0 to 100.
+  discountPct    Int     @default(0) @map("discount_pct")
+  taxable        Boolean @default(true)
+  /// Line total after discount, before tax.
+  totalMinor     BigInt  @map("total_minor")
+
+  quote Quote        @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  item  CatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId, position])
+  @@map("quote_lines")
 }

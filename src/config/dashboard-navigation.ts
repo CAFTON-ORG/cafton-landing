@@ -1,6 +1,8 @@
 import {
   Building2,
   CalendarDays,
+  FileSignature,
+  PackageOpen,
   Workflow,
   Contact,
   FileText,
@@ -215,6 +217,25 @@ export const navGroups: NavGroup[] = [
     ],
   },
   {
+    label: "Sales",
+    items: [
+      {
+        href: "/dashboard/sales/quotes",
+        label: "Quotes",
+        icon: FileSignature,
+        permission: "quotes:view",
+        keywords: ["proposal", "estimate", "offer", "price", "accept"],
+      },
+      {
+        href: "/dashboard/sales/catalog",
+        label: "Catalog",
+        icon: PackageOpen,
+        permission: "catalog:view",
+        keywords: ["services", "products", "prices", "rates", "pricing"],
+      },
+    ],
+  },
+  {
     label: "Administration",
     items: [
       {
@@ -256,6 +277,7 @@ export const navItems = navGroups.flatMap((group) => leavesOf(group.items));
 export const segmentLabels: Record<string, string> = {
   dashboard: "Overview",
   crm: "CRM",
+  sales: "Sales",
   content: "Website",
   seo: "Search and sharing",
   settings: "Settings",

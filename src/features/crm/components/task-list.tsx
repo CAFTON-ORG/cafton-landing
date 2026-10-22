@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { Person } from "@/components/dashboard/shared/person";
+import { DatePicker } from "@/components/dashboard/shared/date-picker";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { ListChecks, Plus, Trash2 } from "lucide-react";
 
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { useCan } from "@/components/dashboard/layout/staff-context";
@@ -46,7 +48,13 @@ export function TaskRows({ tasks, showSubject }: { tasks: TaskView[]; showSubjec
             <p className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
               <UrgencyBadge dueAt={task.dueAt} doneAt={task.doneAt} />
               {task.dueAt && !task.doneAt && <span>{formatDate(task.dueAt)}</span>}
-              {task.assigneeName && <span>{task.assigneeName}</span>}
+              {task.assigneeName && (
+                <Person
+                  name={task.assigneeName}
+                  avatarUrl={task.assigneeAvatar}
+                  className="text-foreground/80"
+                />
+              )}
               {showSubject && task.subject && (
                 <Link
                   href={`${HREF[task.subject.kind]}/${task.subject.id}`}
@@ -122,12 +130,12 @@ export function NewTaskForm({
           placeholder="Add a task, e.g. Send the proposal"
         />
         <div className={cn("grid grid-cols-2 gap-2", layout === "inline" && "contents")}>
-          <Input
-            type="date"
+          <DatePicker
             value={due}
-            onChange={(event) => setDue(event.target.value)}
-            aria-label="Due date"
-            className={layout === "inline" ? "sm:w-40" : undefined}
+            onChange={setDue}
+            placeholder="Due date"
+            clearable
+            className={layout === "inline" ? "sm:w-44" : undefined}
           />
           <PersonSelect
             value={assignee}
@@ -161,5 +169,5 @@ export function TasksEmpty({
   title?: string;
   description: string;
 }) {
-  return <EmptyState title={title} description={description} className="py-8" />;
+  return <EmptyState compact icon={ListChecks} title={title} description={description} />;
 }

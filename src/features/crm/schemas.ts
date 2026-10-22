@@ -66,6 +66,8 @@ export const dealSchema = z.object({
   contactId: z.string().min(1, "Choose a contact."),
   organizationId: optionalId,
   ownerId: optionalId,
+  /** The pipeline to start in; the default pipeline when left out. */
+  pipelineId: optionalId,
   /** Pesos as typed by a person; stored as integer centavos. */
   amount: amountField,
   expectedCloseDate: optionalDate,

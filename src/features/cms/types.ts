@@ -403,3 +403,28 @@ export interface ContactContent {
   expect: { heading: string; text: string; note: string };
   faqHeading: string;
 }
+
+/* ------------------------------------------------------------------ booking */
+
+export interface BookingDay {
+  open: boolean;
+  /** 24-hour "HH:MM", Philippine time. */
+  start: string;
+  end: string;
+}
+
+/** When a call can be booked. Index 0 of `hours` is Sunday. */
+export interface BookingSettings {
+  enabled: boolean;
+  autoConfirm: boolean;
+  slotMinutes: number;
+  bufferMinutes: number;
+  minNoticeHours: number;
+  maxDaysAhead: number;
+  hours: BookingDay[];
+  blockedDates: { date: string; reason: string }[];
+  videoLink: string;
+  phoneNumber: string;
+  office: string;
+  intro: string;
+}

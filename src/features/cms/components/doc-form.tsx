@@ -17,7 +17,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/dashboard/ui/card";
+import { Checkbox } from "@/components/dashboard/ui/checkbox";
 import { Input } from "@/components/dashboard/ui/input";
+import { Label } from "@/components/dashboard/ui/label";
 import {
   Select,
   SelectContent,
@@ -26,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
+import type { Permission } from "@/lib/auth/permissions";
 import { useServerAction } from "@/hooks/use-server-action";
 import { saveSiteDocument } from "../admin/document-actions";
 import { listFromText, textFromList } from "../rules";
@@ -136,6 +139,45 @@ function FieldView({
           onChange={onChange}
         />
       );
+    case "number":
+      return (
+        <Field id={id} label={spec.label} hint={spec.hint} error={error}>
+          <Input
+            id={id}
+            type="number"
+            inputMode="numeric"
+            min={spec.min}
+            max={spec.max}
+            step={spec.step}
+            value={value === undefined || value === null ? "" : String(value)}
+            aria-invalid={!!error}
+            onChange={(event) =>
+              onChange(event.target.value === "" ? "" : Number(event.target.value))
+            }
+          />
+        </Field>
+      );
+    case "checkbox":
+      return (
+        <div className="grid gap-1">
+          <div className="flex items-start gap-2 py-0.5">
+            <Checkbox
+              id={id}
+              checked={value === true}
+              onCheckedChange={(checked) => onChange(checked === true)}
+            />
+            <Label htmlFor={id} className="text-sm leading-snug font-normal">
+              {spec.label}
+            </Label>
+          </div>
+          {spec.hint && <p className="text-muted-foreground ml-6 text-xs">{spec.hint}</p>}
+          {error && (
+            <p role="alert" className="text-destructive ml-6 text-sm">
+              {error}
+            </p>
+          )}
+        </div>
+      );
     case "select":
       return (
         <Field id={id} label={spec.label} hint={spec.hint} error={error}>
@@ -180,6 +222,7 @@ function FieldView({
           itemName={spec.itemName}
           max={spec.max}
           fixed={spec.fixed}
+          itemLabels={spec.itemLabels}
           collapsible={!!spec.summary}
           summary={(item) => String(item[spec.summary ?? ""] ?? "")}
           forceOpen={(index) =>
@@ -245,11 +288,11 @@ function Fields({
 export function DocForm({
   spec,
   initial,
-  permission = "content:update",
+  permission = "content:update" as Permission,
 }: {
   spec: DocSpec;
   initial: Obj;
-  permission?: "content:update" | "settings:update";
+  permission?: Permission;
 }) {
   const router = useRouter();
   const canEdit = useCan(permission);

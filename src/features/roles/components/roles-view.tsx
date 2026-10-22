@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { Lock, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { useCan, useStaff } from "@/components/dashboard/layout/staff-context";
+import { useCan } from "@/components/dashboard/layout/staff-context";
 import { ConfirmDialog } from "@/components/dashboard/shared/confirm-dialog";
 import { Badge } from "@/components/dashboard/ui/badge";
 import { Button } from "@/components/dashboard/ui/button";
@@ -18,12 +19,9 @@ import {
 import { checkDeletable } from "../rules";
 import { deleteRole } from "../actions";
 import type { RoleSummary } from "../types";
-import { RoleEditor } from "./role-editor";
 
 export function RolesView({ roles }: { roles: RoleSummary[] }) {
-  const { permissions } = useStaff();
   const canManage = useCan("roles:manage");
-  const [editing, setEditing] = useState<RoleSummary | "new" | null>(null);
   const [deleting, setDeleting] = useState<RoleSummary | null>(null);
   const [pending, start] = useTransition();
 
@@ -45,7 +43,7 @@ export function RolesView({ roles }: { roles: RoleSummary[] }) {
     <div className="grid gap-4">
       {canManage && (
         <div className="flex justify-end">
-          <Button onClick={() => setEditing("new")}>
+          <Button nativeButton={false} render={<Link href="/dashboard/roles/new" />}>
             <Plus aria-hidden="true" /> New role
           </Button>
         </div>
@@ -77,8 +75,9 @@ export function RolesView({ roles }: { roles: RoleSummary[] }) {
                     <Button
                       variant="ghost"
                       size="icon"
+                      nativeButton={false}
+                      render={<Link href={`/dashboard/roles/${role.id}`} />}
                       aria-label={`${role.isSystem || !canManage ? "View" : "Edit"} ${role.name}`}
-                      onClick={() => setEditing(role)}
                     >
                       <Pencil aria-hidden="true" />
                     </Button>
@@ -101,17 +100,6 @@ export function RolesView({ roles }: { roles: RoleSummary[] }) {
           );
         })}
       </ul>
-
-      {/* Remounted per role so the form starts from that role's values. */}
-      {editing && (
-        <RoleEditor
-          key={editing === "new" ? "new" : editing.id}
-          role={editing === "new" ? null : canManage ? editing : { ...editing, isSystem: true }}
-          open
-          onOpenChange={(open) => !open && setEditing(null)}
-          held={permissions}
-        />
-      )}
 
       <ConfirmDialog
         open={!!deleting}

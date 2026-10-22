@@ -7,6 +7,7 @@ import { Field } from "@/components/dashboard/shared/field";
 import { Button } from "@/components/dashboard/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -95,55 +96,61 @@ export function ContactDialog({
       }}
     >
       <DialogTrigger render={trigger as React.ReactElement} />
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
-        <form onSubmit={submit} noValidate className="grid gap-4">
+      <DialogContent scrollable className="sm:max-w-xl">
+        <form onSubmit={submit} noValidate className="flex min-h-0 flex-1 flex-col">
           <DialogHeader>
             <DialogTitle>{contact ? "Edit contact" : "Add a contact"}</DialogTitle>
             <DialogDescription>
               People you do business with. Email addresses are unique.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="contact-firstName" label="First name" required error={errors.firstName}>
-              <Input {...input("firstName")} autoComplete="off" />
+          <DialogBody className="grid gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="contact-firstName" label="First name" required error={errors.firstName}>
+                <Input {...input("firstName")} autoComplete="off" />
+              </Field>
+              <Field id="contact-lastName" label="Last name" required error={errors.lastName}>
+                <Input {...input("lastName")} autoComplete="off" />
+              </Field>
+            </div>
+            <Field id="contact-email" label="Email" required error={errors.email}>
+              <Input {...input("email")} type="email" autoComplete="off" />
             </Field>
-            <Field id="contact-lastName" label="Last name" required error={errors.lastName}>
-              <Input {...input("lastName")} autoComplete="off" />
-            </Field>
-          </div>
-          <Field id="contact-email" label="Email" required error={errors.email}>
-            <Input {...input("email")} type="email" autoComplete="off" />
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="contact-phone" label="Phone" error={errors.phone}>
-              <Input {...input("phone")} type="tel" />
-            </Field>
-            <Field id="contact-position" label="Role or title" error={errors.position}>
-              <Input {...input("position")} />
-            </Field>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="contact-organizationId" label="Organization">
-              <PersonSelect
-                id="contact-organizationId"
-                value={values.organizationId}
-                onChange={set("organizationId")}
-                people={organizations}
-                noneLabel="No organization"
-              />
-            </Field>
-            <Field id="contact-ownerId" label="Owner">
-              <PersonSelect
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="contact-phone" label="Phone" error={errors.phone}>
+                <Input {...input("phone")} type="tel" />
+              </Field>
+              <Field id="contact-position" label="Role or title" error={errors.position}>
+                <Input {...input("position")} />
+              </Field>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="contact-organizationId" label="Organization">
+                <PersonSelect
+                  id="contact-organizationId"
+                  value={values.organizationId}
+                  onChange={set("organizationId")}
+                  people={organizations}
+                  noneLabel="No organization"
+                />
+              </Field>
+              <Field
                 id="contact-ownerId"
-                value={values.ownerId}
-                onChange={set("ownerId")}
-                people={people}
-              />
+                label="Owner"
+                hint="The teammate responsible for this contact."
+              >
+                <PersonSelect
+                  id="contact-ownerId"
+                  value={values.ownerId}
+                  onChange={set("ownerId")}
+                  people={people}
+                />
+              </Field>
+            </div>
+            <Field id="contact-notes" label="Notes" error={errors.notes}>
+              <Textarea {...input("notes")} rows={3} />
             </Field>
-          </div>
-          <Field id="contact-notes" label="Notes" error={errors.notes}>
-            <Textarea {...input("notes")} rows={3} />
-          </Field>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"

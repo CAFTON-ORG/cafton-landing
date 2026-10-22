@@ -8,6 +8,7 @@ export type StepId =
   | "challenges"
   | "goalsArea"
   | "goalsSystems"
+  | "schedule"
   | "final";
 
 export interface Step {
@@ -22,7 +23,11 @@ export interface Step {
  * split in two (area, then that area's systems) so a visitor only ever
  * sees one pillar's checkboxes at a time instead of all ~19 at once.
  */
-export function buildSteps(buildingFor: ContactFormData["buildingFor"]): Step[] {
+export function buildSteps(
+  buildingFor: ContactFormData["buildingFor"],
+  /** Show the optional "Schedule a call" step. */
+  canBook = false,
+): Step[] {
   const steps: Step[] = [{ id: "personal", label: "Personal Information" }];
   if (buildingFor === "An existing business") {
     steps.push({ id: "business", label: "Business Information" });
@@ -31,7 +36,8 @@ export function buildSteps(buildingFor: ContactFormData["buildingFor"]): Step[] 
     { id: "challenges", label: "Your Challenges" },
     { id: "goalsArea", label: "Your Goals" },
     { id: "goalsSystems", label: "Your Goals" },
-    { id: "final", label: "Final Details" },
   );
+  if (canBook) steps.push({ id: "schedule", label: "Schedule a Call" });
+  steps.push({ id: "final", label: "Final Details" });
   return steps;
 }

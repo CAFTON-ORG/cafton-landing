@@ -26,6 +26,8 @@ const schema = z.object({
   // Platform: email
   RESEND_API_KEY: optionalString,
   MAIL_FROM: optionalString,
+  // Platform: scheduled jobs (the secret the scheduler sends to /api/cron/*)
+  CRON_SECRET: optionalString,
 
   // Platform: site
   SITE_URL: z.url().optional(),

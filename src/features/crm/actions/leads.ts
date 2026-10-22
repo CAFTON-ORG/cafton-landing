@@ -1,6 +1,7 @@
 "use server";
 
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
+import { notify } from "@/features/notifications/server";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { parseMinor } from "@/lib/money";
@@ -50,6 +51,16 @@ export async function assignLead(id: string, ownerId: string | null): Promise<Ac
         tx,
       );
     });
+    await notify(
+      [ownerId],
+      {
+        kind: "lead.assigned",
+        title: `${lead.reference} was assigned to you`,
+        body: fullName(lead),
+        href: `/dashboard/crm/leads/${id}`,
+      },
+      actorId(actor),
+    );
     refreshCrm();
   });
 }

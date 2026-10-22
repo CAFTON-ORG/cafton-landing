@@ -17,6 +17,8 @@ export type TableParams = {
 export type TableParamsConfig = {
   /** Allowed values per filter; anything else in the URL is ignored. */
   filters?: Record<string, readonly string[]>;
+  /** Filters that accept any short value (for example a tag), not a fixed list. */
+  free?: readonly string[];
   /** Sortable column ids. */
   sortable: readonly string[];
   defaultSort: { sort: string; dir: SortDirection };
@@ -38,6 +40,10 @@ export function parseTableParams(
   for (const [id, allowed] of Object.entries(config.filters ?? {})) {
     const value = searchParams.get(id) ?? "";
     filters[id] = allowed.includes(value) ? value : "";
+  }
+
+  for (const id of config.free ?? []) {
+    filters[id] = (searchParams.get(id) ?? "").trim().toLowerCase().slice(0, 40);
   }
 
   const validSort = config.sortable.includes(sort);

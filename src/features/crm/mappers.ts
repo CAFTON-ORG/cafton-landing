@@ -3,7 +3,14 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { fullName } from "./rules";
-import type { ContactView, DealView, LeadView, OrganizationView, StageView } from "./types";
+import type {
+  ContactView,
+  DealView,
+  LeadView,
+  OrganizationView,
+  PersonRef,
+  StageView,
+} from "./types";
 
 /** Soft-deleted rows are invisible everywhere. */
 export const live = { deletedAt: null } as const;
@@ -11,20 +18,32 @@ export const live = { deletedAt: null } as const;
 const iso = (date: Date) => date.toISOString();
 const day = (date: Date) => date.toISOString().slice(0, 10);
 
-/** id -> display name for the staff referenced by a page of records. */
-export async function namesFor(ids: (string | null | undefined)[]): Promise<Map<string, string>> {
+/** Staff referenced by a page of records, by id: their name and photo. */
+export type People = Map<string, PersonRef>;
+
+export async function namesFor(ids: (string | null | undefined)[]): Promise<People> {
   const unique = Array.from(new Set(ids.filter((id): id is string => Boolean(id))));
   if (unique.length === 0) return new Map();
   const people = await prisma.profile.findMany({
     where: { id: { in: unique } },
-    select: { id: true, fullName: true, email: true },
+    select: { id: true, fullName: true, email: true, avatarUrl: true },
   });
-  return new Map(people.map((person) => [person.id, person.fullName || person.email]));
+  return new Map(
+    people.map((person) => [
+      person.id,
+      {
+        id: person.id,
+        name: person.fullName || person.email,
+        avatarUrl: person.avatarUrl ?? undefined,
+      },
+    ]),
+  );
 }
 
 export function toStage(stage: Prisma.PipelineStageGetPayload<object>): StageView {
   return {
     id: stage.id,
+    pipelineId: stage.pipelineId,
     key: stage.key,
     name: stage.name,
     position: stage.position,
@@ -36,10 +55,11 @@ export function toStage(stage: Prisma.PipelineStageGetPayload<object>): StageVie
 
 export function toLead(
   lead: Prisma.LeadGetPayload<{ include: { deal: { select: { id: true } } } }>,
-  names: Map<string, string>,
+  names: People,
 ): LeadView {
   return {
     id: lead.id,
+    tags: lead.tags,
     reference: lead.reference,
     firstName: lead.firstName,
     lastName: lead.lastName,
@@ -55,7 +75,8 @@ export function toLead(
     status: lead.status,
     disqualifiedReason: lead.disqualifiedReason ?? undefined,
     ownerId: lead.ownerId ?? undefined,
-    ownerName: lead.ownerId ? names.get(lead.ownerId) : undefined,
+    ownerName: lead.ownerId ? names.get(lead.ownerId)?.name : undefined,
+    ownerAvatar: lead.ownerId ? names.get(lead.ownerId)?.avatarUrl : undefined,
     contactId: lead.contactId ?? undefined,
     dealId: lead.deal?.id,
     createdAt: iso(lead.createdAt),
@@ -69,6 +90,7 @@ export function toOrganization(
 ): OrganizationView {
   return {
     id: org.id,
+    tags: org.tags,
     name: org.name,
     industry: org.industry ?? undefined,
     size: org.size ?? undefined,
@@ -86,10 +108,11 @@ export function toContact(
   contact: Prisma.ContactGetPayload<{
     include: { organization: { select: { name: true } }; _count: { select: { deals: true } } };
   }>,
-  names: Map<string, string>,
+  names: People,
 ): ContactView {
   return {
     id: contact.id,
+    tags: contact.tags,
     firstName: contact.firstName,
     lastName: contact.lastName,
     name: fullName(contact),
@@ -99,7 +122,8 @@ export function toContact(
     organizationId: contact.organizationId ?? undefined,
     organizationName: contact.organization?.name,
     ownerId: contact.ownerId ?? undefined,
-    ownerName: contact.ownerId ? names.get(contact.ownerId) : undefined,
+    ownerName: contact.ownerId ? names.get(contact.ownerId)?.name : undefined,
+    ownerAvatar: contact.ownerId ? names.get(contact.ownerId)?.avatarUrl : undefined,
     source: contact.source,
     notes: contact.notes ?? undefined,
     dealCount: contact._count.deals,
@@ -115,10 +139,11 @@ export const dealInclude = {
 
 export function toDeal(
   deal: Prisma.DealGetPayload<{ include: typeof dealInclude }>,
-  names: Map<string, string>,
+  names: People,
 ): DealView {
   return {
     id: deal.id,
+    tags: deal.tags,
     reference: deal.reference,
     title: deal.title,
     contactId: deal.contactId,
@@ -126,6 +151,7 @@ export function toDeal(
     organizationId: deal.organizationId ?? undefined,
     organizationName: deal.organization?.name,
     stageId: deal.stageId,
+    pipelineId: deal.stage.pipelineId,
     stageKey: deal.stage.key,
     stageName: deal.stage.name,
     stageKind: deal.stage.kind,
@@ -134,7 +160,8 @@ export function toDeal(
     amountMinor: deal.amountMinor === null ? null : Number(deal.amountMinor),
     currency: deal.currency,
     ownerId: deal.ownerId ?? undefined,
-    ownerName: deal.ownerId ? names.get(deal.ownerId) : undefined,
+    ownerName: deal.ownerId ? names.get(deal.ownerId)?.name : undefined,
+    ownerAvatar: deal.ownerId ? names.get(deal.ownerId)?.avatarUrl : undefined,
     expectedCloseDate: deal.expectedCloseDate ? day(deal.expectedCloseDate) : undefined,
     source: deal.source,
     description: deal.description ?? undefined,

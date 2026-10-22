@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Trash2, Users } from "lucide-react";
+import { Mail, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { DataTable, type Column } from "@/components/dashboard/data-table/data-table";
@@ -25,7 +25,7 @@ import {
 import { formatDate, getInitials } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
 import { hasActiveFilters } from "@/lib/table-params";
-import { changeUserRole, removeUser } from "../actions";
+import { changeUserRole, removeUser, resendInvite } from "../actions";
 import { checkRemoval, checkRoleChange } from "../rules";
 import { USER_STATUSES, type DashboardUser, type RoleOption } from "../types";
 import { usersTableConfig } from "../table";
@@ -56,6 +56,14 @@ export function UsersTable({
     start(async () => {
       const result = await changeUserRole(user.email, roleId);
       if (result.ok) toast.success(`Updated ${user.email}'s role.`);
+      else toast.error(result.error);
+    });
+  }
+
+  function resend(email: string) {
+    start(async () => {
+      const result = await resendInvite(email);
+      if (result.ok) toast.success(`Sent the invitation email to ${email}.`);
       else toast.error(result.error);
     });
   }
@@ -166,16 +174,30 @@ export function UsersTable({
         });
         if (!canRemove) return null;
         return (
-          <Button
-            variant="ghost"
-            size="icon"
-            disabled={!!reason || pending}
-            title={reason ?? undefined}
-            aria-label={`${user.status === "Invited" ? "Cancel invitation for" : "Remove"} ${user.email}`}
-            onClick={() => setRemoving(user)}
-          >
-            <Trash2 aria-hidden="true" />
-          </Button>
+          <div className="flex justify-end gap-1">
+            {user.status === "Invited" && canInvite && (
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={pending}
+                title="Send the invitation email again"
+                aria-label={`Send the invitation again to ${user.email}`}
+                onClick={() => resend(user.email)}
+              >
+                <Mail aria-hidden="true" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={!!reason || pending}
+              title={reason ?? undefined}
+              aria-label={`${user.status === "Invited" ? "Cancel invitation for" : "Remove"} ${user.email}`}
+              onClick={() => setRemoving(user)}
+            >
+              <Trash2 aria-hidden="true" />
+            </Button>
+          </div>
         );
       },
     },

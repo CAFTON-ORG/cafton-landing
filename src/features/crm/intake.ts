@@ -7,8 +7,12 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { buildEnquirySummary, type ContactFormData } from "./contact";
 import { live } from "./mappers";
+import { acknowledgeLead, notifyStaffOfLead } from "./emails";
+import { bookFromWebsite, type BookingOutcome } from "@/features/schedule/website";
+import type { MeetingMode } from "@/features/schedule/types";
 
-export type IntakeResult = { ok: true; reference: string } | { ok: false; message: string };
+export type IntakeResult =
+  { ok: true; reference: string; meeting?: BookingOutcome } | { ok: false; message: string };
 
 interface IntakeContext {
   /** Which form or campaign sent it, e.g. "contact-page". */
@@ -30,6 +34,8 @@ const WEBSITE = { id: "system:website", name: "Website contact form" };
 export async function createLeadFromWebsite(
   form: ContactFormData,
   context: IntakeContext,
+  /** A time the visitor picked on the contact form's calendar, if they did. */
+  meeting?: { start: Date; mode: MeetingMode },
 ): Promise<IntakeResult> {
   if (!isDatabaseConfigured) {
     return {
@@ -43,7 +49,7 @@ export async function createLeadFromWebsite(
     const goalsArea =
       getServicePillar(form.goalsCategory)?.title ?? (form.goalsCategory || undefined);
 
-    const reference = await prisma.$transaction(async (tx) => {
+    const lead = await prisma.$transaction(async (tx) => {
       // Link to an existing contact when we already know this person.
       const known = await tx.contact.findFirst({
         where: { ...live, email: { equals: email, mode: "insensitive" } },
@@ -99,10 +105,30 @@ export async function createLeadFromWebsite(
         },
         tx,
       );
-      return lead.reference;
+      return lead;
     });
 
-    return { ok: true, reference };
+    // The lead is safe. What follows (a booked time, emails) can fail without losing it.
+    const name = `${lead.firstName} ${lead.lastName}`.trim();
+    const outcome = meeting
+      ? await bookFromWebsite({
+          start: meeting.start,
+          mode: meeting.mode,
+          lead: { id: lead.id, reference: lead.reference, contactId: lead.contactId },
+          attendee: { name, email: lead.email, phone: lead.phone ?? undefined },
+        })
+      : undefined;
+    const summary = { ...lead, name };
+    await notifyStaffOfLead(summary).catch((error) =>
+      console.error("Unable to email the team.", error),
+    );
+    // A booked time already sends the visitor its own email.
+    if (outcome !== "requested" && outcome !== "confirmed")
+      await acknowledgeLead(summary).catch((error) =>
+        console.error("Unable to acknowledge the enquiry.", error),
+      );
+
+    return { ok: true, reference: lead.reference, ...(outcome && { meeting: outcome }) };
   } catch (error) {
     console.error("Unable to store the contact enquiry.", error);
     return {

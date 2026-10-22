@@ -57,6 +57,11 @@ const PAGES = [
   ["organizations", "/dashboard/crm/organizations"],
   ["organization-detail", `/dashboard/crm/organizations/${ids.org}`],
   ["tasks", "/dashboard/crm/tasks"],
+  ["pipelines", "/dashboard/crm/pipelines"],
+  ["duplicates", "/dashboard/crm/duplicates"],
+  ["schedule", "/dashboard/crm/schedule"],
+  ["schedule-week", "/dashboard/crm/schedule?view=week"],
+  ["booking-settings", "/dashboard/crm/schedule/settings"],
   ["blog-posts", "/dashboard/content/blog"],
   ["website-overview", "/dashboard/content"],
   ["pages-index", "/dashboard/content/pages"],
@@ -168,7 +173,8 @@ for (const [theme, viewport] of RUNS) {
         continue;
       }
       await button.click();
-      await page.waitForTimeout(400);
+      // Dialogs fade and zoom in; axe measures contrast mid-animation if it runs too early.
+      await page.waitForTimeout(900);
       await page.screenshot({ path: path.join(dir, `${shot}.png`) });
       {
         const result = await new AxeBuilder({ page })

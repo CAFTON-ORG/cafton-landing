@@ -14,6 +14,16 @@ export type FieldSpec =
       /** Shown but not editable (a fixed key such as a web address). */
       readonly?: boolean;
     }
+  | {
+      kind: "number";
+      name: string;
+      label: string;
+      hint?: string;
+      min?: number;
+      max?: number;
+      step?: number;
+    }
+  | { kind: "checkbox"; name: string; label: string; hint?: string }
   | { kind: "textarea"; name: string; label: string; hint?: string; rows?: number }
   /** A list of strings, one per row. */
   | { kind: "lines"; name: string; label: string; hint?: string; rows?: number }
@@ -35,6 +45,8 @@ export type FieldSpec =
       max?: number;
       /** The items can be reordered and edited but not added or removed. */
       fixed?: boolean;
+      /** Names for the items instead of "Item 1", e.g. the days of the week. */
+      itemLabels?: string[];
       /** The field shown as the item's one-line summary when it is folded. Turns folding on. */
       summary?: string;
       fields: FieldSpec[];
@@ -70,6 +82,8 @@ export function blankFor(fields: FieldSpec[]): Record<string, unknown> {
     if (field.kind === "list" || field.kind === "lines") value[field.name] = [];
     else if (field.kind === "group") value[field.name] = blankFor(field.fields);
     else if (field.kind === "select") value[field.name] = field.options[0]?.value ?? "";
+    else if (field.kind === "number") value[field.name] = field.min ?? 0;
+    else if (field.kind === "checkbox") value[field.name] = false;
     else value[field.name] = "";
   }
   return value;

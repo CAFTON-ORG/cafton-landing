@@ -15,6 +15,8 @@ import { requirePermission } from "@/lib/auth/dal";
 import { resolvePermissions, type Permission } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
+import { renderEmail } from "@/lib/mail-templates";
+import { sendMail, siteOrigin } from "@/lib/mail";
 import { emailSchema, inviteSchema, type InviteInput } from "./schema";
 import { checkAssignable, checkRemoval, checkRoleChange } from "./rules";
 
@@ -53,7 +55,7 @@ const findProfile = (email: string) =>
  * database trigger (and the sign-in fallback in the DAL) turns the invite into
  * a profile with this role.
  */
-export async function inviteUser(input: InviteInput): Promise<ActionResult> {
+export async function inviteUser(input: InviteInput): Promise<ActionResult<{ emailed: boolean }>> {
   return runAction(async () => {
     const actor = await guard("users:invite");
     const { email, roleId } = parse(inviteSchema, input);
@@ -87,7 +89,52 @@ export async function inviteUser(input: InviteInput): Promise<ActionResult> {
       );
     });
     refresh();
+    // The invite exists whatever happens to the email: they can still sign in with that Google account.
+    return { emailed: await sendInviteEmail(email, role.name, actor.name) };
   });
+}
+
+/** Sends (or sends again) the invitation email to someone whose invitation is still open. */
+export async function resendInvite(email: string): Promise<ActionResult<{ emailed: boolean }>> {
+  return runAction(async () => {
+    const actor = await guard("users:invite");
+    const target = parse(emailSchema, email);
+    const invite = await prisma.staffInvite.findUnique({
+      where: { email: target },
+      include: { role: true },
+    });
+    if (!invite) throw new ActionError("There is no open invitation for this address.", "rule");
+    const emailed = await sendInviteEmail(target, invite.role.name, actor.name);
+    await recordAudit(actor, {
+      action: "user.invite.resend",
+      entity: "user",
+      entityId: target,
+      summary: `Sent the invitation again to ${target}`,
+    });
+    if (!emailed)
+      throw new ActionError("The email could not be sent. Check the email settings.", "rule");
+    return { emailed };
+  });
+}
+
+async function sendInviteEmail(email: string, roleName: string, inviterName: string) {
+  const { html, text } = renderEmail({
+    title: "You have been invited to the Cafton dashboard",
+    paragraphs: [
+      `${inviterName} invited you to join as ${roleName}.`,
+      "Sign in with this Google account (the one this email was sent to). Your access is ready as soon as you do.",
+    ],
+    button: { label: "Open the dashboard", href: `${siteOrigin()}/login` },
+    footnote:
+      "If you were not expecting this, you can ignore this email: nothing happens until someone signs in.",
+  });
+  const result = await sendMail({
+    to: email,
+    subject: "You have been invited to the Cafton dashboard",
+    text,
+    html,
+  });
+  return result.ok;
 }
 
 export async function changeUserRole(email: string, roleId: string): Promise<ActionResult> {

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Handshake } from "lucide-react";
+import { Person } from "@/components/dashboard/shared/person";
+import { Building2, Handshake } from "lucide-react";
 import { useMemo } from "react";
 
 import type { Column } from "@/components/dashboard/data-table/data-table";
@@ -9,9 +11,13 @@ import { ResourceTable } from "@/components/dashboard/data-table/resource-table"
 import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
+import { Thumbnail } from "@/components/dashboard/shared/thumbnail";
+import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import type { Page } from "@/lib/pagination";
+import { BulkBar, NextStep, TagList, tagFilter } from "./list-parts";
+import { SavedViews } from "./saved-views";
 import { dealsTableConfig } from "../table";
-import type { DealView, StageView } from "../types";
+import type { DealView, PersonRef, StageView } from "../types";
 import { StageBadge } from "./badges";
 
 const columns: Column<DealView>[] = [
@@ -20,16 +26,23 @@ const columns: Column<DealView>[] = [
     header: "Deal",
     sortable: true,
     cell: (deal) => (
-      <div className="min-w-0">
-        <Link
-          href={`/dashboard/crm/deals/${deal.id}`}
-          className="font-medium underline-offset-4 hover:underline"
-        >
-          {deal.title}
-        </Link>
-        <p className="text-muted-foreground truncate text-xs">
-          {deal.reference} · {deal.organizationName ?? deal.contactName}
-        </p>
+      <div className="flex min-w-0 items-center gap-3">
+        {deal.organizationName ? (
+          <Thumbnail icon={Building2} />
+        ) : (
+          <UserAvatar name={deal.contactName ?? deal.title} className="shrink-0" />
+        )}
+        <div className="min-w-0">
+          <Link
+            href={`/dashboard/crm/deals/${deal.id}`}
+            className="font-medium underline-offset-4 hover:underline"
+          >
+            {deal.title}
+          </Link>
+          <p className="text-muted-foreground truncate text-xs">
+            {deal.reference} · {deal.organizationName ?? deal.contactName}
+          </p>
+        </div>
       </div>
     ),
   },
@@ -49,7 +62,19 @@ const columns: Column<DealView>[] = [
     id: "owner",
     header: "Owner",
     hideBelow: "lg",
-    cell: (deal) => deal.ownerName ?? <span className="text-muted-foreground">Unassigned</span>,
+    cell: (deal) => <Person name={deal.ownerName} avatarUrl={deal.ownerAvatar} />,
+  },
+  {
+    id: "tags",
+    header: "Tags",
+    hideBelow: "xl",
+    cell: (row) => <TagList tags={row.tags} />,
+  },
+  {
+    id: "next",
+    header: "Next step",
+    hideBelow: "lg",
+    cell: (row) => <NextStep at={row.nextActivityAt} closed={row.stageKind !== "open"} />,
   },
   {
     id: "close",
@@ -69,10 +94,14 @@ export function DealsTable({
   page,
   stages,
   actions,
+  people,
+  tagOptions,
 }: {
   page: Page<DealView>;
   stages: StageView[];
   actions?: React.ReactNode;
+  people: PersonRef[];
+  tagOptions: string[];
 }) {
   const stageKeys = stages.map((stage) => stage.key).join(",");
   const config = useMemo(
@@ -81,6 +110,7 @@ export function DealsTable({
   );
 
   const table = useTableParams(config);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   return (
     <ResourceTable
@@ -107,8 +137,25 @@ export function DealsTable({
             { value: "unassigned", label: "Unassigned" },
           ],
         },
+        ...tagFilter(tagOptions),
       ]}
-      actions={actions}
+      actions={
+        <>
+          <SavedViews resource="deals" />
+          {actions}
+        </>
+      }
+      selection={{ selected, onChange: setSelected }}
+      bulkBar={
+        <BulkBar
+          kind="deal"
+          ids={[...selected]}
+          people={people}
+          tagSuggestions={tagOptions}
+          onDone={() => setSelected(new Set())}
+        />
+      }
+
       emptyIcon={Handshake}
       emptyTitle="No deals yet"
       emptyDescription="Convert a lead or create a deal to start building the pipeline."

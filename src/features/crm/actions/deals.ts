@@ -1,6 +1,7 @@
 "use server";
 
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
+import { notify } from "@/features/notifications/server";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { formatMinor, parseMinor } from "@/lib/money";
@@ -15,7 +16,7 @@ import {
 } from "../rules";
 import { dealSchema, reasonSchema, type DealInput } from "../schemas";
 import { guard, refreshCrm } from "./guard";
-import { firstOpenStage, logActivity, type Tx } from "./shared";
+import { firstOpenStage, lastOpenStage, logActivity, type Tx } from "./shared";
 
 async function loadDeal(tx: Tx, id: string) {
   const deal = await tx.deal.findFirst({ where: { id, ...live }, include: { stage: true } });
@@ -46,8 +47,8 @@ export async function createDeal(input: DealInput): Promise<ActionResult<{ id: s
 
     const id = await prisma.$transaction(async (tx) => {
       await assertLiveContact(tx, data.contactId);
-      const stage = await firstOpenStage(tx);
-      if (!stage) throw new ActionError("The sales pipeline has no stages.");
+      const stage = await firstOpenStage(tx, "new", data.pipelineId);
+      if (!stage) throw new ActionError("That pipeline has no open stages.");
       const contact = await tx.contact.findUnique({
         where: { id: data.contactId },
         select: { organizationId: true },
@@ -80,6 +81,15 @@ export async function createDeal(input: DealInput): Promise<ActionResult<{ id: s
       );
       return deal.id;
     });
+    await notify(
+      [data.ownerId],
+      {
+        kind: "deal.assigned",
+        title: `A new deal is yours: ${data.title}`,
+        href: `/dashboard/crm/deals/${id}`,
+      },
+      actorId(actor),
+    );
     refreshCrm();
     return { id };
   });
@@ -93,8 +103,10 @@ export async function updateDeal(
     const actor = await guard("deals:update");
     const data = parse(dealSchema, input);
 
+    let previousOwner: string | null = null;
     await prisma.$transaction(async (tx) => {
       const deal = await loadDeal(tx, id);
+      previousOwner = deal.ownerId;
       await assertLiveContact(tx, data.contactId);
 
       const amountChanged =
@@ -137,6 +149,17 @@ export async function updateDeal(
         tx,
       );
     });
+    if (data.ownerId && data.ownerId !== previousOwner) {
+      await notify(
+        [data.ownerId],
+        {
+          kind: "deal.assigned",
+          title: `${data.title} was assigned to you`,
+          href: `/dashboard/crm/deals/${id}`,
+        },
+        actorId(actor),
+      );
+    }
     refreshCrm();
     return { id };
   });
@@ -152,6 +175,9 @@ export async function moveDeal(id: string, stageId: string): Promise<ActionResul
       const target = await tx.pipelineStage.findUnique({ where: { id: stageId } });
       if (!target) throw new ActionError("That stage no longer exists.");
       if (target.id === deal.stageId) return;
+      if (target.pipelineId !== deal.stage.pipelineId) {
+        throw new ActionError("A deal stays in its own pipeline.", "rule");
+      }
       const blocked = checkMoveDeal(state(deal), target);
       if (blocked) throw new ActionError(blocked, "rule");
 
@@ -201,7 +227,7 @@ export async function winDeal(id: string, amount?: string): Promise<ActionResult
       if (blocked) throw new ActionError(blocked, "rule", { amount: blocked });
 
       const won = await tx.pipelineStage.findFirst({
-        where: { kind: "won" },
+        where: { kind: "won", pipelineId: deal.stage.pipelineId },
         orderBy: { position: "asc" },
       });
       if (!won) throw new ActionError("The sales pipeline has no Won stage.");
@@ -253,7 +279,7 @@ export async function loseDeal(id: string, reason: string): Promise<ActionResult
       if (blocked) throw new ActionError(blocked, "rule");
 
       const lost = await tx.pipelineStage.findFirst({
-        where: { kind: "lost" },
+        where: { kind: "lost", pipelineId: deal.stage.pipelineId },
         orderBy: { position: "asc" },
       });
       if (!lost) throw new ActionError("The sales pipeline has no Lost stage.");
@@ -297,7 +323,7 @@ export async function reopenDeal(id: string): Promise<ActionResult> {
       const blocked = checkReopenDeal(state(deal));
       if (blocked) throw new ActionError(blocked, "rule");
 
-      const stage = await firstOpenStage(tx, "negotiation");
+      const stage = await lastOpenStage(tx, deal.stage.pipelineId);
       if (!stage) throw new ActionError("The sales pipeline has no open stages.");
 
       await tx.deal.update({

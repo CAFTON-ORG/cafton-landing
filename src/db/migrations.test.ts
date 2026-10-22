@@ -179,3 +179,32 @@ describe("crm migration", () => {
     ).toBeNull();
   });
 });
+
+describe("meetings migration", () => {
+  const meeting = (start: string, end: string, status = "confirmed") =>
+    `INSERT INTO meetings (title, starts_at, ends_at, status, attendee_name, attendee_email)
+     VALUES ('Call', '${start}', '${end}', '${status}', 'Ada', 'ada@example.com')`;
+
+  it("refuses two meetings at overlapping times", async () => {
+    await db.exec(meeting("2030-01-07 02:00+00", "2030-01-07 02:30+00"));
+    const message = await fails(meeting("2030-01-07 02:15+00", "2030-01-07 02:45+00", "requested"));
+    expect(message).toMatch(/meetings_no_overlap|conflicting key/);
+  });
+
+  it("allows back-to-back meetings and reuse of a cancelled time", async () => {
+    await db.exec(meeting("2030-01-07 02:30+00", "2030-01-07 03:00+00"));
+    await db.exec(meeting("2030-01-07 02:00+00", "2030-01-07 02:30+00", "cancelled"));
+  });
+
+  it("refuses a meeting that ends before it starts or runs past eight hours", async () => {
+    expect(await fails(meeting("2030-01-08 02:00+00", "2030-01-08 01:00+00"))).not.toBeNull();
+    expect(await fails(meeting("2030-01-09 00:00+00", "2030-01-09 10:00+00"))).not.toBeNull();
+  });
+
+  it("records a reminder only once per meeting and start time", async () => {
+    const row =
+      "INSERT INTO reminder_logs (kind, ref_id, for_key) VALUES ('meeting_reminder', 'm1', '2030-01-07T02:00:00Z')";
+    await db.exec(row);
+    expect(await fails(row)).toMatch(/duplicate key|unique/i);
+  });
+});

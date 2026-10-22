@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { ExportButton } from "@/features/crm/components/export-button";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { LeadsTable } from "@/features/crm/components/leads-table";
+import { listTagOptions } from "@/features/crm/repository/tags";
+import { listStaffOptions } from "@/features/crm/repository/pipeline";
 import { listLeads } from "@/features/crm/repository/leads";
 import { LEADS_TABLE } from "@/features/crm/table";
 import { actorId } from "@/lib/actions";
@@ -20,15 +23,20 @@ export default async function LeadsPage({
   if (!staff) return <AccessDenied area="leads" />;
 
   const params = parseTableParams(searchParamsFromRecord(await searchParams), LEADS_TABLE);
-  const page = await listLeads(params, actorId(staff));
+  const [page, people, tagOptions] = await Promise.all([
+    listLeads(params, actorId(staff)),
+    listStaffOptions(),
+    listTagOptions("lead"),
+  ]);
 
   return (
     <>
       <PageHeader
         title="Leads"
         description="Enquiries from the website contact form. Qualify them, then convert the good ones into deals."
+        action={<ExportButton kind="leads" />}
       />
-      <LeadsTable page={page} />
+      <LeadsTable page={page} people={people} tagOptions={tagOptions} />
     </>
   );
 }

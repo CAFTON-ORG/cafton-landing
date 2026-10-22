@@ -298,6 +298,7 @@ export function Repeater<T>({
   max = 30,
   fixed = false,
   collapsible = false,
+  itemLabels,
   summary,
   forceOpen,
   error,
@@ -315,6 +316,8 @@ export function Repeater<T>({
   fixed?: boolean;
   /** Items fold to one line (number and summary) and open on demand, so a long list does not make a long page. */
   collapsible?: boolean;
+  /** Names for the items instead of "Item 1". */
+  itemLabels?: string[];
   summary?: (item: T, index: number) => string;
   /** Keeps an item open, e.g. when it has an error. */
   forceOpen?: (index: number) => boolean;
@@ -359,13 +362,13 @@ export function Repeater<T>({
                     aria-hidden="true"
                   />
                   <span className="text-muted-foreground shrink-0 text-xs font-medium">
-                    {itemName} {index + 1}
+                    {itemLabels?.[index] ?? `${itemName} ${index + 1}`}
                   </span>
                   <span className="truncate font-medium">{summary?.(item, index)}</span>
                 </button>
               ) : (
                 <span className="text-muted-foreground text-xs font-medium">
-                  {itemName} {index + 1}
+                  {itemLabels?.[index] ?? `${itemName} ${index + 1}`}
                 </span>
               )}
               <div className="flex shrink-0 gap-1">

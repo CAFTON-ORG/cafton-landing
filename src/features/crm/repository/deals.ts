@@ -1,4 +1,5 @@
 import "server-only";
+import { withActivity } from "./summary";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -15,7 +16,15 @@ function filterWhere(
   const q = params.q.trim();
   return {
     ...live,
-    ...(params.filters.stage ? { stage: { key: params.filters.stage } } : {}),
+    ...(params.filters.tag ? { tags: { has: params.filters.tag } } : {}),
+    ...(params.filters.stage || params.filters.pipeline
+      ? {
+          stage: {
+            ...(params.filters.stage ? { key: params.filters.stage } : {}),
+            ...(params.filters.pipeline ? { pipeline: { key: params.filters.pipeline } } : {}),
+          },
+        }
+      : {}),
     ...(params.filters.owner === "me" && staffId ? { ownerId: staffId } : {}),
     ...(params.filters.owner === "unassigned" ? { ownerId: null } : {}),
     ...(q
@@ -62,7 +71,13 @@ export async function listDeals(
     take: base.pageSize,
   });
   const names = await namesFor(rows.map((row) => row.ownerId));
-  return { ...base, items: rows.map((row) => toDeal(row, names)) };
+  return {
+    ...base,
+    items: await withActivity(
+      "deal",
+      rows.map((row) => toDeal(row, names)),
+    ),
+  };
 }
 
 /**
@@ -79,18 +94,36 @@ export async function listBoardDeals(
   const where = filterWhere({ ...params, filters: { ...params.filters, stage: "" } }, staffId);
   const [open, won, lost] = await Promise.all([
     prisma.deal.findMany({
-      where: { ...where, stage: { kind: "open" } },
+      where: {
+        ...where,
+        stage: {
+          kind: "open",
+          ...(params.filters.pipeline ? { pipeline: { key: params.filters.pipeline } } : {}),
+        },
+      },
       include: dealInclude,
       orderBy: [{ stage: { position: "asc" } }, { stageChangedAt: "desc" }],
     }),
     prisma.deal.findMany({
-      where: { ...where, stage: { kind: "won" } },
+      where: {
+        ...where,
+        stage: {
+          kind: "won",
+          ...(params.filters.pipeline ? { pipeline: { key: params.filters.pipeline } } : {}),
+        },
+      },
       include: dealInclude,
       orderBy: { wonAt: "desc" },
       take: closedLimit,
     }),
     prisma.deal.findMany({
-      where: { ...where, stage: { kind: "lost" } },
+      where: {
+        ...where,
+        stage: {
+          kind: "lost",
+          ...(params.filters.pipeline ? { pipeline: { key: params.filters.pipeline } } : {}),
+        },
+      },
       include: dealInclude,
       orderBy: { lostAt: "desc" },
       take: closedLimit,
@@ -98,7 +131,10 @@ export async function listBoardDeals(
   ]);
   const rows = [...open, ...won, ...lost];
   const names = await namesFor(rows.map((row) => row.ownerId));
-  return rows.map((row) => toDeal(row, names));
+  return withActivity(
+    "deal",
+    rows.map((row) => toDeal(row, names)),
+  );
 }
 
 export async function getDeal(id: string): Promise<DealView | null> {

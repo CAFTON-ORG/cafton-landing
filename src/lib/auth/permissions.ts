@@ -34,6 +34,7 @@ export const RESOURCES = {
       view: "View contacts",
       create: "Add contacts",
       update: "Edit contacts",
+      merge: "Merge duplicate contacts",
       delete: "Delete contacts",
     },
   },
@@ -43,6 +44,7 @@ export const RESOURCES = {
       view: "View organizations",
       create: "Add organizations",
       update: "Edit organizations",
+      merge: "Merge duplicate organizations",
       delete: "Delete organizations",
     },
   },
@@ -62,6 +64,18 @@ export const RESOURCES = {
       view: "View tasks",
       create: "Create tasks",
       update: "Complete, edit and reassign tasks",
+    },
+  },
+  pipelines: {
+    label: "Pipelines",
+    actions: { view: "View pipelines", manage: "Create and edit pipelines and their stages" },
+  },
+  meetings: {
+    label: "Meetings",
+    actions: {
+      view: "View the schedule",
+      create: "Schedule meetings",
+      update: "Reschedule, confirm and cancel meetings",
     },
   },
   users: {
@@ -135,6 +149,7 @@ const ADMINISTRATION: Permission[] = [
   "users:remove",
   "roles:view",
   "roles:manage",
+  "pipelines:manage",
   "audit:view",
   "settings:update",
   "owners:manage",

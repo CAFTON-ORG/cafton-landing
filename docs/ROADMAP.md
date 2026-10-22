@@ -74,8 +74,19 @@ HubSpot is dropped: the contact form writes to our database and the dashboard is
 - [x] Pipeline board and table views, stage exit criteria and probabilities, weighted forecast, win (value required) and loss (reason required), reopen
 - [x] Timeline per lead, contact and deal (notes, calls, emails, meetings, automatic stage changes); tasks with due dates, assignment and urgency; owner assignment
 - [x] Rules module + tests; a real-database integration test of the whole flow; built-in Sales role
-- [ ] CSV import/export, duplicate detection beyond email, tags, saved views
-- [ ] Email to staff on a new lead and email to contacts (needs Resend, Phase 8)
+- [x] CSV export of leads, contacts, organizations and deals (honours the screen's search and filters, audited, formula-safe)
+- [x] People shown the same way everywhere (photo or initials beside the name); every empty state has an icon and a next step; time dropdown and date picker
+- [x] CSV import of contacts and organizations (preview first, duplicates by email skipped, companies made on the way)
+- [x] Tags on leads, contacts, organizations and deals (editor, filter, bulk add); saved views per person or shared; bulk assign, tag and delete with the rules still enforced
+- [x] Duplicate finder and merge for contacts and organizations (phone, name, company, website; one transaction; audited)
+- [x] Notes you can edit, pin and delete (author or administrator); "last contact" and "next step" columns; a warning on deals with nothing planned
+- [x] In-app notifications (bell): new enquiry, meeting request, things assigned to you, tasks due; a daily job raises the due ones
+- [x] Several pipelines and a stage editor (add, rename, re-order, probability, exit criteria; Won and Lost stay last); a deal stays in its pipeline
+- [ ] Email logging (send and receive from a record), custom fields, lead scoring and round-robin assignment, files on records, merge of leads
+- [x] Email to staff on a new lead and an acknowledgement to the enquirer (Resend, `lib/mail.ts`); invitation emails with a "send again" button
+- [x] Schedule: visitors ask for a time on the contact form (office hours, buffers, notice, blocked dates in Booking settings); staff schedule, confirm, reschedule, cancel and close out meetings; ICS invites; the database refuses overlapping meetings; meetings show on leads and deals
+- [x] Deals board with drag and drop (keyboard and touch too), forecast per stage, overdue and stale markers; stage stepper on the deal page; roles edited on their own page; shadcn Calendar date pickers
+- [x] Reminder email the morning before a meeting (daily job `/api/cron/reminders`, `vercel.json`, needs `CRON_SECRET`); a personal calendar link staff can subscribe to in Google, Outlook or Apple Calendar
 - [ ] Edit pipeline stages in the UI
 - Done when: a website enquiry can be followed to a won deal without leaving the dashboard. (Verified against PGlite; verify once more against Supabase after `db:deploy`.)
 

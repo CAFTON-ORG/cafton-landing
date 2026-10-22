@@ -1,6 +1,9 @@
 import type { z } from "zod";
 
+import type { Permission } from "@/lib/auth/permissions";
+
 import { careers } from "../content/careers";
+import { bookingDefaults, bookingSchema, bookingSpec } from "./booking";
 import { careersSchema, careersSpec } from "./careers";
 import {
   aboutDefaults,
@@ -38,12 +41,23 @@ import type { DocSpec } from "./spec";
  * `repository/documents.ts`.
  */
 export interface SiteDocument<T = unknown> {
+  /** Needed to save it. Defaults to `content:update`. */
+  permission?: Permission;
+  /** Not listed under Website > Pages: it has its own place in the dashboard. */
+  hidden?: boolean;
   schema: z.ZodType<T>;
   defaults: T;
   spec: DocSpec;
 }
 
 export const siteDocuments = {
+  booking: {
+    permission: "meetings:update",
+    hidden: true,
+    schema: bookingSchema,
+    defaults: bookingDefaults,
+    spec: bookingSpec,
+  },
   careers: { schema: careersSchema, defaults: careers, spec: careersSpec },
   services: { schema: servicesSchema, defaults: servicesDefaults, spec: servicesSpec },
   privacy: { schema: privacySchema, defaults: privacyDefaults, spec: privacySpec },

@@ -40,17 +40,25 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  scrollable = false,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
+  /**
+   * Long content: the header and footer stay put and only the body (`DialogBody`) scrolls, so the
+   * title and the actions are always visible. Put a `DialogBody` between them.
+   */
+  scrollable?: boolean;
 }) {
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
+        data-scrollable={scrollable ? "" : undefined}
         className={cn(
           "bg-popover text-popover-foreground ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl p-4 text-sm ring-1 duration-100 outline-none sm:max-w-sm",
+          scrollable && "flex max-h-[min(90svh,44rem)] flex-col gap-0 overflow-hidden p-0",
           className,
         )}
         {...props}
@@ -72,7 +80,14 @@ function DialogContent({
 
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="dialog-header" className={cn("flex flex-col gap-2", className)} {...props} />
+    <div
+      data-slot="dialog-header"
+      className={cn(
+        "flex flex-col gap-2 in-data-[scrollable]:shrink-0 in-data-[scrollable]:border-b in-data-[scrollable]:p-4 in-data-[scrollable]:pr-12",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 
@@ -88,7 +103,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "bg-muted/50 -mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t p-4 sm:flex-row sm:justify-end",
+        "bg-muted/50 -mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t p-4 in-data-[scrollable]:m-0 in-data-[scrollable]:shrink-0 sm:flex-row sm:justify-end",
         className,
       )}
       {...props}
@@ -98,6 +113,17 @@ function DialogFooter({
         <DialogPrimitive.Close render={<Button variant="outline" />}>Close</DialogPrimitive.Close>
       )}
     </div>
+  );
+}
+
+/** The scrolling middle of a `scrollable` dialog. */
+function DialogBody({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-body"
+      className={cn("min-h-0 flex-1 overflow-y-auto p-4", className)}
+      {...props}
+    />
   );
 }
 
@@ -126,6 +152,7 @@ function DialogDescription({ className, ...props }: DialogPrimitive.Description.
 
 export {
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogDescription,

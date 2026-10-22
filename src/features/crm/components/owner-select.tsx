@@ -1,5 +1,6 @@
 "use client";
 
+import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import {
   Select,
   SelectContent,
@@ -44,21 +45,29 @@ export function PersonSelect({
     >
       <SelectTrigger id={id} size={size} aria-label={ariaLabel} className={className ?? "w-full"}>
         <SelectValue>
-          {(current: string) =>
-            current === NONE
-              ? noneLabel
-              : (people.find((person) => person.id === current)?.name ?? noneLabel)
-          }
+          {(current: string) => {
+            const person = people.find((candidate) => candidate.id === current);
+            return person ? <Chip person={person} /> : noneLabel;
+          }}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={NONE}>{noneLabel}</SelectItem>
         {people.map((person) => (
           <SelectItem key={person.id} value={person.id}>
-            {person.name}
+            <Chip person={person} />
           </SelectItem>
         ))}
       </SelectContent>
     </Select>
+  );
+}
+
+function Chip({ person }: { person: PersonRef }) {
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <UserAvatar name={person.name} src={person.avatarUrl} size="sm" />
+      <span className="truncate">{person.name}</span>
+    </span>
   );
 }

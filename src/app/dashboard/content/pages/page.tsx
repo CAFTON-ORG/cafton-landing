@@ -22,12 +22,14 @@ export default async function PagesIndex() {
       />
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          ...Object.values(siteDocuments).map(({ spec }) => ({
-            key: spec.key,
-            title: spec.title,
-            description: spec.description,
-            href: `/dashboard/content/pages/${spec.key}`,
-          })),
+          ...Object.values(siteDocuments)
+            .filter((entry) => !("hidden" in entry && entry.hidden))
+            .map(({ spec }) => ({
+              key: spec.key,
+              title: spec.title,
+              description: spec.description,
+              href: `/dashboard/content/pages/${spec.key}`,
+            })),
           {
             key: "faqs",
             title: "Service questions",

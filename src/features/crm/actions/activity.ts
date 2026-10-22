@@ -1,6 +1,7 @@
 "use server";
 
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
+import { notify } from "@/features/notifications/server";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { live } from "../mappers";
@@ -90,6 +91,16 @@ export async function createTask(input: TaskInput): Promise<ActionResult<{ id: s
       );
       return task.id;
     });
+    await notify(
+      [data.assigneeId],
+      {
+        kind: "task.assigned",
+        title: `New task for you: ${data.title}`,
+        body: data.due ? `Due ${data.due}` : undefined,
+        href: "/dashboard/crm/tasks",
+      },
+      actorId(actor),
+    );
     refreshCrm();
     return { id };
   });
@@ -135,6 +146,11 @@ export async function reassignTask(id: string, assigneeId: string | null): Promi
         tx,
       );
     });
+    await notify(
+      [assigneeId],
+      { kind: "task.assigned", title: "A task was assigned to you", href: "/dashboard/crm/tasks" },
+      actorId(actor),
+    );
     refreshCrm();
   });
 }

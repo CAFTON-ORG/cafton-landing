@@ -1,6 +1,17 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import Link from "next/link";
-import { Handshake, Inbox, ListChecks, Trophy, Wallet } from "lucide-react";
+import {
+  CalendarClock,
+  CircleCheck,
+  ChartNoAxesColumn,
+  Handshake,
+  Inbox,
+  ListChecks,
+  Percent,
+  Trophy,
+  Wallet,
+} from "lucide-react";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
@@ -18,6 +29,8 @@ import { countNewLeads } from "@/features/crm/repository/leads";
 import { getForecast } from "@/features/crm/repository/pipeline";
 import { countOpenTasks } from "@/features/crm/repository/tasks";
 import { LEADS_TABLE } from "@/features/crm/table";
+import { listMeetings, listRequests } from "@/features/schedule/repository";
+import { formatManila } from "@/features/schedule/slots";
 import { actorId } from "@/lib/actions";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatRelative } from "@/lib/format";
@@ -32,12 +45,45 @@ export default async function CrmOverviewPage() {
 
   const showLeads = can(staff, "leads:view");
   const showTasks = can(staff, "tasks:view");
-  const [forecast, newLeads, tasks, recentLeads] = await Promise.all([
+  const showMeetings = can(staff, "meetings:view");
+  const now = new Date();
+  const [forecast, newLeads, tasks, recentLeads, requests, upcoming] = await Promise.all([
     getForecast(),
     showLeads ? countNewLeads() : 0,
     showTasks ? countOpenTasks(actorId(staff)) : { open: 0, overdue: 0 },
     showLeads ? listLeads(parseTableParams(new URLSearchParams("status=new"), LEADS_TABLE)) : null,
+    showMeetings ? listRequests(now) : [],
+    showMeetings ? listMeetings(now, new Date(now.getTime() + 14 * 86_400_000)) : [],
   ]);
+  const decided = forecast.wonThisMonthCount + forecast.lostThisMonthCount;
+  const winRate = decided ? Math.round((forecast.wonThisMonthCount / decided) * 100) : null;
+  const confirmed = upcoming.filter((meeting) => meeting.status === "confirmed").slice(0, 5);
+  const attention = [
+    ...(requests.length
+      ? [
+          {
+            href: "/dashboard/crm/schedule",
+            label: `${requests.length} meeting ${requests.length === 1 ? "request" : "requests"} to answer`,
+          },
+        ]
+      : []),
+    ...(showLeads && newLeads
+      ? [
+          {
+            href: "/dashboard/crm/leads?status=new",
+            label: `${newLeads} new ${newLeads === 1 ? "enquiry" : "enquiries"} waiting for a first look`,
+          },
+        ]
+      : []),
+    ...(showTasks && tasks.overdue
+      ? [
+          {
+            href: "/dashboard/crm/tasks",
+            label: `${tasks.overdue} overdue ${tasks.overdue === 1 ? "task" : "tasks"}`,
+          },
+        ]
+      : []),
+  ];
   const biggest = Math.max(1, ...forecast.byStage.map((stage) => stage.valueMinor));
 
   return (
@@ -46,6 +92,25 @@ export default async function CrmOverviewPage() {
         title="Pipeline overview"
         description="Where the sales pipeline stands right now."
       />
+
+      {attention.length > 0 && (
+        <Card className="mb-4 border-amber-500/40">
+          <CardHeader>
+            <CardTitle>Needs your attention</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="grid gap-1.5 text-sm">
+              {attention.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="underline underline-offset-4">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -65,6 +130,12 @@ export default async function CrmOverviewPage() {
           value={formatMinor(forecast.wonThisMonthMinor, forecast.currency, { compact: true })}
           hint={`${forecast.wonThisMonthCount} won · ${forecast.lostThisMonthCount} lost`}
           icon={Trophy}
+        />
+        <StatCard
+          label="Win rate this month"
+          value={winRate === null ? "—" : `${winRate}%`}
+          hint={decided ? `${decided} deals decided` : "No deals closed yet this month"}
+          icon={Percent}
         />
         {showLeads ? (
           <StatCard
@@ -93,7 +164,12 @@ export default async function CrmOverviewPage() {
           </CardHeader>
           <CardContent>
             {forecast.byStage.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No pipeline data yet.</p>
+              <EmptyState
+                compact
+                icon={ChartNoAxesColumn}
+                title="No pipeline yet"
+                description="Open deals show up here by stage."
+              />
             ) : (
               <ul className="grid gap-3">
                 {forecast.byStage.map((stage) => (
@@ -121,6 +197,47 @@ export default async function CrmOverviewPage() {
           </CardContent>
         </Card>
 
+        {showMeetings && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Upcoming meetings</CardTitle>
+              <CardDescription>
+                Next two weeks.{" "}
+                <Link href="/dashboard/crm/schedule" className="underline underline-offset-4">
+                  Open the schedule
+                </Link>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {confirmed.length === 0 ? (
+                <EmptyState
+                  compact
+                  icon={CalendarClock}
+                  title="No meetings coming up"
+                  description="Confirmed meetings in the next two weeks appear here."
+                />
+              ) : (
+                <ul className="divide-y">
+                  {confirmed.map((meeting) => (
+                    <li key={meeting.id} className="flex items-center gap-3 py-2">
+                      <CalendarClock
+                        className="text-muted-foreground size-4 shrink-0"
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{meeting.title}</p>
+                        <p className="text-muted-foreground truncate text-xs">
+                          {meeting.attendeeName} · {formatManila(new Date(meeting.startsAt))}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {recentLeads && (
           <Card>
             <CardHeader>
@@ -133,9 +250,12 @@ export default async function CrmOverviewPage() {
             </CardHeader>
             <CardContent>
               {recentLeads.items.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  No new enquiries. You&rsquo;re all caught up.
-                </p>
+                <EmptyState
+                  compact
+                  icon={CircleCheck}
+                  title="All caught up"
+                  description="New enquiries from the contact form land here."
+                />
               ) : (
                 <ul className="divide-y">
                   {recentLeads.items.slice(0, 6).map((lead) => (

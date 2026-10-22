@@ -6,6 +6,7 @@ import { MainScroll } from "@/components/dashboard/layout/main-scroll";
 import { Sidebar } from "@/components/dashboard/layout/sidebar";
 import { SidebarProvider } from "@/components/dashboard/layout/sidebar-context";
 import { StaffProvider } from "@/components/dashboard/layout/staff-context";
+import { Bell } from "@/features/notifications/components/bell";
 import { verifySession } from "@/lib/auth/dal";
 import { DashboardProviders } from "@/components/dashboard/providers";
 
@@ -34,7 +35,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           <div className="relative flex h-dvh overflow-hidden">
             <Sidebar />
             <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
-              <AppBar />
+              <AppBar bell={<Bell />} />
               <MainScroll>{children}</MainScroll>
             </div>
           </div>

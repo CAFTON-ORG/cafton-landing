@@ -1,4 +1,5 @@
 import "server-only";
+import { withActivity } from "./summary";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -27,6 +28,7 @@ export async function listLeads(
   const q = params.q.trim();
   const where: Prisma.LeadWhereInput = {
     ...live,
+    ...(params.filters.tag ? { tags: { has: params.filters.tag } } : {}),
     ...(params.filters.status ? { status: params.filters.status as LeadView["status"] } : {}),
     ...(params.filters.owner === "me" && staffId ? { ownerId: staffId } : {}),
     ...(params.filters.owner === "unassigned" ? { ownerId: null } : {}),
@@ -60,7 +62,13 @@ export async function listLeads(
     take: base.pageSize,
   });
   const names = await namesFor(rows.map((row) => row.ownerId));
-  return { ...base, items: rows.map((row) => toLead(row, names)) };
+  return {
+    ...base,
+    items: await withActivity(
+      "lead",
+      rows.map((row) => toLead(row, names)),
+    ),
+  };
 }
 
 export async function getLead(

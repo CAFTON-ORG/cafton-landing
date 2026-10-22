@@ -48,7 +48,11 @@ export function InviteDialog({ roles }: { roles: RoleOption[] }) {
         if (!result.fieldErrors) toast.error(result.error);
         return;
       }
-      toast.success(`Invited ${email}. They can now sign in with that Google account.`);
+      toast.success(
+        result.data?.emailed
+          ? `Invited ${email}. We emailed them a link to sign in.`
+          : `Invited ${email}. They can sign in with that Google account, but the email could not be sent: use Send again on their row.`,
+      );
       setOpen(false);
       reset();
     });

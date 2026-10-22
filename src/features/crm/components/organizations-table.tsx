@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Building2, Plus } from "lucide-react";
 
@@ -8,7 +9,10 @@ import { ResourceTable } from "@/components/dashboard/data-table/resource-table"
 import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { useCan } from "@/components/dashboard/layout/staff-context";
 import { Button } from "@/components/dashboard/ui/button";
+import { Thumbnail } from "@/components/dashboard/shared/thumbnail";
 import type { Page } from "@/lib/pagination";
+import { BulkBar, TagList, tagFilter } from "./list-parts";
+import { SavedViews } from "./saved-views";
 import { ORGANIZATIONS_TABLE } from "../table";
 import type { OrganizationView } from "../types";
 import { OrganizationDialog } from "./organization-dialog";
@@ -19,12 +23,18 @@ const columns: Column<OrganizationView>[] = [
     header: "Organization",
     sortable: true,
     cell: (org) => (
-      <Link
-        href={`/dashboard/crm/organizations/${org.id}`}
-        className="font-medium underline-offset-4 hover:underline"
-      >
-        {org.name}
-      </Link>
+      <div className="flex min-w-0 items-center gap-3">
+        <Thumbnail icon={Building2} />
+        <div className="min-w-0">
+          <Link
+            href={`/dashboard/crm/organizations/${org.id}`}
+            className="font-medium underline-offset-4 hover:underline"
+          >
+            {org.name}
+          </Link>
+          {org.industry && <p className="text-muted-foreground truncate text-xs">{org.industry}</p>}
+        </div>
+      </div>
     ),
   },
   { id: "industry", header: "Industry", hideBelow: "sm", cell: (org) => org.industry ?? "—" },
@@ -35,12 +45,25 @@ const columns: Column<OrganizationView>[] = [
     align: "right",
     cell: (org) => org.contactCount,
   },
+  {
+    id: "tags",
+    header: "Tags",
+    hideBelow: "xl",
+    cell: (row) => <TagList tags={row.tags} />,
+  },
   { id: "deals", header: "Deals", hideBelow: "md", align: "right", cell: (org) => org.dealCount },
 ];
 
-export function OrganizationsTable({ page }: { page: Page<OrganizationView> }) {
+export function OrganizationsTable({
+  page,
+  tagOptions,
+}: {
+  page: Page<OrganizationView>;
+  tagOptions: string[];
+}) {
   const table = useTableParams(ORGANIZATIONS_TABLE);
   const canCreate = useCan("organizations:create");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const add = (
     <OrganizationDialog
       trigger={
@@ -60,7 +83,24 @@ export function OrganizationsTable({ page }: { page: Page<OrganizationView> }) {
       caption="Organizations"
       searchLabel="Search organizations"
       searchPlaceholder="Search organizations…"
-      actions={canCreate ? add : undefined}
+      actions={
+        <>
+          <SavedViews resource="organizations" />
+          {canCreate ? add : undefined}
+        </>
+      }
+      filters={tagFilter(tagOptions)}
+      selection={{ selected, onChange: setSelected }}
+      bulkBar={
+        <BulkBar
+          kind="organization"
+          ids={[...selected]}
+          people={[]}
+          tagSuggestions={tagOptions}
+          onDone={() => setSelected(new Set())}
+        />
+      }
+
       emptyIcon={Building2}
       emptyTitle="No organizations yet"
       emptyDescription="Organizations are created when you convert a lead that names a business, or you can add one yourself."

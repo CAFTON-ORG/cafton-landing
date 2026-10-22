@@ -1,4 +1,5 @@
 import { History, ShieldCheck, Users } from "lucide-react";
+import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import Link from "next/link";
 
 import { PageHeader } from "@/components/dashboard/shared/page-header";
@@ -79,9 +80,12 @@ export default async function OverviewPage() {
             </CardHeader>
             <CardContent>
               {recent.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  Nothing yet. Changes will show up here.
-                </p>
+                <EmptyState
+                  compact
+                  icon={History}
+                  title="No activity yet"
+                  description="Changes made in the dashboard will show up here."
+                />
               ) : (
                 <ul className="divide-y">
                   {recent.map((entry) => (

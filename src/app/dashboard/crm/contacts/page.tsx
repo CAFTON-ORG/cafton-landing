@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import { MergeLink } from "@/features/crm/components/merge-link";
+import { ImportDialog } from "@/features/crm/components/import-dialog";
+import { ExportButton } from "@/features/crm/components/export-button";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { ContactsTable } from "@/features/crm/components/contacts-table";
+import { listTagOptions } from "@/features/crm/repository/tags";
 import { listContacts } from "@/features/crm/repository/contacts";
 import { listOrganizationOptions } from "@/features/crm/repository/organizations";
 import { listStaffOptions } from "@/features/crm/repository/pipeline";
@@ -29,8 +33,23 @@ export default async function ContactsPage({
 
   return (
     <>
-      <PageHeader title="Contacts" description="The people you do business with." />
-      <ContactsTable page={page} organizations={organizations} people={people} />
+      <PageHeader
+        title="Contacts"
+        description="The people you do business with."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <MergeLink />
+            <ImportDialog kind="contacts" />
+            <ExportButton kind="contacts" />
+          </div>
+        }
+      />
+      <ContactsTable
+        page={page}
+        organizations={organizations}
+        people={people}
+        tagOptions={await listTagOptions("contact")}
+      />
     </>
   );
 }

@@ -7,6 +7,7 @@ import { Field } from "@/components/dashboard/shared/field";
 import { Button } from "@/components/dashboard/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -83,37 +84,39 @@ export function OrganizationDialog({
       }}
     >
       <DialogTrigger render={trigger as React.ReactElement} />
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
-        <form onSubmit={submit} noValidate className="grid gap-4">
+      <DialogContent scrollable className="sm:max-w-xl">
+        <form onSubmit={submit} noValidate className="flex min-h-0 flex-1 flex-col">
           <DialogHeader>
             <DialogTitle>{organization ? "Edit organization" : "Add an organization"}</DialogTitle>
             <DialogDescription>A company, school or group you work with.</DialogDescription>
           </DialogHeader>
-          <Field id="org-name" label="Name" required error={errors.name}>
-            <Input {...input("name")} autoComplete="off" />
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="org-industry" label="Industry" error={errors.industry}>
-              <Input {...input("industry")} />
+          <DialogBody className="grid gap-4">
+            <Field id="org-name" label="Name" required error={errors.name}>
+              <Input {...input("name")} autoComplete="off" />
             </Field>
-            <Field id="org-size" label="Size" error={errors.size}>
-              <Input {...input("size")} placeholder="e.g. 11-50 employees" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="org-industry" label="Industry" error={errors.industry}>
+                <Input {...input("industry")} />
+              </Field>
+              <Field id="org-size" label="Size" error={errors.size}>
+                <Input {...input("size")} placeholder="e.g. 11-50 employees" />
+              </Field>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="org-website" label="Website" error={errors.website}>
+                <Input {...input("website")} type="url" placeholder="https://example.com" />
+              </Field>
+              <Field id="org-phone" label="Phone" error={errors.phone}>
+                <Input {...input("phone")} type="tel" />
+              </Field>
+            </div>
+            <Field id="org-address" label="Address" error={errors.address}>
+              <Input {...input("address")} />
             </Field>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="org-website" label="Website" error={errors.website}>
-              <Input {...input("website")} type="url" placeholder="https://example.com" />
+            <Field id="org-notes" label="Notes" error={errors.notes}>
+              <Textarea {...input("notes")} rows={3} />
             </Field>
-            <Field id="org-phone" label="Phone" error={errors.phone}>
-              <Input {...input("phone")} type="tel" />
-            </Field>
-          </div>
-          <Field id="org-address" label="Address" error={errors.address}>
-            <Input {...input("address")} />
-          </Field>
-          <Field id="org-notes" label="Notes" error={errors.notes}>
-            <Textarea {...input("notes")} rows={3} />
-          </Field>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"

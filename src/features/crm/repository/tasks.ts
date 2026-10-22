@@ -23,7 +23,8 @@ async function toTasks(
     dueAt: row.dueAt?.toISOString(),
     doneAt: row.doneAt?.toISOString(),
     assigneeId: row.assigneeId ?? undefined,
-    assigneeName: row.assigneeId ? names.get(row.assigneeId) : undefined,
+    assigneeName: row.assigneeId ? names.get(row.assigneeId)?.name : undefined,
+    assigneeAvatar: row.assigneeId ? names.get(row.assigneeId)?.avatarUrl : undefined,
     subject: row.deal
       ? { kind: "deal", id: row.deal.id, label: row.deal.title }
       : row.lead

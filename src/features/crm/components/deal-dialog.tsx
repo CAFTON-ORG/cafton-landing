@@ -3,10 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
+import { DatePicker } from "@/components/dashboard/shared/date-picker";
 import { Field } from "@/components/dashboard/shared/field";
 import { Button } from "@/components/dashboard/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -15,6 +17,13 @@ import {
   DialogTrigger,
 } from "@/components/dashboard/ui/dialog";
 import { Input } from "@/components/dashboard/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { minorToInput } from "@/lib/money";
@@ -31,6 +40,8 @@ export function DealDialog({
   people,
   trigger,
   defaultContactId,
+  pipelines = [],
+  defaultPipelineId,
 }: {
   deal?: DealView;
   contacts: PersonRef[];
@@ -38,6 +49,9 @@ export function DealDialog({
   people: PersonRef[];
   trigger: ReactNode;
   defaultContactId?: string;
+  /** The pipelines to choose from when making a deal (only shown when there is more than one). */
+  pipelines?: { id: string; name: string }[];
+  defaultPipelineId?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -48,6 +62,7 @@ export function DealDialog({
     contactId: deal?.contactId ?? defaultContactId ?? "",
     organizationId: deal?.organizationId ?? "",
     ownerId: deal?.ownerId ?? "",
+    pipelineId: defaultPipelineId ?? "",
     amount: minorToInput(deal?.amountMinor ?? null, deal?.currency),
     expectedCloseDate: deal?.expectedCloseDate ?? "",
     description: deal?.description ?? "",
@@ -73,6 +88,7 @@ export function DealDialog({
       ...values,
       organizationId: values.organizationId || "none",
       ownerId: values.ownerId || "none",
+      pipelineId: values.pipelineId || "none",
     };
     run(() => (deal ? updateDeal(deal.id, payload) : createDeal(payload)), {
       success: deal ? "Deal updated." : "Deal created.",
@@ -101,8 +117,8 @@ export function DealDialog({
       }}
     >
       <DialogTrigger render={trigger as React.ReactElement} />
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
-        <form onSubmit={submit} noValidate className="grid gap-4">
+      <DialogContent scrollable className="sm:max-w-xl">
+        <form onSubmit={submit} noValidate className="flex min-h-0 flex-1 flex-col">
           <DialogHeader>
             <DialogTitle>{deal ? "Edit deal" : "New deal"}</DialogTitle>
             <DialogDescription>
@@ -111,66 +127,108 @@ export function DealDialog({
                 : "New deals start in the first stage of the pipeline."}
             </DialogDescription>
           </DialogHeader>
-          <Field id="deal-title" label="Title" required error={errors.title}>
-            <Input
-              {...input("title")}
-              autoComplete="off"
-              placeholder="e.g. Inventory system for Acme"
-            />
-          </Field>
-          <Field id="deal-contactId" label="Contact" required error={errors.contactId}>
-            <PersonSelect
-              id="deal-contactId"
-              value={values.contactId}
-              onChange={set("contactId")}
-              people={contacts}
-              noneLabel="Choose a contact"
-            />
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="deal-organizationId" label="Organization" hint="Defaults to the contact's.">
-              <PersonSelect
-                id="deal-organizationId"
-                value={values.organizationId}
-                onChange={set("organizationId")}
-                people={organizations}
-                noneLabel="None"
-              />
-            </Field>
-            <Field id="deal-ownerId" label="Owner">
-              <PersonSelect
-                id="deal-ownerId"
-                value={values.ownerId}
-                onChange={set("ownerId")}
-                people={people}
-              />
-            </Field>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              id="deal-amount"
-              label="Value (₱)"
-              error={errors.amount}
-              hint={amountLocked ?? "Estimated now, final when the deal is won."}
-            >
+          <DialogBody className="grid gap-4">
+            <Field id="deal-title" label="Title" required error={errors.title}>
               <Input
-                {...input("amount")}
-                inputMode="decimal"
-                placeholder="e.g. 250,000"
-                disabled={!!amountLocked}
+                {...input("title")}
+                autoComplete="off"
+                placeholder="e.g. Inventory system for Acme"
               />
             </Field>
-            <Field
-              id="deal-expectedCloseDate"
-              label="Expected close"
-              error={errors.expectedCloseDate}
-            >
-              <Input {...input("expectedCloseDate")} type="date" />
+            {!deal && pipelines.length > 1 && (
+              <Field
+                id="deal-pipelineId"
+                label="Pipeline"
+                hint="Where the deal starts: the first stage of this pipeline."
+              >
+                <Select
+                  value={values.pipelineId || pipelines[0].id}
+                  onValueChange={(value) => set("pipelineId")(String(value))}
+                >
+                  <SelectTrigger id="deal-pipelineId" className="w-full">
+                    <SelectValue>
+                      {(value: string) => pipelines.find((p) => p.id === value)?.name ?? ""}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pipelines.map((pipeline) => (
+                      <SelectItem key={pipeline.id} value={pipeline.id}>
+                        {pipeline.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            )}
+            <Field id="deal-contactId" label="Contact" required error={errors.contactId}>
+              <PersonSelect
+                id="deal-contactId"
+                value={values.contactId}
+                onChange={set("contactId")}
+                people={contacts}
+                noneLabel="Choose a contact"
+              />
             </Field>
-          </div>
-          <Field id="deal-description" label="Description" error={errors.description}>
-            <Textarea {...input("description")} rows={4} />
-          </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                id="deal-organizationId"
+                label="Organization"
+                hint="Defaults to the contact's."
+              >
+                <PersonSelect
+                  id="deal-organizationId"
+                  value={values.organizationId}
+                  onChange={set("organizationId")}
+                  people={organizations}
+                  noneLabel="None"
+                />
+              </Field>
+              <Field
+                id="deal-ownerId"
+                label="Owner"
+                hint="The teammate who is responsible for winning this deal."
+              >
+                <PersonSelect
+                  id="deal-ownerId"
+                  value={values.ownerId}
+                  onChange={set("ownerId")}
+                  people={people}
+                />
+              </Field>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                id="deal-amount"
+                label="Value (₱)"
+                error={errors.amount}
+                hint={amountLocked ?? "Estimated now, final when the deal is won."}
+              >
+                <Input
+                  {...input("amount")}
+                  inputMode="decimal"
+                  placeholder="e.g. 250,000"
+                  disabled={!!amountLocked}
+                />
+              </Field>
+              <Field
+                id="deal-expectedCloseDate"
+                label="Expected close"
+                error={errors.expectedCloseDate}
+              >
+                <DatePicker
+                  id="deal-expectedCloseDate"
+                  value={values.expectedCloseDate}
+                  onChange={(value) =>
+                    setValues((current) => ({ ...current, expectedCloseDate: value }))
+                  }
+                  clearable
+                />
+              </Field>
+            </div>
+            <Field id="deal-description" label="Description" error={errors.description}>
+              <Textarea {...input("description")} rows={4} />
+            </Field>
+          </DialogBody>
           <DialogFooter>
             <Button
               type="button"

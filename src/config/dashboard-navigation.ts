@@ -1,6 +1,7 @@
 import {
   Building2,
   CalendarDays,
+  Workflow,
   Contact,
   FileText,
   FolderKanban,
@@ -192,6 +193,20 @@ export const navGroups: NavGroup[] = [
         permission: "tasks:view",
         keywords: ["to-do", "follow up", "reminders"],
       },
+      {
+        href: "/dashboard/crm/pipelines",
+        label: "Pipelines",
+        icon: Workflow,
+        permission: "pipelines:manage",
+        keywords: ["stages", "funnel", "probability", "sales process"],
+      },
+      {
+        href: "/dashboard/crm/schedule",
+        label: "Schedule",
+        icon: CalendarDays,
+        permission: "meetings:view",
+        keywords: ["meetings", "calendar", "booking", "appointments", "calls"],
+      },
     ],
   },
   {
@@ -238,6 +253,7 @@ export const segmentLabels: Record<string, string> = {
   crm: "CRM",
   content: "Website",
   seo: "Search and sharing",
+  settings: "Settings",
 };
 
 export function isActivePath(pathname: string, href: string) {

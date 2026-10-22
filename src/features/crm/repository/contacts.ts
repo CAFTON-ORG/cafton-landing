@@ -1,4 +1,5 @@
 import "server-only";
+import { withActivity } from "./summary";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -20,6 +21,7 @@ export async function listContacts(params: TableParams): Promise<Page<ContactVie
   const q = params.q.trim();
   const where: Prisma.ContactWhereInput = {
     ...live,
+    ...(params.filters.tag ? { tags: { has: params.filters.tag } } : {}),
     ...(q
       ? {
           OR: [
@@ -49,7 +51,13 @@ export async function listContacts(params: TableParams): Promise<Page<ContactVie
     take: base.pageSize,
   });
   const names = await namesFor(rows.map((row) => row.ownerId));
-  return { ...base, items: rows.map((row) => toContact(row, names)) };
+  return {
+    ...base,
+    items: await withActivity(
+      "contact",
+      rows.map((row) => toContact(row, names)),
+    ),
+  };
 }
 
 export async function getContact(id: string): Promise<ContactView | null> {

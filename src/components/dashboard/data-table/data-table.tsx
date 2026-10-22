@@ -24,13 +24,14 @@ export type Column<T> = {
   align?: "right";
   className?: string;
   /** Hide this column below a breakpoint so the table fits phones. */
-  hideBelow?: "sm" | "md" | "lg";
+  hideBelow?: "sm" | "md" | "lg" | "xl";
 };
 
 const HIDE_BELOW = {
   sm: "max-sm:hidden",
   md: "max-md:hidden",
   lg: "max-lg:hidden",
+  xl: "max-xl:hidden",
 } as const;
 
 const columnClass = (column: Pick<Column<never>, "align" | "hideBelow" | "className">) =>
@@ -132,6 +133,7 @@ export function DataTable<T>({
             {selectable && (
               <TableHead scope="col" className="w-10">
                 <Checkbox
+                  className="size-6"
                   aria-label="Select all rows on this page"
                   checked={allSelected}
                   indeterminate={someSelected}
@@ -199,6 +201,7 @@ export function DataTable<T>({
                   {selectable && (
                     <TableCell>
                       <Checkbox
+                        className="size-6"
                         aria-label={`Select row ${id}`}
                         checked={isSelected}
                         onCheckedChange={(checked) => toggleRow(id, checked === true)}

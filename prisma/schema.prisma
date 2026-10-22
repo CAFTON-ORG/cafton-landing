@@ -54,12 +54,14 @@ model StaffInvite {
 
 /// One row per signed-in staff member. `id` equals auth.users.id (Supabase Auth).
 model Profile {
-  id        String   @id @db.Uuid
-  email     String
-  fullName  String?  @map("full_name")
-  avatarUrl String?  @map("avatar_url")
-  roleId    String   @map("role_id") @db.Uuid
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id            String   @id @db.Uuid
+  email         String
+  fullName      String?  @map("full_name")
+  avatarUrl     String?  @map("avatar_url")
+  roleId        String   @map("role_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// Secret in the address of this person's calendar subscription link; null until they ask for one.
+  calendarToken String?  @unique @map("calendar_token")
 
   role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
 
@@ -135,6 +137,8 @@ model Organization {
 
   contacts Contact[]
   deals    Deal[]
+  /// Free-form labels, lower case, for filtering and grouping.
+  tags     String[]  @default([])
 
   @@index([name])
   @@map("organizations")
@@ -162,6 +166,9 @@ model Contact {
   leads        Lead[]
   activities   Activity[]
   tasks        Task[]
+  meetings     Meeting[]
+  /// Free-form labels, lower case, for filtering and grouping.
+  tags         String[]      @default([])
 
   @@index([organizationId])
   @@index([lastName, firstName])
@@ -197,6 +204,9 @@ model Lead {
   deal       Deal?
   activities Activity[]
   tasks      Task[]
+  meetings   Meeting[]
+  /// Free-form labels, lower case, for filtering and grouping.
+  tags       String[]   @default([])
 
   @@index([status, createdAt(sort: Desc)])
   @@index([email])
@@ -204,8 +214,22 @@ model Lead {
 }
 
 /// Pipeline stages are data, not an enum, so the sales process can change without a migration.
+/// A sales pipeline: its own ordered stages, with exactly one Won and one Lost.
+model Pipeline {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key       String  @unique
+  name      String
+  position  Int     @default(0)
+  isDefault Boolean @default(false) @map("is_default")
+
+  stages PipelineStage[]
+
+  @@map("pipelines")
+}
+
 model PipelineStage {
   id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pipelineId   String    @map("pipeline_id") @db.Uuid
   key          String    @unique
   name         String
   position     Int
@@ -215,7 +239,8 @@ model PipelineStage {
   /// What must be true before a deal leaves this stage.
   exitCriteria String?   @map("exit_criteria")
 
-  deals Deal[]
+  pipeline Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  deals    Deal[]
 
   @@map("pipeline_stages")
 }
@@ -251,6 +276,9 @@ model Deal {
   lead         Lead?         @relation(fields: [leadId], references: [id], onDelete: SetNull)
   activities   Activity[]
   tasks        Task[]
+  meetings     Meeting[]
+  /// Free-form labels, lower case, for filtering and grouping.
+  tags         String[]      @default([])
 
   @@index([stageId])
   @@index([contactId])
@@ -270,6 +298,9 @@ model Activity {
   /// Snapshot, like the audit log.
   createdByName String       @map("created_by_name")
   createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// Pinned notes stay at the top of the timeline.
+  pinned        Boolean      @default(false)
+  editedAt      DateTime?    @map("edited_at") @db.Timestamptz(6)
 
   lead    Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
   contact Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
@@ -533,4 +564,105 @@ model SiteContent {
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("site_content")
+}
+
+enum MeetingStatus {
+  requested
+  confirmed
+  completed
+  cancelled
+  no_show
+
+  @@map("meeting_status")
+}
+
+enum MeetingMode {
+  video
+  phone
+  in_person
+
+  @@map("meeting_mode")
+}
+
+/// A scheduled conversation with someone outside Cafton. Linked to the lead, contact and deal it is about.
+/// The database refuses two requested or confirmed meetings that overlap (hand-written constraint).
+model Meeting {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String
+  startsAt        DateTime      @map("starts_at") @db.Timestamptz(6)
+  endsAt          DateTime      @map("ends_at") @db.Timestamptz(6)
+  mode            MeetingMode   @default(video)
+  /// A video link, a phone number or an address, depending on the mode.
+  location        String?
+  status          MeetingStatus @default(requested)
+  /// "website" when the visitor asked for it on the contact form, "staff" otherwise.
+  source          String        @default("staff")
+  notes           String?
+  cancelledReason String?       @map("cancelled_reason")
+  attendeeName    String        @map("attendee_name")
+  attendeeEmail   String        @map("attendee_email")
+  attendeePhone   String?       @map("attendee_phone")
+  leadId          String?       @map("lead_id") @db.Uuid
+  contactId       String?       @map("contact_id") @db.Uuid
+  dealId          String?       @map("deal_id") @db.Uuid
+  ownerId         String?       @map("owner_id") @db.Uuid
+  createdBy       String?       @map("created_by") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lead    Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([startsAt])
+  @@index([status, startsAt])
+  @@index([leadId])
+  @@index([contactId])
+  @@index([dealId])
+  @@map("meetings")
+}
+
+/// One row per reminder already sent, so the daily job never sends the same one twice.
+model ReminderLog {
+  id     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind   String
+  refId  String   @map("ref_id")
+  /// What the reminder was about (for a meeting, its start time), so a moved meeting is reminded again.
+  forKey String   @map("for_key")
+  sentAt DateTime @default(now()) @map("sent_at") @db.Timestamptz(6)
+
+  @@unique([kind, refId, forKey])
+  @@map("reminder_logs")
+}
+
+/// A saved search/filter of a list, per person or shared with the team.
+model SavedView {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// "leads", "contacts", "organizations", "deals" or "tasks".
+  resource  String
+  name      String
+  /// The list's address query, e.g. "status=new&owner=me".
+  query     String
+  shared    Boolean  @default(false)
+  ownerId   String?  @map("owner_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([resource, ownerId])
+  @@map("saved_views")
+}
+
+/// In-app notifications for one staff member.
+model Notification {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  /// What happened: "lead.new", "meeting.request", "task.assigned", "lead.assigned", "deal.assigned", "task.due".
+  kind      String
+  title     String
+  body      String?
+  href      String?
+  readAt    DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([userId, readAt, createdAt(sort: Desc)])
+  @@map("notifications")
 }

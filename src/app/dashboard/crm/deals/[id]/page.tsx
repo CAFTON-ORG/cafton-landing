@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Person } from "@/components/dashboard/shared/person";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -7,8 +8,11 @@ import { BackLink } from "@/components/dashboard/shared/back-link";
 import { DefinitionList } from "@/components/dashboard/shared/definition-list";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
+import { TagsEditor } from "@/features/crm/components/tags-editor";
+import { listTagOptions } from "@/features/crm/repository/tags";
 import { ActivityTimeline } from "@/features/crm/components/activity-timeline";
 import { StageBadge } from "@/features/crm/components/badges";
+import { StageStepper } from "@/features/crm/components/stage-stepper";
 import { DealActions } from "@/features/crm/components/deal-actions";
 import { NewTaskForm, TaskRows, TasksEmpty } from "@/features/crm/components/task-list";
 import { listActivities } from "@/features/crm/repository/activity";
@@ -18,6 +22,8 @@ import { listOrganizationOptions } from "@/features/crm/repository/organizations
 import { listStages, listStaffOptions } from "@/features/crm/repository/pipeline";
 import { listTasksFor } from "@/features/crm/repository/tasks";
 import { checkAddTaskToDeal } from "@/features/crm/rules";
+import { MeetingsPanel } from "@/features/schedule/components/meetings-panel";
+import { listMeetingsFor } from "@/features/schedule/repository";
 import { actorId } from "@/lib/actions";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";
@@ -33,14 +39,17 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
   const deal = await getDeal(id);
   if (!deal) notFound();
 
-  const [stages, activities, tasks, contacts, organizations, people] = await Promise.all([
-    listStages(),
-    listActivities({ dealId: id }),
-    listTasksFor({ dealId: id }),
-    listContactOptions(),
-    listOrganizationOptions(),
-    listStaffOptions(),
-  ]);
+  const [stages, activities, tasks, contacts, organizations, people, meetings, tagOptions] =
+    await Promise.all([
+      listStages(deal.pipelineId),
+      listActivities({ dealId: id }),
+      listTasksFor({ dealId: id }),
+      listContactOptions(),
+      listOrganizationOptions(),
+      listStaffOptions(),
+      listMeetingsFor({ dealId: id }),
+      listTagOptions("deal"),
+    ]);
   const canAddTask = !checkAddTaskToDeal({
     stageKind: deal.stageKind,
     amountMinor: deal.amountMinor,
@@ -54,6 +63,10 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
         description={`${deal.reference} · ${formatMinor(deal.amountMinor, deal.currency)}${deal.stageKind === "open" ? ` · ${deal.probability}% likely` : ""}`}
         action={<StageBadge deal={deal} />}
       />
+
+      <div className="mb-4">
+        <StageStepper stages={stages} currentId={deal.stageId} closedKind={deal.stageKind} />
+      </div>
 
       <Card className="mb-4">
         <CardContent>
@@ -79,12 +92,10 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
                   {
                     label: "Contact",
                     value: (
-                      <Link
-                        className="underline underline-offset-4"
+                      <Person
+                        name={deal.contactName}
                         href={`/dashboard/crm/contacts/${deal.contactId}`}
-                      >
-                        {deal.contactName}
-                      </Link>
+                      />
                     ),
                   },
                   {
@@ -100,7 +111,10 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
                       ""
                     ),
                   },
-                  { label: "Owner", value: deal.ownerName ?? "Unassigned" },
+                  {
+                    label: "Owner",
+                    value: <Person name={deal.ownerName} avatarUrl={deal.ownerAvatar} />,
+                  },
                   {
                     label: "Expected close",
                     value: deal.expectedCloseDate ? formatDate(deal.expectedCloseDate) : "",
@@ -135,10 +149,29 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
             subject={{ dealId: id }}
             activities={activities}
             writePermission="deals:update"
+            currentUserId={actorId(staff) ?? undefined}
           />
         </div>
 
         <div className="grid content-start gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tags</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TagsEditor kind="deal" id={id} initial={deal.tags} suggestions={tagOptions} />
+            </CardContent>
+          </Card>
+
+          <MeetingsPanel
+            meetings={meetings}
+            people={people}
+            defaults={{
+              dealId: id,
+              title: `Meeting about ${deal.title}`,
+              attendeeName: deal.contactName ?? undefined,
+            }}
+          />
           <Card>
             <CardHeader>
               <CardTitle>Tasks</CardTitle>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { DatePicker } from "@/components/dashboard/shared/date-picker";
 import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { Field } from "@/components/dashboard/shared/field";
 import {
@@ -132,11 +133,10 @@ export function PostEditor({
                   </datalist>
                 </Field>
                 <Field id="post-date" label="Post date" required error={errors.date}>
-                  <Input
+                  <DatePicker
                     id="post-date"
-                    type="date"
                     value={values.date}
-                    onChange={(event) => set("date", event.target.value)}
+                    onChange={(value) => set("date", value)}
                     aria-invalid={!!errors.date}
                   />
                 </Field>

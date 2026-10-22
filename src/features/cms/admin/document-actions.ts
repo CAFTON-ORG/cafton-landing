@@ -12,6 +12,7 @@ import {
 } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/dal";
+import type { Permission } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { isSiteDocumentKey, siteDocuments } from "../site/registry";
@@ -28,10 +29,12 @@ const PAGES_OF: Partial<Record<string, string[]>> = {
 /** Saves one page of site content after checking it against that page's schema. The whole site is refreshed. */
 export async function saveSiteDocument(key: string, input: unknown): Promise<ActionResult<void>> {
   return runAction(async () => {
-    const actor = await requirePermission("content:update");
-    if (!isDatabaseConfigured) throw new ActionError(NOT_CONFIGURED);
     if (!isSiteDocumentKey(key)) throw new ActionError("That page can't be edited.");
-    const { schema, spec } = siteDocuments[key];
+    const { schema, spec, permission } = siteDocuments[
+      key
+    ] as (typeof siteDocuments)[typeof key] & { permission?: Permission };
+    const actor = await requirePermission(permission ?? "content:update");
+    if (!isDatabaseConfigured) throw new ActionError(NOT_CONFIGURED);
     const data = parse(schema as never, input) as object;
 
     await prisma.$transaction(async (tx) => {

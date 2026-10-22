@@ -61,9 +61,9 @@ export function LeadActions({ lead, people }: { lead: LeadView; people: PersonRe
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+    <div className="grid gap-3">
       {canUpdate && (
-        <div className="grid w-full gap-1.5 sm:w-64">
+        <div className="grid w-full gap-1.5">
           <label htmlFor="lead-owner" className="text-sm font-medium">
             Owner
           </label>
@@ -76,6 +76,9 @@ export function LeadActions({ lead, people }: { lead: LeadView; people: PersonRe
               run(() => assignLead(lead.id, ownerId || null), { success: "Owner updated." })
             }
           />
+          <p className="text-muted-foreground text-xs">
+            The teammate responsible for the next step.
+          </p>
         </div>
       )}
 

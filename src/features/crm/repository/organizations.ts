@@ -19,6 +19,7 @@ export async function listOrganizations(params: TableParams): Promise<Page<Organ
   const q = params.q.trim();
   const where: Prisma.OrganizationWhereInput = {
     ...live,
+    ...(params.filters.tag ? { tags: { has: params.filters.tag } } : {}),
     ...(q
       ? {
           OR: [

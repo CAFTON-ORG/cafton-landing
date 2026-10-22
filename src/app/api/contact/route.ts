@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { contactSchema } from "@/features/crm/contact";
 import { createLeadFromWebsite } from "@/features/crm/intake";
+import { MEETING_MODES } from "@/features/schedule/types";
 import { checkRateLimit, getClientKey } from "@/lib/security/rate-limit";
 import { verifyTurnstileToken } from "@/lib/security/turnstile";
 
@@ -38,6 +39,8 @@ const requestSchema = z.object({
     // slashes by some parsers, so they're out too.
     .refine((value) => !value.startsWith("//") && !value.includes("\\"), "Invalid page path"),
   turnstileToken: z.string().min(1).max(2_048),
+  /** A time picked on the form's calendar. It is checked again on the server. */
+  meeting: z.object({ start: z.iso.datetime(), mode: z.enum(MEETING_MODES) }).optional(),
 });
 
 export async function POST(request: Request) {
@@ -95,11 +98,20 @@ export async function POST(request: Request) {
   }
 
   // The page path is validated above (same-origin path only), so it is safe to store as given.
-  const result = await createLeadFromWebsite(parsed.data.contact, {
-    leadSource: parsed.data.leadSource,
-    pageName: parsed.data.pageName,
-    pagePath: parsed.data.pagePath,
-  });
+  const result = await createLeadFromWebsite(
+    parsed.data.contact,
+    {
+      leadSource: parsed.data.leadSource,
+      pageName: parsed.data.pageName,
+      pagePath: parsed.data.pagePath,
+    },
+    parsed.data.meeting && {
+      start: new Date(parsed.data.meeting.start),
+      mode: parsed.data.meeting.mode,
+    },
+  );
 
-  return NextResponse.json(result.ok ? { ok: true } : result, { status: result.ok ? 200 : 502 });
+  return NextResponse.json(result.ok ? { ok: true, meeting: result.meeting } : result, {
+    status: result.ok ? 200 : 502,
+  });
 }

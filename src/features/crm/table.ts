@@ -5,16 +5,19 @@ import { LEAD_STATUSES } from "./types";
 
 export const LEADS_TABLE: TableParamsConfig = {
   filters: { status: LEAD_STATUSES, owner: ["me", "unassigned"] },
+  free: ["tag"],
   sortable: ["name", "status", "created"],
   defaultSort: { sort: "created", dir: "desc" },
 };
 
 export const CONTACTS_TABLE: TableParamsConfig = {
+  free: ["tag"],
   sortable: ["name", "organization", "created"],
   defaultSort: { sort: "name", dir: "asc" },
 };
 
 export const ORGANIZATIONS_TABLE: TableParamsConfig = {
+  free: ["tag"],
   sortable: ["name", "created"],
   defaultSort: { sort: "name", dir: "asc" },
 };
@@ -23,6 +26,7 @@ export const ORGANIZATIONS_TABLE: TableParamsConfig = {
 export function dealsTableConfig(stageKeys: readonly string[]): TableParamsConfig {
   return {
     filters: { stage: stageKeys, owner: ["me", "unassigned"] },
+    free: ["tag", "pipeline"],
     sortable: ["title", "stage", "amount", "close", "created"],
     defaultSort: { sort: "created", dir: "desc" },
   };

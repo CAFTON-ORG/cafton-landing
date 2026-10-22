@@ -21,11 +21,12 @@ import { SiteSettingsProvider } from "@/providers/site-settings";
  * layout and by the root 404.
  */
 export async function SiteChrome({ children }: { children: ReactNode }) {
-  const [settings, services, values, home] = await Promise.all([
+  const [settings, services, values, home, booking] = await Promise.all([
     getSiteSettings(),
     getDocument("services"),
     getDocument("values"),
     getDocument("home"),
+    getDocument("booking"),
   ]);
   return (
     <SiteSettingsProvider
@@ -34,6 +35,7 @@ export async function SiteChrome({ children }: { children: ReactNode }) {
       values={values.items}
       valuesHeader={{ heading: values.heading, intro: values.intro }}
       home={home}
+      booking={{ enabled: booking.enabled, intro: booking.intro }}
     >
       <a
         href="#main"

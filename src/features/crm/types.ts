@@ -20,10 +20,22 @@ export type LoggableActivityType = (typeof ACTIVITY_TYPES)[number];
 export interface PersonRef {
   id: string;
   name: string;
+  /** Their profile photo, when they have one. */
+  avatarUrl?: string;
+}
+
+export interface PipelineView {
+  id: string;
+  key: string;
+  name: string;
+  isDefault: boolean;
+  stages: StageView[];
+  dealCount: number;
 }
 
 export interface StageView {
   id: string;
+  pipelineId: string;
   key: string;
   name: string;
   position: number;
@@ -34,6 +46,7 @@ export interface StageView {
 
 export interface LeadView {
   id: string;
+  tags: string[];
   reference: string;
   firstName: string;
   lastName: string;
@@ -50,13 +63,19 @@ export interface LeadView {
   disqualifiedReason?: string;
   ownerId?: string;
   ownerName?: string;
+  ownerAvatar?: string;
   contactId?: string;
   dealId?: string;
   createdAt: string;
+  /** The last note, call, email or meeting with them (ISO). */
+  lastContactedAt?: string;
+  /** The soonest open task or upcoming meeting (ISO). */
+  nextActivityAt?: string;
 }
 
 export interface OrganizationView {
   id: string;
+  tags: string[];
   name: string;
   industry?: string;
   size?: string;
@@ -71,6 +90,7 @@ export interface OrganizationView {
 
 export interface ContactView {
   id: string;
+  tags: string[];
   firstName: string;
   lastName: string;
   name: string;
@@ -81,14 +101,20 @@ export interface ContactView {
   organizationName?: string;
   ownerId?: string;
   ownerName?: string;
+  ownerAvatar?: string;
   source: string;
   notes?: string;
   dealCount: number;
   createdAt: string;
+  /** The last note, call, email or meeting with them (ISO). */
+  lastContactedAt?: string;
+  /** The soonest open task or upcoming meeting (ISO). */
+  nextActivityAt?: string;
 }
 
 export interface DealView {
   id: string;
+  tags: string[];
   reference: string;
   title: string;
   contactId: string;
@@ -96,6 +122,7 @@ export interface DealView {
   organizationId?: string;
   organizationName?: string;
   stageId: string;
+  pipelineId: string;
   stageKey: string;
   stageName: string;
   stageKind: StageKind;
@@ -105,6 +132,7 @@ export interface DealView {
   currency: string;
   ownerId?: string;
   ownerName?: string;
+  ownerAvatar?: string;
   /** yyyy-mm-dd */
   expectedCloseDate?: string;
   source: string;
@@ -115,6 +143,10 @@ export interface DealView {
   wonAt?: string;
   lostAt?: string;
   createdAt: string;
+  /** The last note, call, email or meeting with them (ISO). */
+  lastContactedAt?: string;
+  /** The soonest open task or upcoming meeting (ISO). */
+  nextActivityAt?: string;
 }
 
 export interface ActivityView {
@@ -122,6 +154,12 @@ export interface ActivityView {
   type: "note" | "call" | "email" | "meeting" | "stage_change" | "system";
   body: string;
   by: string;
+  /** The photo of the staff member who wrote it, when known. */
+  byAvatar?: string;
+  /** The author's id, to know whose entry it is. */
+  byId?: string;
+  pinned: boolean;
+  edited: boolean;
   at: string;
 }
 
@@ -132,6 +170,7 @@ export interface TaskView {
   doneAt?: string;
   assigneeId?: string;
   assigneeName?: string;
+  assigneeAvatar?: string;
   subject?: { kind: "lead" | "contact" | "deal"; id: string; label: string };
 }
 

@@ -11,12 +11,19 @@ import type {
   SiteSettings,
 } from "@/features/cms/types";
 
+/** What the contact form needs to know about booking: whether to show the step, and its intro. */
+export interface BookingSummary {
+  enabled: boolean;
+  intro: string;
+}
+
 interface SiteContent {
   settings: SiteSettings;
   services: ServiceContent[];
   values: CoreValueContent[];
   valuesHeader: { heading: string; intro: string };
   home: HomeContent;
+  booking: BookingSummary;
 }
 
 const SiteContentContext = createContext<SiteContent | null>(null);
@@ -31,11 +38,12 @@ export function SiteSettingsProvider({
   values,
   valuesHeader,
   home,
+  booking,
   children,
 }: SiteContent & { children: ReactNode }) {
   const value = useMemo(
-    () => ({ settings, services, values, valuesHeader, home }),
-    [settings, services, values, valuesHeader, home],
+    () => ({ settings, services, values, valuesHeader, home, booking }),
+    [settings, services, values, valuesHeader, home, booking],
   );
   return <SiteContentContext.Provider value={value}>{children}</SiteContentContext.Provider>;
 }
@@ -65,3 +73,5 @@ export function useCoreValues() {
 export const useValuesHeader = () => useSiteContent().valuesHeader;
 
 export const useHomeContent = () => useSiteContent().home;
+
+export const useBooking = () => useSiteContent().booking;

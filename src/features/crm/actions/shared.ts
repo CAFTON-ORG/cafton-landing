@@ -27,10 +27,25 @@ export function findLiveContactByEmail(tx: Tx, email: string) {
   });
 }
 
-/** The pipeline stage a new deal starts in. */
-export async function firstOpenStage(tx: Tx, key = "new") {
-  return (
-    (await tx.pipelineStage.findUnique({ where: { key } })) ??
-    (await tx.pipelineStage.findFirst({ where: { kind: "open" }, orderBy: { position: "asc" } }))
-  );
+/**
+ * The open stage a deal starts (or restarts) in. `key` names the preferred stage ("new" by default);
+ * inside a pipeline that doesn't have it, the pipeline's first open stage is used. Without a
+ * `pipelineId` the default pipeline is meant.
+ */
+export async function firstOpenStage(tx: Tx, key = "new", pipelineId?: string) {
+  const pipeline = pipelineId ? { id: pipelineId } : { isDefault: true };
+  const named = await tx.pipelineStage.findFirst({ where: { key, kind: "open", pipeline } });
+  if (named) return named;
+  return tx.pipelineStage.findFirst({
+    where: { kind: "open", pipeline },
+    orderBy: { position: "asc" },
+  });
+}
+
+/** The last open stage of a pipeline, where a reopened deal goes. */
+export function lastOpenStage(tx: Tx, pipelineId: string) {
+  return tx.pipelineStage.findFirst({
+    where: { kind: "open", pipelineId },
+    orderBy: { position: "desc" },
+  });
 }

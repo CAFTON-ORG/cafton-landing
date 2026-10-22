@@ -11,7 +11,7 @@ import {
   buildingForOptions,
   type ContactFormData,
 } from "@/features/crm/contact";
-import { useServicePillars } from "@/providers/site-settings";
+import { useBooking, useServicePillars } from "@/providers/site-settings";
 import { STEP_FIELDS, STEP_SCHEMAS } from "@/components/marketing/contact/step-config";
 import { buildSteps, type FieldErrors, type StepId } from "@/components/marketing/contact/types";
 import { ProgressHeader } from "@/components/marketing/contact/progress-header";
@@ -22,6 +22,7 @@ import { ChallengesStep } from "@/components/marketing/contact/steps/challenges-
 import { GoalsAreaStep } from "@/components/marketing/contact/steps/goals-area-step";
 import { GoalsSystemsStep } from "@/components/marketing/contact/steps/goals-systems-step";
 import { FinalDetailsStep } from "@/components/marketing/contact/steps/final-details-step";
+import { ScheduleStep, type MeetingChoice } from "@/components/marketing/contact/steps/schedule-step";
 
 type ContactFormProps = {
   /** Where the enquiry came from, stored on the lead, e.g. "Homepage" or "Contact Us Page". */
@@ -33,6 +34,7 @@ type ContactFormProps = {
 
 export function ContactForm({ leadSource, pageName, className = "" }: ContactFormProps) {
   const servicePillars = useServicePillars();
+  const booking = useBooking();
   const getServicePillar = (slug: string) => servicePillars.find((pillar) => pillar.slug === slug);
   const searchParams = useSearchParams();
 
@@ -55,7 +57,9 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
   const [errorMessage, setErrorMessage] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
-  const steps = buildSteps(formData.buildingFor);
+  const [meeting, setMeeting] = useState<MeetingChoice | null>(null);
+  const [booked, setBooked] = useState<{ outcome?: string; start?: string } | null>(null);
+  const steps = buildSteps(formData.buildingFor, booking.enabled);
   const currentStep = steps[step];
 
   // Errors are only raised by pressing Next/Send. Once a field has one, it is
@@ -202,15 +206,18 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
           pageName,
           pagePath: window.location.pathname,
           turnstileToken,
+          ...(meeting && { meeting }),
         }),
       });
       const submission = (await response.json().catch(() => null)) as
-        | { ok: true }
+        | { ok: true; meeting?: string }
         | { ok?: false; message?: string }
         | null;
 
       if (response.ok && submission?.ok) {
+        setBooked(meeting ? { outcome: submission.meeting, start: meeting.start } : null);
         setStatus("success");
+        setMeeting(null);
         setFormData(contactFormDefaults);
         setStep(0);
         return;
@@ -230,7 +237,13 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
   };
 
   if (status === "success") {
-    return <SuccessScreen className={className} onReset={() => setStatus("idle")} />;
+    return (
+      <SuccessScreen
+        className={className}
+        meeting={booked ?? undefined}
+        onReset={() => setStatus("idle")}
+      />
+    );
   }
 
   return (
@@ -283,6 +296,9 @@ export function ContactForm({ leadSource, pageName, className = "" }: ContactFor
               onToggle={handleGoalToggle}
               error={visibleErrors.goals}
             />
+          )}
+          {currentStep.id === "schedule" && (
+            <ScheduleStep value={meeting} onChange={setMeeting} intro={booking.intro} />
           )}
           {currentStep.id === "final" && (
             <FinalDetailsStep

@@ -24,6 +24,27 @@ export function paginate<T>(rows: T[], page: number, pageSize: number): Page<T> 
   };
 }
 
+/**
+ * Counts and reads one page at the same time. Asking for the count first and the rows second costs
+ * two round trips one after the other; the page number only needs correcting (and the rows reading
+ * again) when someone asks for a page past the end, which is rare.
+ */
+export async function fetchPage<T>(
+  params: { page: number; pageSize: number },
+  count: () => Promise<number>,
+  read: (skip: number, take: number) => Promise<T[]>,
+): Promise<{ rows: T[]; base: Page<never> }> {
+  const wanted = Math.max(1, params.page);
+  const [total, first] = await Promise.all([
+    count(),
+    read((wanted - 1) * params.pageSize, params.pageSize),
+  ]);
+  const base = paginate(new Array<never>(total), params.page, params.pageSize);
+  const rows =
+    base.page === wanted ? first : await read((base.page - 1) * base.pageSize, base.pageSize);
+  return { rows, base };
+}
+
 export type PageItem = number | "ellipsis-start" | "ellipsis-end";
 
 /**

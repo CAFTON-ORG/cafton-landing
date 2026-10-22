@@ -5,8 +5,10 @@ import { AppBar } from "@/components/dashboard/layout/app-bar";
 import { MainScroll } from "@/components/dashboard/layout/main-scroll";
 import { Sidebar } from "@/components/dashboard/layout/sidebar";
 import { SidebarProvider } from "@/components/dashboard/layout/sidebar-context";
-import { StaffProvider } from "@/components/dashboard/layout/staff-context";
-import { Bell } from "@/features/notifications/components/bell";
+import { NavCountsProvider, StaffProvider } from "@/components/dashboard/layout/staff-context";
+import { navCounts, NO_COUNTS } from "@/features/notifications/counts";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { actorId } from "@/lib/actions";
 import { verifySession } from "@/lib/auth/dal";
 import { DashboardProviders } from "@/components/dashboard/providers";
 
@@ -18,6 +20,8 @@ export const metadata: Metadata = {
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   // The proxy only does an optimistic redirect. This is the real check.
   const staff = await verifySession();
+  const userId = actorId(staff);
+  const counts = userId ? await navCounts(userId) : NO_COUNTS;
 
   return (
     <DashboardProviders>
@@ -31,15 +35,17 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           permissions: staff.permissions,
         }}
       >
-        <SidebarProvider>
-          <div className="relative flex h-dvh overflow-hidden">
-            <Sidebar />
-            <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
-              <AppBar bell={<Bell />} />
-              <MainScroll>{children}</MainScroll>
+        <NavCountsProvider counts={counts}>
+          <SidebarProvider>
+            <div className="relative flex h-dvh overflow-hidden">
+              <Sidebar />
+              <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+                <AppBar bell={<NotificationBell unread={counts.unread} />} />
+                <MainScroll>{children}</MainScroll>
+              </div>
             </div>
-          </div>
-        </SidebarProvider>
+          </SidebarProvider>
+        </NavCountsProvider>
       </StaffProvider>
     </DashboardProviders>
   );

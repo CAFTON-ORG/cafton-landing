@@ -3,21 +3,23 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { DEFAULT_CURRENCY, weightedMinor } from "@/lib/money";
-import { live, toStage } from "../mappers";
+import { fromManila, manilaDate } from "@/features/schedule/slots";
+import { live, staffDirectory, toStage } from "../mappers";
+import { ttlCache } from "@/lib/ttl-cache";
 import type { ForecastView, PersonRef, PipelineView, StageView } from "../types";
 
 /** The stages of one pipeline (the default one when none is named), in order. */
 export async function listStages(pipelineId?: string): Promise<StageView[]> {
   if (!isDatabaseConfigured) return [];
-  const stages = await prisma.pipelineStage.findMany({
-    where: pipelineId ? { pipelineId } : { pipeline: { isDefault: true } },
-    orderBy: { position: "asc" },
-  });
-  return stages.map(toStage);
+  const pipelines = await listPipelines();
+  const pipeline = pipelineId
+    ? pipelines.find((item) => item.id === pipelineId)
+    : pipelines.find((item) => item.isDefault);
+  return pipeline?.stages ?? [];
 }
 
-/** Every pipeline with its stages and how many live deals it holds. Default first. */
-export async function listPipelines(): Promise<PipelineView[]> {
+/** Every pipeline with its stages and how many live deals it holds. Default first. Kept for 30 seconds; the editor clears it. */
+async function loadPipelines(): Promise<PipelineView[]> {
   if (!isDatabaseConfigured) return [];
   const rows = await prisma.pipeline.findMany({
     orderBy: [{ isDefault: "desc" }, { position: "asc" }, { name: "asc" }],
@@ -39,18 +41,12 @@ export async function listPipelines(): Promise<PipelineView[]> {
   }));
 }
 
+export const listPipelines = ttlCache(30_000, loadPipelines);
+
 /** Staff who can own records, for pickers. */
 export async function listStaffOptions(): Promise<PersonRef[]> {
   if (!isDatabaseConfigured) return [];
-  const people = await prisma.profile.findMany({
-    orderBy: [{ fullName: "asc" }, { email: "asc" }],
-    select: { id: true, fullName: true, email: true, avatarUrl: true },
-  });
-  return people.map((person) => ({
-    id: person.id,
-    name: person.fullName || person.email,
-    avatarUrl: person.avatarUrl ?? undefined,
-  }));
+  return staffDirectory();
 }
 
 /**
@@ -71,7 +67,8 @@ export async function getForecast(now: Date = new Date()): Promise<ForecastView>
   };
   if (!isDatabaseConfigured) return empty;
 
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  // "This month" starts at midnight on the 1st in the Philippines, whatever time zone the server is in.
+  const monthStart = fromManila(`${manilaDate(now).slice(0, 8)}01`, "00:00");
   const [stages, openDeals, wonDeals, lostCount] = await Promise.all([
     prisma.pipelineStage.findMany({
       where: { kind: "open", pipeline: { isDefault: true } },

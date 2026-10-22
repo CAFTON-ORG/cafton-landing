@@ -16,7 +16,7 @@ import {
   type NavParent,
 } from "@/config/dashboard-navigation";
 import { cn } from "@/lib/utils";
-import { useStaff } from "./staff-context";
+import { useNavCounts, useStaff } from "./staff-context";
 
 function NavLink({
   item,
@@ -33,6 +33,9 @@ function NavLink({
   onNavigate?: () => void;
 }) {
   const { href, label, icon: Icon } = item;
+  const counts = useNavCounts();
+  const count = item.badge ? counts[item.badge] : 0;
+  const badgeText = count > 99 ? "99+" : String(count);
 
   const link = (
     <Link
@@ -50,6 +53,20 @@ function NavLink({
     >
       <Icon className={cn("shrink-0", nested ? "size-3.5" : "size-4")} aria-hidden="true" />
       <span className={cn("flex-1", collapsed && "sr-only")}>{label}</span>
+      {count > 0 && (
+        <>
+          <span
+            aria-hidden="true"
+            className={cn(
+              "bg-primary text-primary-foreground rounded-full px-1.5 text-[0.7rem] leading-5 font-semibold tabular-nums",
+              collapsed && "absolute top-0.5 right-1 min-w-4 px-1 text-[0.6rem] leading-4",
+            )}
+          >
+            {badgeText}
+          </span>
+          <span className="sr-only">{count} waiting</span>
+        </>
+      )}
     </Link>
   );
 

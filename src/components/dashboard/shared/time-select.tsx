@@ -43,6 +43,7 @@ export function TimeSelect({
   suggestedLabel = "Free",
   placeholder = "Pick a time",
   className,
+  "aria-label": ariaLabel,
   "aria-invalid": invalid,
 }: {
   id?: string;
@@ -56,6 +57,8 @@ export function TimeSelect({
   suggestedLabel?: string;
   placeholder?: string;
   className?: string;
+  /** Names the control for screen readers when there is no visible label. */
+  "aria-label"?: string;
   "aria-invalid"?: boolean;
 }) {
   const list = options(from, to, step);
@@ -63,7 +66,12 @@ export function TimeSelect({
   list.sort();
   return (
     <Select value={value} onValueChange={(next) => onChange(next ? String(next) : "")}>
-      <SelectTrigger id={id} aria-invalid={invalid} className={className ?? "w-full"}>
+      <SelectTrigger
+        id={id}
+        aria-label={ariaLabel}
+        aria-invalid={invalid}
+        className={className ?? "w-full"}
+      >
         <Clock className="text-muted-foreground" aria-hidden="true" />
         <SelectValue placeholder={placeholder}>
           {(current: string | null) => (current ? timeLabel(current) : placeholder)}

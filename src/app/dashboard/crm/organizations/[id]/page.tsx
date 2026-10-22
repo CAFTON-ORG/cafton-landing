@@ -5,13 +5,13 @@ import { Building2, Contact, Handshake } from "lucide-react";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
-import { DefinitionList } from "@/components/dashboard/shared/definition-list";
 import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Person } from "@/components/dashboard/shared/person";
 import { Thumbnail } from "@/components/dashboard/shared/thumbnail";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
+import { Card, CardContent } from "@/components/dashboard/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
+import { DetailsPanel, DetailsSection, Fact, Facts } from "@/features/crm/components/detail-parts";
 import { StageBadge } from "@/features/crm/components/badges";
 import { OrganizationActions } from "@/features/crm/components/record-actions";
 import { TagsEditor } from "@/features/crm/components/tags-editor";
@@ -44,75 +44,52 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
   return (
     <>
       <BackLink href="/dashboard/crm/organizations">All organizations</BackLink>
-      <div className="mb-6 flex flex-wrap items-center gap-4">
-        <Thumbnail icon={Building2} size="lg" />
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">{organization.name}</h1>
-          <p className="text-muted-foreground text-sm">
-            {[organization.industry, organization.size].filter(Boolean).join(" · ") ||
-              "No industry or size yet"}
-            {won > 0 && ` · ${formatMinor(won, "PHP", { compact: true })} won`}
-          </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <Thumbnail icon={Building2} size="lg" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight">{organization.name}</h1>
+            <p className="text-muted-foreground text-sm">
+              {[organization.industry, organization.size].filter(Boolean).join(" · ") ||
+                "No industry or size yet"}
+              {won > 0 && ` · ${formatMinor(won, "PHP", { compact: true })} won`}
+            </p>
+          </div>
         </div>
+        <OrganizationActions organization={organization} />
       </div>
 
       <EditorLayout
         rail={
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <OrganizationActions organization={organization} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>About</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DefinitionList
-                  hideEmpty
-                  items={[
-                    {
-                      label: "Website",
-                      value: organization.website ? (
-                        <a
-                          className="underline underline-offset-4"
-                          href={organization.website}
-                          rel="noopener noreferrer"
-                          target="_blank"
-                        >
-                          {organization.website}
-                        </a>
-                      ) : (
-                        ""
-                      ),
-                    },
-                    { label: "Phone", value: organization.phone },
-                    { label: "Address", value: organization.address },
-                    { label: "Notes", value: organization.notes },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Tags</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TagsEditor
-                  kind="organization"
-                  id={id}
-                  initial={organization.tags}
-                  suggestions={tagOptions}
-                />
-              </CardContent>
-            </Card>
-          </>
+          <DetailsPanel>
+            <DetailsSection title="About">
+              <Facts>
+                <Fact label="Website">
+                  {organization.website && (
+                    <a
+                      className="underline underline-offset-4"
+                      href={organization.website}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      {organization.website}
+                    </a>
+                  )}
+                </Fact>
+                <Fact label="Phone">{organization.phone}</Fact>
+                <Fact label="Address">{organization.address}</Fact>
+                <Fact label="Notes">{organization.notes}</Fact>
+              </Facts>
+            </DetailsSection>
+            <DetailsSection title="Tags">
+              <TagsEditor
+                kind="organization"
+                id={id}
+                initial={organization.tags}
+                suggestions={tagOptions}
+              />
+            </DetailsSection>
+          </DetailsPanel>
         }
       >
         <Tabs defaultValue="contacts">

@@ -13,6 +13,12 @@ function createClient() {
   const adapter = new PrismaPg({
     connectionString: process.env.DATABASE_URL ?? "",
     ...(Number.isInteger(max) && max > 0 ? { max } : {}),
+    // Opening a connection to a hosted pooler takes seconds (TLS, authentication). The default
+    // closes an idle connection after 10 seconds, so a person reading a page for a moment paid that
+    // again on the next click. Keep connections warm, and fail loudly when one cannot be opened.
+    idleTimeoutMillis: 10 * 60_000,
+    connectionTimeoutMillis: 20_000,
+    keepAlive: true,
   });
   return new PrismaClient({ adapter });
 }

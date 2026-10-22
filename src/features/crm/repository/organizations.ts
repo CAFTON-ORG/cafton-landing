@@ -3,7 +3,7 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import { paginate, type Page } from "@/lib/pagination";
+import { fetchPage, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
 import { live, toOrganization } from "../mappers";
 import type { OrganizationView } from "../types";
@@ -33,15 +33,11 @@ export async function listOrganizations(params: TableParams): Promise<Page<Organ
   const orderBy: Prisma.OrganizationOrderByWithRelationInput =
     params.sort === "created" ? { createdAt: params.dir } : { name: params.dir };
 
-  const total = await prisma.organization.count({ where });
-  const base = paginate(new Array(total), params.page, params.pageSize);
-  const rows = await prisma.organization.findMany({
-    where,
-    include,
-    orderBy,
-    skip: (base.page - 1) * base.pageSize,
-    take: base.pageSize,
-  });
+  const { rows, base } = await fetchPage(
+    params,
+    () => prisma.organization.count({ where }),
+    (skip, take) => prisma.organization.findMany({ where, include, orderBy, skip, take }),
+  );
   return { ...base, items: rows.map(toOrganization) };
 }
 

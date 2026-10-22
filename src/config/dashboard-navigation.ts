@@ -33,6 +33,8 @@ export type NavLeaf = {
   permission?: Permission;
   /** Extra words the command palette matches on. */
   keywords?: string[];
+  /** A count shown beside the label when it is above zero. */
+  badge?: "newLeads" | "meetingRequests" | "overdueTasks";
 };
 
 /** A heading that holds pages (one level only: deeper trees are hard to scan and to use on a phone). */
@@ -162,6 +164,7 @@ export const navGroups: NavGroup[] = [
         href: "/dashboard/crm/leads",
         label: "Leads",
         icon: Inbox,
+        badge: "newLeads",
         permission: "leads:view",
         keywords: ["enquiries", "inquiries", "website", "contact form"],
       },
@@ -190,6 +193,7 @@ export const navGroups: NavGroup[] = [
         href: "/dashboard/crm/tasks",
         label: "Tasks",
         icon: ListChecks,
+        badge: "overdueTasks",
         permission: "tasks:view",
         keywords: ["to-do", "follow up", "reminders"],
       },
@@ -204,6 +208,7 @@ export const navGroups: NavGroup[] = [
         href: "/dashboard/crm/schedule",
         label: "Schedule",
         icon: CalendarDays,
+        badge: "meetingRequests",
         permission: "meetings:view",
         keywords: ["meetings", "calendar", "booking", "appointments", "calls"],
       },

@@ -4,7 +4,7 @@ import { withActivity } from "./summary";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import { paginate, type Page } from "@/lib/pagination";
+import { fetchPage, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
 import { dealInclude, live, namesFor, toDeal } from "../mappers";
 import type { DealView } from "../types";
@@ -61,15 +61,11 @@ export async function listDeals(
             ? { title: dir }
             : { createdAt: dir };
 
-  const total = await prisma.deal.count({ where });
-  const base = paginate(new Array(total), params.page, params.pageSize);
-  const rows = await prisma.deal.findMany({
-    where,
-    include: dealInclude,
-    orderBy,
-    skip: (base.page - 1) * base.pageSize,
-    take: base.pageSize,
-  });
+  const { rows, base } = await fetchPage(
+    params,
+    () => prisma.deal.count({ where }),
+    (skip, take) => prisma.deal.findMany({ where, include: dealInclude, orderBy, skip, take }),
+  );
   const names = await namesFor(rows.map((row) => row.ownerId));
   return {
     ...base,

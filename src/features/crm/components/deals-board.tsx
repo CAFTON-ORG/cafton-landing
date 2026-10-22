@@ -51,19 +51,23 @@ import {
   SelectValue,
 } from "@/components/dashboard/ui/select";
 import { Input } from "@/components/dashboard/ui/input";
+import { ScrollArea } from "@/components/dashboard/ui/scroll-area";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { manilaDate } from "@/features/schedule/slots";
 import { loseDeal, moveDeal, winDeal } from "../actions/deals";
+import { pipelineStats } from "../stats";
 import { checkMoveDeal } from "../rules";
 import type { DealView, StageView } from "../types";
 
 const DAY = 86_400_000;
 const daysIn = (iso: string) =>
   Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / DAY));
-const todayKey = () => new Date().toISOString().slice(0, 10);
+/** Today in the Philippines: close dates are calendar dates there, and UTC is a day behind before 8 am. */
+const todayKey = () => manilaDate(new Date());
 
 /**
  * The pipeline as columns, one per stage. Drag a card by its handle to move it (mouse, touch, or
@@ -159,13 +163,13 @@ export function DealsBoard({ stages, deals }: { stages: StageView[]; deals: Deal
         onDragEnd={onDragEnd}
         onDragCancel={() => setDragging(null)}
       >
-        <div
-          className="-mx-4 h-[calc(100svh-27rem)] min-h-[28rem] overflow-x-auto px-4 py-1 sm:-mx-6 sm:px-6"
+        <ScrollArea
+          orientation="horizontal"
+          className="-mx-4 h-[calc(100svh-27rem)] min-h-[28rem] sm:-mx-6"
           role="region"
           aria-label="Sales pipeline"
-          tabIndex={0}
         >
-          <div className="flex h-full min-w-max gap-3">
+          <div className="flex h-full min-w-max gap-3 px-4 py-1 sm:px-6">
             {stages.map((stage) => (
               <Column
                 key={stage.id}
@@ -187,7 +191,7 @@ export function DealsBoard({ stages, deals }: { stages: StageView[]; deals: Deal
               description="The pipeline stages haven't been set up in the database yet."
             />
           )}
-        </div>
+        </ScrollArea>
         <DragOverlay dropAnimation={null}>
           {dragging && <Card deal={dragging} overlay />}
         </DragOverlay>
@@ -299,26 +303,28 @@ function Column({
         {stage.kind === "open" && <Badge variant="outline">{stage.probability}%</Badge>}
       </header>
 
-      <ul className="grid min-h-0 flex-1 content-start gap-2 overflow-y-auto p-2">
-        {deals.length === 0 && (
-          <li className="text-foreground/70 px-1 py-4 text-center text-xs">
-            {closing ? `Drop to ${stage.kind === "won" ? "win" : "lose"} it` : "Nothing here"}
-          </li>
-        )}
-        {deals.map((deal) => (
-          <li key={deal.id}>
-            <DraggableCard
-              deal={deal}
-              stages={stages}
-              openStages={openStages}
-              draggable={canMove && deal.stageKind === "open"}
-              pending={pending}
-              onMove={onMove}
-              hidden={dragging?.id === deal.id}
-            />
-          </li>
-        ))}
-      </ul>
+      <ScrollArea className="min-h-0 flex-1">
+        <ul className="grid content-start gap-2 p-2">
+          {deals.length === 0 && (
+            <li className="text-foreground/70 px-1 py-4 text-center text-xs">
+              {closing ? `Drop to ${stage.kind === "won" ? "win" : "lose"} it` : "Nothing here"}
+            </li>
+          )}
+          {deals.map((deal) => (
+            <li key={deal.id}>
+              <DraggableCard
+                deal={deal}
+                stages={stages}
+                openStages={openStages}
+                draggable={canMove && deal.stageKind === "open"}
+                pending={pending}
+                onMove={onMove}
+                hidden={dragging?.id === deal.id}
+              />
+            </li>
+          ))}
+        </ul>
+      </ScrollArea>
     </section>
   );
 }
@@ -493,48 +499,37 @@ function PipelineSummary({
   query: string;
   onQuery: (value: string) => void;
 }) {
-  const rows = stages
-    .filter((stage) => stage.kind === "open")
-    .map((stage) => {
-      const list = byStage.get(stage.id) ?? [];
-      return {
-        stage,
-        list,
-        value: list.reduce((sum, deal) => sum + (deal.amountMinor ?? 0), 0),
-      };
-    });
-  const open = rows.flatMap((row) => row.list);
-  const value = rows.reduce((sum, row) => sum + row.value, 0);
-  const weighted = rows.reduce((sum, row) => sum + (row.value * row.stage.probability) / 100, 0);
-  const idle = open.filter((deal) => !deal.nextActivityAt).length;
-  const late = open.filter(
-    (deal) => deal.expectedCloseDate && deal.expectedCloseDate < todayKey(),
-  ).length;
+  const open = stages.flatMap((stage) => byStage.get(stage.id) ?? []);
+  const stats = pipelineStats(stages, open, todayKey());
   return (
     <div className="mb-4 grid gap-3">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Open deals"
-          value={String(open.length)}
-          hint={idle > 0 ? `${idle} with no next step` : "Every deal has a next step"}
+          value={String(stats.count)}
+          hint={
+            stats.withoutNextStep > 0
+              ? `${stats.withoutNextStep} with no next step`
+              : "Every deal has a next step"
+          }
           icon={Handshake}
         />
         <StatCard
           label="Open value"
-          value={formatMinor(value, "PHP", { compact: true })}
+          value={formatMinor(stats.valueMinor, "PHP", { compact: true })}
           hint="Everything still in play"
           icon={Banknote}
         />
         <StatCard
           label="Weighted forecast"
-          value={formatMinor(Math.round(weighted), "PHP", { compact: true })}
+          value={formatMinor(stats.weightedMinor, "PHP", { compact: true })}
           hint="Each deal times its stage's win chance"
           icon={Scale}
         />
         <StatCard
           label="Past their close date"
-          value={String(late)}
-          hint={late > 0 ? "Move them on or set a new date" : "Nothing is overdue"}
+          value={String(stats.pastCloseDate)}
+          hint={stats.pastCloseDate > 0 ? "Move them on or set a new date" : "Nothing is overdue"}
           icon={CalendarClock}
         />
       </div>

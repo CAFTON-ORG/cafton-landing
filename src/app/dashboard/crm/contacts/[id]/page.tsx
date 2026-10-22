@@ -5,15 +5,21 @@ import { Handshake } from "lucide-react";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
-import { DefinitionList } from "@/components/dashboard/shared/definition-list";
 import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Person } from "@/components/dashboard/shared/person";
 import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
+import { Card, CardContent } from "@/components/dashboard/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
 import { ActivityTimeline } from "@/features/crm/components/activity-timeline";
 import { StageBadge } from "@/features/crm/components/badges";
+import {
+  DetailsPanel,
+  DetailsSection,
+  Fact,
+  Facts,
+  TabCount,
+} from "@/features/crm/components/detail-parts";
 import { ContactActions } from "@/features/crm/components/record-actions";
 import { TagsEditor } from "@/features/crm/components/tags-editor";
 import { NewTaskForm, TaskRows, TasksEmpty } from "@/features/crm/components/task-list";
@@ -37,11 +43,10 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
   if (!staff) return <AccessDenied area="contacts" />;
 
   const { id } = await params;
-  const contact = await getContact(id);
-  if (!contact) notFound();
-
-  const [deals, activities, tasks, organizations, people, meetings, tagOptions] = await Promise.all(
-    [
+  // Everything this page needs is asked for at once: each round trip to the database is slow.
+  const [contact, deals, activities, tasks, organizations, people, meetings, tagOptions] =
+    await Promise.all([
+      getContact(id),
       listDealsFor({ contactId: id }),
       listActivities({ contactId: id }),
       listTasksFor({ contactId: id }),
@@ -49,145 +54,87 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
       listStaffOptions(),
       listMeetingsFor({ contactId: id }),
       listTagOptions("contact"),
-    ],
-  );
+    ]);
+  if (!contact) notFound();
+  const openTasks = tasks.filter((task) => !task.doneAt).length;
 
   return (
     <>
       <BackLink href="/dashboard/crm/contacts">All contacts</BackLink>
-      <div className="mb-6 flex flex-wrap items-center gap-4">
-        <UserAvatar name={contact.name} email={contact.email} size="lg" />
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">{contact.name}</h1>
-          <p className="text-muted-foreground text-sm">
-            {[contact.position, contact.organizationName].filter(Boolean).join(" at ") ||
-              contact.email}
-          </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <UserAvatar name={contact.name} email={contact.email} size="lg" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold tracking-tight">{contact.name}</h1>
+            <p className="text-muted-foreground text-sm">
+              {[contact.position, contact.organizationName].filter(Boolean).join(" at ") ||
+                contact.email}
+            </p>
+          </div>
         </div>
+        <ContactActions contact={contact} organizations={organizations} people={people} />
       </div>
 
       <EditorLayout
         rail={
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ContactActions contact={contact} organizations={organizations} people={people} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>About</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DefinitionList
-                  hideEmpty
-                  items={[
-                    {
-                      label: "Email",
-                      value: (
-                        <a
-                          className="underline underline-offset-4"
-                          href={`mailto:${contact.email}`}
-                        >
-                          {contact.email}
-                        </a>
-                      ),
-                    },
-                    {
-                      label: "Phone",
-                      value: contact.phone ? (
-                        <a className="underline underline-offset-4" href={`tel:${contact.phone}`}>
-                          {contact.phone}
-                        </a>
-                      ) : (
-                        ""
-                      ),
-                    },
-                    {
-                      label: "Organization",
-                      value: contact.organizationId ? (
-                        <Link
-                          className="underline underline-offset-4"
-                          href={`/dashboard/crm/organizations/${contact.organizationId}`}
-                        >
-                          {contact.organizationName}
-                        </Link>
-                      ) : (
-                        ""
-                      ),
-                    },
-                    {
-                      label: "Owner",
-                      value: contact.ownerName ? (
-                        <Person name={contact.ownerName} avatarUrl={contact.ownerAvatar} />
-                      ) : (
-                        ""
-                      ),
-                    },
-                    { label: "Source", value: contact.source },
-                    { label: "Notes", value: contact.notes },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Tags</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TagsEditor
-                  kind="contact"
-                  id={id}
-                  initial={contact.tags}
-                  suggestions={tagOptions}
-                />
-              </CardContent>
-            </Card>
-
-            <MeetingsPanel
-              meetings={meetings}
-              people={people}
-              defaults={{
-                contactId: id,
-                title: `Call with ${contact.name}`,
-                attendeeName: contact.name,
-                attendeeEmail: contact.email,
-                attendeePhone: contact.phone,
-              }}
-            />
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Tasks</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                <NewTaskForm
-                  subject={{ contactId: id }}
-                  people={people}
-                  currentUserId={actorId(staff) ?? undefined}
-                />
-                {tasks.length === 0 ? (
-                  <TasksEmpty description="Nothing to do for this contact." />
-                ) : (
-                  <TaskRows tasks={tasks} />
-                )}
-              </CardContent>
-            </Card>
-          </>
+          <DetailsPanel>
+            <DetailsSection title="Contact">
+              <Facts>
+                <Fact label="Email">
+                  <a className="underline underline-offset-4" href={`mailto:${contact.email}`}>
+                    {contact.email}
+                  </a>
+                </Fact>
+                <Fact label="Phone">
+                  {contact.phone && (
+                    <a className="underline underline-offset-4" href={`tel:${contact.phone}`}>
+                      {contact.phone}
+                    </a>
+                  )}
+                </Fact>
+                <Fact label="Organization">
+                  {contact.organizationId && (
+                    <Link
+                      className="underline underline-offset-4"
+                      href={`/dashboard/crm/organizations/${contact.organizationId}`}
+                    >
+                      {contact.organizationName}
+                    </Link>
+                  )}
+                </Fact>
+                <Fact label="Source">{contact.source}</Fact>
+                <Fact label="Notes">{contact.notes}</Fact>
+              </Facts>
+            </DetailsSection>
+            <DetailsSection title="Owner">
+              <Person name={contact.ownerName} avatarUrl={contact.ownerAvatar} />
+              <p className="text-muted-foreground text-xs">
+                The teammate responsible for this contact.
+              </p>
+            </DetailsSection>
+            <DetailsSection title="Tags">
+              <TagsEditor kind="contact" id={id} initial={contact.tags} suggestions={tagOptions} />
+            </DetailsSection>
+          </DetailsPanel>
         }
       >
         <Tabs defaultValue="activity">
           <TabsList>
             <TabsTrigger value="activity">Activity</TabsTrigger>
             <TabsTrigger value="deals">
-              Deals{deals.length > 0 && <span className="ml-1">({deals.length})</span>}
+              Deals
+              <TabCount n={deals.length} />
+            </TabsTrigger>
+            <TabsTrigger value="tasks">
+              Tasks
+              <TabCount n={openTasks} />
+            </TabsTrigger>
+            <TabsTrigger value="meetings">
+              Meetings
+              <TabCount n={meetings.length} />
             </TabsTrigger>
           </TabsList>
+
           <TabsContent value="activity" className="mt-4">
             <ActivityTimeline
               subject={{ contactId: id }}
@@ -196,6 +143,7 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
               currentUserId={actorId(staff) ?? undefined}
             />
           </TabsContent>
+
           <TabsContent value="deals" className="mt-4">
             <Card>
               <CardContent>
@@ -231,6 +179,37 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="tasks" className="mt-4">
+            <Card>
+              <CardContent className="grid gap-3">
+                <NewTaskForm
+                  subject={{ contactId: id }}
+                  people={people}
+                  currentUserId={actorId(staff) ?? undefined}
+                />
+                {tasks.length === 0 ? (
+                  <TasksEmpty description="Nothing to do for this contact." />
+                ) : (
+                  <TaskRows tasks={tasks} />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="meetings" className="mt-4">
+            <MeetingsPanel
+              meetings={meetings}
+              people={people}
+              defaults={{
+                contactId: id,
+                title: `Call with ${contact.name}`,
+                attendeeName: contact.name,
+                attendeeEmail: contact.email,
+                attendeePhone: contact.phone,
+              }}
+            />
           </TabsContent>
         </Tabs>
       </EditorLayout>

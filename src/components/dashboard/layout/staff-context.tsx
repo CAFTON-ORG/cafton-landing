@@ -30,3 +30,30 @@ export function useStaff() {
 export function useCan(permission: Permission) {
   return useStaff().permissions.includes(permission);
 }
+
+/** The numbers behind the sidebar badges. Cosmetic: the pages show the real lists. */
+export type NavCounts = {
+  newLeads: number;
+  meetingRequests: number;
+  overdueTasks: number;
+};
+
+const NavCountsContext = createContext<NavCounts>({
+  newLeads: 0,
+  meetingRequests: 0,
+  overdueTasks: 0,
+});
+
+export function NavCountsProvider({
+  counts,
+  children,
+}: {
+  counts: NavCounts;
+  children: ReactNode;
+}) {
+  return <NavCountsContext value={counts}>{children}</NavCountsContext>;
+}
+
+export function useNavCounts() {
+  return useContext(NavCountsContext);
+}

@@ -35,9 +35,10 @@ import {
   checkReopenLead,
 } from "../rules";
 import type { LeadView, PersonRef } from "../types";
+import { Person } from "@/components/dashboard/shared/person";
 import { PersonSelect } from "./owner-select";
 
-export function LeadActions({ lead, people }: { lead: LeadView; people: PersonRef[] }) {
+export function LeadActions({ lead }: { lead: LeadView }) {
   const router = useRouter();
   const canUpdate = useCan("leads:update");
   const canConvert = useCan("leads:convert");
@@ -61,27 +62,7 @@ export function LeadActions({ lead, people }: { lead: LeadView; people: PersonRe
   }
 
   return (
-    <div className="grid gap-3">
-      {canUpdate && (
-        <div className="grid w-full gap-1.5">
-          <label htmlFor="lead-owner" className="text-sm font-medium">
-            Owner
-          </label>
-          <PersonSelect
-            id="lead-owner"
-            value={lead.ownerId ?? ""}
-            people={people}
-            disabled={pending}
-            onChange={(ownerId) =>
-              run(() => assignLead(lead.id, ownerId || null), { success: "Owner updated." })
-            }
-          />
-          <p className="text-muted-foreground text-xs">
-            The teammate responsible for the next step.
-          </p>
-        </div>
-      )}
-
+    <div>
       <div className="flex flex-wrap gap-2">
         {canConvert && (
           <Button
@@ -261,5 +242,27 @@ export function LeadActions({ lead, people }: { lead: LeadView; people: PersonRe
         }
       />
     </div>
+  );
+}
+
+/** Who is responsible for the next step. Changing it saves straight away. */
+export function LeadOwner({ lead, people }: { lead: LeadView; people: PersonRef[] }) {
+  const canUpdate = useCan("leads:update");
+  const { run, pending } = useServerAction();
+  if (!canUpdate) {
+    return <Person name={lead.ownerName} avatarUrl={lead.ownerAvatar} />;
+  }
+  return (
+    <PersonSelect
+      id="lead-owner"
+      value={lead.ownerId ?? ""}
+      people={people}
+      disabled={pending}
+      size="sm"
+      aria-label="Owner"
+      onChange={(ownerId) =>
+        run(() => assignLead(lead.id, ownerId || null), { success: "Owner updated." })
+      }
+    />
   );
 }

@@ -131,9 +131,8 @@ export function DataTable<T>({
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             {selectable && (
-              <TableHead scope="col" className="w-10">
+              <TableHead scope="col" className="w-12 pl-3">
                 <Checkbox
-                  className="size-6"
                   aria-label="Select all rows on this page"
                   checked={allSelected}
                   indeterminate={someSelected}
@@ -199,9 +198,8 @@ export function DataTable<T>({
               return (
                 <TableRow key={id} data-state={isSelected ? "selected" : undefined}>
                   {selectable && (
-                    <TableCell>
+                    <TableCell className="pl-3">
                       <Checkbox
-                        className="size-6"
                         aria-label={`Select row ${id}`}
                         checked={isSelected}
                         onCheckedChange={(checked) => toggleRow(id, checked === true)}

@@ -2,30 +2,33 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Bell, BellOff, CheckCheck } from "lucide-react";
 
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Button } from "@/components/dashboard/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/dashboard/ui/popover";
+import { Skeleton } from "@/components/dashboard/ui/skeleton";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { markAllNotificationsRead, markNotificationRead } from "../actions";
+import { listMyNotifications, markAllNotificationsRead, markNotificationRead } from "../actions";
 import type { NotificationView } from "../types";
 
-/** The bell in the top bar: what needs you, newest first. Opening an item marks it read. */
-export function NotificationBell({
-  notifications,
-  unread,
-}: {
-  notifications: NotificationView[];
-  unread: number;
-}) {
+/**
+ * The bell in the top bar. The page only carries the unread count; the list is read when the bell
+ * is opened, so every page doesn't pay for a query nobody looks at. Opening an item marks it read.
+ */
+export function NotificationBell({ unread }: { unread: number }) {
   const router = useRouter();
   const { run, pending } = useServerAction();
+  const [items, setItems] = useState<NotificationView[] | null>(null);
+
+  const load = () =>
+    run(() => listMyNotifications(), { onSuccess: (data) => setItems(data ?? []) });
 
   return (
-    <Popover>
+    <Popover onOpenChange={(open) => open && load()}>
       <PopoverTrigger
         render={
           <Button
@@ -55,14 +58,24 @@ export function NotificationBell({
               size="sm"
               disabled={pending}
               onClick={() =>
-                run(() => markAllNotificationsRead(), { onSuccess: () => router.refresh() })
+                run(() => markAllNotificationsRead(), {
+                  onSuccess: () => {
+                    setItems((list) => list?.map((item) => ({ ...item, read: true })) ?? null);
+                    router.refresh();
+                  },
+                })
               }
             >
               <CheckCheck aria-hidden="true" /> Mark all read
             </Button>
           )}
         </div>
-        {notifications.length === 0 ? (
+        {items === null ? (
+          <div className="grid gap-3 p-3" aria-busy="true" aria-label="Loading">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : items.length === 0 ? (
           <EmptyState
             compact
             icon={BellOff}
@@ -71,7 +84,7 @@ export function NotificationBell({
           />
         ) : (
           <ul className="max-h-96 divide-y overflow-y-auto">
-            {notifications.map((item) => {
+            {items.map((item) => {
               const body = (
                 <span className="flex items-start gap-2">
                   {!item.read && (

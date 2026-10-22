@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { ttlCache } from "@/lib/ttl-cache";
 import { fullName } from "./rules";
 import type {
   ContactView,
@@ -21,22 +22,28 @@ const day = (date: Date) => date.toISOString().slice(0, 10);
 /** Staff referenced by a page of records, by id: their name and photo. */
 export type People = Map<string, PersonRef>;
 
-export async function namesFor(ids: (string | null | undefined)[]): Promise<People> {
-  const unique = Array.from(new Set(ids.filter((id): id is string => Boolean(id))));
-  if (unique.length === 0) return new Map();
+/**
+ * Every staff member, A to Z. It is a handful of rows read on almost every page (owners, assignees,
+ * authors), so it is kept for a minute instead of costing a database round trip per click.
+ */
+export const staffDirectory = ttlCache(60_000, async (): Promise<PersonRef[]> => {
   const people = await prisma.profile.findMany({
-    where: { id: { in: unique } },
+    orderBy: [{ fullName: "asc" }, { email: "asc" }],
     select: { id: true, fullName: true, email: true, avatarUrl: true },
   });
+  return people.map((person) => ({
+    id: person.id,
+    name: person.fullName || person.email,
+    avatarUrl: person.avatarUrl ?? undefined,
+  }));
+});
+
+export async function namesFor(ids: (string | null | undefined)[]): Promise<People> {
+  const wanted = new Set(ids.filter((id): id is string => Boolean(id)));
+  if (wanted.size === 0) return new Map();
+  const people = await staffDirectory();
   return new Map(
-    people.map((person) => [
-      person.id,
-      {
-        id: person.id,
-        name: person.fullName || person.email,
-        avatarUrl: person.avatarUrl ?? undefined,
-      },
-    ]),
+    people.filter((person) => wanted.has(person.id)).map((person) => [person.id, person]),
   );
 }
 

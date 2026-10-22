@@ -16,3 +16,26 @@ describe("tags", () => {
     expect(normalizeTags(Array.from({ length: 40 }, (_, i) => `t${i}`))).toHaveLength(MAX_TAGS);
   });
 });
+
+import { parseKeyLines } from "./enquiry-text";
+
+describe("parseKeyLines", () => {
+  it("reads the enquiry summary back into pairs", () => {
+    const text = [
+      "This project is for: A personal or side project",
+      "Challenges: We still rely on spreadsheets; Day-to-day operations take longer",
+      "Budget: Not sure yet",
+      "",
+      "Some free note without a label",
+    ].join("\n");
+    expect(parseKeyLines(text)).toEqual([
+      ["This project is for", "A personal or side project"],
+      ["Challenges", "We still rely on spreadsheets; Day-to-day operations take longer"],
+      ["Budget", "Not sure yet"],
+    ]);
+  });
+
+  it("finds nothing in ordinary text", () => {
+    expect(parseKeyLines("Build their inventory app. Call on Monday: bring a quote.")).toEqual([]);
+  });
+});

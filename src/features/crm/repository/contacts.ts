@@ -4,7 +4,7 @@ import { withActivity } from "./summary";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import { paginate, type Page } from "@/lib/pagination";
+import { fetchPage, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
 import { live, namesFor, toContact } from "../mappers";
 import type { ContactView } from "../types";
@@ -41,15 +41,11 @@ export async function listContacts(params: TableParams): Promise<Page<ContactVie
         ? { createdAt: dir }
         : { lastName: dir };
 
-  const total = await prisma.contact.count({ where });
-  const base = paginate(new Array(total), params.page, params.pageSize);
-  const rows = await prisma.contact.findMany({
-    where,
-    include,
-    orderBy,
-    skip: (base.page - 1) * base.pageSize,
-    take: base.pageSize,
-  });
+  const { rows, base } = await fetchPage(
+    params,
+    () => prisma.contact.count({ where }),
+    (skip, take) => prisma.contact.findMany({ where, include, orderBy, skip, take }),
+  );
   const names = await namesFor(rows.map((row) => row.ownerId));
   return {
     ...base,

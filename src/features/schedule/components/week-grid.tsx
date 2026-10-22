@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { ScrollArea } from "@/components/dashboard/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { weekDays } from "../calendar";
 import { manilaTime } from "../slots";
@@ -30,7 +31,7 @@ export function WeekGrid({
 }) {
   const days = weekDays(date);
   return (
-    <div className="bg-card overflow-x-auto rounded-xl border">
+    <ScrollArea orientation="horizontal" className="bg-card rounded-xl border">
       <div className="min-w-[44rem]">
         <div className="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b text-center text-xs">
           <div />
@@ -116,6 +117,6 @@ export function WeekGrid({
           ))}
         </div>
       </div>
-    </div>
+    </ScrollArea>
   );
 }

@@ -2,6 +2,7 @@ import "server-only";
 
 import { resolvePermissions, type Permission } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
+import { navCounts } from "./counts";
 import { isDatabaseConfigured } from "@/lib/env";
 import type { NotificationView } from "./types";
 
@@ -28,6 +29,7 @@ export async function notify(
     await prisma.notification.createMany({
       data: ids.map((userId) => ({ userId, ...notification })),
     });
+    navCounts.clear();
   } catch (error) {
     console.error("Notifications: could not save.", error);
   }

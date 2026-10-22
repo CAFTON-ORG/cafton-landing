@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CircleCheck, CircleX, Clock, Download } from "lucide-react";
 
+import { Logo } from "@/components/shared/logo";
 import { SITE_NAME } from "@/config/site";
 import { RespondPanel } from "@/components/marketing/quote/respond-panel";
 import { quantityText } from "@/features/sales/pricing";
@@ -30,6 +31,7 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
   await markQuoteViewed(token);
 
   const open = quote.status === "sent";
+  const deposit = Math.round((quote.totalMinor * quote.depositPct) / 100);
   const banner =
     quote.status === "accepted"
       ? {
@@ -49,24 +51,33 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
               tone: "border-amber-500/40 bg-amber-500/10",
               text: "This quote has expired. Reply to our email and we will send you a fresh one.",
             }
-          : quote.status === "superseded"
+          : quote.status === "withdrawn"
             ? {
                 icon: Clock,
-                tone: "border-amber-500/40 bg-amber-500/10",
-                text: "A newer version of this quote replaced this one. Please use the latest email we sent you.",
+                tone: "bg-muted",
+                text: "This quote was withdrawn and can no longer be accepted. Reply to our email if you have any questions.",
               }
-            : null;
+            : quote.status === "superseded"
+              ? {
+                  icon: Clock,
+                  tone: "border-amber-500/40 bg-amber-500/10",
+                  text: "A newer version of this quote replaced this one. Please use the latest email we sent you.",
+                }
+              : null;
 
   return (
     <main className="bg-background text-foreground min-h-svh px-4 py-10 sm:px-6">
       <div className="mx-auto grid max-w-3xl gap-6">
         <header className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xl font-semibold tracking-wide">{SITE_NAME}</p>
-            <p className="text-muted-foreground text-sm">
-              Quote {quote.reference}
-              {quote.version > 1 ? ` · version ${quote.version}` : ""}
-            </p>
+          <div className="flex items-center gap-3">
+            <Logo size={36} aria-hidden="true" />
+            <div>
+              <p className="text-xl font-semibold tracking-wide">{SITE_NAME}</p>
+              <p className="text-muted-foreground text-sm">
+                Quote {quote.reference}
+                {quote.version > 1 ? ` · version ${quote.version}` : ""}
+              </p>
+            </div>
           </div>
           <a
             href={`/api/quotes/${token}/pdf`}
@@ -130,8 +141,33 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
               <dt>Total</dt>
               <dd className="tabular-nums">{formatMinor(quote.totalMinor, quote.currency)}</dd>
             </div>
+            {quote.depositPct > 0 && quote.depositPct < 100 && (
+              <>
+                <div className="text-muted-foreground flex justify-between pt-1">
+                  <dt>Deposit on acceptance ({quote.depositPct}%)</dt>
+                  <dd className="tabular-nums">{formatMinor(deposit, quote.currency)}</dd>
+                </div>
+                <div className="text-muted-foreground flex justify-between">
+                  <dt>Balance on completion</dt>
+                  <dd className="tabular-nums">
+                    {formatMinor(quote.totalMinor - deposit, quote.currency)}
+                  </dd>
+                </div>
+              </>
+            )}
           </dl>
         </section>
+
+        {quote.paymentTerms && (
+          <section aria-labelledby="payment-terms" className="grid gap-1">
+            <h2 id="payment-terms" className="font-semibold">
+              Payment terms
+            </h2>
+            <p className="text-muted-foreground text-sm whitespace-pre-wrap">
+              {quote.paymentTerms}
+            </p>
+          </section>
+        )}
 
         {quote.terms && (
           <section aria-labelledby="terms" className="grid gap-1">
@@ -145,10 +181,8 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
         {open && (
           <RespondPanel
             token={token}
-            totalMinor={quote.totalMinor}
-            currency={quote.currency}
-            reference={quote.reference}
             recipientName={quote.recipientName}
+            agreement={`I accept quote ${quote.reference} for ${formatMinor(quote.totalMinor, quote.currency)}, and I agree to its terms.`}
           />
         )}
       </div>

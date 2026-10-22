@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { formatMinor } from "@/lib/money";
+import type { ActionResult } from "@/lib/actions";
 import { respondToQuote } from "@/features/sales/public";
 
 /**
@@ -18,17 +18,20 @@ import { respondToQuote } from "@/features/sales/public";
  */
 export function RespondPanel({
   token,
-  totalMinor,
-  currency,
-  reference,
   recipientName,
+  agreement,
+  noun = "quote",
+  respond = respondToQuote as never,
 }: {
   token: string;
-  totalMinor: number;
-  currency: string;
-  reference: string;
   recipientName: string;
+  /** The sentence the client ticks to accept, e.g. "I accept quote QT-1 for PHP 10.00". */
+  agreement: string;
+  /** What is being answered, for the labels: "quote" or "contract". */
+  noun?: "quote" | "contract";
+  respond?: (input: never) => Promise<ActionResult<unknown>>;
 }) {
+  const accept = noun === "contract" ? "Sign this contract" : "Accept this quote";
   const router = useRouter();
   const [pending, start] = useTransition();
   const [formError, setFormError] = useState("");
@@ -52,7 +55,7 @@ export function RespondPanel({
         ? ({ action: "accept", token, name, email, agreed } as const)
         : ({ action: "decline", token, reason } as const);
     start(async () => {
-      const result = await respondToQuote(input as never);
+      const result = await respond(input as never);
       if (result.ok) {
         router.refresh();
         return;
@@ -75,7 +78,7 @@ export function RespondPanel({
           aria-checked={mode === "accept"}
           onClick={() => setMode("accept")}
         >
-          Accept this quote
+          {accept}
         </Button>
         <Button
           type="button"
@@ -132,8 +135,7 @@ export function RespondPanel({
                 onCheckedChange={(checked) => setAgreed(checked === true)}
               />
               <Label htmlFor="accept-agree" className="text-sm leading-snug font-normal">
-                I accept quote {reference} for {formatMinor(totalMinor, currency)}, and I agree to
-                its terms. Typing my name and ticking this box is my electronic signature.
+                {agreement} Typing my name and ticking this box is my electronic signature.
               </Label>
             </div>
             {errors.agreed && (
@@ -166,7 +168,13 @@ export function RespondPanel({
         )}
         <div>
           <Button type="submit" disabled={pending}>
-            {pending ? "Sending…" : mode === "accept" ? "Accept the quote" : "Send my answer"}
+            {pending
+              ? "Sending…"
+              : mode === "accept"
+                ? noun === "contract"
+                  ? "Sign the contract"
+                  : "Accept the quote"
+                : "Send my answer"}
           </Button>
         </div>
       </form>

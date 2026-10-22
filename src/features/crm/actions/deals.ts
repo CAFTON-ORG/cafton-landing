@@ -16,6 +16,10 @@ import {
 } from "../rules";
 import { dealSchema, reasonSchema, type DealInput } from "../schemas";
 import { guard, refreshCrm } from "./guard";
+import { checkDealDelete as checkQuotesBlockDelete, checkWinAmount } from "@/features/sales/rules";
+import { checkDealDelete as checkContractsBlockDelete } from "@/features/contracts/rules";
+import { contractStatusesFor, withdrawLiveContracts } from "@/features/contracts/server";
+import { acceptedTotal, quoteStatusesFor, withdrawLiveQuotes } from "@/features/sales/server";
 import { firstOpenStage, lastOpenStage, logActivity, type Tx } from "./shared";
 
 async function loadDeal(tx: Tx, id: string) {
@@ -223,6 +227,11 @@ export async function winDeal(id: string, amount?: string): Promise<ActionResult
           });
         }
       }
+      // A deal with an accepted quote is won at the agreed total, whatever else is typed.
+      const agreed = await acceptedTotal(tx, id);
+      if (agreed !== null && !amount?.trim()) amountMinor = agreed;
+      const mismatch = checkWinAmount(agreed, amountMinor);
+      if (mismatch) throw new ActionError(mismatch, "rule", { amount: mismatch });
       const blocked = checkWin({ stageKind: deal.stage.kind, amountMinor });
       if (blocked) throw new ActionError(blocked, "rule", { amount: blocked });
 
@@ -297,6 +306,27 @@ export async function loseDeal(id: string, reason: string): Promise<ActionResult
         },
       });
       await tx.task.updateMany({ where: { dealId: id, doneAt: null }, data: { doneAt: now } });
+      // An offer for a lost deal must not stay open for the client to accept.
+      const withdrawn = await withdrawLiveQuotes(tx, actor, id, "The deal was lost");
+      if (withdrawn > 0) {
+        await logActivity(
+          tx,
+          actor,
+          { dealId: id },
+          "system",
+          `Withdrew ${withdrawn} open ${withdrawn === 1 ? "quote" : "quotes"} because the deal was lost`,
+        );
+      }
+      const withdrawnContracts = await withdrawLiveContracts(tx, actor, id, "The deal was lost");
+      if (withdrawnContracts > 0) {
+        await logActivity(
+          tx,
+          actor,
+          { dealId: id },
+          "system",
+          `Withdrew ${withdrawnContracts} open ${withdrawnContracts === 1 ? "contract" : "contracts"} because the deal was lost`,
+        );
+      }
       await logActivity(tx, actor, { dealId: id }, "stage_change", `Lost: ${why}`);
       await recordAudit(
         actor,
@@ -359,7 +389,10 @@ export async function deleteDeal(id: string): Promise<ActionResult> {
 
     await prisma.$transaction(async (tx) => {
       const deal = await loadDeal(tx, id);
-      const blocked = checkDealDelete(state(deal));
+      const blocked =
+        checkDealDelete(state(deal)) ??
+        checkQuotesBlockDelete(await quoteStatusesFor(tx, id)) ??
+        checkContractsBlockDelete(await contractStatusesFor(tx, id));
       if (blocked) throw new ActionError(blocked, "rule");
 
       await tx.deal.update({

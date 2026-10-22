@@ -42,6 +42,11 @@ let catalog: typeof import("./actions/catalog");
 let pub: typeof import("./public");
 let repo: typeof import("./repository");
 let pdf: typeof import("./pdf/quote-pdf");
+let server_: typeof import("./server");
+let deals: typeof import("@/features/crm/actions/deals");
+
+const tokenOf = (result: { ok: boolean; data?: unknown }) =>
+  (result.data as { link: string }).link.split("/").pop()!;
 
 beforeAll(async () => {
   db = (await createDatabase()) as PGlite;
@@ -66,6 +71,8 @@ beforeAll(async () => {
   pub = await import("./public");
   repo = await import("./repository");
   pdf = await import("./pdf/quote-pdf");
+  server_ = await import("./server");
+  deals = await import("@/features/crm/actions/deals");
 }, 120_000);
 
 afterAll(async () => {
@@ -101,11 +108,16 @@ const line = (price: string, over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
+const inDays = (days: number) =>
+  new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+
 const body = (lines: ReturnType<typeof line>[], over: Record<string, unknown> = {}) => ({
   title: "Inventory system",
   intro: "",
   terms: "Pay 50% to start.",
-  validUntil: "2099-12-31",
+  paymentTerms: "",
+  depositPct: 50,
+  validUntil: inDays(30),
   lines,
   ...over,
 });
@@ -180,8 +192,18 @@ describe("a quote from draft to accepted", () => {
     expect(sent.ok).toBe(true);
     const row = await prisma.quote.findUniqueOrThrow({ where: { id: quoteId } });
     expect(row.status).toBe("sent");
-    expect(row.publicToken).toMatch(/^[A-Za-z0-9_-]{40,}$/);
-    token = row.publicToken!;
+    token = tokenOf(sent);
+    expect(token).toMatch(/^[A-Za-z0-9_-]{40,}$/);
+    // Only a hash of the link is stored, never the link itself.
+    expect(row.tokenHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(row.tokenHash).not.toContain(token);
+    expect(row.sentHash).toMatch(/^[0-9a-f]{64}$/);
+    // Sending moved the early deal to Proposal.
+    const moved = await prisma.deal.findUniqueOrThrow({
+      where: { id: dealId },
+      include: { stage: true },
+    });
+    expect(moved.stage.name).toBe("Proposal");
     const view = await repo.getPublicQuote(token);
     expect(view?.recipientName).toBe("Cora Client");
     expect(JSON.stringify(view)).not.toContain("@example.com");
@@ -223,6 +245,11 @@ describe("a quote from draft to accepted", () => {
       acceptedUserAgent: "TestBrowser/1.0",
     });
     expect(Number(row.acceptedTotalMinor)).toBe(162_000_00);
+    expect(row.acceptedHash).toBe(row.sentHash);
+    expect(
+      (await prisma.deal.findUniqueOrThrow({ where: { id: dealId }, include: { stage: true } }))
+        .stage.name,
+    ).toBe("Negotiation");
     // The deal's value follows the accepted quote, and the timeline and audit log say so.
     expect(
       Number((await prisma.deal.findUniqueOrThrow({ where: { id: dealId } })).amountMinor),
@@ -288,7 +315,7 @@ describe("approval, revisions and declining", () => {
     const { data } = (await quotes.createQuote(deal.id)) as { data: { id: string } };
     await quotes.saveQuote(data.id, body([line("20,000.00")]));
     await quotes.submitQuote(data.id);
-    await quotes.sendQuote(data.id);
+    const firstToken = tokenOf(await quotes.sendQuote(data.id));
     const first = await prisma.quote.findUniqueOrThrow({ where: { id: data.id } });
     const revised = await quotes.reviseQuote(data.id);
     expect(revised.ok).toBe(true);
@@ -301,12 +328,12 @@ describe("approval, revisions and declining", () => {
     expect((await prisma.quote.findUniqueOrThrow({ where: { id: data.id } })).status).toBe(
       "superseded",
     );
-    expect((await repo.getPublicQuote(first.publicToken!))?.status).toBe("superseded");
+    expect((await repo.getPublicQuote(firstToken))?.status).toBe("superseded");
     expect(
       (
         await pub.respondToQuote({
           action: "accept",
-          token: first.publicToken!,
+          token: firstToken,
           name: "Late Client",
           email: "",
           agreed: true,
@@ -322,8 +349,7 @@ describe("approval, revisions and declining", () => {
     const { data } = (await quotes.createQuote(deal.id)) as { data: { id: string } };
     await quotes.saveQuote(data.id, body([line("30,000.00")]));
     await quotes.submitQuote(data.id);
-    await quotes.sendQuote(data.id);
-    const token = (await prisma.quote.findUniqueOrThrow({ where: { id: data.id } })).publicToken!;
+    const token = tokenOf(await quotes.sendQuote(data.id));
     expect((await pub.respondToQuote({ action: "decline", token, reason: "" })).ok).toBe(false);
     expect(
       await pub.respondToQuote({ action: "decline", token, reason: "Over budget" }),
@@ -350,5 +376,122 @@ describe("approval, revisions and declining", () => {
     await quotes.submitQuote(made.data.id);
     await quotes.sendQuote(made.data.id);
     expect((await quotes.deleteQuote(made.data.id)).ok).toBe(false);
+  });
+});
+
+describe("business rules around a quote", () => {
+  async function sentQuote(price = "20,000.00") {
+    const deal = await makeDeal();
+    const { data } = (await quotes.createQuote(deal.id)) as { data: { id: string } };
+    await quotes.saveQuote(data.id, body([line(price)]));
+    await quotes.submitQuote(data.id);
+    const sent = await quotes.sendQuote(data.id);
+    return { deal, id: data.id, sent };
+  }
+
+  it("allows one live quote per deal", async () => {
+    const deal = await makeDeal();
+    expect((await quotes.createQuote(deal.id)).ok).toBe(true);
+    expect(await quotes.createQuote(deal.id)).toMatchObject({ ok: false });
+  });
+
+  it("asks for approval on a deep discount even when the total is small", async () => {
+    const deal = await makeDeal();
+    const { data } = (await quotes.createQuote(deal.id)) as { data: { id: string } };
+    await quotes.saveQuote(data.id, body([line("20,000.00", { discountPct: 20 })]));
+    expect(await quotes.submitQuote(data.id)).toMatchObject({
+      ok: true,
+      data: { status: "pending_approval" },
+    });
+  });
+
+  it("refuses a bad validity date and an impossible deposit", async () => {
+    const deal = await makeDeal();
+    const { data } = (await quotes.createQuote(deal.id)) as { data: { id: string } };
+    expect(
+      (await quotes.saveQuote(data.id, body([line("1,000.00")], { depositPct: 150 }))).ok,
+    ).toBe(false);
+    await quotes.saveQuote(data.id, body([line("1,000.00")], { validUntil: inDays(200) }));
+    expect(await quotes.submitQuote(data.id)).toMatchObject({ ok: false });
+  });
+
+  it("withdraws a sent quote with a reason, and its link says so", async () => {
+    const { id, sent } = await sentQuote();
+    const token = tokenOf(sent);
+    expect((await quotes.withdrawQuote(id, "")).ok).toBe(false);
+    expect((await quotes.withdrawQuote(id, "Scope changed")).ok).toBe(true);
+    expect((await repo.getPublicQuote(token))?.status).toBe("withdrawn");
+    expect(
+      (
+        await pub.respondToQuote({
+          action: "accept",
+          token,
+          name: "Cora Client",
+          email: "",
+          agreed: true,
+        })
+      ).ok,
+    ).toBe(false);
+  });
+
+  it("makes a new link on request and kills the old one", async () => {
+    const { id, sent } = await sentQuote();
+    const old = tokenOf(sent);
+    const fresh = await quotes.renewQuoteLink(id);
+    expect(fresh.ok).toBe(true);
+    expect(await repo.getPublicQuote(old)).toBeNull();
+    expect(await repo.getPublicQuote(tokenOf(fresh))).not.toBeNull();
+  });
+
+  it("refuses acceptance when the stored content no longer matches what was sent", async () => {
+    const { id, sent } = await sentQuote();
+    const token = tokenOf(sent);
+    await db.exec(`ALTER TABLE quotes DISABLE TRIGGER USER`);
+    await db.exec(`UPDATE quotes SET title = 'Tampered' WHERE id = '${id}'`);
+    await db.exec(`ALTER TABLE quotes ENABLE TRIGGER USER`);
+    expect(
+      await pub.respondToQuote({
+        action: "accept",
+        token,
+        name: "Cora Client",
+        email: "",
+        agreed: true,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
+  it("withdraws live quotes when the deal is lost, and blocks deleting a deal with quotes", async () => {
+    const { deal, id, sent } = await sentQuote();
+    expect((await deals.deleteDeal(deal.id)).ok).toBe(false);
+    expect((await deals.loseDeal(deal.id, "Went elsewhere")).ok).toBe(true);
+    expect((await prisma.quote.findUniqueOrThrow({ where: { id } })).status).toBe("withdrawn");
+    expect((await repo.getPublicQuote(tokenOf(sent)))?.status).toBe("withdrawn");
+    // No new quotes on a lost deal.
+    expect(await quotes.createQuote(deal.id)).toMatchObject({ ok: false });
+  });
+
+  it("wins a deal at the accepted quote's total", async () => {
+    const { deal, sent } = await sentQuote("40,000.00");
+    await pub.respondToQuote({
+      action: "accept",
+      token: tokenOf(sent),
+      name: "Cora Client",
+      email: "",
+      agreed: true,
+    });
+    expect((await deals.winDeal(deal.id, "1.00")).ok).toBe(false);
+    expect((await deals.winDeal(deal.id)).ok).toBe(true);
+    expect(
+      Number((await prisma.deal.findUniqueOrThrow({ where: { id: deal.id } })).amountMinor),
+    ).toBe(44_800_00);
+  });
+
+  it("expires a sent quote once its date has passed", async () => {
+    const { id } = await sentQuote();
+    await db.exec(`ALTER TABLE quotes DISABLE TRIGGER USER`);
+    await db.exec(`UPDATE quotes SET valid_until = '2020-01-01' WHERE id = '${id}'`);
+    await db.exec(`ALTER TABLE quotes ENABLE TRIGGER USER`);
+    expect(await server_.expireDueQuotes()).toBeGreaterThanOrEqual(1);
+    expect((await prisma.quote.findUniqueOrThrow({ where: { id } })).status).toBe("expired");
   });
 });

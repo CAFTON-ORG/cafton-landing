@@ -1,38 +1,50 @@
 "use server";
 
-import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 
 import { guard, refreshCrm } from "@/features/crm/actions/guard";
 import { logActivity } from "@/features/crm/actions/shared";
 import { live } from "@/features/crm/mappers";
-import { notify } from "@/features/notifications/server";
-import { manilaDate } from "@/features/schedule/slots";
+import { notify, staffIdsWith } from "@/features/notifications/server";
+import { addDays, manilaDate } from "@/features/schedule/slots";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { formatMinor } from "@/lib/money";
+import { quoteLink, sendQuoteEmail } from "../emails";
+import { generateToken, hashToken } from "../integrity";
 import { lineTotal, quoteTotals } from "../pricing";
-import { sendQuoteEmail } from "../emails";
 import { getPublicQuote } from "../repository";
 import {
+  DEFAULT_DEPOSIT_PCT,
   DEFAULT_TAX_RATE_PCT,
   DEFAULT_VALID_DAYS,
+  LIVE_STATUSES,
+  approvalReasons,
   canEdit,
+  checkAmounts,
+  checkApprover,
+  checkCreate,
+  checkDelete,
+  checkRevise,
   checkSend,
+  checkValidity,
+  checkWithdraw,
   submitTarget,
   type QuoteStatus,
 } from "../rules";
 import { quoteSchema, type QuoteInput } from "../schemas";
-import { addDays } from "@/features/schedule/slots";
+import { fingerprintOf, moveDealAfter } from "../server";
 
 const DEFAULT_INTRO =
   "Thank you for the chance to work with you. This quote sets out what we will do and what it costs.";
 const DEFAULT_TERMS = [
   "Prices are in Philippine pesos and include VAT where shown.",
-  "This quote is valid until the date above. Work starts once it is accepted and the first payment is received.",
+  "This quote is valid until the date above. Work starts once it is accepted and the deposit is received.",
   "Anything outside the lines above is quoted separately.",
 ].join("\n");
+const DEFAULT_PAYMENT_TERMS =
+  "The deposit is due when the quote is accepted. The balance is due on completion. Payment by bank transfer; details are on the invoice.";
 
 function refreshSales(dealId?: string) {
   refreshCrm();
@@ -40,6 +52,8 @@ function refreshSales(dealId?: string) {
   if (dealId) revalidatePath(`/dashboard/crm/deals/${dealId}`);
   revalidatePath("/dashboard/sales/quotes/[id]", "page");
 }
+
+const link = (quoteId: string) => `/dashboard/sales/quotes/${quoteId}`;
 
 async function load(id: string) {
   const quote = await prisma.quote.findUnique({
@@ -51,6 +65,7 @@ async function load(id: string) {
           id: true,
           title: true,
           ownerId: true,
+          stage: { select: { kind: true } },
           contact: { select: { email: true, firstName: true, lastName: true } },
         },
       },
@@ -60,16 +75,15 @@ async function load(id: string) {
   return quote;
 }
 
-async function assertNewest(reference: string, version: number) {
+async function isNewest(reference: string, version: number) {
   const newest = await prisma.quote.aggregate({ where: { reference }, _max: { version: true } });
-  if ((newest._max.version ?? version) > version) {
-    throw new ActionError("A newer version of this quote exists. Open that one.", "rule");
-  }
+  return (newest._max.version ?? version) <= version;
 }
 
-const link = (quoteId: string) => `/dashboard/sales/quotes/${quoteId}`;
+const maxDiscount = (lines: { discountPct: number }[]) =>
+  lines.reduce((max, line) => Math.max(max, line.discountPct), 0);
 
-/** Starts a draft quote for a deal. Everything is filled in with sensible defaults. */
+/** Starts a draft quote for a deal, filled in with sensible defaults. One live quote per deal. */
 export async function createQuote(dealId: string): Promise<ActionResult<{ id: string }>> {
   return runAction(async () => {
     const actor = await guard("quotes:create");
@@ -79,8 +93,11 @@ export async function createQuote(dealId: string): Promise<ActionResult<{ id: st
         include: { stage: true },
       });
       if (!deal) throw new ActionError("That deal no longer exists.");
-      if (deal.stage.kind === "lost")
-        throw new ActionError("A lost deal can't have a new quote. Reopen it first.", "rule");
+      const liveQuotes = await tx.quote.count({
+        where: { dealId, status: { in: LIVE_STATUSES as QuoteStatus[] } },
+      });
+      const blocked = checkCreate({ stageKind: deal.stage.kind }, liveQuotes);
+      if (blocked) throw new ActionError(blocked, "rule");
 
       const numbers = await tx.$queryRaw<{ reference: string }[]>`
         SELECT 'QT-' || to_char(now(), 'YYYY') || '-' || lpad(nextval('quote_reference_seq')::text, 4, '0') AS reference`;
@@ -91,6 +108,8 @@ export async function createQuote(dealId: string): Promise<ActionResult<{ id: st
           title: deal.title,
           intro: DEFAULT_INTRO,
           terms: DEFAULT_TERMS,
+          paymentTerms: DEFAULT_PAYMENT_TERMS,
+          depositPct: DEFAULT_DEPOSIT_PCT,
           currency: deal.currency,
           taxRatePct: DEFAULT_TAX_RATE_PCT,
           validUntil: new Date(addDays(manilaDate(new Date()), DEFAULT_VALID_DAYS)),
@@ -115,12 +134,12 @@ export async function createQuote(dealId: string): Promise<ActionResult<{ id: st
   });
 }
 
-/** Saves the quote's wording and lines, and works out the totals. Drafts only. */
+/** Saves the quote's wording and lines and works out the totals. Drafts only. */
 export async function saveQuote(id: string, input: QuoteInput): Promise<ActionResult> {
   return runAction(async () => {
     const actor = await guard("quotes:update");
     const data = parse(quoteSchema, input);
-    await prisma.$transaction(async (tx) => {
+    const dealId = await prisma.$transaction(async (tx) => {
       const quote = await tx.quote.findUnique({ where: { id } });
       if (!quote) throw new ActionError("That quote no longer exists.");
       if (!canEdit(quote.status as QuoteStatus)) {
@@ -136,6 +155,8 @@ export async function saveQuote(id: string, input: QuoteInput): Promise<ActionRe
         taxable: line.taxable,
       }));
       const totals = quoteTotals(priced, quote.taxRatePct);
+      const blocked = checkAmounts(totals.totalMinor, data.depositPct);
+      if (blocked) throw new ActionError(blocked, "rule");
 
       await tx.quoteLine.deleteMany({ where: { quoteId: id } });
       if (data.lines.length > 0) {
@@ -166,6 +187,8 @@ export async function saveQuote(id: string, input: QuoteInput): Promise<ActionRe
           title: data.title,
           intro: data.intro ?? null,
           terms: data.terms ?? null,
+          paymentTerms: data.paymentTerms ?? null,
+          depositPct: data.depositPct,
           validUntil: data.validUntil ? new Date(data.validUntil) : null,
           subtotalMinor: BigInt(totals.subtotalMinor),
           taxMinor: BigInt(totals.taxMinor),
@@ -182,27 +205,35 @@ export async function saveQuote(id: string, input: QuoteInput): Promise<ActionRe
         },
         tx,
       );
+      return quote.dealId;
     });
-    const saved = await prisma.quote.findUnique({ where: { id }, select: { dealId: true } });
-    refreshSales(saved?.dealId);
+    refreshSales(dealId);
   });
 }
 
-/** Moves a finished draft forward: straight to approved when small, otherwise to someone who can approve. */
+/**
+ * Moves a finished draft forward: straight to approved when nothing needs a second look, otherwise
+ * to someone who can approve (a big total or a big discount).
+ */
 export async function submitQuote(id: string): Promise<ActionResult<{ status: QuoteStatus }>> {
   return runAction(async () => {
     const actor = await guard("quotes:update");
     const result = await prisma.$transaction(async (tx) => {
-      const quote = await tx.quote.findUnique({
-        where: { id },
-        include: { lines: { select: { id: true } } },
-      });
+      const quote = await tx.quote.findUnique({ where: { id }, include: { lines: true } });
       if (!quote) throw new ActionError("That quote no longer exists.");
       if (quote.status !== "draft") throw new ActionError("Only a draft can be submitted.", "rule");
       if (quote.lines.length === 0) throw new ActionError("Add at least one line first.", "rule");
       const total = Number(quote.totalMinor);
       if (total <= 0) throw new ActionError("The total must be more than zero.", "rule");
-      const status = submitTarget(total);
+      const validity = checkValidity(
+        quote.validUntil?.toISOString().slice(0, 10),
+        manilaDate(new Date()),
+      );
+      if (validity) throw new ActionError(validity, "rule");
+
+      const facts = { totalMinor: total, maxDiscountPct: maxDiscount(quote.lines) };
+      const reasons = approvalReasons(facts);
+      const status = submitTarget(facts);
       await tx.quote.update({
         where: { id },
         data: status === "approved" ? { status, approvedAt: new Date() } : { status },
@@ -215,21 +246,20 @@ export async function submitQuote(id: string): Promise<ActionResult<{ status: Qu
           entityId: id,
           summary:
             status === "approved"
-              ? `Submitted quote ${quote.reference} (approved automatically: under the limit)`
-              : `Submitted quote ${quote.reference} for approval`,
+              ? `Submitted quote ${quote.reference} (approved automatically: no approval needed)`
+              : `Submitted quote ${quote.reference} for approval: ${reasons.join(" ")}`,
         },
         tx,
       );
-      return { status, dealId: quote.dealId, reference: quote.reference, total };
+      return { status, dealId: quote.dealId, reference: quote.reference, total, reasons };
     });
     if (result.status === "pending_approval") {
-      const { staffIdsWith } = await import("@/features/notifications/server");
       await notify(
         await staffIdsWith("quotes:approve"),
         {
           kind: "quote.approval",
           title: `Quote ${result.reference} needs approval`,
-          body: formatMinor(result.total),
+          body: result.reasons.join(" "),
           href: link(id),
         },
         actorId(actor),
@@ -240,21 +270,22 @@ export async function submitQuote(id: string): Promise<ActionResult<{ status: Qu
   });
 }
 
-/**
- * Approval is a second pair of eyes: you can't approve a quote you wrote, unless you are an Owner
- * (so a one-person team is never stuck).
- */
+/** A second pair of eyes. You can't approve a quote you wrote, unless you are an Owner. */
 export async function approveQuote(id: string): Promise<ActionResult> {
   return runAction(async () => {
     const actor = await guard("quotes:approve");
     const done = await prisma.$transaction(async (tx) => {
       const quote = await tx.quote.findUnique({ where: { id } });
       if (!quote) throw new ActionError("That quote no longer exists.");
-      if (quote.status !== "pending_approval")
+      if (quote.status !== "pending_approval") {
         throw new ActionError("This quote isn't waiting for approval.", "rule");
-      if (quote.createdBy && quote.createdBy === actorId(actor) && actor.roleKey !== "owner") {
-        throw new ActionError("Someone else has to approve a quote you wrote.", "rule");
       }
+      const blocked = checkApprover({
+        createdBy: quote.createdBy,
+        approverId: actorId(actor),
+        roleKey: actor.roleKey,
+      });
+      if (blocked) throw new ActionError(blocked, "rule");
       await tx.quote.update({
         where: { id },
         data: { status: "approved", approvedBy: actorId(actor), approvedAt: new Date() },
@@ -290,8 +321,9 @@ export async function rejectQuote(id: string, reason: string): Promise<ActionRes
     const done = await prisma.$transaction(async (tx) => {
       const quote = await tx.quote.findUnique({ where: { id } });
       if (!quote) throw new ActionError("That quote no longer exists.");
-      if (quote.status !== "pending_approval")
+      if (quote.status !== "pending_approval") {
         throw new ActionError("This quote isn't waiting for approval.", "rule");
+      }
       await tx.quote.update({ where: { id }, data: { status: "draft" } });
       await logActivity(
         tx,
@@ -326,14 +358,17 @@ export async function rejectQuote(id: string, reason: string): Promise<ActionRes
   });
 }
 
-/** Emails the quote (link and PDF) to the deal's contact. Sending again re-sends the same link. */
+/**
+ * Emails the quote (link and PDF) to the deal's contact. Every send makes a fresh link (an older
+ * one stops working) and fingerprints exactly what was sent. A deal still early in its pipeline is
+ * moved to Proposal.
+ */
 export async function sendQuote(
   id: string,
 ): Promise<ActionResult<{ emailed: boolean; link: string }>> {
   return runAction(async () => {
     const actor = await guard("quotes:send");
     const quote = await load(id);
-    await assertNewest(quote.reference, quote.version);
     const recipient = quote.deal.contact.email?.trim() || null;
     const blocked = checkSend({
       status: quote.status as QuoteStatus,
@@ -341,15 +376,23 @@ export async function sendQuote(
       totalMinor: Number(quote.totalMinor),
       recipient,
       validUntil: quote.validUntil ? quote.validUntil.toISOString().slice(0, 10) : null,
+      isNewest: await isNewest(quote.reference, quote.version),
+      dealKind: quote.deal.stage.kind,
       today: manilaDate(new Date()),
     });
     if (blocked) throw new ActionError(blocked, "rule");
 
-    const token = quote.publicToken ?? randomBytes(32).toString("base64url");
+    const token = generateToken();
     await prisma.$transaction(async (tx) => {
       await tx.quote.update({
         where: { id },
-        data: { status: "sent", publicToken: token, sentAt: new Date(), sentTo: recipient },
+        data: {
+          status: "sent",
+          tokenHash: hashToken(token),
+          sentHash: fingerprintOf(quote),
+          sentAt: new Date(),
+          sentTo: recipient,
+        },
       });
       await logActivity(
         tx,
@@ -368,6 +411,7 @@ export async function sendQuote(
         },
         tx,
       );
+      await moveDealAfter(tx, actor, quote.dealId, "send");
     });
 
     const publicQuote = await getPublicQuote(token);
@@ -383,8 +427,73 @@ export async function sendQuote(
       emailed = result.ok;
     }
     refreshSales(quote.dealId);
-    const { quoteLink } = await import("../emails");
     return { emailed, link: quoteLink(token) };
+  });
+}
+
+/**
+ * Only a hash of the client's link is kept, so it can't be read back. To get a link to send
+ * yourself, make a new one: the old link stops working at once.
+ */
+export async function renewQuoteLink(id: string): Promise<ActionResult<{ link: string }>> {
+  return runAction(async () => {
+    const actor = await guard("quotes:send");
+    const quote = await prisma.quote.findUnique({ where: { id } });
+    if (!quote) throw new ActionError("That quote no longer exists.");
+    if (quote.status !== "sent") {
+      throw new ActionError("Only a quote waiting for an answer has a link.", "rule");
+    }
+    const token = generateToken();
+    await prisma.$transaction(async (tx) => {
+      await tx.quote.update({ where: { id }, data: { tokenHash: hashToken(token) } });
+      await recordAudit(
+        actor,
+        {
+          action: "quote.link",
+          entity: "quote",
+          entityId: id,
+          summary: `Made a new link for quote ${quote.reference}; the old one no longer works`,
+        },
+        tx,
+      );
+    });
+    return { link: quoteLink(token) };
+  });
+}
+
+/** Takes an open quote off the table, with a reason. The client's link then says it was withdrawn. */
+export async function withdrawQuote(id: string, reason: string): Promise<ActionResult> {
+  return runAction(async () => {
+    const actor = await guard("quotes:update");
+    const dealId = await prisma.$transaction(async (tx) => {
+      const quote = await tx.quote.findUnique({ where: { id } });
+      if (!quote) throw new ActionError("That quote no longer exists.");
+      const blocked = checkWithdraw(quote.status as QuoteStatus, reason);
+      if (blocked) throw new ActionError(blocked, "rule");
+      await tx.quote.update({
+        where: { id },
+        data: { status: "withdrawn", withdrawnAt: new Date(), withdrawnReason: reason.trim() },
+      });
+      await logActivity(
+        tx,
+        actor,
+        { dealId: quote.dealId },
+        "system",
+        `Withdrew quote ${quote.reference} v${quote.version}: ${reason.trim()}`,
+      );
+      await recordAudit(
+        actor,
+        {
+          action: "quote.withdraw",
+          entity: "quote",
+          entityId: id,
+          summary: `Withdrew quote ${quote.reference} v${quote.version}: ${reason.trim()}`,
+        },
+        tx,
+      );
+      return quote.dealId;
+    });
+    refreshSales(dealId);
   });
 }
 
@@ -392,13 +501,22 @@ export async function sendQuote(
 export async function reviseQuote(id: string): Promise<ActionResult<{ id: string }>> {
   return runAction(async () => {
     const actor = await guard("quotes:create");
-    const newId = await prisma.$transaction(async (tx) => {
-      const quote = await tx.quote.findUnique({ where: { id }, include: { lines: true } });
+    const created = await prisma.$transaction(async (tx) => {
+      const quote = await tx.quote.findUnique({
+        where: { id },
+        include: { lines: true, deal: { select: { stage: { select: { kind: true } } } } },
+      });
       if (!quote) throw new ActionError("That quote no longer exists.");
-      if (quote.status === "accepted")
-        throw new ActionError("An accepted quote is an agreement and can't be revised.", "rule");
-      if (quote.status === "superseded")
-        throw new ActionError("A newer version already exists.", "rule");
+      const newest = await tx.quote.aggregate({
+        where: { reference: quote.reference },
+        _max: { version: true },
+      });
+      const blocked = checkRevise(
+        quote.status as QuoteStatus,
+        quote.deal.stage.kind,
+        (newest._max.version ?? quote.version) <= quote.version,
+      );
+      if (blocked) throw new ActionError(blocked, "rule");
       const next = await tx.quote.create({
         data: {
           reference: quote.reference,
@@ -407,6 +525,8 @@ export async function reviseQuote(id: string): Promise<ActionResult<{ id: string
           title: quote.title,
           intro: quote.intro,
           terms: quote.terms,
+          paymentTerms: quote.paymentTerms,
+          depositPct: quote.depositPct,
           currency: quote.currency,
           taxRatePct: quote.taxRatePct,
           subtotalMinor: quote.subtotalMinor,
@@ -447,24 +567,25 @@ export async function reviseQuote(id: string): Promise<ActionResult<{ id: string
         },
         tx,
       );
-      return next.id;
+      return { id: next.id, dealId: quote.dealId };
     });
-    const made = await prisma.quote.findUnique({ where: { id: newId }, select: { dealId: true } });
-    refreshSales(made?.dealId);
-    return { id: newId };
+    refreshSales(created.dealId);
+    return { id: created.id };
   });
 }
 
+/** Only a draft that was never sent can be deleted. Everything else is a record. */
 export async function deleteQuote(id: string): Promise<ActionResult> {
   return runAction(async () => {
     const actor = await guard("quotes:delete");
     const dealId = await prisma.$transaction(async (tx) => {
       const quote = await tx.quote.findUnique({ where: { id } });
       if (!quote) throw new ActionError("That quote no longer exists.");
-      if (quote.status !== "draft")
-        throw new ActionError("Only a draft can be deleted. A sent quote is a record.", "rule");
-      if (quote.publicToken)
-        throw new ActionError("This quote was sent and can't be deleted.", "rule");
+      const blocked = checkDelete(
+        quote.status as QuoteStatus,
+        quote.sentAt !== null || quote.tokenHash !== null,
+      );
+      if (blocked) throw new ActionError(blocked, "rule");
       await tx.quote.delete({ where: { id } });
       await recordAudit(
         actor,
@@ -479,16 +600,5 @@ export async function deleteQuote(id: string): Promise<ActionResult> {
       return quote.dealId;
     });
     refreshSales(dealId);
-  });
-}
-
-/** The client's link for a quote that was already sent, to copy. It never sends anything. */
-export async function quoteLinkFor(id: string): Promise<ActionResult<{ link: string }>> {
-  return runAction(async () => {
-    await guard("quotes:send");
-    const quote = await prisma.quote.findUnique({ where: { id }, select: { publicToken: true } });
-    if (!quote?.publicToken) throw new ActionError("This quote has not been sent yet.", "rule");
-    const { quoteLink } = await import("../emails");
-    return { link: quoteLink(quote.publicToken) };
   });
 }

@@ -13,7 +13,9 @@ import { formatMinor } from "@/lib/money";
 import { sendMail } from "@/lib/mail";
 import { renderEmail } from "@/lib/mail-templates";
 import { checkRateLimit } from "@/lib/security/rate-limit";
+import { TOKEN_SHAPE, hashToken } from "./integrity";
 import { checkRespond, type QuoteStatus } from "./rules";
+import { fingerprintOf, moveDealAfter } from "./server";
 import { respondSchema, type RespondInput } from "./schemas";
 
 /** The system acting for a client who used the public link: there is no staff member to name. */
@@ -28,9 +30,9 @@ async function caller() {
 
 /** Marks the quote as seen the first time the link is opened (so staff know it reached them). */
 export async function markQuoteViewed(token: string) {
-  if (!/^[A-Za-z0-9_-]{20,80}$/.test(token)) return;
+  if (!TOKEN_SHAPE.test(token)) return;
   const quote = await prisma.quote.findUnique({
-    where: { publicToken: token },
+    where: { tokenHash: hashToken(token) },
     select: {
       id: true,
       viewedAt: true,
@@ -63,9 +65,11 @@ export async function respondToQuote(
     const limit = checkRateLimit(`quote-reply:${who.ip}`, { limit: 12, windowMs: 10 * 60_000 });
     if (!limit.allowed) throw new ActionError("Too many tries. Please wait a few minutes.");
 
+    if (!TOKEN_SHAPE.test(data.token)) throw new ActionError("This link isn't valid any more.");
     const quote = await prisma.quote.findUnique({
-      where: { publicToken: data.token },
+      where: { tokenHash: hashToken(data.token) },
       include: {
+        lines: true,
         deal: {
           select: {
             id: true,
@@ -87,6 +91,17 @@ export async function respondToQuote(
       manilaDate(new Date()),
     );
     if (blocked) throw new ActionError(blocked, "rule");
+    // Proof that nothing changed since it was sent: what is stored must match what was fingerprinted.
+    const proof = fingerprintOf(quote);
+    if (!quote.sentHash || quote.sentHash !== proof) {
+      throw new ActionError(
+        "This quote has changed since it was sent. Please ask us for the latest one.",
+        "rule",
+      );
+    }
+    if (quote.deal.stage.kind !== "open") {
+      throw new ActionError("This offer is no longer open. Please contact us.", "rule");
+    }
 
     const total = Number(quote.totalMinor);
     const now = new Date();
@@ -106,17 +121,19 @@ export async function respondToQuote(
                 acceptedIp: who.ip,
                 acceptedUserAgent: who.userAgent,
                 acceptedTotalMinor: quote.totalMinor,
+                acceptedHash: proof,
               }
             : { status: "declined", declinedAt: now, declinedReason: data.reason },
       });
       if (claimed.count === 0) throw new ActionError("This quote was just answered.", "rule");
 
-      if (data.action === "accept" && quote.deal.stage.kind === "open") {
-        // The deal's value follows what the client agreed to.
+      if (data.action === "accept") {
+        // The deal's value follows what the client agreed to, and the deal moves on to Negotiation.
         await tx.deal.update({
           where: { id: quote.dealId },
           data: { amountMinor: quote.totalMinor },
         });
+        await moveDealAfter(tx, CLIENT, quote.dealId, "accept");
       }
       await tx.activity.create({
         data: {
@@ -141,7 +158,7 @@ export async function respondToQuote(
               : `Quote ${quote.reference} v${quote.version} was declined`,
           metadata:
             data.action === "accept"
-              ? { ip: who.ip, userAgent: who.userAgent, totalMinor: total }
+              ? { ip: who.ip, userAgent: who.userAgent, totalMinor: total, hash: proof }
               : { reason: data.reason },
         },
         tx,

@@ -85,6 +85,21 @@ export const RESOURCES = {
       delete: "Delete draft quotes",
     },
   },
+  contracts: {
+    label: "Contracts and statements of work",
+    actions: {
+      view: "View contracts",
+      create: "Draft contracts from a template",
+      update: "Edit draft contracts",
+      send: "Send contracts to clients",
+      delete: "Delete draft contracts",
+      templates: "Add and edit contract templates",
+    },
+  },
+  targets: {
+    label: "Sales targets",
+    actions: { manage: "Set monthly sales targets for each person" },
+  },
   meetings: {
     label: "Meetings",
     actions: {
@@ -167,6 +182,8 @@ const ADMINISTRATION: Permission[] = [
   "pipelines:manage",
   "quotes:approve",
   "catalog:manage",
+  "contracts:templates",
+  "targets:manage",
   "audit:view",
   "settings:update",
   "owners:manage",

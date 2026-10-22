@@ -5,6 +5,7 @@ import { namesFor } from "@/features/crm/mappers";
 import { fullName } from "@/features/crm/rules";
 import { manilaDate } from "@/features/schedule/slots";
 import { prisma } from "@/lib/db";
+import { TOKEN_SHAPE, hashToken } from "./integrity";
 import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
@@ -73,6 +74,8 @@ async function toView(row: QuoteRowFull, newest: number): Promise<QuoteView> {
     title: row.title,
     intro: row.intro ?? undefined,
     terms: row.terms ?? undefined,
+    paymentTerms: row.paymentTerms ?? undefined,
+    depositPct: row.depositPct,
     currency: row.currency,
     status: effectiveStatus(
       { status: row.status as QuoteStatus, validUntil: day(row.validUntil) },
@@ -83,7 +86,7 @@ async function toView(row: QuoteRowFull, newest: number): Promise<QuoteView> {
     taxMinor: Number(row.taxMinor),
     totalMinor: Number(row.totalMinor),
     validUntil: day(row.validUntil),
-    hasLink: row.publicToken !== null,
+    hasLink: row.tokenHash !== null,
     approvedAt: iso(row.approvedAt),
     approvedByName: row.approvedBy ? people.get(row.approvedBy)?.name : undefined,
     sentAt: iso(row.sentAt),
@@ -95,6 +98,9 @@ async function toView(row: QuoteRowFull, newest: number): Promise<QuoteView> {
     declinedAt: iso(row.declinedAt),
     declinedReason: row.declinedReason ?? undefined,
     createdByName: row.createdBy ? people.get(row.createdBy)?.name : undefined,
+    createdByAvatar: row.createdBy ? people.get(row.createdBy)?.avatarUrl : undefined,
+    withdrawnAt: iso(row.withdrawnAt),
+    withdrawnReason: row.withdrawnReason ?? undefined,
     createdAt: row.createdAt.toISOString(),
     lines: row.lines.map((line) => ({
       id: line.id,
@@ -130,6 +136,7 @@ const toRow = (
       };
     };
   }>,
+  people: Map<string, { name: string; avatarUrl?: string }>,
 ): QuoteRow => ({
   id: row.id,
   reference: row.reference,
@@ -144,6 +151,8 @@ const toRow = (
   dealId: row.dealId,
   dealTitle: row.deal.title,
   contactName: fullName(row.deal.contact),
+  createdByName: row.createdBy ? people.get(row.createdBy)?.name : undefined,
+  createdByAvatar: row.createdBy ? people.get(row.createdBy)?.avatarUrl : undefined,
   validUntil: day(row.validUntil),
   sentAt: iso(row.sentAt),
   createdAt: row.createdAt.toISOString(),
@@ -163,7 +172,8 @@ export async function listQuotesForDeal(dealId: string): Promise<QuoteRow[]> {
     include: rowInclude,
     orderBy: [{ reference: "desc" }, { version: "desc" }],
   });
-  return rows.map(toRow);
+  const people = await namesFor(rows.map((row) => row.createdBy));
+  return rows.map((row) => toRow(row, people));
 }
 
 /** The quotes list: by default only the newest version of each quote. */
@@ -175,8 +185,7 @@ export async function listQuotes(params: TableParams): Promise<Page<QuoteRow>> {
   const status = params.filters.status as QuoteStatus | "";
   const where: Prisma.QuoteWhereInput = {
     // Older versions are history: show them only when asked for.
-    ...(status === "superseded" ? {} : { status: status ? status : { not: "superseded" } }),
-    ...(status === "superseded" ? { status: "superseded" } : {}),
+    status: status ? status : { notIn: ["superseded"] },
     ...(q
       ? {
           OR: [
@@ -208,7 +217,8 @@ export async function listQuotes(params: TableParams): Promise<Page<QuoteRow>> {
     take: base.pageSize,
   });
 
-  return { ...base, items: rows.map(toRow) };
+  const people = await namesFor(rows.map((row) => row.createdBy));
+  return { ...base, items: rows.map((row) => toRow(row, people)) };
 }
 
 /** Counts for the sales header and the deal tab. */
@@ -236,8 +246,8 @@ export async function openQuoteTotals() {
 
 /** The quote behind a secret link: only what a client may see. Null when the link is unknown. */
 export async function getPublicQuote(token: string): Promise<PublicQuote | null> {
-  if (!isDatabaseConfigured || !/^[A-Za-z0-9_-]{20,80}$/.test(token)) return null;
-  const row = await prisma.quote.findUnique({ where: { publicToken: token }, include });
+  if (!isDatabaseConfigured || !TOKEN_SHAPE.test(token)) return null;
+  const row = await prisma.quote.findUnique({ where: { tokenHash: hashToken(token) }, include });
   return row ? toPublic(row) : null;
 }
 
@@ -255,6 +265,8 @@ function toPublic(row: QuoteRowFull): PublicQuote {
     title: row.title,
     intro: row.intro ?? undefined,
     terms: row.terms ?? undefined,
+    paymentTerms: row.paymentTerms ?? undefined,
+    depositPct: row.depositPct,
     currency: row.currency,
     status: effectiveStatus(
       { status: row.status as QuoteStatus, validUntil: day(row.validUntil) },
@@ -265,6 +277,8 @@ function toPublic(row: QuoteRowFull): PublicQuote {
     taxMinor: Number(row.taxMinor),
     totalMinor: Number(row.totalMinor),
     validUntil: day(row.validUntil),
+    issuedOn: (row.sentAt ?? row.createdAt).toISOString().slice(0, 10),
+    withdrawnAt: iso(row.withdrawnAt),
     recipientName: fullName(row.deal.contact),
     acceptedAt: iso(row.acceptedAt),
     acceptedByName: row.acceptedByName ?? undefined,

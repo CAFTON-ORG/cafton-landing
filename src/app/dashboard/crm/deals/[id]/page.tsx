@@ -33,6 +33,12 @@ import { listStages, listStaffOptions } from "@/features/crm/repository/pipeline
 import { listTagOptions } from "@/features/crm/repository/tags";
 import { listTasksFor } from "@/features/crm/repository/tasks";
 import { checkAddTaskToDeal } from "@/features/crm/rules";
+import { DealContractsPanel } from "@/features/contracts/components/deal-contracts-panel";
+import {
+  acceptedQuotesForDeal,
+  listContractsForDeal,
+  listTemplates,
+} from "@/features/contracts/repository";
 import { DealQuotesPanel } from "@/features/sales/components/deal-quotes-panel";
 import { listQuotesForDeal } from "@/features/sales/repository";
 import { can } from "@/lib/auth/dal";
@@ -67,6 +73,9 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
     tagOptions,
     origin,
     quotes,
+    contracts,
+    contractTemplates,
+    acceptedQuotes,
   ] = await Promise.all([
     listStages(deal.pipelineId),
     listActivities({ dealId: id }),
@@ -78,6 +87,9 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
     listTagOptions("deal"),
     deal.leadId ? getLead(deal.leadId) : Promise.resolve(null),
     can(staff, "quotes:view") ? listQuotesForDeal(id) : Promise.resolve([]),
+    can(staff, "contracts:view") ? listContractsForDeal(id) : Promise.resolve([]),
+    can(staff, "contracts:create") ? listTemplates({ activeOnly: true }) : Promise.resolve([]),
+    can(staff, "contracts:create") ? acceptedQuotesForDeal(id) : Promise.resolve([]),
   ]);
   const services = origin ? await getServices() : [];
   const canAddTask = !checkAddTaskToDeal({
@@ -191,6 +203,12 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
                 <TabCount n={quotes.filter((q) => q.status !== "superseded").length} />
               </TabsTrigger>
             )}
+            {can(staff, "contracts:view") && (
+              <TabsTrigger value="contracts">
+                Contracts
+                <TabCount n={contracts.length} />
+              </TabsTrigger>
+            )}
             <TabsTrigger value="tasks">
               Tasks
               <TabCount n={openTasks} />
@@ -244,6 +262,18 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
           {can(staff, "quotes:view") && (
             <TabsContent value="quotes" className="mt-4">
               <DealQuotesPanel dealId={id} quotes={quotes} closedLost={deal.stageKind === "lost"} />
+            </TabsContent>
+          )}
+
+          {can(staff, "contracts:view") && (
+            <TabsContent value="contracts" className="mt-4">
+              <DealContractsPanel
+                dealId={id}
+                contracts={contracts}
+                templates={contractTemplates}
+                quotes={acceptedQuotes}
+                closedLost={deal.stageKind === "lost"}
+              />
             </TabsContent>
           )}
 

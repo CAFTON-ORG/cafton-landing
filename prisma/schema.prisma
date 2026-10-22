@@ -280,6 +280,7 @@ model Deal {
   /// Free-form labels, lower case, for filtering and grouping.
   tags         String[]      @default([])
   quotes       Quote[]
+  contracts    Contract[]
 
   @@index([stageId])
   @@index([contactId])
@@ -685,6 +686,7 @@ enum QuoteStatus {
   declined
   expired
   superseded
+  withdrawn
 
   @@map("quote_status")
 }
@@ -730,8 +732,17 @@ model Quote {
   taxMinor           BigInt      @default(0) @map("tax_minor")
   totalMinor         BigInt      @default(0) @map("total_minor")
   validUntil         DateTime?   @map("valid_until") @db.Date
-  /// Secret in the public link; set when the quote is first sent.
-  publicToken        String?     @unique @map("public_token")
+  /// SHA-256 of the secret in the public link. The link itself is shown once (when sent or renewed)
+  /// and never stored, so a database leak does not leak working links.
+  tokenHash          String?     @unique @map("token_hash")
+  /// Proof of exactly what was sent: a hash of the wording, lines, totals and validity at send time.
+  sentHash           String?     @map("sent_hash")
+  acceptedHash       String?     @map("accepted_hash")
+  /// Share of the total due when the quote is accepted.
+  depositPct         Int         @default(50) @map("deposit_pct")
+  paymentTerms       String?     @map("payment_terms")
+  withdrawnAt        DateTime?   @map("withdrawn_at") @db.Timestamptz(6)
+  withdrawnReason    String?     @map("withdrawn_reason")
   approvedBy         String?     @map("approved_by") @db.Uuid
   approvedAt         DateTime?   @map("approved_at") @db.Timestamptz(6)
   sentAt             DateTime?   @map("sent_at") @db.Timestamptz(6)
@@ -750,8 +761,9 @@ model Quote {
   createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  deal  Deal        @relation(fields: [dealId], references: [id], onDelete: Restrict)
-  lines QuoteLine[]
+  deal      Deal        @relation(fields: [dealId], references: [id], onDelete: Restrict)
+  lines     QuoteLine[]
+  contracts Contract[]
 
   @@unique([reference, version])
   @@index([dealId])
@@ -780,4 +792,96 @@ model QuoteLine {
 
   @@index([quoteId, position])
   @@map("quote_lines")
+}
+
+/// A person's sales goal for one month, in centavos.
+model SalesTarget {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId     String   @map("owner_id") @db.Uuid
+  /// The first day of the month the target is for.
+  month       DateTime @db.Date
+  amountMinor BigInt   @map("amount_minor")
+  createdBy   String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([ownerId, month])
+  @@index([month])
+  @@map("sales_targets")
+}
+
+enum ContractKind {
+  contract
+  sow
+
+  @@map("contract_kind")
+}
+
+enum ContractStatus {
+  draft
+  sent
+  accepted
+  declined
+  withdrawn
+  expired
+
+  @@map("contract_status")
+}
+
+/// Reusable wording for contracts and statements of work. Merge fields are filled in per deal.
+model ContractTemplate {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  kind      ContractKind @default(contract)
+  body      String
+  active    Boolean      @default(true)
+  createdBy String?      @map("created_by") @db.Uuid
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  contracts Contract[]
+
+  @@index([kind, active])
+  @@map("contract_templates")
+}
+
+/// A contract or statement of work for a deal, accepted by the client through a secret link.
+model Contract {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference         String         @unique
+  dealId            String         @map("deal_id") @db.Uuid
+  quoteId           String?        @map("quote_id") @db.Uuid
+  templateId        String?        @map("template_id") @db.Uuid
+  kind              ContractKind   @default(contract)
+  title             String
+  /// The full wording, merge fields already filled in. Editable only while a draft.
+  body              String
+  status            ContractStatus @default(draft)
+  validUntil        DateTime?      @map("valid_until") @db.Date
+  tokenHash         String?        @unique @map("token_hash")
+  sentHash          String?        @map("sent_hash")
+  acceptedHash      String?        @map("accepted_hash")
+  sentAt            DateTime?      @map("sent_at") @db.Timestamptz(6)
+  sentTo            String?        @map("sent_to")
+  viewedAt          DateTime?      @map("viewed_at") @db.Timestamptz(6)
+  acceptedAt        DateTime?      @map("accepted_at") @db.Timestamptz(6)
+  acceptedByName    String?        @map("accepted_by_name")
+  acceptedByEmail   String?        @map("accepted_by_email")
+  acceptedIp        String?        @map("accepted_ip")
+  acceptedUserAgent String?        @map("accepted_user_agent")
+  declinedAt        DateTime?      @map("declined_at") @db.Timestamptz(6)
+  declinedReason    String?        @map("declined_reason")
+  withdrawnAt       DateTime?      @map("withdrawn_at") @db.Timestamptz(6)
+  withdrawnReason   String?        @map("withdrawn_reason")
+  createdBy         String?        @map("created_by") @db.Uuid
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  deal     Deal              @relation(fields: [dealId], references: [id], onDelete: Restrict)
+  quote    Quote?            @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  template ContractTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@index([dealId])
+  @@index([status])
+  @@map("contracts")
 }

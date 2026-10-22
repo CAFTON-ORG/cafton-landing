@@ -10,6 +10,7 @@ const TONE: Record<QuoteStatus, StatusTone> = {
   declined: "danger",
   expired: "neutral",
   superseded: "neutral",
+  withdrawn: "neutral",
 };
 
 export function QuoteStatusBadge({ status }: { status: QuoteStatus }) {

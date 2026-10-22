@@ -3,7 +3,18 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Check, Copy, Download, FilePlus2, Plus, Send, Trash2, Trophy, Undo2 } from "lucide-react";
+import {
+  Ban,
+  Check,
+  Copy,
+  Download,
+  FilePlus2,
+  Plus,
+  Send,
+  Trash2,
+  Trophy,
+  Undo2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { useCan } from "@/components/dashboard/layout/staff-context";
@@ -45,14 +56,15 @@ import {
   approveQuote,
   deleteQuote,
   rejectQuote,
-  quoteLinkFor,
+  renewQuoteLink,
+  withdrawQuote,
   reviseQuote,
   saveQuote,
   sendQuote,
   submitQuote,
 } from "../actions/quotes";
 import { lineTotal, parseQuantity, quantityText, quoteTotals } from "../pricing";
-import { canEdit, needsApproval } from "../rules";
+import { approvalReasons, canEdit, checkWithdraw } from "../rules";
 import type { CatalogItemView, QuoteView } from "../types";
 import { QuoteStatusBadge } from "./quote-status-badge";
 
@@ -118,6 +130,8 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
       title: quote.title,
       intro: quote.intro ?? "",
       terms: quote.terms ?? "",
+      paymentTerms: quote.paymentTerms ?? "",
+      depositPct: String(quote.depositPct),
       validUntil: quote.validUntil ?? "",
       lines: fromQuote(quote),
     }),
@@ -161,6 +175,8 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
           title: values.title,
           intro: values.intro,
           terms: values.terms,
+          paymentTerms: values.paymentTerms,
+          depositPct: Number(values.depositPct) || 0,
           validUntil: values.validUntil,
           lines: values.lines.map((line) => ({
             catalogItemId: line.catalogItemId || undefined,
@@ -204,6 +220,13 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
       .filter(([key]) => key.startsWith(`lines.${index}.`))
       .map(([, message]) => message)[0];
 
+  // The same rules the server applies, so the person sees what will happen before they press.
+  const reasons = approvalReasons({
+    totalMinor: totals.totalMinor,
+    maxDiscountPct: shown.reduce((max, line) => Math.max(max, line.discountPct), 0),
+  });
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawReason, setWithdrawReason] = useState("");
   const submitDisabled = pending || dirty || values.lines.length === 0;
   const next = quote.status;
 
@@ -247,9 +270,7 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                       }
                     >
                       <Check aria-hidden="true" />{" "}
-                      {needsApproval(totals.totalMinor)
-                        ? "Submit for approval"
-                        : "Finish and approve"}
+                      {reasons.length > 0 ? "Submit for approval" : "Finish and approve"}
                     </Button>
                   }
                 />
@@ -329,6 +350,16 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                         <FilePlus2 aria-hidden="true" /> Make a new version
                       </Button>
                     )}
+                    {!checkWithdraw(next, "x") && canUpdate && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={pending}
+                        onClick={() => setWithdrawing(true)}
+                      >
+                        <Ban aria-hidden="true" /> Withdraw this quote
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -346,7 +377,7 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                   >
                     <Download aria-hidden="true" /> Download the PDF
                   </Button>
-                  {quote.hasLink && <CopyLink quoteId={quote.id} />}
+                  {quote.status === "sent" && canSend && <NewLink quoteId={quote.id} />}
                 </CardContent>
               </Card>
 
@@ -583,9 +614,9 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                   <dt>Total</dt>
                   <dd className="tabular-nums">{formatMinor(totals.totalMinor, quote.currency)}</dd>
                 </div>
-                {needsApproval(totals.totalMinor) && (
-                  <p className="text-muted-foreground pt-1 text-xs">
-                    Over the approval limit: a second person approves it before it can be sent.
+                {reasons.length > 0 && (
+                  <p className="pt-1 text-xs text-amber-800 dark:text-amber-300">
+                    A second person approves this before it can be sent. {reasons.join(" ")}
                   </p>
                 )}
               </dl>
@@ -634,6 +665,36 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                   onChange={(event) => setValues((c) => ({ ...c, intro: event.target.value }))}
                 />
               </Field>
+              <div className="grid gap-4 sm:grid-cols-[10rem_1fr]">
+                <Field
+                  id="quote-deposit"
+                  label="Deposit (%)"
+                  error={errors.depositPct}
+                  hint="Due when it is accepted."
+                >
+                  <Input
+                    id="quote-deposit"
+                    inputMode="numeric"
+                    value={editable ? values.depositPct : String(quote.depositPct)}
+                    readOnly={!editable}
+                    aria-invalid={!!errors.depositPct}
+                    onChange={(event) =>
+                      setValues((c) => ({ ...c, depositPct: event.target.value }))
+                    }
+                  />
+                </Field>
+                <Field id="quote-payment" label="Payment terms" error={errors.paymentTerms}>
+                  <Textarea
+                    id="quote-payment"
+                    rows={2}
+                    value={editable ? values.paymentTerms : (quote.paymentTerms ?? "")}
+                    readOnly={!editable}
+                    onChange={(event) =>
+                      setValues((c) => ({ ...c, paymentTerms: event.target.value }))
+                    }
+                  />
+                </Field>
+              </div>
               <Field
                 id="quote-terms"
                 label="Terms"
@@ -652,6 +713,58 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
           </Card>
         </EditorLayout>
       </form>
+
+      <Dialog open={withdrawing} onOpenChange={(open) => !pending && setWithdrawing(open)}>
+        <DialogContent>
+          <form
+            className="grid gap-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              run(() => withdrawQuote(quote.id, withdrawReason), {
+                success: "Withdrawn.",
+                onSuccess: () => {
+                  setWithdrawing(false);
+                  setWithdrawReason("");
+                  router.refresh();
+                },
+              });
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>Withdraw this quote?</DialogTitle>
+              <DialogDescription>
+                The client can no longer accept it, and their link says it was withdrawn. This
+                can&apos;t be undone; make a new quote if you want to offer again.
+              </DialogDescription>
+            </DialogHeader>
+            <Field id="withdraw-reason" label="Why?" required>
+              <Textarea
+                id="withdraw-reason"
+                rows={3}
+                value={withdrawReason}
+                onChange={(event) => setWithdrawReason(event.target.value)}
+              />
+            </Field>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setWithdrawing(false)}
+                disabled={pending}
+              >
+                Keep it
+              </Button>
+              <Button
+                type="submit"
+                variant="destructive"
+                disabled={pending || !withdrawReason.trim()}
+              >
+                Withdraw
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={rejecting} onOpenChange={(open) => !pending && setRejecting(open)}>
         <DialogContent>
@@ -740,28 +853,30 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
   );
 }
 
-/** The client's private link. It is only shown to staff who may send quotes. */
-function CopyLink({ quoteId }: { quoteId: string }) {
-  const canSend = useCan("quotes:send");
+/**
+ * Only a hash of the client's link is kept, so it can't be read back. This makes a new link, copies
+ * it, and the old one stops working at once.
+ */
+function NewLink({ quoteId }: { quoteId: string }) {
   const { run, pending } = useServerAction();
-  if (!canSend) return null;
   return (
     <Button
       type="button"
       variant="outline"
       disabled={pending}
+      title="Makes a new link and copies it. The old link stops working."
       onClick={() =>
-        run(() => quoteLinkFor(quoteId), {
+        run(() => renewQuoteLink(quoteId), {
           onSuccess: (data) => {
             if (data?.link)
               void navigator.clipboard
                 .writeText(data.link)
-                .then(() => toast.success("Link copied."));
+                .then(() => toast.success("New link copied. The old one no longer works."));
           },
         })
       }
     >
-      <Copy aria-hidden="true" /> Copy the client&apos;s link
+      <Copy aria-hidden="true" /> Copy a new client link
     </Button>
   );
 }

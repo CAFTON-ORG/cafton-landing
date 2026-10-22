@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { FileSignature } from "lucide-react";
+import { FileSignature, Handshake } from "lucide-react";
 
 import type { Column } from "@/components/dashboard/data-table/data-table";
 import { ResourceTable } from "@/components/dashboard/data-table/resource-table";
+import { IconTile } from "@/components/dashboard/shared/icon-tile";
+import { Person } from "@/components/dashboard/shared/person";
 import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
@@ -20,15 +22,18 @@ const columns: Column<QuoteRow>[] = [
     header: "Quote",
     sortable: true,
     cell: (quote) => (
-      <div className="min-w-0">
-        <Link
-          href={`/dashboard/sales/quotes/${quote.id}`}
-          className="font-medium underline-offset-4 hover:underline"
-        >
-          {quote.reference}
-          {quote.version > 1 && <span className="text-muted-foreground"> v{quote.version}</span>}
-        </Link>
-        <p className="text-muted-foreground truncate text-xs">{quote.title}</p>
+      <div className="flex min-w-0 items-center gap-3">
+        <IconTile icon={FileSignature} />
+        <div className="min-w-0">
+          <Link
+            href={`/dashboard/sales/quotes/${quote.id}`}
+            className="font-medium underline-offset-4 hover:underline"
+          >
+            {quote.reference}
+            {quote.version > 1 && <span className="text-muted-foreground"> v{quote.version}</span>}
+          </Link>
+          <p className="text-muted-foreground truncate text-xs">{quote.title}</p>
+        </div>
       </div>
     ),
   },
@@ -37,14 +42,21 @@ const columns: Column<QuoteRow>[] = [
     header: "Deal",
     hideBelow: "md",
     cell: (quote) => (
-      <div className="min-w-0">
-        <Link
-          href={`/dashboard/crm/deals/${quote.dealId}`}
-          className="underline-offset-4 hover:underline"
-        >
-          {quote.dealTitle}
-        </Link>
-        <p className="text-muted-foreground truncate text-xs">{quote.contactName}</p>
+      <div className="flex min-w-0 items-center gap-3">
+        <IconTile icon={Handshake} />
+        <div className="min-w-0">
+          <Link
+            href={`/dashboard/crm/deals/${quote.dealId}`}
+            className="underline-offset-4 hover:underline"
+          >
+            {quote.dealTitle}
+          </Link>
+          <Person
+            name={quote.contactName}
+            size="sm"
+            className="text-muted-foreground mt-0.5 text-xs"
+          />
+        </div>
       </div>
     ),
   },

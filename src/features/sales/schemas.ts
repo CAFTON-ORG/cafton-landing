@@ -68,6 +68,9 @@ export const quoteSchema = z.object({
   title: text(200).min(1, "Give the quote a title."),
   intro: optionalText(2000),
   terms: optionalText(8000),
+  paymentTerms: optionalText(2000),
+  /** Percent of the total due when the quote is accepted. */
+  depositPct: z.coerce.number().int().min(0, "0 to 100.").max(100, "0 to 100."),
   /** yyyy-mm-dd, or empty for no end date. */
   validUntil: z
     .string()

@@ -18,6 +18,14 @@ export interface DomainEvents {
     currency: string;
     acceptedByName: string;
   };
+  "contract.accepted": {
+    contractId: string;
+    reference: string;
+    dealId: string;
+    quoteId?: string;
+    kind: string;
+    acceptedByName: string;
+  };
 }
 
 type Handler<K extends keyof DomainEvents> = (event: DomainEvents[K]) => Promise<void> | void;

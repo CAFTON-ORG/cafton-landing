@@ -18,6 +18,7 @@ import {
   MessageCircleQuestion,
   Newspaper,
   Settings,
+  TrendingUp,
   ShieldCheck,
   SlidersHorizontal,
   Users,
@@ -220,11 +221,25 @@ export const navGroups: NavGroup[] = [
     label: "Sales",
     items: [
       {
+        href: "/dashboard/sales",
+        label: "Overview",
+        icon: TrendingUp,
+        permission: "deals:view",
+        keywords: ["pipeline value", "win rate", "targets", "goals", "forecast", "performance"],
+      },
+      {
         href: "/dashboard/sales/quotes",
         label: "Quotes",
         icon: FileSignature,
         permission: "quotes:view",
         keywords: ["proposal", "estimate", "offer", "price", "accept"],
+      },
+      {
+        href: "/dashboard/sales/contracts",
+        label: "Contracts",
+        icon: FileText,
+        permission: "contracts:view",
+        keywords: ["agreement", "sow", "statement of work", "sign", "template", "terms"],
       },
       {
         href: "/dashboard/sales/catalog",

@@ -13,6 +13,10 @@ import {
   checkLeadDelete,
   checkOrganizationDelete,
 } from "../rules";
+import { checkDealDelete as checkQuotesBlockDelete } from "@/features/sales/rules";
+import { quoteStatusesFor } from "@/features/sales/server";
+import { checkDealDelete as checkContractsBlockDelete } from "@/features/contracts/rules";
+import { contractStatusesFor } from "@/features/contracts/server";
 import { TAGGABLE, normalizeTags } from "../tags";
 import { guard, refreshCrm } from "./guard";
 
@@ -191,10 +195,13 @@ export async function bulkDelete(
         } else if (data.kind === "deal") {
           const row = await tx.deal.findFirst({ where: { id, ...live }, include: { stage: true } });
           if (!row) continue;
-          blocked = checkDealDelete({
-            stageKind: row.stage.kind,
-            amountMinor: row.amountMinor === null ? null : Number(row.amountMinor),
-          });
+          blocked =
+            checkDealDelete({
+              stageKind: row.stage.kind,
+              amountMinor: row.amountMinor === null ? null : Number(row.amountMinor),
+            }) ??
+            checkQuotesBlockDelete(await quoteStatusesFor(tx, id)) ??
+            checkContractsBlockDelete(await contractStatusesFor(tx, id));
           if (!blocked)
             await tx.deal.update({
               where: { id },

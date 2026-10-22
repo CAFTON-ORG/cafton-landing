@@ -57,6 +57,8 @@ export interface QuoteView {
   title: string;
   intro?: string;
   terms?: string;
+  paymentTerms?: string;
+  depositPct: number;
   currency: string;
   /** What to show: a sent quote past its date reads as expired. */
   status: QuoteStatus;
@@ -78,6 +80,9 @@ export interface QuoteView {
   declinedAt?: string;
   declinedReason?: string;
   createdByName?: string;
+  createdByAvatar?: string;
+  withdrawnAt?: string;
+  withdrawnReason?: string;
   createdAt: string;
   lines: QuoteLineView[];
 }
@@ -94,6 +99,8 @@ export interface QuoteRow {
   dealId: string;
   dealTitle: string;
   contactName: string;
+  createdByName?: string;
+  createdByAvatar?: string;
   validUntil?: string;
   sentAt?: string;
   createdAt: string;
@@ -106,6 +113,8 @@ export interface PublicQuote {
   title: string;
   intro?: string;
   terms?: string;
+  paymentTerms?: string;
+  depositPct: number;
   currency: string;
   status: QuoteStatus;
   taxRatePct: number;
@@ -117,6 +126,9 @@ export interface PublicQuote {
   acceptedAt?: string;
   acceptedByName?: string;
   declinedAt?: string;
+  withdrawnAt?: string;
+  /** When it was made, for the issue date on the document. */
+  issuedOn?: string;
   lines: Pick<
     QuoteLineView,
     "description" | "quantityMilli" | "unitLabel" | "unitPriceMinor" | "discountPct" | "totalMinor"

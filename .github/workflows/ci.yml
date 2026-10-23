@@ -30,6 +30,11 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      # What ships to production must have no high or critical known vulnerabilities. Dev-only
+      # tooling is reviewed separately (see SECURITY.md, "Known advisories").
+      - name: Dependency Audit
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Format Check
         run: npm run format:check
 

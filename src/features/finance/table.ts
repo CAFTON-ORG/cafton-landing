@@ -59,3 +59,12 @@ export const EXPENSE_TABLE: TableParamsConfig = {
   sortable: ["date", "amount", "created"],
   defaultSort: { sort: "created", dir: "desc" },
 };
+
+export const BANK_LINE_STATUSES = ["unmatched", "matched", "ignored"] as const;
+
+/** URL-driven state of a bank account's statement lines: what still needs a decision comes first. */
+export const BANK_LINE_TABLE: TableParamsConfig = {
+  filters: { status: BANK_LINE_STATUSES },
+  sortable: ["date", "amount"],
+  defaultSort: { sort: "date", dir: "desc" },
+};

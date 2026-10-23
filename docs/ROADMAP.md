@@ -133,7 +133,7 @@ Confirmed: base currency PHP (₱); fiscal year January to December; registered 
 - [x] Suppliers, bills (approve, pay, void), payments with tax withheld from the supplier, payables aging (ADR 0017)
 - [x] Expenses with receipt upload and approval (ADR 0018)
 - [x] Recurring bills and expenses: each makes a draft for a person to approve (ADR 0018)
-- [ ] Bank accounts, statement import (CSV), reconciliation
+- [x] Bank accounts, statement import (CSV with preview), reconciliation: match, book, set aside, sign off a period (ADR 0019)
 - [x] Period close/lock; voids by reversal only (a new entry that swaps the sides, linked to the original); every posting audited
 - [ ] Reports from ledger: P&L, balance sheet, cash flow, trial balance, AR/AP aging, tax summary; CSV/PDF export
 - [ ] Tests: ledger always balances, closed periods immutable, rounding rules

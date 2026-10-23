@@ -1,6 +1,7 @@
 import {
   Banknote,
   CalendarSync,
+  Landmark,
   Receipt,
   WalletCards,
   Store,
@@ -358,6 +359,13 @@ export const navGroups: NavGroup[] = [
   {
     label: "Books",
     items: [
+      {
+        href: "/dashboard/finance/bank",
+        label: "Bank",
+        icon: Landmark,
+        permission: "bank:view",
+        keywords: ["statement", "reconcile", "reconciliation", "import csv", "bpi", "bdo", "gcash"],
+      },
       {
         href: "/dashboard/finance/accounts",
         label: "Chart of accounts",

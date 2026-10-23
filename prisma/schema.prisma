@@ -1222,7 +1222,8 @@ model Account {
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  lines JournalLine[]
+  lines       JournalLine[]
+  bankAccount BankAccount?
 
   @@index([type, code])
   @@map("accounts")
@@ -1686,4 +1687,93 @@ model RecurringItem {
 
   @@index([active, nextDate])
   @@map("recurring_items")
+}
+
+/// A bank (or e-wallet) account at an institution, tied to the asset account in the books that its
+/// statement is checked against.
+model BankAccount {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  /// The ledger account whose balance the statement is checked against (an asset).
+  accountId  String   @unique @map("account_id") @db.Uuid
+  /// The last digits of the account number, never the whole number.
+  numberHint String?  @map("number_hint")
+  active     Boolean  @default(true)
+  createdBy  String?  @map("created_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  account         Account              @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  imports         BankImport[]
+  lines           BankLine[]
+  reconciliations BankReconciliation[]
+
+  @@map("bank_accounts")
+}
+
+model BankImport {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bankAccountId  String   @map("bank_account_id") @db.Uuid
+  fileName       String   @map("file_name")
+  rowsInFile     Int      @map("rows_in_file")
+  rowsNew        Int      @map("rows_new")
+  importedBy     String?  @map("imported_by") @db.Uuid
+  importedByName String   @default("System") @map("imported_by_name")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  lines       BankLine[]
+
+  @@index([bankAccountId])
+  @@map("bank_imports")
+}
+
+/// One line of a bank statement: what the bank says happened. It never changes after import; only
+/// the decision about it does (matched to a posting, or set aside).
+model BankLine {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bankAccountId String    @map("bank_account_id") @db.Uuid
+  importId      String?   @map("import_id") @db.Uuid
+  lineDate      DateTime  @map("line_date") @db.Date
+  description   String
+  reference     String?
+  /// Positive is money in, negative is money out.
+  amountMinor   BigInt    @map("amount_minor")
+  balanceMinor  BigInt?   @map("balance_minor")
+  fingerprint   String
+  /// "unmatched", "matched" or "ignored".
+  status        String    @default("unmatched")
+  /// The ledger line it was put against (a plain id; the foreign key lives in the migration).
+  journalLineId String?   @unique @map("journal_line_id") @db.Uuid
+  decidedBy     String?   @map("decided_by") @db.Uuid
+  decidedAt     DateTime? @map("decided_at") @db.Timestamptz(6)
+  note          String?
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  import      BankImport? @relation(fields: [importId], references: [id], onDelete: SetNull)
+
+  @@unique([bankAccountId, fingerprint])
+  @@index([bankAccountId, lineDate])
+  @@index([bankAccountId, status])
+  @@map("bank_lines")
+}
+
+/// A signed-off period: a record, never changed.
+model BankReconciliation {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bankAccountId String   @map("bank_account_id") @db.Uuid
+  periodStart   DateTime @map("period_start") @db.Date
+  periodEnd     DateTime @map("period_end") @db.Date
+  openingMinor  BigInt   @map("opening_minor")
+  closingMinor  BigInt   @map("closing_minor")
+  lineCount     Int      @map("line_count")
+  signedBy      String?  @map("signed_by") @db.Uuid
+  signedByName  String   @default("System") @map("signed_by_name")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+
+  @@index([bankAccountId, periodEnd])
+  @@map("bank_reconciliations")
 }

@@ -166,6 +166,14 @@ export const RESOURCES = {
       approve: "Approve, send back and void expenses",
     },
   },
+  bank: {
+    label: "Bank and reconciliation",
+    actions: {
+      view: "View bank accounts, statements and reconciliations",
+      manage: "Add bank accounts and import statements",
+      reconcile: "Match, book or set aside statement lines, and sign off a period",
+    },
+  },
   users: {
     label: "People",
     actions: {
@@ -250,6 +258,9 @@ const ADMINISTRATION: Permission[] = [
   "payables:pay",
   "expenses:view",
   "expenses:approve",
+  "bank:view",
+  "bank:manage",
+  "bank:reconcile",
   "invoices:settle",
   "customfields:manage",
   "quotes:approve",
@@ -285,6 +296,7 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleKey, Permission[]> = {
       permission !== "invoices:view" &&
       permission !== "payables:view" &&
       permission !== "expenses:view" &&
+      permission !== "bank:view" &&
       permission !== "roles:view" &&
       permission !== "audit:view",
   ),

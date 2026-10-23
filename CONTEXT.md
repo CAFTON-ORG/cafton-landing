@@ -225,6 +225,12 @@ A person or company the business buys from. Archived, not deleted, once it has b
 **Expense**:
 Something someone paid for the business, with a receipt. An approver approves it (which numbers it, EXP-2026-0001, and posts it to the books) or sends it back with a reason.
 
+**Bank account**:
+A bank or e-wallet account tied to an asset account in the chart. Its statement is imported from a CSV and each line is checked against the books.
+
+**Reconciliation**:
+Checking a bank statement against the books: each statement line is matched to a posting, booked (if the books are missing it) or set aside with a reason. A period whose figures add up and whose lines are all dealt with is signed off, and then nothing in it can change.
+
 ## Money (from Phase 4)
 
 **Amount**:

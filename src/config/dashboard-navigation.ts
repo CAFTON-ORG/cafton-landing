@@ -1,5 +1,7 @@
 import {
+  Banknote,
   Building2,
+  Hourglass,
   BookOpen,
   CalendarCheck,
   CalendarDays,
@@ -285,6 +287,27 @@ export const navGroups: NavGroup[] = [
   {
     label: "Finance",
     items: [
+      {
+        href: "/dashboard/finance/invoices",
+        label: "Invoices",
+        icon: FileText,
+        permission: "invoices:view",
+        keywords: ["bill", "billing", "receivable", "client owes", "credit note"],
+      },
+      {
+        href: "/dashboard/finance/payments",
+        label: "Payments",
+        icon: Banknote,
+        permission: "invoices:view",
+        keywords: ["received", "collect", "deposit", "withholding", "2307"],
+      },
+      {
+        href: "/dashboard/finance/receivables",
+        label: "Receivables",
+        icon: Hourglass,
+        permission: "invoices:view",
+        keywords: ["aging", "overdue", "late", "who owes"],
+      },
       {
         href: "/dashboard/finance/accounts",
         label: "Chart of accounts",

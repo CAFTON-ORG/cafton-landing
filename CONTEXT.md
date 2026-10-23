@@ -207,6 +207,15 @@ A place money sits or comes from, in the chart of accounts (assets, liabilities,
 **Fiscal period**:
 One calendar month of the fiscal year (January to December). A closed month takes no new postings; months close in order, and only the latest closed one can be reopened.
 
+**Invoice**:
+A bill to a client. A draft can be edited and has no number; issuing numbers it (INV-2026-0001, gapless), posts it to the ledger and freezes it. A mistake is fixed by voiding it, never by editing.
+
+**Payment**:
+Money received. It is put against one or more invoices (allocations); whatever is left over is held as a customer deposit. Tax a client withheld (form 2307) is recorded with the payment and counts towards what the invoice is owed.
+
+**Credit note**:
+Reduces what a client owes on an issued invoice. Voided by reversal like everything else.
+
 ## Money (from Phase 4)
 
 **Amount**:

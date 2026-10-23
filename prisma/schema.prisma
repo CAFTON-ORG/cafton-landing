@@ -145,6 +145,8 @@ model Organization {
   /// Free-form labels, lower case, for filtering and grouping.
   tags     String[]     @default([])
   projects Project[]
+  invoices Invoice[]
+  payments Payment[]
 
   @@index([name])
   @@map("organizations")
@@ -179,6 +181,8 @@ model Contact {
   /// Free-form labels, lower case, for filtering and grouping.
   tags         String[]      @default([])
   projects     Project[]
+  invoices     Invoice[]
+  payments     Payment[]
 
   @@index([organizationId])
   @@index([lastName, firstName])
@@ -303,6 +307,7 @@ model Deal {
   /// Values of the custom fields set up under CRM > Custom fields, keyed by field key.
   custom       Json          @default("{}")
   projects     Project[]
+  invoices     Invoice[]
 
   @@index([stageId])
   @@index([contactId])
@@ -787,6 +792,7 @@ model Quote {
   lines     QuoteLine[]
   contracts Contract[]
   project   Project?
+  invoices  Invoice[]
 
   @@unique([reference, version])
   @@index([dealId])
@@ -1048,6 +1054,7 @@ model Project {
   milestones   Milestone[]
   tasks        ProjectTask[]
   timeEntries  TimeEntry[]
+  invoices     Invoice[]
 
   @@index([status])
   @@index([dealId])
@@ -1085,8 +1092,10 @@ model Milestone {
   createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tasks   ProjectTask[]
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks         ProjectTask[]
+  invoiceLine   InvoiceLine?  @relation(fields: [invoiceLineId], references: [id], onDelete: SetNull)
+  invoiceLineId String?       @unique @map("invoice_line_id") @db.Uuid
 
   @@index([projectId, position])
   @@map("milestones")
@@ -1141,8 +1150,10 @@ model TimeEntry {
   createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  project Project      @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  task    ProjectTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  project       Project      @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  task          ProjectTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  invoiceLine   InvoiceLine? @relation(fields: [invoiceLineId], references: [id], onDelete: SetNull)
+  invoiceLineId String?      @map("invoice_line_id") @db.Uuid
 
   @@index([profileId, weekStart])
   @@index([projectId, status])
@@ -1290,4 +1301,170 @@ model JournalLine {
   @@index([entryId])
   @@index([accountId])
   @@map("journal_lines")
+}
+
+enum InvoiceStatus {
+  draft
+  issued
+  void
+
+  @@map("invoice_status")
+}
+
+/// Gapless document numbers: one row per series ("invoice:2026"), taken inside the transaction that uses it.
+model DocumentCounter {
+  key        String @id
+  lastNumber Int    @default(0) @map("last_number")
+
+  @@map("document_counters")
+}
+
+/// What a client is billed. A draft is editable and unnumbered; once issued it is fixed (a trigger
+/// enforces it) and can only be voided. The ledger entry, account links and credit notes it
+/// leaves are kept in the database with plain ids (their foreign keys live in the migration).
+model Invoice {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number              String?       @unique
+  status              InvoiceStatus @default(draft)
+  organizationId      String?       @map("organization_id") @db.Uuid
+  contactId           String?       @map("contact_id") @db.Uuid
+  clientName          String        @map("client_name")
+  clientEmail         String?       @map("client_email")
+  clientAddress       String?       @map("client_address")
+  clientTin           String?       @map("client_tin")
+  dealId              String?       @map("deal_id") @db.Uuid
+  projectId           String?       @map("project_id") @db.Uuid
+  quoteId             String?       @map("quote_id") @db.Uuid
+  issueDate           DateTime?     @map("issue_date") @db.Date
+  dueDate             DateTime?     @map("due_date") @db.Date
+  currency            String        @default("PHP")
+  taxCode             String        @default("NOVAT") @map("tax_code")
+  taxRateBp           Int           @default(0) @map("tax_rate_bp")
+  subtotalMinor       BigInt        @default(0) @map("subtotal_minor")
+  taxMinor            BigInt        @default(0) @map("tax_minor")
+  totalMinor          BigInt        @default(0) @map("total_minor")
+  notes               String?
+  paymentInstructions String?       @map("payment_instructions")
+  /// The ledger entry made when it was issued.
+  journalEntryId      String?       @map("journal_entry_id") @db.Uuid
+  sentAt              DateTime?     @map("sent_at") @db.Timestamptz(6)
+  sentTo              String?       @map("sent_to")
+  reminderCount       Int           @default(0) @map("reminder_count")
+  lastReminderAt      DateTime?     @map("last_reminder_at") @db.Timestamptz(6)
+  voidedAt            DateTime?     @map("voided_at") @db.Timestamptz(6)
+  voidReason          String?       @map("void_reason")
+  voidEntryId         String?       @map("void_entry_id") @db.Uuid
+  createdBy           String?       @map("created_by") @db.Uuid
+  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  contact      Contact?            @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  deal         Deal?               @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  project      Project?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  quote        Quote?              @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  lines        InvoiceLine[]
+  allocations  PaymentAllocation[]
+  creditNotes  CreditNote[]
+
+  @@index([status, dueDate])
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([dealId])
+  @@map("invoices")
+}
+
+model InvoiceLine {
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceId      String  @map("invoice_id") @db.Uuid
+  position       Int     @default(0)
+  description    String
+  /// Thousandths: 1500 is 1.5.
+  quantityMilli  Int     @default(1000) @map("quantity_milli")
+  unitLabel      String  @default("item") @map("unit_label")
+  unitPriceMinor BigInt  @map("unit_price_minor")
+  amountMinor    BigInt  @map("amount_minor")
+  taxable        Boolean @default(false)
+
+  invoice     Invoice     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  milestone   Milestone?
+  timeEntries TimeEntry[]
+
+  @@index([invoiceId, position])
+  @@map("invoice_lines")
+}
+
+/// Money received. Recorded once, settles one or more invoices through allocations (cash plus any
+/// tax the client withheld), and is undone only by voiding it.
+model Payment {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number           String    @unique
+  receivedDate     DateTime  @map("received_date") @db.Date
+  /// What actually arrived.
+  amountMinor      BigInt    @map("amount_minor")
+  /// Creditable withholding tax the client held back: counts towards the invoice, never arrived as cash.
+  cwtMinor         BigInt    @default(0) @map("cwt_minor")
+  method           String    @default("bank_transfer")
+  reference        String?
+  /// The cash or bank account it went into.
+  depositAccountId String    @map("deposit_account_id") @db.Uuid
+  organizationId   String?   @map("organization_id") @db.Uuid
+  contactId        String?   @map("contact_id") @db.Uuid
+  clientName       String    @map("client_name")
+  note             String?
+  /// "recorded" or "void".
+  status           String    @default("recorded")
+  journalEntryId   String    @map("journal_entry_id") @db.Uuid
+  voidEntryId      String?   @map("void_entry_id") @db.Uuid
+  voidedAt         DateTime? @map("voided_at") @db.Timestamptz(6)
+  voidReason       String?   @map("void_reason")
+  createdBy        String?   @map("created_by") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  contact      Contact?            @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  allocations  PaymentAllocation[]
+
+  @@index([receivedDate])
+  @@index([organizationId])
+  @@map("payments")
+}
+
+model PaymentAllocation {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paymentId   String @map("payment_id") @db.Uuid
+  invoiceId   String @map("invoice_id") @db.Uuid
+  /// How much of the payment (cash and withholding together) settles this invoice.
+  amountMinor BigInt @map("amount_minor")
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@unique([paymentId, invoiceId])
+  @@index([invoiceId])
+  @@map("payment_allocations")
+}
+
+/// Takes part of an invoice back (a discount agreed afterwards, a return). Reduces what is owed.
+model CreditNote {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number         String    @unique
+  invoiceId      String    @map("invoice_id") @db.Uuid
+  issueDate      DateTime  @map("issue_date") @db.Date
+  reason         String
+  subtotalMinor  BigInt    @map("subtotal_minor")
+  taxMinor       BigInt    @default(0) @map("tax_minor")
+  totalMinor     BigInt    @map("total_minor")
+  /// "issued" or "void".
+  status         String    @default("issued")
+  journalEntryId String    @map("journal_entry_id") @db.Uuid
+  voidEntryId    String?   @map("void_entry_id") @db.Uuid
+  voidedAt       DateTime? @map("voided_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+  @@map("credit_notes")
 }

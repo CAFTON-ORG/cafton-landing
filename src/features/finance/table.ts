@@ -32,3 +32,12 @@ export const JOURNAL_TABLE: TableParamsConfig = {
   sortable: ["date", "number"],
   defaultSort: { sort: "date", dir: "desc" },
 };
+
+export const INVOICE_STATES = ["draft", "open", "partial", "overdue", "paid", "void"] as const;
+
+/** URL-driven state of the invoice list. */
+export const INVOICE_TABLE: TableParamsConfig = {
+  filters: { state: INVOICE_STATES },
+  sortable: ["number", "due", "total", "created"],
+  defaultSort: { sort: "created", dir: "desc" },
+};

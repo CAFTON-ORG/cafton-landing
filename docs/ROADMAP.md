@@ -129,7 +129,7 @@ HubSpot is dropped: the contact form writes to our database and the dashboard is
 Confirmed: base currency PHP (₱); fiscal year January to December; registered with the BIR on the 8% income tax option (not VAT-registered, so no VAT by default; tax obligations are tracked separately). Still to confirm: backups.
 
 - [x] Chart of accounts (starting chart, system roles), fiscal periods (calendar year, close in order, reopen the latest), tax rates (no VAT by default), and a double-entry ledger whose balance, append-only and closed-month rules are enforced by the database (ADR 0015)
-- [ ] Invoices (from quote/milestone/time), credit notes, payments, allocations, aging, PDF + email, payment reminders
+- [x] Invoices (from an accepted quote, finished milestones or blank), credit notes, payments with allocations and withheld tax, customer deposits, receivables aging, PDF + email, overdue reminders (ADR 0016). Invoicing from approved time waits on a billing rate.
 - [ ] Vendors, bills, expenses with receipt upload and approval, recurring entries
 - [ ] Bank accounts, statement import (CSV), reconciliation
 - [x] Period close/lock; voids by reversal only (a new entry that swaps the sides, linked to the original); every posting audited

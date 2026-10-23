@@ -140,6 +140,15 @@ export const RESOURCES = {
       close: "Close and reopen fiscal periods",
     },
   },
+  invoices: {
+    label: "Invoices and payments",
+    actions: {
+      view: "View invoices, payments and receivables",
+      create: "Draft invoices",
+      issue: "Issue, send and void invoices",
+      settle: "Record payments and issue credit notes",
+    },
+  },
   users: {
     label: "People",
     actions: {
@@ -217,6 +226,8 @@ const ADMINISTRATION: Permission[] = [
   "finance:post",
   "finance:manage",
   "finance:close",
+  "invoices:issue",
+  "invoices:settle",
   "customfields:manage",
   "quotes:approve",
   "catalog:manage",
@@ -248,6 +259,7 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleKey, Permission[]> = {
       permission !== "users:view" &&
       permission !== "time:view" &&
       permission !== "finance:view" &&
+      permission !== "invoices:view" &&
       permission !== "roles:view" &&
       permission !== "audit:view",
   ),

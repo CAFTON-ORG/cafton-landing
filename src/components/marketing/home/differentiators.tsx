@@ -214,7 +214,7 @@ function ScrollDifferentiators() {
                   key={value.title}
                   className={cn(
                     "flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] transition-colors duration-300",
-                    index === activeIndex ? "text-foreground" : "text-muted-foreground/60",
+                    index === activeIndex ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
                   <span

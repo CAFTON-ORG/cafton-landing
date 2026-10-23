@@ -83,7 +83,7 @@ export function ServiceIndex({ compact = false }: ServiceIndexProps) {
                     className={cn(
                       "text-balance font-bold leading-tight tracking-tight transition-colors duration-300",
                       compact ? "text-2xl sm:text-3xl" : "text-2xl sm:text-4xl",
-                      isActive ? "text-foreground" : "text-foreground lg:text-foreground/50",
+                      isActive ? "text-foreground" : "text-foreground lg:text-foreground/60",
                     )}
                   >
                     {pillar.title}

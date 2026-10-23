@@ -39,7 +39,7 @@ export async function OurStory() {
             </div>
             <span
               aria-hidden="true"
-              className="flex h-[clamp(3.75rem,13vw,7rem)] items-center text-[clamp(2rem,6vw,3.5rem)] font-light leading-none text-muted-foreground/60"
+              className="flex h-[clamp(3.75rem,13vw,7rem)] items-center text-[clamp(2rem,6vw,3.5rem)] font-light leading-none text-muted-foreground/80"
             >
               +
             </span>

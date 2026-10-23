@@ -2,11 +2,6 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoA11yViolations, expectNoHorizontalOverflow } from "./helpers";
 
-// Dimmed numerals and hover states on the home, about, services and portfolio pages fall
-// below AA contrast. They are part of the public design, so fixing them needs a design
-// decision (tracked in the GitHub project). Every other accessibility rule still applies.
-const KNOWN_CONTRAST = ["color-contrast"];
-
 // The public pages, served from the bundled content (no database in the e2e run).
 const PAGES = [
   ["home", "/"],
@@ -32,9 +27,13 @@ test.describe("public site", () => {
   for (const scheme of ["light", "dark"] as const) {
     for (const [name, path] of PAGES) {
       test(`${name} has no accessibility violations (${scheme})`, async ({ page }) => {
-        await page.emulateMedia({ colorScheme: scheme });
+        // Reduced motion shows every block at rest, so the check measures the real colours instead of
+        // a section caught halfway through its fade-in.
+        await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" });
         await page.goto(path);
-        await expectNoA11yViolations(page, KNOWN_CONTRAST);
+        // The opening splash fades out over the page; measure once it is gone.
+        await page.locator(".fixed.inset-0.z-100").waitFor({ state: "detached" });
+        await expectNoA11yViolations(page);
       });
     }
   }

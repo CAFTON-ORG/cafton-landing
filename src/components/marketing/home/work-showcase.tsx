@@ -54,7 +54,7 @@ export function WorkShowcase({ projects }: { projects: Project[] }) {
                     <h3
                       className={cn(
                         "mt-3 text-balance text-2xl font-bold leading-tight tracking-tight transition-colors duration-300 sm:text-3xl",
-                        isActive ? "text-foreground" : "text-foreground/45",
+                        isActive ? "text-foreground" : "text-foreground/60",
                       )}
                     >
                       {project.title}

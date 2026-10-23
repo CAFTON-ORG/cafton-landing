@@ -131,6 +131,15 @@ export const RESOURCES = {
       approve: "Approve or send back other people's timesheets",
     },
   },
+  finance: {
+    label: "Finance and accounting",
+    actions: {
+      view: "View the books: accounts, journal and reports",
+      post: "Post journal entries by hand and reverse them",
+      manage: "Add and edit accounts and tax rates",
+      close: "Close and reopen fiscal periods",
+    },
+  },
   users: {
     label: "People",
     actions: {
@@ -204,6 +213,10 @@ const ADMINISTRATION: Permission[] = [
   "roles:manage",
   "pipelines:manage",
   "projects:templates",
+  "finance:view",
+  "finance:post",
+  "finance:manage",
+  "finance:close",
   "customfields:manage",
   "quotes:approve",
   "catalog:manage",
@@ -234,6 +247,7 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleKey, Permission[]> = {
       permission.endsWith(":view") &&
       permission !== "users:view" &&
       permission !== "time:view" &&
+      permission !== "finance:view" &&
       permission !== "roles:view" &&
       permission !== "audit:view",
   ),

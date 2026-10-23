@@ -196,6 +196,17 @@ The private page a client can follow a project on: status, milestones and task p
 **Utilisation**:
 Billable approved hours as a share of a 40-hour week.
 
+## Finance (Phase 6)
+
+**Journal entry**:
+A balanced set of postings: two or more lines, each a debit or a credit, adding up to the same amount on both sides. Posted entries are never edited or deleted; a mistake is undone by a reversal, a new entry that swaps the sides.
+
+**Account**:
+A place money sits or comes from, in the chart of accounts (assets, liabilities, equity, revenue, expenses). An account with a role (accounts receivable, cash, ...) is one the system posts to by itself.
+
+**Fiscal period**:
+One calendar month of the fiscal year (January to December). A closed month takes no new postings; months close in order, and only the latest closed one can be reopened.
+
 ## Money (from Phase 4)
 
 **Amount**:

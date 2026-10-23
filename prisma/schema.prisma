@@ -1182,3 +1182,112 @@ model ProjectTemplate {
   @@index([active, name])
   @@map("project_templates")
 }
+
+/**
+ * ------------------------------------------------------------------- finance
+ */
+
+enum AccountType {
+  asset
+  liability
+  equity
+  revenue
+  expense
+
+  @@map("account_type")
+}
+
+/// The chart of accounts. Accounts with a systemKey are the ones Finance posts to by role.
+model Account {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String      @unique
+  name        String
+  type        AccountType
+  description String?
+  /// The role this account plays ("ar", "cash", "revenue_services"...): the code and name can change.
+  systemKey   String?     @unique @map("system_key")
+  active      Boolean     @default(true)
+  createdBy   String?     @map("created_by") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lines JournalLine[]
+
+  @@index([type, code])
+  @@map("accounts")
+}
+
+/// One calendar month. A closed month takes no new postings (a database trigger enforces it).
+model FiscalPeriod {
+  id       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  year     Int
+  month    Int
+  startsOn DateTime  @map("starts_on") @db.Date
+  endsOn   DateTime  @map("ends_on") @db.Date
+  /// "open" or "closed".
+  status   String    @default("open")
+  closedAt DateTime? @map("closed_at") @db.Timestamptz(6)
+  closedBy String?   @map("closed_by") @db.Uuid
+
+  @@unique([year, month])
+  @@index([startsOn, endsOn])
+  @@map("fiscal_periods")
+}
+
+model TaxRate {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String   @unique
+  name      String
+  /// Basis points: 1200 is 12.00%.
+  rateBp    Int      @map("rate_bp")
+  /// "vat", "percentage" or "withholding".
+  kind      String   @default("vat")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("tax_rates")
+}
+
+/// A balanced set of postings. Append-only (a trigger enforces it): a mistake is undone by a
+/// reversing entry, never edited.
+model JournalEntry {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number        String   @unique @default(dbgenerated("(('JE-'::text || to_char(now(), 'YYYY'::text)) || '-'::text) || lpad((nextval('journal_entry_seq'::regclass))::text, 4, '0'::text)"))
+  entryDate     DateTime @map("entry_date") @db.Date
+  memo          String
+  /// manual, invoice, credit_note, payment, bill, expense, bank, reversal, opening or tax.
+  sourceKind    String   @default("manual") @map("source_kind")
+  sourceId      String?  @map("source_id") @db.Uuid
+  /// Set on an entry that undoes another; an entry can be undone once.
+  reversesId    String?  @unique @map("reverses_id") @db.Uuid
+  createdBy     String?  @map("created_by") @db.Uuid
+  createdByName String   @map("created_by_name")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  reverses   JournalEntry? @relation("Reversal", fields: [reversesId], references: [id], onDelete: Restrict)
+  reversedBy JournalEntry? @relation("Reversal")
+  lines      JournalLine[]
+
+  @@index([entryDate])
+  @@index([sourceKind, sourceId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entryId     String  @map("entry_id") @db.Uuid
+  accountId   String  @map("account_id") @db.Uuid
+  position    Int     @default(0)
+  /// Integer centavos. A line is a debit or a credit, never both and never neither.
+  debitMinor  BigInt  @default(0) @map("debit_minor")
+  creditMinor BigInt  @default(0) @map("credit_minor")
+  memo        String?
+
+  entry   JournalEntry @relation(fields: [entryId], references: [id], onDelete: Restrict)
+  account Account      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([entryId])
+  @@index([accountId])
+  @@map("journal_lines")
+}

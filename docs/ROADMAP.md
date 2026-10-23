@@ -126,13 +126,13 @@ HubSpot is dropped: the contact form writes to our database and the dashboard is
 
 ## Phase 6 - Finance and accounting
 
-Prerequisite: confirm base currency, tax regime and fiscal year; confirm backups.
+Confirmed: base currency PHP (₱); fiscal year January to December; registered with the BIR on the 8% income tax option (not VAT-registered, so no VAT by default; tax obligations are tracked separately). Still to confirm: backups.
 
-- [ ] Chart of accounts, fiscal periods, tax rates; double-entry ledger with balanced-entry DB check
+- [x] Chart of accounts (starting chart, system roles), fiscal periods (calendar year, close in order, reopen the latest), tax rates (no VAT by default), and a double-entry ledger whose balance, append-only and closed-month rules are enforced by the database (ADR 0015)
 - [ ] Invoices (from quote/milestone/time), credit notes, payments, allocations, aging, PDF + email, payment reminders
 - [ ] Vendors, bills, expenses with receipt upload and approval, recurring entries
 - [ ] Bank accounts, statement import (CSV), reconciliation
-- [ ] Period close/lock; voids by reversal only; every posting audited
+- [x] Period close/lock; voids by reversal only (a new entry that swaps the sides, linked to the original); every posting audited
 - [ ] Reports from ledger: P&L, balance sheet, cash flow, trial balance, AR/AP aging, tax summary; CSV/PDF export
 - [ ] Tests: ledger always balances, closed periods immutable, rounding rules
 - Done when: books balance and reports reconcile to the ledger for seeded scenarios.

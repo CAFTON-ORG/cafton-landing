@@ -105,3 +105,36 @@ export interface TimeEntryView {
   reviewNote?: string;
   reviewedByName?: string;
 }
+
+/** Budget against actual for one project. Only approved time counts as actual. */
+export interface ProjectFinancials {
+  priceMinor?: number;
+  currency: string;
+  approvedMinutes: number;
+  billableMinutes: number;
+  /** Approved hours at each member's hourly cost. */
+  costMinor: number;
+  /** Approved minutes by people with no hourly cost set: the cost figure leaves these out. */
+  unratedMinutes: number;
+  /** What billable milestones will invoice, and how much of that is already earned (done). */
+  billableMilestonesMinor: number;
+  earnedMilestonesMinor: number;
+}
+
+export interface UtilisationRow {
+  person: PersonRef;
+  approvedMinutes: number;
+  billableMinutes: number;
+  /** Logged but not approved yet. */
+  pendingMinutes: number;
+  /** Whole percent of the available hours that were billable. */
+  percent: number;
+}
+
+export interface PortfolioOption {
+  slug: string;
+  title: string;
+  client: string;
+  /** The project already telling its story, if any. */
+  linkedProjectId?: string;
+}

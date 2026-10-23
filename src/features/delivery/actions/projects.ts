@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import {
   PROJECT_STATUS_LABEL,
   checkProject,
+  checkPortfolioLink,
   checkProjectStatusChange,
   type ProjectStatus,
 } from "../rules";
@@ -390,5 +391,51 @@ export async function removeMember(id: string): Promise<ActionResult> {
       );
       refreshDelivery(member.projectId);
     });
+  });
+}
+
+/** Shows a delivered project as a case study: points it at a portfolio entry (or clears the link). */
+export async function linkPortfolio(projectId: string, slug: string): Promise<ActionResult> {
+  return runAction(async () => {
+    const actor = await guard("projects:update");
+    const data = parse(
+      z.object({ projectId: z.string().uuid(), slug: z.string().trim().max(200) }),
+      {
+        projectId,
+        slug,
+      },
+    );
+    await prisma.$transaction(async (tx) => {
+      const project = await loadProject(tx, data.projectId);
+      if (data.slug) {
+        const blocked = checkPortfolioLink({
+          projectStatus: project.status as ProjectStatus,
+          slugExists:
+            (await tx.portfolioProject.count({ where: { slug: data.slug, deletedAt: null } })) > 0,
+          linkedElsewhere:
+            (await tx.project.count({
+              where: { portfolioSlug: data.slug, id: { not: project.id }, ...live },
+            })) > 0,
+        });
+        if (blocked) throw new ActionError(blocked, "rule", { slug: blocked });
+      }
+      await tx.project.update({
+        where: { id: project.id },
+        data: { portfolioSlug: data.slug || null },
+      });
+      await recordAudit(
+        actor,
+        {
+          action: "project.portfolio",
+          entity: "project",
+          entityId: project.id,
+          summary: data.slug
+            ? `Linked ${project.reference} to the portfolio entry ${data.slug}`
+            : `Removed the portfolio link from ${project.reference}`,
+        },
+        tx,
+      );
+    });
+    refreshDelivery(projectId);
   });
 }

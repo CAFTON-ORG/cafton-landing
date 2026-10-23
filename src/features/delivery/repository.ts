@@ -7,15 +7,28 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
-import type { MilestoneStatus, ProjectStatus, TaskPriority, TaskStatus, TimeStatus } from "./rules";
+import {
+  WORK_WEEK_MINUTES,
+  costOf,
+  reportStart,
+  utilisation,
+  type MilestoneStatus,
+  type ProjectStatus,
+  type TaskPriority,
+  type TaskStatus,
+  type TimeStatus,
+} from "./rules";
 import type {
   MemberView,
   MilestoneView,
+  PortfolioOption,
+  ProjectFinancials,
   ProjectRow,
   ProjectView,
   TaskCount,
   TaskView,
   TimeEntryView,
+  UtilisationRow,
 } from "./types";
 
 const day = (date: Date | null) => (date ? date.toISOString().slice(0, 10) : undefined);
@@ -440,4 +453,112 @@ export async function listProjectTime(projectId: string, limit = 100): Promise<T
     take: limit,
   });
   return toEntries(rows);
+}
+
+/* ---------------------------------------------------------------- financials */
+
+export async function getFinancials(projectId: string): Promise<ProjectFinancials | null> {
+  if (!isDatabaseConfigured) return null;
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, ...live },
+    select: { budgetMinor: true, currency: true },
+  });
+  if (!project) return null;
+  const [members, approved, milestones] = await Promise.all([
+    prisma.projectMember.findMany({
+      where: { projectId },
+      select: { profileId: true, costRateMinor: true },
+    }),
+    prisma.timeEntry.groupBy({
+      by: ["profileId", "billable"],
+      where: { projectId, status: "approved" },
+      _sum: { minutes: true },
+    }),
+    prisma.milestone.findMany({
+      where: { projectId, billable: true },
+      select: { amountMinor: true, status: true },
+    }),
+  ]);
+  const rate = new Map(
+    members.map((member) => [member.profileId, num(member.costRateMinor) ?? null]),
+  );
+  let approvedMinutes = 0;
+  let billableMinutes = 0;
+  let costMinor = 0;
+  let unratedMinutes = 0;
+  for (const row of approved) {
+    const minutes = row._sum.minutes ?? 0;
+    const hourly = rate.get(row.profileId) ?? null;
+    approvedMinutes += minutes;
+    if (row.billable) billableMinutes += minutes;
+    if (hourly === null) unratedMinutes += minutes;
+    costMinor += costOf(minutes, hourly);
+  }
+  const asked = (milestone: { amountMinor: bigint | null }) => Number(milestone.amountMinor ?? 0);
+  return {
+    priceMinor: num(project.budgetMinor),
+    currency: project.currency,
+    approvedMinutes,
+    billableMinutes,
+    costMinor,
+    unratedMinutes,
+    billableMilestonesMinor: milestones.reduce((sum, milestone) => sum + asked(milestone), 0),
+    earnedMilestonesMinor: milestones
+      .filter((milestone) => milestone.status === "done")
+      .reduce((sum, milestone) => sum + asked(milestone), 0),
+  };
+}
+
+/** Billable share of available hours for each person who logged time in the last `weeks` weeks. */
+export async function utilisationReport(today: string, weeks: number): Promise<UtilisationRow[]> {
+  if (!isDatabaseConfigured) return [];
+  const from = new Date(`${reportStart(today, weeks)}T00:00:00Z`);
+  const rows = await prisma.timeEntry.groupBy({
+    by: ["profileId", "billable", "status"],
+    where: { weekStart: { gte: from }, status: { in: ["submitted", "approved"] } },
+    _sum: { minutes: true },
+  });
+  const people = await namesFor(rows.map((row) => row.profileId));
+  const available = weeks * WORK_WEEK_MINUTES;
+  const byPerson = new Map<string, UtilisationRow>();
+  for (const row of rows) {
+    const minutes = row._sum.minutes ?? 0;
+    const entry = byPerson.get(row.profileId) ?? {
+      person: people.get(row.profileId) ?? { id: row.profileId, name: "Former team member" },
+      approvedMinutes: 0,
+      billableMinutes: 0,
+      pendingMinutes: 0,
+      percent: 0,
+    };
+    if (row.status === "approved") {
+      entry.approvedMinutes += minutes;
+      if (row.billable) entry.billableMinutes += minutes;
+    } else {
+      entry.pendingMinutes += minutes;
+    }
+    byPerson.set(row.profileId, entry);
+  }
+  return [...byPerson.values()]
+    .map((entry) => ({ ...entry, percent: utilisation(entry.billableMinutes, available) }))
+    .sort((a, b) => b.percent - a.percent || a.person.name.localeCompare(b.person.name));
+}
+
+/* ----------------------------------------------------------------- portfolio */
+
+/** The portfolio entries a delivered project could be shown as, and which already tell a project's story. */
+export async function listPortfolioOptions(): Promise<PortfolioOption[]> {
+  if (!isDatabaseConfigured) return [];
+  const [entries, linked] = await Promise.all([
+    prisma.portfolioProject.findMany({
+      where: { deletedAt: null },
+      orderBy: [{ client: "asc" }, { title: "asc" }],
+      select: { slug: true, title: true, client: true },
+    }),
+    prisma.project.findMany({
+      where: { ...live, portfolioSlug: { not: null } },
+      select: { id: true, portfolioSlug: true },
+    }),
+  ]);
+  const owner = new Map(linked.map((row) => [row.portfolioSlug as string, row.id]));
+  return entries.map((entry) => ({ ...entry, linkedProjectId: owner.get(entry.slug) }));
 }

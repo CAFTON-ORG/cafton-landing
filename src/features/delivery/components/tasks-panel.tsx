@@ -355,7 +355,7 @@ export function TasksPanel({
             onDragEnd={onDragEnd}
             onDragCancel={() => setDragging(null)}
           >
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="flex gap-3 overflow-x-auto pb-2">
               {TASK_STATUSES.map((status) => (
                 <Column key={status} status={status} droppable={canUpdate}>
                   {(byStatus.get(status) ?? []).map((task) => (
@@ -589,7 +589,7 @@ function Column({
       ref={setNodeRef}
       aria-labelledby={`tasks-${status}`}
       className={cn(
-        "bg-muted/40 flex min-h-40 flex-col gap-2 rounded-xl border p-2 transition-colors",
+        "bg-muted/40 flex min-h-40 w-64 shrink-0 flex-col gap-2 rounded-xl border p-2 transition-colors sm:w-72",
         isOver && "bg-primary/5 border-primary ring-primary/30 ring-2",
       )}
     >
@@ -707,14 +707,16 @@ function CardBody({
         >
           {task.title}
         </p>
-        {task.priority === "high" && <TaskPriorityBadge priority="high" />}
       </div>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-        <Person
-          name={task.assignee?.name}
-          avatarUrl={task.assignee?.avatarUrl}
-          fallback="Unassigned"
-        />
+        <span className="flex min-w-0 items-center gap-2">
+          {task.priority === "high" && <TaskPriorityBadge priority="high" />}
+          <Person
+            name={task.assignee?.name}
+            avatarUrl={task.assignee?.avatarUrl}
+            fallback="Unassigned"
+          />
+        </span>
         {task.dueDate && (
           <span
             className={cn(

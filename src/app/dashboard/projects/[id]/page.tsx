@@ -16,12 +16,16 @@ import { ProjectActions } from "@/features/delivery/components/project-actions";
 import { MilestonesPanel } from "@/features/delivery/components/milestones-panel";
 import { ProjectStatusBadge } from "@/features/delivery/components/badges";
 import { TasksPanel } from "@/features/delivery/components/tasks-panel";
+import { CaseStudyCard } from "@/features/delivery/components/case-study-card";
+import { FinancialsCard } from "@/features/delivery/components/financials-card";
 import { ProjectTime } from "@/features/delivery/components/project-time";
 import { TeamPanel } from "@/features/delivery/components/team-panel";
 import {
   getProject,
   listMembers,
+  getFinancials,
   listMilestones,
+  listPortfolioOptions,
   listProjectTime,
   listTasks,
 } from "@/features/delivery/repository";
@@ -47,13 +51,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   if (!project) notFound();
 
   const showTime = can(staff, "time:view");
-  const [members, milestones, tasks, people, timeEntries] = await Promise.all([
-    listMembers(id),
-    listMilestones(id),
-    listTasks(id),
-    listStaffOptions(),
-    showTime ? listProjectTime(id) : [],
-  ]);
+  const completed = project.status === "completed";
+  const [members, milestones, tasks, people, timeEntries, financials, portfolio] =
+    await Promise.all([
+      listMembers(id),
+      listMilestones(id),
+      listTasks(id),
+      listStaffOptions(),
+      showTime ? listProjectTime(id) : [],
+      showTime ? getFinancials(id) : null,
+      completed ? listPortfolioOptions() : [],
+    ]);
   const today = manilaDate(new Date());
   const open = isOpenProject(project.status);
   const progress = progressPercent(project.tasks);
@@ -121,8 +129,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           </DetailsPanel>
         }
       >
-        <Tabs defaultValue="overview">
-          <TabsList>
+        <Tabs defaultValue="overview" className="min-w-0">
+          <TabsList className="max-w-full [scrollbar-width:none] justify-start overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tasks">
               Tasks
@@ -192,6 +200,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 </CardContent>
               </Card>
             </div>
+            {financials && <FinancialsCard financials={financials} />}
+            {completed && (
+              <CaseStudyCard
+                projectId={id}
+                current={project.portfolioSlug}
+                options={portfolio}
+                canEdit={can(staff, "projects:update")}
+              />
+            )}
             {project.description && (
               <Card>
                 <CardContent>

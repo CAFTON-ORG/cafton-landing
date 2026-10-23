@@ -744,3 +744,121 @@ describe("timesheets", () => {
     expect((await repo.listLoggable(OWNER.id)).some((entry) => entry.id === id)).toBe(true);
   });
 });
+
+describe("price against cost, utilisation and case studies", () => {
+  const dayAgo = (days: number) =>
+    new Date(Date.now() + 8 * 3_600_000 - days * 86_400_000).toISOString().slice(0, 10);
+  const entry = (
+    projectId: string,
+    profileId: string,
+    minutes: number,
+    over: Record<string, unknown> = {},
+  ) => {
+    const workDate = dayAgo(2);
+    return {
+      projectId,
+      profileId,
+      workDate: new Date(`${workDate}T00:00:00Z`),
+      weekStart: new Date(`${weekStartOf(workDate)}T00:00:00Z`),
+      minutes,
+      status: "approved" as const,
+      ...over,
+    };
+  };
+
+  it("values approved hours at each member's cost and names hours with no rate", async () => {
+    const id = await project({ name: "Margin check", budget: "100000", budgetHours: "100" });
+    await projects.addMember({ projectId: id, profileId: SALES.id, costRate: "200" });
+    // Sales: 3 h approved (2 billable, 1 not). Owner has no hourly cost: 1 h approved.
+    await prisma.timeEntry.createMany({
+      data: [
+        entry(id, SALES.id, 120),
+        entry(id, SALES.id, 60, { billable: false }),
+        entry(id, OWNER.id, 60),
+        // Not approved yet: left out.
+        entry(id, SALES.id, 600, { status: "submitted" }),
+      ],
+    });
+    await work.saveMilestone({
+      projectId: id,
+      name: "Phase 1",
+      description: "",
+      dueDate: "",
+      billable: true,
+      amount: "40000",
+    });
+
+    const money = (await repo.getFinancials(id))!;
+    expect(money).toMatchObject({
+      priceMinor: 10_000_000,
+      approvedMinutes: 240,
+      billableMinutes: 180,
+      costMinor: 60_000,
+      unratedMinutes: 60,
+      billableMilestonesMinor: 4_000_000,
+      earnedMilestonesMinor: 0,
+    });
+    expect((await repo.getProject(id))?.pendingMinutes).toBe(600);
+  });
+
+  it("measures billable approved hours against a 40-hour week", async () => {
+    const id = await project({ name: "Utilisation check" });
+    await prisma.timeEntry.createMany({
+      data: [
+        entry(id, OWNER.id, 600),
+        entry(id, OWNER.id, 120, { billable: false }),
+        entry(id, OWNER.id, 300, { status: "submitted" }),
+      ],
+    });
+    const rows = await repo.utilisationReport(dayAgo(0), 4);
+    const mine = rows.find((row) => row.person.id === OWNER.id)!;
+    // 10 billable hours of 160 available is 6%.
+    expect(mine.billableMinutes).toBeGreaterThanOrEqual(600);
+    expect(mine.pendingMinutes).toBeGreaterThanOrEqual(300);
+    expect(mine.percent).toBe(Math.round((mine.billableMinutes / (4 * 40 * 60)) * 100));
+    expect(rows.every((row, index) => index === 0 || rows[index - 1].percent >= row.percent)).toBe(
+      true,
+    );
+  });
+
+  it("links a completed project to one portfolio entry, and nobody else may take it", async () => {
+    await prisma.author.upsert({
+      where: { id: "cafton-test" },
+      update: {},
+      create: { id: "cafton-test", kind: "organization", name: "Cafton" },
+    });
+    await prisma.portfolioProject.create({
+      data: {
+        slug: "case-one",
+        authorId: "cafton-test",
+        client: "Acme",
+        title: "Acme platform",
+        category: "Web",
+        services: [],
+        summary: "s",
+        description: "d",
+      },
+    });
+    const first = await project({ name: "Delivered one" });
+    const second = await project({ name: "Delivered two" });
+    for (const id of [first, second]) {
+      await projects.setProjectStatus(id, "active");
+    }
+    // Still in progress: not yet a case study.
+    expect(await projects.linkPortfolio(first, "case-one")).toMatchObject({ ok: false });
+    for (const id of [first, second]) {
+      expect((await projects.setProjectStatus(id, "completed")).ok).toBe(true);
+    }
+    expect(await projects.linkPortfolio(first, "no-such-entry")).toMatchObject({ ok: false });
+    expect((await projects.linkPortfolio(first, "case-one")).ok).toBe(true);
+    expect(await projects.linkPortfolio(second, "case-one")).toMatchObject({ ok: false });
+    expect((await repo.getProject(first))?.portfolioSlug).toBe("case-one");
+    expect(
+      (await repo.listPortfolioOptions()).find((option) => option.slug === "case-one")
+        ?.linkedProjectId,
+    ).toBe(first);
+    // Clearing the link frees the entry.
+    expect((await projects.linkPortfolio(first, "")).ok).toBe(true);
+    expect((await projects.linkPortfolio(second, "case-one")).ok).toBe(true);
+  });
+});

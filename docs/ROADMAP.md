@@ -105,7 +105,7 @@ HubSpot is dropped: the contact form writes to our database and the dashboard is
 - [x] Service/product catalog with pricing models (fixed, hourly, retainer) and VAT on or off per item
 - [x] Quotes: builder with live totals, numbering (QT-2026-0001), versions, approval above P250,000 by a second person, PDF (react-pdf), email with the PDF, a secret public link to accept or decline with an e-acceptance record, frozen once accepted, hashed links, content fingerprint, deposit and payment terms, branded PDF, and the business rules in `docs/adr/0011-quotes.md`
 - [x] Contracts/SOW templates and e-acceptance record: templates with merge fields, drafted per deal from an accepted quote, hashed link, content fingerprint, signed online, frozen and kept (`docs/adr/0012-contracts-and-sales-overview.md`)
-- [ ] Won quote creates Project (Phase 5) and invoice schedule (Phase 6) via domain events, not direct imports (the event bus and the `quote.accepted` event exist; the Delivery and Finance handlers come with those phases)
+- [x] An accepted quote starts a project (Phase 5) through the event bus; Finance's invoice schedule (Phase 6) will react to the same event
 - [x] Sales dashboard: pipeline value, win rate, cycle time, per-owner monthly targets
 - [x] Quote editor polish: dropdowns for unit, discount, deposit and a "valid for" quick pick, standard payment wordings (asks before replacing typed text), discounts above the approval limit marked in the list, line rows that fit at any width, and a timeline of what happened to the quote
 - [x] Quote PDF: page footer (it was drawn off the page), table header repeated on every page, even spacing, status shown only when the quote is not simply sent; covered by a test that reads the PDF back
@@ -114,11 +114,14 @@ HubSpot is dropped: the contact form writes to our database and the dashboard is
 
 ## Phase 5 - Delivery (projects and time)
 
-- [ ] `Project`, `Milestone`, `ProjectTask`, `ProjectMember`, `TimeEntry`
-- [ ] Board + list task views, milestones with billing triggers, timesheets with weekly submit/approve
-- [ ] Budget vs actual (hours and cost), utilisation by person
-- [ ] Link portfolio CMS entries to delivered projects (optional publish as case study)
-- Done when: approved hours and milestones can be selected for invoicing.
+- [x] `Project`, `ProjectMember`, `Milestone`, `ProjectTask`, `TimeEntry` with database checks; approved time is frozen by a trigger (ADR 0014)
+- [x] A project starts once per accepted quote (idempotent), or by hand from a won deal or for internal work; status, completion rules and soft delete
+- [x] List and board task views (drag and drop, keyboard and phone menu), milestones with billing triggers capped by the price, team with hourly cost
+- [x] Timesheets: log by day, submit a week, managers approve or send back with a reason (never their own), notifications, a Time tab on the project
+- [x] Budget vs actual: hours against the hours the price assumed, cost from approved hours at each member's hourly cost, margin; utilisation by person over 1 to 13 weeks
+- [x] Link a completed project to its portfolio entry (a case study)
+- [ ] Project templates, task comments and attachments, a client-facing progress page
+- Done when: approved hours and milestones can be selected for invoicing. Met: both are stored as approved, immutable records ready for Phase 6.
 
 ## Phase 6 - Finance and accounting
 

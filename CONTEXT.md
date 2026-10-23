@@ -173,6 +173,23 @@ The images uploaded for the website, each with a description (alt text). An imag
 **Bundled content**:
 The content the site shipped with, kept in `features/cms/content`. It is the seed for the database and the fallback if the database is unavailable or has never been seeded.
 
+## Delivery (Phase 5)
+
+**Project**:
+The work for a client after a deal is won. Starts by itself when a client accepts a quote (once per quote), or by hand. Has a manager, a team, an optional price and hours budget, milestones and tasks. Statuses: planned, in progress, on hold, completed, cancelled.
+
+**Milestone**:
+A step of a project. A billable milestone, once done, is what the client gets invoiced for; the billable ones together can't add up to more than the price.
+
+**Project task**:
+A piece of work on a project: to do, in progress, in review or done. Only people on the project's team can be given one.
+
+**Time entry**:
+Hours a person worked on a project on one day. Draft, then submitted with the rest of the week, then approved (never by the person themselves) or sent back with a reason. Approved time can't be changed.
+
+**Utilisation**:
+Billable approved hours as a share of a 40-hour week.
+
 ## Money (from Phase 4)
 
 **Amount**:

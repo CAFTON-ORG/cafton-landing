@@ -374,3 +374,52 @@ export const WORK_WEEK_MINUTES = 40 * 60;
 function plural(count: number, one: string, many: string) {
   return `${count} ${count === 1 ? one : many}`;
 }
+
+/* ------------------------------------------------------------ margin, reports */
+
+export interface Margin {
+  amountMinor: number;
+  /** Whole percent of the price kept; null when there is no price to compare with. */
+  percent: number | null;
+}
+
+/** What is left of the price after the cost of the hours worked. */
+export function margin(priceMinor: number | null, costMinor: number): Margin | null {
+  if (priceMinor === null) return null;
+  const amountMinor = priceMinor - costMinor;
+  return {
+    amountMinor,
+    percent: priceMinor > 0 ? Math.round((amountMinor / priceMinor) * 100) : null,
+  };
+}
+
+export const REPORT_WEEKS = [1, 4, 8, 13] as const;
+
+/** The number of weeks a report covers, from a URL: one of the offered ranges, otherwise four. */
+export function reportWeeks(value: string | undefined): (typeof REPORT_WEEKS)[number] {
+  const weeks = Number(value);
+  return (REPORT_WEEKS as readonly number[]).includes(weeks)
+    ? (weeks as (typeof REPORT_WEEKS)[number])
+    : 4;
+}
+
+/** The Monday a report of `weeks` weeks, ending with the current week, starts on. */
+export const reportStart = (today: string, weeks: number) =>
+  addDays(weekStartOf(today), -7 * (weeks - 1));
+
+/**
+ * Why a project can't be linked to that portfolio entry, or null. Only a delivered project can be
+ * shown as a case study, and an entry tells one project's story.
+ */
+export function checkPortfolioLink(input: {
+  projectStatus: ProjectStatus;
+  slugExists: boolean;
+  linkedElsewhere: boolean;
+}): string | null {
+  if (input.projectStatus !== "completed") {
+    return "Only a completed project can be linked to a case study.";
+  }
+  if (!input.slugExists) return "That portfolio entry no longer exists.";
+  if (input.linkedElsewhere) return "That portfolio entry already tells another project's story.";
+  return null;
+}

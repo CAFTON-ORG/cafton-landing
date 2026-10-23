@@ -1,7 +1,8 @@
 // Screenshots every dashboard screen (light and dark, desktop and phone), and reports console
 // errors and accessibility violations (axe, WCAG 2.2 A/AA) for each one.
 //
-//   1. npm run db:local && DATABASE_URL=<local url> npm run db:seed-demo     (sample data)
+//   1. npm run db:local && DATABASE_URL=<local url> npm run db:seed-demo     (sample data;
+//      also db:seed-sales and db:seed-delivery for the sales and delivery screens)
 //   2. start a dev server against it with Supabase blanked, so you are the preview owner:
 //        NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY= DATABASE_URL=<local url> \
 //        NEXT_DIST_DIR=.next-preview npx next dev -p 3200
@@ -42,6 +43,8 @@ async function recordIds() {
     sentContract: "designreviewtoken_aaaaaaaaaaaaaaaaaaaaaaaac",
     contract: await one("SELECT id FROM contracts WHERE status = 'draft' LIMIT 1"),
     partner: await one("SELECT id FROM partners WHERE featured LIMIT 1"),
+    // From scripts/seed-delivery.mjs.
+    delivery: await one("SELECT id FROM projects WHERE status = 'active' LIMIT 1"),
   };
   await client.end();
   return ids;
@@ -71,6 +74,11 @@ const PAGES = [
   ["contracts", "/dashboard/sales/contracts"],
   ["contract-detail", `/dashboard/sales/contracts/${ids.contract}`],
   ["contract-templates", "/dashboard/sales/contracts/templates"],
+  ["projects", "/dashboard/projects"],
+  ["project-detail", `/dashboard/projects/${ids.delivery}`],
+  ["timesheet", "/dashboard/time"],
+  ["approvals", "/dashboard/time?tab=approvals"],
+  ["utilisation", "/dashboard/time?tab=utilisation"],
   ["public-contract", `/c/${ids.sentContract}`],
   ["public-quote", `/q/${ids.sentQuote}`],
   ["duplicates", "/dashboard/crm/duplicates"],

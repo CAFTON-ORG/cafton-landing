@@ -18,9 +18,13 @@ import {
   hoursText,
   hoursUsage,
   isOverdue,
+  margin,
   nextProjectStatuses,
   parseDuration,
   progressPercent,
+  reportStart,
+  reportWeeks,
+  checkPortfolioLink,
   utilisation,
   weekDates,
   weekStartOf,
@@ -295,5 +299,30 @@ describe("budget and utilisation", () => {
   it("measures billable share of available hours", () => {
     expect(utilisation(1800, 2400)).toBe(75);
     expect(utilisation(100, 0)).toBe(0);
+  });
+});
+
+describe("margin and reports", () => {
+  it("keeps what is left of the price after cost", () => {
+    expect(margin(null, 5000)).toBeNull();
+    expect(margin(100000, 40000)).toEqual({ amountMinor: 60000, percent: 60 });
+    expect(margin(100000, 125000)).toEqual({ amountMinor: -25000, percent: -25 });
+    expect(margin(0, 0)).toEqual({ amountMinor: 0, percent: null });
+  });
+
+  it("offers a few ranges and defaults to four weeks", () => {
+    expect(reportWeeks("8")).toBe(8);
+    expect(reportWeeks("5")).toBe(4);
+    expect(reportWeeks(undefined)).toBe(4);
+    expect(reportStart("2026-11-18", 1)).toBe("2026-11-16");
+    expect(reportStart("2026-11-18", 4)).toBe("2026-10-26");
+  });
+
+  it("links only a completed project to an entry nobody else uses", () => {
+    const ok = { projectStatus: "completed" as const, slugExists: true, linkedElsewhere: false };
+    expect(checkPortfolioLink(ok)).toBeNull();
+    expect(checkPortfolioLink({ ...ok, projectStatus: "active" })).toMatch(/completed project/);
+    expect(checkPortfolioLink({ ...ok, slugExists: false })).toMatch(/no longer exists/);
+    expect(checkPortfolioLink({ ...ok, linkedElsewhere: true })).toMatch(/another project/);
   });
 });

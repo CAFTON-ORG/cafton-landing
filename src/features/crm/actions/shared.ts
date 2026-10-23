@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { actorId } from "@/lib/actions";
+import { ActionError } from "@/lib/actions";
 import { live } from "../mappers";
 import type { Subject } from "../types";
 
@@ -48,4 +49,33 @@ export function lastOpenStage(tx: Tx, pipelineId: string) {
     where: { kind: "open", pipelineId },
     orderBy: { position: "desc" },
   });
+}
+
+/** Which permission a timeline entry or message needs depends on what it is attached to. */
+export const subjectPermission = (subject: { leadId?: string; dealId?: string }) =>
+  subject.dealId
+    ? ("deals:update" as const)
+    : subject.leadId
+      ? ("leads:update" as const)
+      : ("contacts:update" as const);
+
+/** Throws when the lead, contact or deal a timeline entry is for no longer exists. */
+export async function assertSubjectExists(
+  tx: Tx,
+  subject: { leadId?: string; contactId?: string; organizationId?: string; dealId?: string },
+) {
+  const found = subject.organizationId
+    ? await tx.organization.findFirst({
+        where: { id: subject.organizationId, ...live },
+        select: { id: true },
+      })
+    : subject.dealId
+      ? await tx.deal.findFirst({ where: { id: subject.dealId, ...live }, select: { id: true } })
+      : subject.leadId
+        ? await tx.lead.findFirst({ where: { id: subject.leadId, ...live }, select: { id: true } })
+        : await tx.contact.findFirst({
+            where: { id: subject.contactId, ...live },
+            select: { id: true },
+          });
+  if (!found) throw new ActionError("That record no longer exists.");
 }

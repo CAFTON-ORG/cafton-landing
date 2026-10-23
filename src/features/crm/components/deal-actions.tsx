@@ -30,11 +30,17 @@ export function DealActions({
   contacts,
   organizations,
   people,
+  winBlocked = null,
+  reopenBlocked: reopenBlockedByContract = null,
 }: {
   deal: DealView;
   contacts: PersonRef[];
   organizations: PersonRef[];
   people: PersonRef[];
+  /** Why the deal can't be won yet (an offer is still out), or null. */
+  winBlocked?: string | null;
+  /** Why a closed deal can't be reopened (a signed contract), or null. */
+  reopenBlocked?: string | null;
 }) {
   const router = useRouter();
   const canUpdate = useCan("deals:update");
@@ -48,7 +54,7 @@ export function DealActions({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const state = { stageKind: deal.stageKind, amountMinor: deal.amountMinor };
-  const reopenBlocked = checkReopenDeal(state);
+  const reopenBlocked = checkReopenDeal(state) ?? reopenBlockedByContract;
   const deleteBlocked = checkDealDelete(state);
 
   function close() {
@@ -61,7 +67,7 @@ export function DealActions({
       <div className="flex flex-wrap gap-2">
         {canClose && deal.stageKind === "open" && (
           <>
-            <Button disabled={pending} onClick={() => setDialog("win")}>
+            <Button disabled={pending || !!winBlocked} onClick={() => setDialog("win")}>
               <Trophy aria-hidden="true" /> Mark as won
             </Button>
             <Button variant="outline" disabled={pending} onClick={() => setDialog("lose")}>
@@ -103,6 +109,13 @@ export function DealActions({
           </Button>
         )}
       </div>
+
+      {canClose && deal.stageKind === "open" && winBlocked && (
+        <p className="text-muted-foreground mt-2 max-w-md text-sm">{winBlocked}</p>
+      )}
+      {canClose && deal.stageKind !== "open" && reopenBlocked && (
+        <p className="text-muted-foreground mt-2 max-w-md text-sm">{reopenBlocked}</p>
+      )}
 
       <Dialog open={dialog === "win"} onOpenChange={(open) => !open && !pending && close()}>
         <DialogContent>

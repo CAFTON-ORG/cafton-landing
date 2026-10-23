@@ -15,6 +15,7 @@ import {
   checkSend,
   checkValidity,
   checkWinAmount,
+  checkWinQuotes,
   checkWithdraw,
   effectiveStatus,
   needsApproval,
@@ -191,5 +192,33 @@ describe("effect on the deal", () => {
     expect(checkWinAmount(null, 5)).toBeNull();
     expect(checkWinAmount(1000, 1000)).toBeNull();
     expect(checkWinAmount(1000, 999)).toMatch(/quoted total/);
+  });
+});
+
+describe("checkWinQuotes", () => {
+  it("lets a deal with no quotes, only drafts, or settled quotes be won", () => {
+    expect(checkWinQuotes([])).toBeNull();
+    expect(checkWinQuotes([{ reference: "QT-2026-0001", status: "draft" }])).toBeNull();
+    expect(
+      checkWinQuotes([
+        { reference: "QT-2026-0001", status: "accepted" },
+        { reference: "QT-2026-0002", status: "declined" },
+        { reference: "QT-2026-0003", status: "withdrawn" },
+        { reference: "QT-2026-0004", status: "superseded" },
+        { reference: "QT-2026-0005", status: "expired" },
+      ]),
+    ).toBeNull();
+  });
+
+  it("refuses while an offer is out or waiting, and names the quote and why", () => {
+    expect(checkWinQuotes([{ reference: "QT-2026-0007", status: "sent" }])).toMatch(
+      /QT-2026-0007 is out with the client/,
+    );
+    expect(checkWinQuotes([{ reference: "QT-2026-0008", status: "pending_approval" }])).toMatch(
+      /waiting for approval/,
+    );
+    expect(checkWinQuotes([{ reference: "QT-2026-0009", status: "approved" }])).toMatch(
+      /approved but not sent/,
+    );
   });
 });

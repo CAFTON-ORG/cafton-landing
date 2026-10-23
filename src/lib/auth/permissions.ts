@@ -24,6 +24,7 @@ export const RESOURCES = {
     actions: {
       view: "View leads",
       update: "Assign, qualify and disqualify leads",
+      merge: "Merge duplicate leads",
       convert: "Convert leads into contacts and deals",
       delete: "Delete leads",
     },
@@ -95,6 +96,10 @@ export const RESOURCES = {
       delete: "Delete draft contracts",
       templates: "Add and edit contract templates",
     },
+  },
+  customfields: {
+    label: "Custom fields",
+    actions: { manage: "Add and edit custom fields on leads, contacts, organizations and deals" },
   },
   targets: {
     label: "Sales targets",
@@ -180,6 +185,7 @@ const ADMINISTRATION: Permission[] = [
   "roles:view",
   "roles:manage",
   "pipelines:manage",
+  "customfields:manage",
   "quotes:approve",
   "catalog:manage",
   "contracts:templates",

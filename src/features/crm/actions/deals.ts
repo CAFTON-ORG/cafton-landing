@@ -16,10 +16,22 @@ import {
 } from "../rules";
 import { dealSchema, reasonSchema, type DealInput } from "../schemas";
 import { guard, refreshCrm } from "./guard";
-import { checkDealDelete as checkQuotesBlockDelete, checkWinAmount } from "@/features/sales/rules";
-import { checkDealDelete as checkContractsBlockDelete } from "@/features/contracts/rules";
+import {
+  checkDealDelete as checkQuotesBlockDelete,
+  checkWinAmount,
+  checkWinQuotes,
+} from "@/features/sales/rules";
+import {
+  checkDealDelete as checkContractsBlockDelete,
+  checkReopenSigned,
+} from "@/features/contracts/rules";
 import { contractStatusesFor, withdrawLiveContracts } from "@/features/contracts/server";
-import { acceptedTotal, quoteStatusesFor, withdrawLiveQuotes } from "@/features/sales/server";
+import {
+  acceptedTotal,
+  quotesInPlayFor,
+  quoteStatusesFor,
+  withdrawLiveQuotes,
+} from "@/features/sales/server";
 import { firstOpenStage, lastOpenStage, logActivity, type Tx } from "./shared";
 
 async function loadDeal(tx: Tx, id: string) {
@@ -218,6 +230,9 @@ export async function winDeal(id: string, amount?: string): Promise<ActionResult
 
     await prisma.$transaction(async (tx) => {
       const deal = await loadDeal(tx, id);
+      // An offer still open would contradict the close: settle it first.
+      const unsettled = checkWinQuotes(await quotesInPlayFor(tx, id));
+      if (unsettled) throw new ActionError(unsettled, "rule", { form: unsettled });
       let amountMinor = deal.amountMinor === null ? null : Number(deal.amountMinor);
       if (amount?.trim()) {
         amountMinor = parseMinor(amount);
@@ -350,7 +365,8 @@ export async function reopenDeal(id: string): Promise<ActionResult> {
 
     await prisma.$transaction(async (tx) => {
       const deal = await loadDeal(tx, id);
-      const blocked = checkReopenDeal(state(deal));
+      const blocked =
+        checkReopenDeal(state(deal)) ?? checkReopenSigned(await contractStatusesFor(tx, id));
       if (blocked) throw new ActionError(blocked, "rule");
 
       const stage = await lastOpenStage(tx, deal.stage.pipelineId);

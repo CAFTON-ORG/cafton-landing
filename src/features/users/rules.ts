@@ -55,3 +55,16 @@ export function checkRemoval(input: {
   }
   return null;
 }
+
+/**
+ * Whether someone can be put in the turn order for new website enquiries. They need an account and
+ * a role that can work on leads, otherwise a lead would be handed to someone who can't open it.
+ */
+export function checkTakesLeads(user: {
+  status: "Active" | "Invited";
+  canWorkLeads: boolean;
+}): string | null {
+  if (user.status === "Invited") return "They can take leads once they have signed in.";
+  if (!user.canWorkLeads) return "Their role can't work on leads.";
+  return null;
+}

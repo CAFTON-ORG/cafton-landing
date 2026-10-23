@@ -22,7 +22,13 @@ import { ConfirmDialog } from "@/components/dashboard/shared/confirm-dialog";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Person } from "@/components/dashboard/shared/person";
 import { Button } from "@/components/dashboard/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/dashboard/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +44,7 @@ import {
   SelectValue,
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
+import { SendEmailDialog } from "./send-email-dialog";
 import { useServerAction } from "@/hooks/use-server-action";
 import type { Permission } from "@/lib/auth/permissions";
 import { formatDate, formatRelative } from "@/lib/format";
@@ -74,12 +81,15 @@ export function ActivityTimeline({
   activities,
   writePermission,
   currentUserId,
+  recipient,
 }: {
   subject: Subject;
   activities: ActivityView[];
   writePermission: Permission;
   /** Whose entries can be edited. */
   currentUserId?: string;
+  /** Who an email from this record goes to. Leave out when there is no one to write to. */
+  recipient?: { name: string; email?: string };
 }) {
   const canWrite = useCan(writePermission);
   const canAdminister = useCan("users:update");
@@ -105,6 +115,11 @@ export function ActivityTimeline({
     <Card>
       <CardHeader>
         <CardTitle>Timeline</CardTitle>
+        {canWrite && recipient && (
+          <CardAction>
+            <SendEmailDialog to={subject} recipient={recipient} />
+          </CardAction>
+        )}
       </CardHeader>
       <CardContent className="grid gap-5">
         {canWrite && (

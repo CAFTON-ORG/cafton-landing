@@ -7,7 +7,7 @@ import { actorId } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { fingerprint, type Fingerprinted } from "./integrity";
-import { LIVE_STATUSES, stageAfter, type QuoteStatus } from "./rules";
+import { LIVE_STATUSES, effectiveStatus, stageAfter, type QuoteStatus } from "./rules";
 
 type Tx = Prisma.TransactionClient;
 type Actor = { id: string; name: string };
@@ -101,6 +101,33 @@ export async function withdrawLiveQuotes(tx: Tx, actor: Actor, dealId: string, r
     );
   }
   return open.length;
+}
+
+/**
+ * The deal's quotes that are committed but not answered, for the "can it be won" rule. A sent quote
+ * past its date already reads as expired everywhere, so it is not counted (the daily job only
+ * catches up the stored status later).
+ */
+export async function quotesInPlayFor(
+  tx: Pick<Tx, "quote">,
+  dealId: string,
+  now = new Date(),
+): Promise<{ reference: string; status: QuoteStatus }[]> {
+  const rows = await tx.quote.findMany({
+    where: { dealId, status: { in: ["pending_approval", "approved", "sent"] } },
+    select: { reference: true, status: true, validUntil: true },
+    orderBy: { createdAt: "asc" },
+  });
+  const today = manilaDate(now);
+  return rows
+    .map((row) => ({
+      reference: row.reference,
+      status: effectiveStatus(
+        { status: row.status as QuoteStatus, validUntil: day(row.validUntil) },
+        today,
+      ),
+    }))
+    .filter((row) => row.status !== "expired");
 }
 
 /** What the deal's accepted quote says it is worth, or null when it has none. */

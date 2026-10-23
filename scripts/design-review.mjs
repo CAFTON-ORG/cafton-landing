@@ -37,7 +37,7 @@ async function recordIds() {
     project: await one("SELECT id FROM portfolio_projects ORDER BY position LIMIT 1"),
     event: await one("SELECT id FROM events ORDER BY position LIMIT 1"),
     quote: await one("SELECT id FROM quotes WHERE status = 'draft' LIMIT 1"),
-    // Public links are stored as hashes, so the seed script uses fixed secrets (see seed-sales).
+    // Public links are stored as hashes, so the seed script uses fixed secrets (see scripts/seed-sales.mjs).
     sentQuote: "designreviewtoken_aaaaaaaaaaaaaaaaaaaaaaaa",
     sentContract: "designreviewtoken_aaaaaaaaaaaaaaaaaaaaaaaac",
     contract: await one("SELECT id FROM contracts WHERE status = 'draft' LIMIT 1"),
@@ -63,6 +63,7 @@ const PAGES = [
   ["organization-detail", `/dashboard/crm/organizations/${ids.org}`],
   ["tasks", "/dashboard/crm/tasks"],
   ["pipelines", "/dashboard/crm/pipelines"],
+  ["custom-fields", "/dashboard/crm/custom-fields"],
   ["quotes", "/dashboard/sales/quotes"],
   ["quote-detail", `/dashboard/sales/quotes/${ids.quote}`],
   ["catalog", "/dashboard/sales/catalog"],
@@ -107,6 +108,8 @@ const INTERACTIONS = [
   ["deals-board", "New deal", "dialog-new-deal"],
   ["lead-detail", "Convert to deal", "dialog-convert-lead"],
   ["lead-detail", "Disqualify", "dialog-disqualify"],
+  ["lead-detail", "Send an email", "dialog-send-email"],
+  ["custom-fields", "Add a field", "dialog-add-field"],
   ["deal-detail", "Mark as won", "dialog-win-deal"],
   ["deal-detail", "Edit", "dialog-edit-deal"],
   ["contacts", "Add contact", "dialog-add-contact"],

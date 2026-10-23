@@ -20,23 +20,35 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
-import { mergeContacts, mergeOrganizations } from "../actions/merge";
+import { mergeContacts, mergeLeads, mergeOrganizations } from "../actions/merge";
 import type { DuplicateGroup } from "../duplicates";
-import type { DuplicateContact, DuplicateOrganization } from "../repository/duplicates";
+import type {
+  DuplicateContact,
+  DuplicateLead,
+  DuplicateOrganization,
+} from "../repository/duplicates";
 
 /** Likely duplicates, with the one to keep chosen for you (the record with the most deals, else the oldest). */
 export function DuplicatesView({
+  leads,
   contacts,
   organizations,
 }: {
+  leads: DuplicateGroup<DuplicateLead>[];
   contacts: DuplicateGroup<DuplicateContact>[];
   organizations: DuplicateGroup<DuplicateOrganization>[];
 }) {
+  const canLeads = useCan("leads:merge");
   const canContacts = useCan("contacts:merge");
   const canOrganizations = useCan("organizations:merge");
   return (
-    <Tabs defaultValue={canContacts ? "contacts" : "organizations"}>
+    <Tabs defaultValue={canLeads ? "leads" : canContacts ? "contacts" : "organizations"}>
       <TabsList>
+        {canLeads && (
+          <TabsTrigger value="leads">
+            Leads{leads.length > 0 && <span className="ml-1">({leads.length})</span>}
+          </TabsTrigger>
+        )}
         {canContacts && (
           <TabsTrigger value="contacts">
             Contacts{contacts.length > 0 && <span className="ml-1">({contacts.length})</span>}
@@ -49,6 +61,32 @@ export function DuplicatesView({
           </TabsTrigger>
         )}
       </TabsList>
+      {canLeads && (
+        <TabsContent value="leads" className="mt-4 grid gap-4">
+          {leads.length === 0 && <Clean what="leads" />}
+          {leads.map((group) => (
+            <GroupCard
+              key={group.members.map((m) => m.id).join()}
+              group={group}
+              bestOf={(a, b) => b.activityCount - a.activityCount}
+              merge={(primaryId, otherIds) => mergeLeads({ primaryId, otherIds })}
+              noun="lead"
+              render={(m) => (
+                <Person
+                  name={m.name}
+                  email={m.email}
+                  secondary={[m.reference, m.email, m.phone, m.businessName]
+                    .filter(Boolean)
+                    .join(" · ")}
+                />
+              )}
+              facts={(m) =>
+                `${m.status} · ${m.activityCount} timeline ${m.activityCount === 1 ? "entry" : "entries"} · received ${formatDate(m.createdAt)}`
+              }
+            />
+          ))}
+        </TabsContent>
+      )}
       {canContacts && (
         <TabsContent value="contacts" className="mt-4 grid gap-4">
           {contacts.length === 0 && <Clean what="contacts" />}
@@ -162,7 +200,7 @@ function GroupCard<T extends { id: string; createdAt: string }>({
           {group.members.map((member) => (
             <label
               key={member.id}
-              className="has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-center gap-3 rounded-lg border p-3"
+              className="has-[:checked]:border-primary has-[:checked]:ring-primary flex cursor-pointer items-center gap-3 rounded-lg border p-3 has-[:checked]:ring-1"
             >
               <input
                 type="radio"
@@ -191,7 +229,7 @@ function GroupCard<T extends { id: string; createdAt: string }>({
           open={confirming}
           onOpenChange={setConfirming}
           title={`Merge ${group.members.length} ${noun}s into one?`}
-          description={`Everything linked to the others (deals, tasks, meetings, history) moves to the one you keep, gaps in its details are filled from the others, and the others are removed. This is recorded in the audit log.`}
+          description={`Everything linked to the others (deals, tasks, meetings, timeline) moves to the one you keep, gaps in its details are filled from the others, and the others are removed. This is recorded in the audit log.`}
           confirmLabel="Merge"
           pending={pending}
           onConfirm={() =>

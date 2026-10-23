@@ -8,9 +8,13 @@ import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
+import { FilesPanel } from "@/features/crm/components/files-panel";
+import { CustomFieldsForm } from "@/features/crm/components/custom-fields-form";
+import { listCustomFields } from "@/features/crm/repository/custom-fields";
+import { listFiles } from "@/features/crm/repository/files";
 import { getServices } from "@/features/cms/repository/services";
 import { ActivityTimeline } from "@/features/crm/components/activity-timeline";
-import { LeadStatusBadge } from "@/features/crm/components/badges";
+import { LeadScoreBadge, LeadStatusBadge } from "@/features/crm/components/badges";
 import {
   DetailsPanel,
   DetailsSection,
@@ -45,15 +49,18 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
 
   const { id } = await params;
   // Everything this page needs is asked for at once: each round trip to the database is slow.
-  const [found, services, activities, tasks, people, meetings, tagOptions] = await Promise.all([
-    getLead(id),
-    getServices(),
-    listActivities({ leadId: id }),
-    listTasksFor({ leadId: id }),
-    listStaffOptions(),
-    listMeetingsFor({ leadId: id }),
-    listTagOptions("lead"),
-  ]);
+  const [found, services, activities, tasks, people, meetings, tagOptions, files, customFields] =
+    await Promise.all([
+      getLead(id),
+      getServices(),
+      listActivities({ leadId: id }),
+      listTasksFor({ leadId: id }),
+      listStaffOptions(),
+      listMeetingsFor({ leadId: id }),
+      listTagOptions("lead"),
+      listFiles({ leadId: id }),
+      listCustomFields("lead"),
+    ]);
   if (!found) notFound();
   const { lead, answers } = found;
 
@@ -99,6 +106,31 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
               <p className="text-muted-foreground text-xs">
                 The teammate responsible for the next step.
               </p>
+            </DetailsSection>
+            <DetailsSection title="Score">
+              <div className="grid gap-2">
+                <div>
+                  <LeadScoreBadge score={lead.score} band={lead.scoreBand} />
+                </div>
+                {lead.scoreReasons.length > 0 ? (
+                  <ul className="text-muted-foreground grid gap-1 text-sm">
+                    {lead.scoreReasons.map((reason) => (
+                      <li key={reason.label} className="flex justify-between gap-3">
+                        <span>{reason.label}</span>
+                        <span className="text-foreground tabular-nums">+{reason.points}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    Nothing in the enquiry to score yet.
+                  </p>
+                )}
+                <p className="text-muted-foreground text-xs">
+                  A hint for who to call first, worked out from the contact form. It does not
+                  qualify the lead; you do.
+                </p>
+              </div>
             </DetailsSection>
             <DetailsSection title="Contact">
               <Facts>
@@ -147,6 +179,11 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
                 <Fact label="Timeline">{lead.timeline}</Fact>
               </Facts>
             </DetailsSection>
+            {customFields.length > 0 && (
+              <DetailsSection title="Custom fields">
+                <CustomFieldsForm entity="lead" id={id} defs={customFields} values={lead.custom} />
+              </DetailsSection>
+            )}
             <DetailsSection title="Tags">
               <TagsEditor kind="lead" id={id} initial={lead.tags} suggestions={tagOptions} />
             </DetailsSection>
@@ -176,6 +213,10 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
               Meetings
               <TabCount n={meetings.length} />
             </TabsTrigger>
+            <TabsTrigger value="files">
+              Files
+              <TabCount n={files.length} />
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="activity" className="mt-4">
             <ActivityTimeline
@@ -183,6 +224,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
               activities={activities}
               writePermission="leads:update"
               currentUserId={actorId(staff) ?? undefined}
+              recipient={{ name: lead.name, email: lead.email }}
             />
           </TabsContent>
           <TabsContent value="enquiry" className="mt-4">
@@ -218,6 +260,13 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
                 attendeeEmail: lead.email,
                 attendeePhone: lead.phone ?? undefined,
               }}
+            />
+          </TabsContent>
+          <TabsContent value="files" className="mt-4">
+            <FilesPanel
+              subject={{ leadId: id }}
+              files={files}
+              currentUserId={actorId(staff) ?? undefined}
             />
           </TabsContent>
         </Tabs>

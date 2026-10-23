@@ -6,8 +6,10 @@ import {
   checkConvert,
   checkDealDelete,
   checkDisqualify,
+  checkEmailable,
   checkEditAmount,
   checkLeadDelete,
+  checkMergeLeads,
   checkLose,
   checkMoveDeal,
   checkOrganizationDelete,
@@ -15,6 +17,7 @@ import {
   checkReopenDeal,
   checkReopenLead,
   checkWin,
+  mergedLeadStatus,
   normaliseEmail,
   taskUrgency,
 } from "./rules";
@@ -123,5 +126,29 @@ describe("taskUrgency", () => {
 describe("normaliseEmail", () => {
   it("is case and space insensitive", () => {
     expect(normaliseEmail("  Ada@Cafton.COM ")).toBe("ada@cafton.com");
+  });
+});
+
+describe("merging leads", () => {
+  it("refuses a converted lead, which is part of a deal's history", () => {
+    expect(checkMergeLeads([{ status: "new" }, { status: "disqualified" }])).toBeNull();
+    expect(checkMergeLeads([{ status: "new" }, { status: "converted" }])).toMatch(/converted/);
+  });
+
+  it("keeps the kept lead's status, but never undoes qualification work", () => {
+    expect(mergedLeadStatus("new", ["new"])).toBe("new");
+    expect(mergedLeadStatus("new", ["qualified"])).toBe("qualified");
+    expect(mergedLeadStatus("qualified", ["new"])).toBe("qualified");
+    expect(mergedLeadStatus("disqualified", ["qualified"])).toBe("disqualified");
+  });
+});
+
+describe("checkEmailable", () => {
+  it("needs an address that looks like one", () => {
+    expect(checkEmailable("ada@example.com")).toBeNull();
+    expect(checkEmailable("  ada@example.com  ")).toBeNull();
+    expect(checkEmailable("")).toMatch(/no email address/);
+    expect(checkEmailable(null)).toMatch(/no email address/);
+    expect(checkEmailable("not-an-address")).toMatch(/doesn't look right/);
   });
 });

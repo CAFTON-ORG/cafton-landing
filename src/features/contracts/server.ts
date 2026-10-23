@@ -125,7 +125,10 @@ export async function withdrawLiveContracts(tx: Tx, actor: Actor, dealId: string
 export const isLiveStatus = (status: ContractStatus) => LIVE_STATUSES.includes(status);
 
 /** The statuses of a deal's contracts, for the "can it be deleted" rule. */
-export async function contractStatusesFor(tx: Tx, dealId: string): Promise<ContractStatus[]> {
+export async function contractStatusesFor(
+  tx: Pick<Tx, "contract">,
+  dealId: string,
+): Promise<ContractStatus[]> {
   const rows = await tx.contract.findMany({ where: { dealId }, select: { status: true } });
   return rows.map((row) => row.status as ContractStatus);
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MergeLink } from "@/features/crm/components/merge-link";
 import { ExportButton } from "@/features/crm/components/export-button";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
@@ -34,7 +35,12 @@ export default async function LeadsPage({
       <PageHeader
         title="Leads"
         description="Enquiries from the website contact form. Qualify them, then convert the good ones into deals."
-        action={<ExportButton kind="leads" />}
+        action={
+          <div className="flex flex-wrap gap-2">
+            <MergeLink />
+            <ExportButton kind="leads" />
+          </div>
+        }
       />
       <LeadsTable page={page} people={people} tagOptions={tagOptions} />
     </>

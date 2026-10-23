@@ -293,3 +293,24 @@ export function checkWinAmount(
     ? null
     : "This deal has an accepted quote, so it is won at the quoted total.";
 }
+
+/** Quotes that are committed but not answered: they must be settled before the deal is won. */
+const UNSETTLED: Partial<Record<QuoteStatus, string>> = {
+  pending_approval: "is waiting for approval",
+  approved: "is approved but not sent yet",
+  sent: "is out with the client",
+};
+
+/**
+ * A deal can't be won while an offer is still open: the client could answer after the deal closed,
+ * and winning at a different value would contradict what was offered. (A draft is only a working
+ * copy, so it does not block.) Losing a deal withdraws open quotes; winning asks to settle them.
+ */
+export function checkWinQuotes(
+  quotes: readonly { reference: string; status: QuoteStatus }[],
+): string | null {
+  const open = quotes.find((quote) => UNSETTLED[quote.status]);
+  return open
+    ? `Quote ${open.reference} ${UNSETTLED[open.status]}. Withdraw it, or wait for the answer, before marking the deal as won.`
+    : null;
+}

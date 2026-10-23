@@ -16,7 +16,8 @@ import { SavedViews } from "./saved-views";
 import { LEADS_TABLE } from "../table";
 import type { PersonRef } from "../types";
 import { LEAD_STATUSES, LEAD_STATUS_LABEL, type LeadView } from "../types";
-import { LeadStatusBadge } from "./badges";
+import { LEAD_BANDS, LEAD_BAND_LABEL } from "../scoring";
+import { LeadScoreBadge, LeadStatusBadge } from "./badges";
 
 const columns: Column<LeadView>[] = [
   {
@@ -47,6 +48,13 @@ const columns: Column<LeadView>[] = [
     header: "Status",
     sortable: true,
     cell: (lead) => <LeadStatusBadge status={lead.status} />,
+  },
+  {
+    id: "score",
+    header: "Score",
+    sortable: true,
+    hideBelow: "md",
+    cell: (lead) => <LeadScoreBadge score={lead.score} band={lead.scoreBand} />,
   },
   {
     id: "owner",
@@ -134,6 +142,12 @@ export function LeadsTable({
             { value: "me", label: "Mine" },
             { value: "unassigned", label: "Unassigned" },
           ],
+        },
+        {
+          id: "band",
+          label: "Score",
+          allLabel: "Any score",
+          options: LEAD_BANDS.map((band) => ({ value: band, label: LEAD_BAND_LABEL[band] })),
         },
         ...tagFilter(tagOptions),
       ]}

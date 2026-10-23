@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { contractBlocks } from "./format";
 import { fieldsIn, fillTemplate, needsQuote, unknownFields } from "./merge";
 import {
+  checkReopenSigned,
   checkCreate,
   checkDealDelete,
   checkDelete,
@@ -137,5 +138,16 @@ describe("sending, answering and closing", () => {
     expect(checkDelete("accepted", true)).not.toBeNull();
     expect(checkDealDelete(["draft"])).toBeNull();
     expect(checkDealDelete(["draft", "withdrawn"])).toMatch(/can't be deleted/);
+  });
+});
+
+describe("checkReopenSigned", () => {
+  it("allows reopening a deal with no signed contract", () => {
+    expect(checkReopenSigned([])).toBeNull();
+    expect(checkReopenSigned(["draft", "sent", "declined", "withdrawn", "expired"])).toBeNull();
+  });
+
+  it("refuses once a contract is signed, and points to a new quote", () => {
+    expect(checkReopenSigned(["sent", "accepted"])).toMatch(/signed contract.*new quote/);
   });
 });

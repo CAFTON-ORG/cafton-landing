@@ -346,6 +346,39 @@ describe("rules around a contract", () => {
     expect(await contracts.sendContract(created.data.id)).toMatchObject({ ok: false });
   });
 
+  it("won't reopen a won deal once its contract is signed", async () => {
+    const { deal, quoteId } = await dealWithAcceptedQuote();
+    const made = (await contracts.createContract(
+      deal.id,
+      (await template("contract")).id,
+      quoteId,
+    )) as { data: { id: string } };
+    const sent = await contracts.sendContract(made.data.id);
+    // Win the deal at the accepted quote's total, then reopen it: fine while nothing is signed.
+    expect((await deals.winDeal(deal.id)).ok).toBe(true);
+    expect((await deals.reopenDeal(deal.id)).ok).toBe(true);
+    expect((await deals.winDeal(deal.id)).ok).toBe(true);
+
+    expect(
+      (
+        await pub.respondToContract({
+          action: "accept",
+          token: tokenOf(sent),
+          name: "Cora Client",
+          email: "",
+          agreed: true,
+        })
+      ).ok,
+    ).toBe(true);
+    const refused = await deals.reopenDeal(deal.id);
+    expect(refused).toMatchObject({ ok: false });
+    expect((refused as { error: string }).error).toMatch(/signed contract/);
+    expect(
+      (await prisma.deal.findUniqueOrThrow({ where: { id: deal.id }, include: { stage: true } }))
+        .stage.kind,
+    ).toBe("won");
+  });
+
   it("withdraws with a reason, makes a new link on request, and withdraws on a lost deal", async () => {
     const { deal, quoteId } = await dealWithAcceptedQuote();
     const made = (await contracts.createContract(

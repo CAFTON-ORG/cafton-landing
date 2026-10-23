@@ -62,6 +62,8 @@ model Profile {
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   /// Secret in the address of this person's calendar subscription link; null until they ask for one.
   calendarToken String?  @unique @map("calendar_token")
+  /// Takes a turn at new website enquiries (round-robin). Off until someone is chosen under Users.
+  takesLeads    Boolean  @default(false) @map("takes_leads")
 
   role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
 
@@ -137,8 +139,11 @@ model Organization {
 
   contacts Contact[]
   deals    Deal[]
+  files    RecordFile[]
+  /// Values of the custom fields set up under CRM > Custom fields, keyed by field key.
+  custom   Json         @default("{}")
   /// Free-form labels, lower case, for filtering and grouping.
-  tags     String[]  @default([])
+  tags     String[]     @default([])
 
   @@index([name])
   @@map("organizations")
@@ -167,6 +172,9 @@ model Contact {
   activities   Activity[]
   tasks        Task[]
   meetings     Meeting[]
+  files        RecordFile[]
+  /// Values of the custom fields set up under CRM > Custom fields, keyed by field key.
+  custom       Json          @default("{}")
   /// Free-form labels, lower case, for filtering and grouping.
   tags         String[]      @default([])
 
@@ -200,16 +208,22 @@ model Lead {
   updatedAt          DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt          DateTime?  @map("deleted_at") @db.Timestamptz(6)
 
-  contact    Contact?   @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  contact    Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
   deal       Deal?
   activities Activity[]
   tasks      Task[]
   meetings   Meeting[]
+  files      RecordFile[]
+  /// Values of the custom fields set up under CRM > Custom fields, keyed by field key.
+  custom     Json         @default("{}")
   /// Free-form labels, lower case, for filtering and grouping.
-  tags       String[]   @default([])
+  tags       String[]     @default([])
+  /// 0 to 100 from the contact form answers (features/crm/scoring.ts). Null until scored.
+  score      Int?
 
   @@index([status, createdAt(sort: Desc)])
   @@index([email])
+  @@index([score])
   @@map("leads")
 }
 
@@ -281,6 +295,9 @@ model Deal {
   tags         String[]      @default([])
   quotes       Quote[]
   contracts    Contract[]
+  files        RecordFile[]
+  /// Values of the custom fields set up under CRM > Custom fields, keyed by field key.
+  custom       Json          @default("{}")
 
   @@index([stageId])
   @@index([contactId])
@@ -884,4 +901,55 @@ model Contract {
   @@index([dealId])
   @@index([status])
   @@map("contracts")
+}
+
+/// A file attached to a lead, contact, organization or deal (exactly one of them). The bytes live in
+/// the private `crm-files` bucket under a random name; `name` is only what people see.
+model RecordFile {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  leadId         String?  @map("lead_id") @db.Uuid
+  contactId      String?  @map("contact_id") @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  dealId         String?  @map("deal_id") @db.Uuid
+  /// "crm/<uuid>.<ext>"; never built from anything the uploader typed.
+  path           String   @unique
+  name           String
+  mime           String
+  sizeBytes      Int      @map("size_bytes")
+  uploadedBy     String?  @map("uploaded_by") @db.Uuid
+  /// Snapshot, so it still reads correctly after the person is removed.
+  uploadedByName String   @map("uploaded_by_name")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  lead         Lead?         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contact      Contact?      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deal         Deal?         @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([contactId])
+  @@index([organizationId])
+  @@index([dealId])
+  @@map("record_files")
+}
+
+/// A field an administrator adds to one kind of record (lead, contact, organization or deal).
+/// Values are stored on the record under `key`, which never changes.
+model CustomField {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entity    String
+  key       String
+  label     String
+  type      String
+  /// The choices of a "select" field.
+  options   String[] @default([])
+  position  Int      @default(0)
+  /// Archived fields are hidden from forms but keep their values.
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([entity, key])
+  @@index([entity, position])
+  @@map("custom_fields")
 }

@@ -7,6 +7,8 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { buildEnquirySummary, type ContactFormData } from "./contact";
 import { live } from "./mappers";
+import { nextLeadOwner } from "./repository/assignment";
+import { scoreLead } from "./scoring";
 import { acknowledgeLead, notifyStaffOfLead } from "./emails";
 import { bookFromWebsite, type BookingOutcome } from "@/features/schedule/website";
 import type { MeetingMode } from "@/features/schedule/types";
@@ -56,6 +58,9 @@ export async function createLeadFromWebsite(
         select: { id: true },
       });
 
+      // Round-robin: the next person in turn takes it, if anyone has been chosen to.
+      const owner = await nextLeadOwner(tx);
+
       const lead = await tx.lead.create({
         data: {
           firstName: form.firstName.trim(),
@@ -70,6 +75,15 @@ export async function createLeadFromWebsite(
           pagePath: context.pagePath,
           answers: form as unknown as Prisma.InputJsonValue,
           contactId: known?.id,
+          ownerId: owner?.id,
+          score: scoreLead({
+            budget: form.budget,
+            timeline: form.timeline,
+            phone: form.phone,
+            email,
+            businessName: form.businessName,
+            answers: form as unknown as Record<string, unknown>,
+          }).score,
         },
       });
 
@@ -83,6 +97,18 @@ export async function createLeadFromWebsite(
         },
       });
 
+      if (owner) {
+        await tx.activity.create({
+          data: {
+            type: "system",
+            leadId: lead.id,
+            contactId: known?.id,
+            body: `Assigned to ${owner.name} (next in turn).`,
+            createdByName: WEBSITE.name,
+          },
+        });
+      }
+
       // Standard practice: every enquiry gets a reply-by date, so none is forgotten.
       const due = new Date();
       due.setDate(due.getDate() + 1);
@@ -92,6 +118,7 @@ export async function createLeadFromWebsite(
           title: `Reply to ${lead.firstName} ${lead.lastName} (${lead.reference})`,
           dueAt: due,
           leadId: lead.id,
+          assigneeId: owner?.id,
         },
       });
 

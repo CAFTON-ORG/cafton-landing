@@ -143,3 +143,13 @@ export function checkDealDelete(statuses: readonly ContractStatus[]): string | n
     ? "This deal has contracts that were sent, so it can't be deleted. Mark it lost instead."
     : null;
 }
+
+/**
+ * A signed contract is the agreement. Reopening its deal would unlock the value and the scope the
+ * client signed, so it is refused; a change is a new quote on the deal.
+ */
+export function checkReopenSigned(statuses: readonly ContractStatus[]): string | null {
+  return statuses.includes("accepted")
+    ? "This deal has a signed contract, so it can't be reopened. For a change, make a new quote on the deal."
+    : null;
+}

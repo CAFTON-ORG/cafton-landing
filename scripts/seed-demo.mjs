@@ -260,6 +260,29 @@ try {
     [daysAgo(0), daysAgo(2)],
   );
 
+  // Custom fields, a few values, and a file on the lead the design review opens.
+  await client.query(
+    `INSERT INTO custom_fields (entity, key, label, type, options, position, updated_at) VALUES
+       ('lead', 'region', 'Region', 'text', '{}', 0, now()),
+       ('lead', 'budget_approved', 'Budget approved', 'checkbox', '{}', 1, now()),
+       ('contact', 'preferred_channel', 'Preferred channel', 'select', '{Email,Phone,Messenger}', 0, now()),
+       ('organization', 'employees', 'Employees', 'number', '{}', 0, now()),
+       ('deal', 'renewal_date', 'Renewal date', 'date', '{}', 0, now())`,
+  );
+  await client.query(
+    `UPDATE leads SET custom = '{"region":"Cordillera","budget_approved":true}'::jsonb
+       WHERE id = (SELECT id FROM leads WHERE status = 'new' ORDER BY created_at DESC LIMIT 1)`,
+  );
+  await client.query(
+    `UPDATE contacts SET custom = '{"preferred_channel":"Email"}'::jsonb
+       WHERE id = (SELECT id FROM contacts ORDER BY last_name LIMIT 1)`,
+  );
+  await client.query(
+    `INSERT INTO record_files (lead_id, path, name, mime, size_bytes, uploaded_by_name)
+       SELECT id, 'crm/00000000-0000-4000-8000-000000000001.pdf', 'Project brief.pdf', 'application/pdf', 184320, 'Olivia Owner'
+       FROM leads WHERE status = 'new' ORDER BY created_at DESC LIMIT 1`,
+  );
+
   await client.query("COMMIT");
   console.log("Seeded demo CRM data: 4 organizations, 4 contacts, 6 deals, 4 leads, 4 tasks.");
 } catch (error) {

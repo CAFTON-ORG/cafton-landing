@@ -1,4 +1,6 @@
 import type { LeadStatus, StageKind } from "./rules";
+import type { CustomValues } from "./custom-fields";
+import type { LeadBand, ScoreReason } from "./scoring";
 
 export const LEAD_STATUSES = [
   "new",
@@ -46,6 +48,8 @@ export interface StageView {
 
 export interface LeadView {
   id: string;
+  /** Values of this kind of record's custom fields, by field key. */
+  custom: CustomValues;
   tags: string[];
   reference: string;
   firstName: string;
@@ -67,6 +71,11 @@ export interface LeadView {
   contactId?: string;
   dealId?: string;
   createdAt: string;
+  /** 0 to 100: how ready the enquiry looks (see scoring.ts). */
+  score: number;
+  scoreBand: LeadBand;
+  /** What earned the points, biggest first. */
+  scoreReasons: ScoreReason[];
   /** The last note, call, email or meeting with them (ISO). */
   lastContactedAt?: string;
   /** The soonest open task or upcoming meeting (ISO). */
@@ -75,6 +84,8 @@ export interface LeadView {
 
 export interface OrganizationView {
   id: string;
+  /** Values of this kind of record's custom fields, by field key. */
+  custom: CustomValues;
   tags: string[];
   name: string;
   industry?: string;
@@ -90,6 +101,8 @@ export interface OrganizationView {
 
 export interface ContactView {
   id: string;
+  /** Values of this kind of record's custom fields, by field key. */
+  custom: CustomValues;
   tags: string[];
   firstName: string;
   lastName: string;
@@ -114,6 +127,8 @@ export interface ContactView {
 
 export interface DealView {
   id: string;
+  /** Values of this kind of record's custom fields, by field key. */
+  custom: CustomValues;
   tags: string[];
   reference: string;
   title: string;
@@ -187,3 +202,15 @@ export interface ForecastView {
 
 /** A subject an activity or task attaches to. Exactly one id is set. */
 export type Subject = { leadId: string } | { contactId: string } | { dealId: string };
+
+/** A file on a lead, contact, organization or deal. */
+export interface FileView {
+  id: string;
+  name: string;
+  mime: string;
+  sizeBytes: number;
+  uploadedByName: string;
+  createdAt: string;
+  /** Who added it, for "you can remove this". */
+  uploadedBy?: string;
+}

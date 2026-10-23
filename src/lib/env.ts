@@ -22,6 +22,9 @@ const schema = z.object({
   // Platform: Supabase (Auth + Storage only)
   NEXT_PUBLIC_SUPABASE_URL: z.url().optional(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: optionalString,
+  // Server only, never NEXT_PUBLIC_: bypasses row level security and storage policies. Used for
+  // the private CRM files bucket (see lib/supabase/admin.ts).
+  SUPABASE_SERVICE_ROLE_KEY: optionalString,
 
   // Platform: email
   RESEND_API_KEY: optionalString,

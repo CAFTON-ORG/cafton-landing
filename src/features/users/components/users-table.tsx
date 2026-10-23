@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/dashboard/ui/a
 import { Badge } from "@/components/dashboard/ui/badge";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { Button } from "@/components/dashboard/ui/button";
+import { Switch } from "@/components/dashboard/ui/switch";
 import {
   Select,
   SelectContent,
@@ -25,8 +26,8 @@ import {
 import { formatDate, getInitials } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
 import { hasActiveFilters } from "@/lib/table-params";
-import { changeUserRole, removeUser, resendInvite } from "../actions";
-import { checkRemoval, checkRoleChange } from "../rules";
+import { changeUserRole, removeUser, resendInvite, setTakesLeads } from "../actions";
+import { checkRemoval, checkRoleChange, checkTakesLeads } from "../rules";
 import { USER_STATUSES, type DashboardUser, type RoleOption } from "../types";
 import { usersTableConfig } from "../table";
 import { InviteDialog } from "./invite-dialog";
@@ -56,6 +57,19 @@ export function UsersTable({
     start(async () => {
       const result = await changeUserRole(user.email, roleId);
       if (result.ok) toast.success(`Updated ${user.email}'s role.`);
+      else toast.error(result.error);
+    });
+  }
+
+  function toggleLeads(user: DashboardUser, takes: boolean) {
+    start(async () => {
+      const result = await setTakesLeads(user.email, takes);
+      if (result.ok)
+        toast.success(
+          takes
+            ? `${user.name} now gets a turn at new enquiries.`
+            : `${user.name} was taken off the turn order.`,
+        );
       else toast.error(result.error);
     });
   }
@@ -141,6 +155,29 @@ export function UsersTable({
               ))}
             </SelectContent>
           </Select>
+        );
+      },
+    },
+    {
+      id: "leads",
+      header: "New leads",
+      hideBelow: "md",
+      cell: (user) => {
+        const reason = checkTakesLeads(user);
+        if (user.status === "Invited") return <span className="text-muted-foreground">—</span>;
+        return (
+          <label
+            className="flex items-center gap-2 text-sm"
+            title={reason && !user.takesLeads ? reason : undefined}
+          >
+            <Switch
+              checked={user.takesLeads}
+              disabled={!canChange || pending || (!!reason && !user.takesLeads)}
+              onCheckedChange={(checked) => toggleLeads(user, checked)}
+              aria-label={`Gets a turn at new enquiries: ${user.email}`}
+            />
+            <span className="text-muted-foreground">{user.takesLeads ? "In turn" : "Off"}</span>
+          </label>
         );
       },
     },

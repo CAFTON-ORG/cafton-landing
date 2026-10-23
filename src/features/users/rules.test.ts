@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { SYSTEM_ROLE_PERMISSIONS } from "@/lib/auth/permissions";
-import { checkAssignable, checkRemoval, checkRoleChange } from "./rules";
+import { checkAssignable, checkRemoval, checkRoleChange, checkTakesLeads } from "./rules";
 
 const owner = {
   email: "owner@cafton.com",
@@ -99,5 +99,18 @@ describe("checkRemoval", () => {
 
   it("allows removing a pending invite (no profile yet)", () => {
     expect(checkRemoval({ actor: admin, target: null, ownerCount: 1 })).toBeNull();
+  });
+});
+
+describe("checkTakesLeads", () => {
+  it("allows signed-in people whose role can work on leads", () => {
+    expect(checkTakesLeads({ status: "Active", canWorkLeads: true })).toBeNull();
+  });
+
+  it("refuses an invitation not yet used, and a role that can't open leads", () => {
+    expect(checkTakesLeads({ status: "Invited", canWorkLeads: true })).toMatch(/signed in/);
+    expect(checkTakesLeads({ status: "Active", canWorkLeads: false })).toMatch(
+      /can't work on leads/,
+    );
   });
 });

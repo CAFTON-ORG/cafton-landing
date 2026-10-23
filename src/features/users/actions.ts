@@ -18,7 +18,7 @@ import { isDatabaseConfigured } from "@/lib/env";
 import { renderEmail } from "@/lib/mail-templates";
 import { sendMail, siteOrigin } from "@/lib/mail";
 import { emailSchema, inviteSchema, type InviteInput } from "./schema";
-import { checkAssignable, checkRemoval, checkRoleChange } from "./rules";
+import { checkAssignable, checkRemoval, checkRoleChange, checkTakesLeads } from "./rules";
 
 async function guard(permission: Permission) {
   const staff = await requirePermission(permission);
@@ -206,5 +206,43 @@ export async function removeUser(email: string): Promise<ActionResult> {
       );
     });
     refresh();
+  });
+}
+
+/** Puts someone in, or takes them out of, the turn order for new website enquiries. */
+export async function setTakesLeads(email: string, takes: boolean): Promise<ActionResult> {
+  return runAction(async () => {
+    const actor = await guard("users:update");
+    const target = parse(emailSchema, email);
+    const profile = await prisma.profile.findFirst({
+      where: { email: { equals: target, mode: "insensitive" } },
+      include: { role: { include: { permissions: true } } },
+    });
+    if (!profile) throw new ActionError("That person has not signed in yet.", "rule");
+    if (takes) {
+      const blocked = checkTakesLeads({
+        status: "Active",
+        canWorkLeads: resolvePermissions(profile.role).includes("leads:update"),
+      });
+      if (blocked) throw new ActionError(blocked, "rule");
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.profile.update({ where: { id: profile.id }, data: { takesLeads: takes } });
+      await recordAudit(
+        actor,
+        {
+          action: "user.leads",
+          entity: "user",
+          entityId: profile.email,
+          summary: takes
+            ? `${profile.email} now takes a turn at new enquiries`
+            : `${profile.email} no longer takes new enquiries`,
+        },
+        tx,
+      );
+    });
+    refresh();
+    revalidatePath("/dashboard/crm/leads");
   });
 }

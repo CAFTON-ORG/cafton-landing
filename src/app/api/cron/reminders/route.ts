@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
+import { scoreUnscoredLeads } from "@/features/crm/scoring-jobs";
 import { runReminders } from "@/features/schedule/reminders";
 import { expireDueQuotes } from "@/features/sales/server";
 import { expireDueContracts } from "@/features/contracts/server";
@@ -39,5 +40,7 @@ export async function GET(request: Request) {
     quotesExpired: await expireDueQuotes(),
     // The same for contracts that were not signed in time.
     contractsExpired: await expireDueContracts(),
+    // Leads that have no score yet get one (new enquiries are scored as they arrive).
+    leadsScored: await scoreUnscoredLeads(),
   });
 }

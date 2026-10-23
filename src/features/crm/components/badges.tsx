@@ -1,5 +1,6 @@
 import { StatusBadge, type StatusTone } from "@/components/dashboard/shared/status-badge";
 import { taskUrgency, type LeadStatus } from "../rules";
+import { LEAD_BAND_LABEL, type LeadBand } from "../scoring";
 import { LEAD_STATUS_LABEL, type DealView } from "../types";
 
 const LEAD_TONE: Record<LeadStatus, StatusTone> = {
@@ -37,4 +38,19 @@ export function UrgencyBadge({ dueAt, doneAt }: { dueAt?: string; doneAt?: strin
       })
     ];
   return <StatusBadge tone={tone}>{label}</StatusBadge>;
+}
+
+const BAND_TONE: Record<LeadBand, StatusTone> = {
+  hot: "success",
+  warm: "warning",
+  cold: "neutral",
+};
+
+/** How ready an enquiry looks. The word is always shown, so colour is never the only signal. */
+export function LeadScoreBadge({ score, band }: { score: number; band: LeadBand }) {
+  return (
+    <StatusBadge tone={BAND_TONE[band]}>
+      {LEAD_BAND_LABEL[band]} · {score}
+    </StatusBadge>
+  );
 }

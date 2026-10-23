@@ -7,9 +7,20 @@ import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
 import { live, namesFor, toLead } from "../mappers";
+import { bandRange, type LeadBand } from "../scoring";
 import type { LeadView } from "../types";
 
 const include = { deal: { select: { id: true } } } as const;
+
+/** The leads in a band. "Cold" also takes leads that are not scored yet. */
+function bandWhere(band: LeadBand): Prisma.LeadWhereInput {
+  const { min, max } = bandRange(band);
+  const range = {
+    ...(min !== undefined ? { gte: min } : {}),
+    ...(max !== undefined ? { lt: max } : {}),
+  };
+  return band === "cold" ? { OR: [{ score: range }, { score: null }] } : { score: range };
+}
 
 const emptyPage = (pageSize: number): Page<LeadView> => ({
   items: [],
@@ -32,6 +43,7 @@ export async function listLeads(
     ...(params.filters.status ? { status: params.filters.status as LeadView["status"] } : {}),
     ...(params.filters.owner === "me" && staffId ? { ownerId: staffId } : {}),
     ...(params.filters.owner === "unassigned" ? { ownerId: null } : {}),
+    ...(params.filters.band ? { AND: [bandWhere(params.filters.band as LeadBand)] } : {}),
     ...(q
       ? {
           OR: [
@@ -50,7 +62,9 @@ export async function listLeads(
       ? { lastName: dir }
       : params.sort === "status"
         ? { status: dir }
-        : { createdAt: dir };
+        : params.sort === "score"
+          ? { score: { sort: dir, nulls: "last" } }
+          : { createdAt: dir };
 
   const total = await prisma.lead.count({ where });
   const base = paginate(new Array(total), params.page, params.pageSize); // page maths only

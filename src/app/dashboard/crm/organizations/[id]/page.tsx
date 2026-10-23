@@ -10,7 +10,12 @@ import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Person } from "@/components/dashboard/shared/person";
 import { Thumbnail } from "@/components/dashboard/shared/thumbnail";
 import { Card, CardContent } from "@/components/dashboard/ui/card";
+import { actorId } from "@/lib/actions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
+import { FilesPanel } from "@/features/crm/components/files-panel";
+import { CustomFieldsForm } from "@/features/crm/components/custom-fields-form";
+import { listCustomFields } from "@/features/crm/repository/custom-fields";
+import { listFiles } from "@/features/crm/repository/files";
 import { DetailsPanel, DetailsSection, Fact, Facts } from "@/features/crm/components/detail-parts";
 import { StageBadge } from "@/features/crm/components/badges";
 import { OrganizationActions } from "@/features/crm/components/record-actions";
@@ -32,10 +37,12 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
   const organization = await getOrganization(id);
   if (!organization) notFound();
 
-  const [deals, contacts, tagOptions] = await Promise.all([
+  const [deals, contacts, tagOptions, files, customFields] = await Promise.all([
     listDealsFor({ organizationId: id }),
     listContactsFor(id),
     listTagOptions("organization"),
+    listFiles({ organizationId: id }),
+    listCustomFields("organization"),
   ]);
   const won = deals
     .filter((deal) => deal.stageKind === "won")
@@ -81,6 +88,16 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
                 <Fact label="Notes">{organization.notes}</Fact>
               </Facts>
             </DetailsSection>
+            {customFields.length > 0 && (
+              <DetailsSection title="Custom fields">
+                <CustomFieldsForm
+                  entity="organization"
+                  id={id}
+                  defs={customFields}
+                  values={organization.custom}
+                />
+              </DetailsSection>
+            )}
             <DetailsSection title="Tags">
               <TagsEditor
                 kind="organization"
@@ -99,6 +116,9 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
             </TabsTrigger>
             <TabsTrigger value="deals">
               Deals{deals.length > 0 && <span className="ml-1">({deals.length})</span>}
+            </TabsTrigger>
+            <TabsTrigger value="files">
+              Files{files.length > 0 && <span className="ml-1">({files.length})</span>}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="contacts" className="mt-4">
@@ -164,6 +184,13 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+          <TabsContent value="files" className="mt-4">
+            <FilesPanel
+              subject={{ organizationId: id }}
+              files={files}
+              currentUserId={actorId(staff) ?? undefined}
+            />
           </TabsContent>
         </Tabs>
       </EditorLayout>

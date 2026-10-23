@@ -115,6 +115,34 @@ export function findContactDuplicates<T extends ContactCandidate>(
   });
 }
 
+export interface LeadCandidate {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  businessName?: string | null;
+}
+
+/** Leads that look like the same enquirer: the same email, phone, or name at the same business. */
+export function findLeadDuplicates<T extends LeadCandidate>(
+  leads: readonly T[],
+): DuplicateGroup<T>[] {
+  return group(leads, (lead) => {
+    const keys: { reason: string; key: string }[] = [
+      { reason: "the same email", key: `e:${lead.email.trim().toLowerCase()}` },
+    ];
+    const phone = normalizePhone(lead.phone);
+    if (phone) keys.push({ reason: "the same phone number", key: `p:${phone}` });
+    const name = `${lead.firstName} ${lead.lastName}`.toLowerCase().replace(/\s+/g, " ").trim();
+    const business = normalizeCompany(lead.businessName ?? "");
+    if (lead.lastName.trim() && business) {
+      keys.push({ reason: "the same name at the same business", key: `n:${name}:${business}` });
+    }
+    return keys;
+  });
+}
+
 export function findOrganizationDuplicates<T extends OrganizationCandidate>(
   organizations: readonly T[],
 ): DuplicateGroup<T>[] {
@@ -132,12 +160,12 @@ export function findOrganizationDuplicates<T extends OrganizationCandidate>(
  * What the kept record ends up with: its own values first, then the first value any other record
  * has for a field it left empty. Tags are combined.
  */
-export function mergeValues<T extends Record<string, unknown>>(
+export function mergeValues<T extends Record<string, unknown>, F extends keyof T>(
   primary: T,
   others: readonly T[],
-  fields: readonly (keyof T)[],
-): Partial<T> {
-  const result: Partial<T> = {};
+  fields: readonly F[],
+): Partial<Pick<T, F>> {
+  const result: Partial<Pick<T, F>> = {};
   for (const field of fields) {
     const own = primary[field];
     if (own !== null && own !== undefined && own !== "") continue;

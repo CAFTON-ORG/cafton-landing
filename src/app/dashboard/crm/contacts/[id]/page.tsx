@@ -11,6 +11,10 @@ import { Person } from "@/components/dashboard/shared/person";
 import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
+import { FilesPanel } from "@/features/crm/components/files-panel";
+import { CustomFieldsForm } from "@/features/crm/components/custom-fields-form";
+import { listCustomFields } from "@/features/crm/repository/custom-fields";
+import { listFiles } from "@/features/crm/repository/files";
 import { ActivityTimeline } from "@/features/crm/components/activity-timeline";
 import { StageBadge } from "@/features/crm/components/badges";
 import {
@@ -44,17 +48,29 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
 
   const { id } = await params;
   // Everything this page needs is asked for at once: each round trip to the database is slow.
-  const [contact, deals, activities, tasks, organizations, people, meetings, tagOptions] =
-    await Promise.all([
-      getContact(id),
-      listDealsFor({ contactId: id }),
-      listActivities({ contactId: id }),
-      listTasksFor({ contactId: id }),
-      listOrganizationOptions(),
-      listStaffOptions(),
-      listMeetingsFor({ contactId: id }),
-      listTagOptions("contact"),
-    ]);
+  const [
+    contact,
+    deals,
+    activities,
+    tasks,
+    organizations,
+    people,
+    meetings,
+    tagOptions,
+    files,
+    customFields,
+  ] = await Promise.all([
+    getContact(id),
+    listDealsFor({ contactId: id }),
+    listActivities({ contactId: id }),
+    listTasksFor({ contactId: id }),
+    listOrganizationOptions(),
+    listStaffOptions(),
+    listMeetingsFor({ contactId: id }),
+    listTagOptions("contact"),
+    listFiles({ contactId: id }),
+    listCustomFields("contact"),
+  ]);
   if (!contact) notFound();
   const openTasks = tasks.filter((task) => !task.doneAt).length;
 
@@ -112,6 +128,16 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
                 The teammate responsible for this contact.
               </p>
             </DetailsSection>
+            {customFields.length > 0 && (
+              <DetailsSection title="Custom fields">
+                <CustomFieldsForm
+                  entity="contact"
+                  id={id}
+                  defs={customFields}
+                  values={contact.custom}
+                />
+              </DetailsSection>
+            )}
             <DetailsSection title="Tags">
               <TagsEditor kind="contact" id={id} initial={contact.tags} suggestions={tagOptions} />
             </DetailsSection>
@@ -133,6 +159,10 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
               Meetings
               <TabCount n={meetings.length} />
             </TabsTrigger>
+            <TabsTrigger value="files">
+              Files
+              <TabCount n={files.length} />
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="activity" className="mt-4">
@@ -141,6 +171,7 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
               activities={activities}
               writePermission="contacts:update"
               currentUserId={actorId(staff) ?? undefined}
+              recipient={{ name: contact.name, email: contact.email }}
             />
           </TabsContent>
 
@@ -212,6 +243,13 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
                 attendeeEmail: contact.email,
                 attendeePhone: contact.phone,
               }}
+            />
+          </TabsContent>
+          <TabsContent value="files" className="mt-4">
+            <FilesPanel
+              subject={{ contactId: id }}
+              files={files}
+              currentUserId={actorId(staff) ?? undefined}
             />
           </TabsContent>
         </Tabs>

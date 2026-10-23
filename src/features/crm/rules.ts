@@ -33,6 +33,21 @@ export function checkConvert(lead: { status: LeadStatus }): string | null {
   return null;
 }
 
+/** Merging keeps one lead: a converted one is part of a deal's history, so it can't be merged. */
+export function checkMergeLeads(leads: readonly { status: LeadStatus }[]): string | null {
+  return leads.some((lead) => lead.status === "converted")
+    ? "A converted lead is part of a deal's history and can't be merged."
+    : null;
+}
+
+/**
+ * The status the kept lead ends with: its own, except that a lead still marked new takes
+ * "qualified" when one of the leads merged into it was already qualified (that work is not undone).
+ */
+export function mergedLeadStatus(primary: LeadStatus, others: readonly LeadStatus[]): LeadStatus {
+  return primary === "new" && others.includes("qualified") ? "qualified" : primary;
+}
+
 export function checkLeadDelete(lead: { status: LeadStatus }): string | null {
   return lead.status === "converted"
     ? "A converted lead is part of a deal's history and can't be deleted."
@@ -135,3 +150,12 @@ export const normaliseEmail = (email: string) => email.trim().toLowerCase();
 
 export const fullName = (person: { firstName: string; lastName: string }) =>
   `${person.firstName} ${person.lastName}`.trim();
+
+/** Why an email can't be sent to this record, or null when it can. */
+export function checkEmailable(email: string | null | undefined): string | null {
+  const address = (email ?? "").trim();
+  if (!address) return "This record has no email address.";
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)
+    ? null
+    : "That email address doesn't look right.";
+}

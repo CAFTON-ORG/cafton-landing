@@ -1,6 +1,6 @@
 import "server-only";
 
-import { SYSTEM_ROLE_ORDER } from "@/lib/auth/permissions";
+import { SYSTEM_ROLE_ORDER, resolvePermissions } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
@@ -14,7 +14,10 @@ export async function listAllUsers(): Promise<DashboardUser[]> {
   if (!isDatabaseConfigured) return [];
 
   const [profiles, invites] = await Promise.all([
-    prisma.profile.findMany({ orderBy: { createdAt: "asc" }, include: { role: roleSelect } }),
+    prisma.profile.findMany({
+      orderBy: { createdAt: "asc" },
+      include: { role: { include: { permissions: true } } },
+    }),
     prisma.staffInvite.findMany({ orderBy: { createdAt: "asc" }, include: { role: roleSelect } }),
   ]);
   const joined = new Set(profiles.map((profile) => profile.email.toLowerCase()));
@@ -30,6 +33,8 @@ export async function listAllUsers(): Promise<DashboardUser[]> {
       avatarUrl: profile.avatarUrl ?? undefined,
       status: "Active",
       joined: profile.createdAt.toISOString().slice(0, 10),
+      takesLeads: profile.takesLeads,
+      canWorkLeads: resolvePermissions(profile.role).includes("leads:update"),
     })),
     ...invites
       .filter((invite) => !joined.has(invite.email))
@@ -42,6 +47,8 @@ export async function listAllUsers(): Promise<DashboardUser[]> {
         roleName: invite.role.name,
         status: "Invited",
         joined: invite.createdAt.toISOString().slice(0, 10),
+        takesLeads: false,
+        canWorkLeads: false,
       })),
   ];
 }

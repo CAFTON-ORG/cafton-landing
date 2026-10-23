@@ -16,16 +16,28 @@ interface LeadSummary {
   goalsArea?: string | null;
   budget?: string | null;
   timeline?: string | null;
+  /** Who the enquiry was assigned to, if anyone: they get their own, clearer notice. */
+  ownerId?: string | null;
 }
 
 /** To the team when a new enquiry arrives, so nobody has to watch the dashboard. */
 export async function notifyStaffOfLead(lead: LeadSummary) {
-  await notify(await staffIdsWith("leads:update"), {
-    kind: "lead.new",
-    title: `New enquiry from ${lead.name}`,
-    body: [lead.businessName, lead.goalsArea].filter(Boolean).join(" · ") || lead.email,
-    href: `/dashboard/crm/leads/${lead.id}`,
-  });
+  const body = [lead.businessName, lead.goalsArea].filter(Boolean).join(" · ") || lead.email;
+  const href = `/dashboard/crm/leads/${lead.id}`;
+  if (lead.ownerId) {
+    await notify([lead.ownerId], {
+      kind: "lead.assigned",
+      title: `New enquiry assigned to you: ${lead.name}`,
+      body,
+      href,
+    });
+  }
+  // Everyone else who works leads hears about it too; the assignee already has the clearer notice.
+  await notify(
+    await staffIdsWith("leads:update"),
+    { kind: "lead.new", title: `New enquiry from ${lead.name}`, body, href },
+    lead.ownerId,
+  );
   const to = await staffEmailsWith("leads:update");
   if (to.length === 0) return;
   const { html, text } = renderEmail({

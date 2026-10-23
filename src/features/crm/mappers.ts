@@ -3,6 +3,8 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { fullName } from "./rules";
+import { asValues } from "./custom-fields";
+import { bandOf, scoreLead } from "./scoring";
 import type {
   ContactView,
   DealView,
@@ -57,8 +59,23 @@ export function toLead(
   lead: Prisma.LeadGetPayload<{ include: { deal: { select: { id: true } } } }>,
   names: People,
 ): LeadView {
+  // The stored score is what lists sort by; the breakdown is always recomputed from the lead's own
+  // answers, so "why" is available even before the daily job has stored a score.
+  const scored = scoreLead({
+    budget: lead.budget,
+    timeline: lead.timeline,
+    phone: lead.phone,
+    email: lead.email,
+    businessName: lead.businessName,
+    answers:
+      lead.answers && typeof lead.answers === "object" && !Array.isArray(lead.answers)
+        ? (lead.answers as Record<string, unknown>)
+        : null,
+  });
+  const score = lead.score ?? scored.score;
   return {
     id: lead.id,
+    custom: asValues(lead.custom),
     tags: lead.tags,
     reference: lead.reference,
     firstName: lead.firstName,
@@ -80,6 +97,9 @@ export function toLead(
     contactId: lead.contactId ?? undefined,
     dealId: lead.deal?.id,
     createdAt: iso(lead.createdAt),
+    score,
+    scoreBand: bandOf(score),
+    scoreReasons: scored.reasons,
   };
 }
 
@@ -90,6 +110,7 @@ export function toOrganization(
 ): OrganizationView {
   return {
     id: org.id,
+    custom: asValues(org.custom),
     tags: org.tags,
     name: org.name,
     industry: org.industry ?? undefined,
@@ -112,6 +133,7 @@ export function toContact(
 ): ContactView {
   return {
     id: contact.id,
+    custom: asValues(contact.custom),
     tags: contact.tags,
     firstName: contact.firstName,
     lastName: contact.lastName,
@@ -143,6 +165,7 @@ export function toDeal(
 ): DealView {
   return {
     id: deal.id,
+    custom: asValues(deal.custom),
     tags: deal.tags,
     reference: deal.reference,
     title: deal.title,

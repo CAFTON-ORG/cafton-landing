@@ -55,7 +55,8 @@ export function DatePicker({
               disabled={disabled}
               aria-invalid={invalid}
               className={cn(
-                "w-full justify-start font-normal",
+                // Buttons are shrink-0; this one must shrink so the clear button stays inside the field.
+                "w-full min-w-0 shrink justify-start font-normal",
                 !selected && "text-muted-foreground",
               )}
             />

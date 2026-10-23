@@ -486,6 +486,35 @@ describe("business rules around a quote", () => {
     ).toBe(44_800_00);
   });
 
+  it("won't win a deal while a quote is out, and allows it once the quote is withdrawn", async () => {
+    const { deal, id } = await sentQuote("40,000.00");
+    const blocked = await deals.winDeal(deal.id, "44,800.00");
+    expect(blocked).toMatchObject({ ok: false });
+    expect((blocked as { error: string }).error).toMatch(/out with the client/);
+    // Nothing changed: the deal is still open.
+    expect(
+      (await prisma.deal.findUniqueOrThrow({ where: { id: deal.id }, include: { stage: true } }))
+        .stage.kind,
+    ).toBe("open");
+
+    expect((await quotes.withdrawQuote(id, "Client asked for changes")).ok).toBe(true);
+    expect((await deals.winDeal(deal.id, "44,800.00")).ok).toBe(true);
+  });
+
+  it("doesn't count a sent quote whose date has passed as an open offer", async () => {
+    const { deal, id } = await sentQuote("40,000.00");
+    await db.exec(`ALTER TABLE quotes DISABLE TRIGGER USER`);
+    await db.exec(`UPDATE quotes SET valid_until = '2020-01-01' WHERE id = '${id}'`);
+    await db.exec(`ALTER TABLE quotes ENABLE TRIGGER USER`);
+    expect((await deals.winDeal(deal.id, "44,800.00")).ok).toBe(true);
+  });
+
+  it("lets a deal with only a draft quote be won, since a draft is not an offer", async () => {
+    const deal = await makeDeal();
+    expect((await quotes.createQuote(deal.id)).ok).toBe(true);
+    expect((await deals.winDeal(deal.id, "10,000.00")).ok).toBe(true);
+  });
+
   it("expires a sent quote once its date has passed", async () => {
     const { id } = await sentQuote();
     await db.exec(`ALTER TABLE quotes DISABLE TRIGGER USER`);

@@ -208,3 +208,27 @@ describe("meetings migration", () => {
     expect(await fails(row)).toMatch(/duplicate key|unique/i);
   });
 });
+
+describe("CRM files storage", () => {
+  it("is a private bucket", async () => {
+    const { rows } = await db.query<{ public: boolean }>(
+      "SELECT public FROM storage.buckets WHERE id = 'crm-files'",
+    );
+    expect(rows).toEqual([{ public: false }]);
+  });
+
+  it("is open to no signed-in user: no storage policy mentions it, so only the server (service role) can read, write or list it", async () => {
+    // Staff once had direct access through the storage API, which skipped the app's per-record
+    // permission checks. Everything must go through the server instead.
+    const { rows } = await db.query<{ policyname: string }>(
+      `SELECT policyname FROM pg_policies
+         WHERE schemaname = 'storage' AND tablename = 'objects'
+           AND (coalesce(qual, '') ILIKE '%crm-files%' OR coalesce(with_check, '') ILIKE '%crm-files%')`,
+    );
+    expect(rows).toEqual([]);
+    const rls = await db.query<{ relrowsecurity: boolean }>(
+      "SELECT relrowsecurity FROM pg_class WHERE oid = 'storage.objects'::regclass",
+    );
+    expect(rls.rows).toEqual([{ relrowsecurity: true }]);
+  });
+});

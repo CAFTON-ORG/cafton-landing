@@ -8,9 +8,10 @@ import { Button } from "@/components/dashboard/ui/button";
 
 /** To the duplicate check, for people who may merge. */
 export function MergeLink() {
+  const leads = useCan("leads:merge");
   const contacts = useCan("contacts:merge");
   const organizations = useCan("organizations:merge");
-  if (!contacts && !organizations) return null;
+  if (!leads && !contacts && !organizations) return null;
   return (
     <Button
       variant="outline"

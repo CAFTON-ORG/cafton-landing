@@ -86,12 +86,35 @@ export const subjectSchema = z
     "Pick one record.",
   );
 
+export const fileSubjectSchema = z
+  .object({
+    leadId: z.string().uuid().optional(),
+    contactId: z.string().uuid().optional(),
+    organizationId: z.string().uuid().optional(),
+    dealId: z.string().uuid().optional(),
+  })
+  .refine(
+    (value) =>
+      [value.leadId, value.contactId, value.organizationId, value.dealId].filter(Boolean).length ===
+      1,
+    "Pick one record.",
+  );
+
 export const activitySchema = z.object({
   type: z.enum(ACTIVITY_TYPES),
   body: text(5000).min(1, "Write something first."),
   subject: subjectSchema,
 });
 export type ActivityInput = z.input<typeof activitySchema>;
+
+export const sendEmailSchema = z.object({
+  subject: text(200)
+    .min(1, "Add a subject.")
+    .refine((value) => !/[\r\n]/.test(value), "Keep the subject on one line."),
+  body: text(10_000).min(1, "Write the message."),
+  to: subjectSchema,
+});
+export type SendEmailInput = z.input<typeof sendEmailSchema>;
 
 export const taskSchema = z.object({
   title: text(200).min(1, "Describe the task."),

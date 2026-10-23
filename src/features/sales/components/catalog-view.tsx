@@ -8,6 +8,7 @@ import { useCan } from "@/components/dashboard/layout/staff-context";
 import { ConfirmDialog } from "@/components/dashboard/shared/confirm-dialog";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Field } from "@/components/dashboard/shared/field";
+import { PresetSelect } from "@/components/dashboard/shared/preset-select";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { Badge } from "@/components/dashboard/ui/badge";
 import { Button } from "@/components/dashboard/ui/button";
@@ -36,6 +37,7 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatMinor, minorToInput } from "@/lib/money";
 import { deleteCatalogItem, saveCatalogItem } from "../actions/catalog";
+import { UNITS } from "../options";
 import {
   DEFAULT_UNIT,
   PRICING_MODELS,
@@ -249,13 +251,14 @@ function ItemDialog({ item, onClose }: { item: CatalogItemView | null; onClose: 
                 id="item-unit"
                 label="One unit is"
                 error={errors.unitLabel}
-                hint="project, hour, month"
+                hint="What the price is per."
               >
-                <Input
+                <PresetSelect
                   id="item-unit"
+                  label="One unit is"
                   value={values.unitLabel}
-                  onChange={(e) => set("unitLabel", e.target.value)}
-                  aria-invalid={!!errors.unitLabel}
+                  options={UNITS}
+                  onChange={(value) => set("unitLabel", value)}
                 />
               </Field>
             </div>

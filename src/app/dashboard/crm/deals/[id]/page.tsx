@@ -8,6 +8,10 @@ import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { Person } from "@/components/dashboard/shared/person";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
+import { FilesPanel } from "@/features/crm/components/files-panel";
+import { CustomFieldsForm } from "@/features/crm/components/custom-fields-form";
+import { listCustomFields } from "@/features/crm/repository/custom-fields";
+import { listFiles } from "@/features/crm/repository/files";
 import { getServices } from "@/features/cms/repository/services";
 import { ActivityTimeline } from "@/features/crm/components/activity-timeline";
 import { StageBadge } from "@/features/crm/components/badges";
@@ -33,6 +37,8 @@ import { listStages, listStaffOptions } from "@/features/crm/repository/pipeline
 import { listTagOptions } from "@/features/crm/repository/tags";
 import { listTasksFor } from "@/features/crm/repository/tasks";
 import { checkAddTaskToDeal } from "@/features/crm/rules";
+import { checkReopenSigned } from "@/features/contracts/rules";
+import { checkWinQuotes } from "@/features/sales/rules";
 import { DealContractsPanel } from "@/features/contracts/components/deal-contracts-panel";
 import {
   acceptedQuotesForDeal,
@@ -76,6 +82,8 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
     contracts,
     contractTemplates,
     acceptedQuotes,
+    files,
+    customFields,
   ] = await Promise.all([
     listStages(deal.pipelineId),
     listActivities({ dealId: id }),
@@ -90,6 +98,8 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
     can(staff, "contracts:view") ? listContractsForDeal(id) : Promise.resolve([]),
     can(staff, "contracts:create") ? listTemplates({ activeOnly: true }) : Promise.resolve([]),
     can(staff, "contracts:create") ? acceptedQuotesForDeal(id) : Promise.resolve([]),
+    listFiles({ dealId: id }),
+    listCustomFields("deal"),
   ]);
   const services = origin ? await getServices() : [];
   const canAddTask = !checkAddTaskToDeal({
@@ -106,6 +116,10 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
     ? services.find((pillar) => pillar.slug === text(origin.answers.goalsCategory))?.title
     : undefined;
   const closed = deal.stageKind !== "open";
+  // The same rules the actions enforce, shown up front (the lists are empty for staff who can't
+  // see quotes or contracts, so the server remains the real check).
+  const winBlocked = checkWinQuotes(quotes);
+  const reopenBlocked = checkReopenSigned(contracts.map((contract) => contract.status));
 
   return (
     <>
@@ -126,6 +140,8 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
           contacts={contacts}
           organizations={organizations}
           people={people}
+          winBlocked={winBlocked}
+          reopenBlocked={reopenBlocked}
         />
       </div>
 
@@ -187,6 +203,11 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
                 </Fact>
               </Facts>
             </DetailsSection>
+            {customFields.length > 0 && (
+              <DetailsSection title="Custom fields">
+                <CustomFieldsForm entity="deal" id={id} defs={customFields} values={deal.custom} />
+              </DetailsSection>
+            )}
             <DetailsSection title="Tags">
               <TagsEditor kind="deal" id={id} initial={deal.tags} suggestions={tagOptions} />
             </DetailsSection>
@@ -216,6 +237,10 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
             <TabsTrigger value="meetings">
               Meetings
               <TabCount n={meetings.length} />
+            </TabsTrigger>
+            <TabsTrigger value="files">
+              Files
+              <TabCount n={files.length} />
             </TabsTrigger>
           </TabsList>
 
@@ -256,6 +281,7 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
               activities={activities}
               writePermission="deals:update"
               currentUserId={actorId(staff) ?? undefined}
+              recipient={{ name: deal.contactName }}
             />
           </TabsContent>
 
@@ -314,6 +340,13 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
                 title: `Meeting about ${deal.title}`,
                 attendeeName: deal.contactName ?? undefined,
               }}
+            />
+          </TabsContent>
+          <TabsContent value="files" className="mt-4">
+            <FilesPanel
+              subject={{ dealId: id }}
+              files={files}
+              currentUserId={actorId(staff) ?? undefined}
             />
           </TabsContent>
         </Tabs>

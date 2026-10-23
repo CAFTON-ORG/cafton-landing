@@ -7,7 +7,9 @@ import {
   Text,
   View,
   renderToBuffer,
+  type TextProps,
 } from "@react-pdf/renderer";
+import type { ReactNode } from "react";
 
 import { LOGO_PATH_D } from "@/components/shared/logo";
 import { quantityText } from "../pricing";
@@ -42,8 +44,10 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Helvetica",
     color: INK,
-    lineHeight: 1.45,
   },
+  // Absolute point values, not multipliers: on a text node react-pdf reads a unitless line height
+  // as roughly double (26pt for 10pt type), and a page-level one makes the footer vanish.
+  text: { lineHeight: "14.5pt" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -52,12 +56,18 @@ const styles = StyleSheet.create({
   },
   brand: { flexDirection: "row", alignItems: "center" },
   mark: { width: 30, height: 35, marginRight: 10 },
-  company: { fontFamily: "Helvetica-Bold", fontSize: 16, letterSpacing: 1.5 },
-  companyMeta: { fontSize: 9, color: MUTED, marginTop: 2 },
+  company: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 16,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    lineHeight: "20pt",
+  },
+  companyMeta: { fontSize: 9, color: MUTED, marginTop: 2, lineHeight: "12pt" },
   titleBlock: { alignItems: "flex-end" },
-  title: { fontFamily: "Helvetica-Bold", fontSize: 22 },
-  number: { fontSize: 11, marginTop: 4 },
-  status: { fontSize: 9, color: MUTED, marginTop: 2 },
+  title: { fontFamily: "Helvetica-Bold", fontSize: 22, lineHeight: "25pt" },
+  number: { fontSize: 11, marginTop: 6, lineHeight: "15pt" },
+  status: { fontSize: 9, color: MUTED, marginTop: 3, lineHeight: "13pt" },
   meta: {
     flexDirection: "row",
     borderTopWidth: 1,
@@ -67,16 +77,24 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginBottom: 18,
   },
-  metaCol: { flex: 1, paddingRight: 10 },
+  metaCol: { flex: 1, paddingRight: 8 },
+  metaColWide: { flex: 1.5, paddingRight: 10 },
   label: {
     fontSize: 8,
     color: MUTED,
     textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: 2,
+    lineHeight: "11pt",
   },
   strong: { fontFamily: "Helvetica-Bold" },
-  h2: { fontFamily: "Helvetica-Bold", fontSize: 12, marginTop: 16, marginBottom: 5 },
+  h2: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 12,
+    marginTop: 16,
+    marginBottom: 5,
+    lineHeight: "16pt",
+  },
   tableHead: {
     flexDirection: "row",
     backgroundColor: INK,
@@ -85,6 +103,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     fontFamily: "Helvetica-Bold",
     fontSize: 9,
+    lineHeight: "13pt",
   },
   row: {
     flexDirection: "row",
@@ -108,17 +127,42 @@ const styles = StyleSheet.create({
     backgroundColor: SOFT,
     fontFamily: "Helvetica-Bold",
     fontSize: 12,
+    lineHeight: "16pt",
   },
+  split: { marginTop: 8, paddingTop: 8, borderTopWidth: 0.5, borderTopColor: LINE },
   stamp: {
     marginTop: 18,
-    padding: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: INK,
     borderRadius: 4,
-    fontFamily: "Helvetica-Bold",
   },
-  footer: { position: "absolute", bottom: 22, left: 44, right: 44, fontSize: 8, color: MUTED },
+  stampText: { fontFamily: "Helvetica-Bold" },
+  footer: {
+    position: "absolute",
+    bottom: 24,
+    left: 44,
+    right: 44,
+    paddingTop: 6,
+    borderTopWidth: 0.5,
+    borderTopColor: LINE,
+  },
+  footerText: { fontSize: 8, color: MUTED, textAlign: "center" },
 });
+
+/**
+ * Body text with the document's line height. It is set per text, not on the page: with a page-level
+ * line height react-pdf draws no `render` text, which made the "page X of Y" footer disappear.
+ */
+function P({ style, ...props }: TextProps & { children?: ReactNode }) {
+  return (
+    <Text
+      {...props}
+      style={[styles.text, ...(Array.isArray(style) ? style : style ? [style] : [])]}
+    />
+  );
+}
 
 export function QuoteDocument({
   quote,
@@ -156,85 +200,87 @@ export function QuoteDocument({
               <Path d={LOGO_PATH_D} fill={INK} />
             </Svg>
             <View>
-              <Text style={styles.company}>{company.name}</Text>
-              <Text style={styles.companyMeta}>
+              <P style={styles.company}>{company.name}</P>
+              <P style={styles.companyMeta}>
                 {[company.email, company.place].filter(Boolean).join("  ·  ")}
-              </Text>
+              </P>
             </View>
           </View>
           <View style={styles.titleBlock}>
-            <Text style={styles.title}>Quotation</Text>
-            <Text style={styles.number}>
+            <P style={styles.title}>Quotation</P>
+            <P style={styles.number}>
               {quote.reference}
               {quote.version > 1 ? `  ·  version ${quote.version}` : ""}
-            </Text>
-            <Text style={styles.status}>{QUOTE_STATUS_LABEL[quote.status]}</Text>
+            </P>
+            {quote.status !== "sent" && (
+              <P style={styles.status}>{QUOTE_STATUS_LABEL[quote.status]}</P>
+            )}
           </View>
         </View>
 
         <View style={styles.meta}>
           <View style={styles.metaCol}>
-            <Text style={styles.label}>Prepared for</Text>
-            <Text style={styles.strong}>{quote.recipientName}</Text>
+            <P style={styles.label}>Prepared for</P>
+            <P style={styles.strong}>{quote.recipientName}</P>
+          </View>
+          <View style={styles.metaColWide}>
+            <P style={styles.label}>Project</P>
+            <P style={styles.strong}>{quote.title}</P>
           </View>
           <View style={styles.metaCol}>
-            <Text style={styles.label}>Project</Text>
-            <Text style={styles.strong}>{quote.title}</Text>
+            <P style={styles.label}>Issued</P>
+            <P>{formatDay(quote.issuedOn) || "—"}</P>
           </View>
           <View style={styles.metaCol}>
-            <Text style={styles.label}>Issued</Text>
-            <Text>{formatDay(quote.issuedOn) || "—"}</Text>
-            <Text style={[styles.label, { marginTop: 6 }]}>Valid until</Text>
-            <Text>{formatDay(quote.validUntil) || "—"}</Text>
+            <P style={styles.label}>Valid until</P>
+            <P>{formatDay(quote.validUntil) || "—"}</P>
           </View>
         </View>
 
-        {quote.intro && <Text style={{ marginBottom: 14 }}>{quote.intro}</Text>}
+        {quote.intro && <P style={{ marginBottom: 14 }}>{quote.intro}</P>}
 
-        <View style={styles.tableHead}>
-          <Text style={styles.colDescription}>Description</Text>
-          <Text style={styles.colQty}>Qty</Text>
-          <Text style={styles.colPrice}>Unit price</Text>
-          <Text style={styles.colTotal}>Amount</Text>
+        <View style={styles.tableHead} fixed minPresenceAhead={60}>
+          <P style={styles.colDescription}>Description</P>
+          <P style={styles.colQty}>Qty</P>
+          <P style={styles.colPrice}>Unit price</P>
+          <P style={styles.colTotal}>Amount</P>
         </View>
         {quote.lines.map((line, index) => (
           <View key={index} style={styles.row} wrap={false}>
             <View style={styles.colDescription}>
-              <Text>{line.description}</Text>
-              {line.discountPct > 0 && (
-                <Text style={{ color: MUTED }}>{line.discountPct}% discount</Text>
-              )}
+              <P>{line.description}</P>
+              {line.discountPct > 0 && <P style={{ color: MUTED }}>{line.discountPct}% discount</P>}
             </View>
-            <Text style={styles.colQty}>
+            <P style={styles.colQty}>
               {quantityText(line.quantityMilli)} {line.unitLabel}
-            </Text>
-            <Text style={styles.colPrice}>{money(line.unitPriceMinor, currency)}</Text>
-            <Text style={styles.colTotal}>{money(line.totalMinor, currency)}</Text>
+            </P>
+            <P style={styles.colPrice}>{money(line.unitPriceMinor, currency)}</P>
+            <P style={styles.colTotal}>{money(line.totalMinor, currency)}</P>
           </View>
         ))}
 
         <View style={styles.totals} wrap={false}>
           <View style={styles.totalRow}>
-            <Text>Subtotal</Text>
-            <Text>{money(quote.subtotalMinor, currency)}</Text>
+            <P>Subtotal</P>
+            <P>{money(quote.subtotalMinor, currency)}</P>
           </View>
           <View style={styles.totalRow}>
-            <Text>VAT ({quote.taxRatePct}%)</Text>
-            <Text>{money(quote.taxMinor, currency)}</Text>
+            <P>VAT ({quote.taxRatePct}%)</P>
+            <P>{money(quote.taxMinor, currency)}</P>
           </View>
           <View style={styles.grand}>
-            <Text>Total</Text>
-            <Text>{money(quote.totalMinor, currency)}</Text>
+            <P>Total</P>
+            <P>{money(quote.totalMinor, currency)}</P>
           </View>
           {quote.depositPct > 0 && quote.depositPct < 100 && (
             <>
-              <View style={[styles.totalRow, { marginTop: 6 }]}>
-                <Text>Deposit on acceptance ({quote.depositPct}%)</Text>
-                <Text>{money(deposit, currency)}</Text>
+              <View style={[styles.totalRow, styles.split]}>
+                <P>Deposit on acceptance ({quote.depositPct}%)</P>
+                <P>{money(deposit, currency)}</P>
               </View>
               <View style={styles.totalRow}>
-                <Text>Balance on completion</Text>
-                <Text>{money(balance, currency)}</Text>
+                <P>Balance on completion</P>
+                <P>{money(balance, currency)}</P>
               </View>
             </>
           )}
@@ -242,31 +288,31 @@ export function QuoteDocument({
 
         {quote.paymentTerms && (
           <View wrap={false}>
-            <Text style={styles.h2}>Payment terms</Text>
-            <Text>{quote.paymentTerms}</Text>
+            <P style={styles.h2}>Payment terms</P>
+            <P>{quote.paymentTerms}</P>
           </View>
         )}
 
         {quote.terms && (
           <View>
-            <Text style={styles.h2}>Terms</Text>
-            <Text>{quote.terms}</Text>
+            <P style={styles.h2}>Terms</P>
+            <P>{quote.terms}</P>
           </View>
         )}
 
         {stamp && (
-          <Text style={styles.stamp} wrap={false}>
-            {stamp}
-          </Text>
+          <View style={styles.stamp} wrap={false}>
+            <P style={styles.stampText}>{stamp}</P>
+          </View>
         )}
-
-        <Text
-          style={styles.footer}
-          fixed
-          render={({ pageNumber, totalPages }) =>
-            `${company.name}  ·  ${quote.reference}  ·  page ${pageNumber} of ${totalPages}`
-          }
-        />
+        <View style={styles.footer} fixed>
+          <Text
+            style={styles.footerText}
+            render={({ pageNumber, totalPages }) =>
+              `${company.name}  ·  ${quote.reference}  ·  page ${pageNumber} of ${totalPages}`
+            }
+          />
+        </View>
       </Page>
     </Document>
   );

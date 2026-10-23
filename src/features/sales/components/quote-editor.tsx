@@ -23,6 +23,7 @@ import { DatePicker } from "@/components/dashboard/shared/date-picker";
 import { EditorLayout } from "@/components/dashboard/shared/editor-layout";
 import { Field } from "@/components/dashboard/shared/field";
 import { FormActions } from "@/components/dashboard/shared/form-action-bar";
+import { PresetSelect } from "@/components/dashboard/shared/preset-select";
 import { Button } from "@/components/dashboard/ui/button";
 import {
   Card,
@@ -52,6 +53,7 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor, minorToInput, parseMinor } from "@/lib/money";
+import { addDays, manilaDate } from "@/features/schedule/slots";
 import {
   approveQuote,
   deleteQuote,
@@ -63,9 +65,19 @@ import {
   sendQuote,
   submitQuote,
 } from "../actions/quotes";
+import {
+  DEPOSITS,
+  DISCOUNTS,
+  PAYMENT_WORDINGS,
+  UNITS,
+  VALID_FOR_DAYS,
+  discountLabel,
+  type PaymentWording,
+} from "../options";
 import { lineTotal, parseQuantity, quantityText, quoteTotals } from "../pricing";
 import { approvalReasons, canEdit, checkWithdraw } from "../rules";
 import type { CatalogItemView, QuoteView } from "../types";
+import { QuoteHistory } from "./quote-history";
 import { QuoteStatusBadge } from "./quote-status-badge";
 
 interface LineState {
@@ -125,6 +137,15 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
   const canDelete = useCan("quotes:delete");
 
   const editable = canEdit(quote.status) && canUpdate && quote.isLatest;
+
+  /** Fills the payment terms; asks first when that would overwrite what someone typed. */
+  function applyWording(index: string) {
+    const wording = PAYMENT_WORDINGS[Number(index)];
+    if (!wording) return;
+    const typed = values.paymentTerms.trim();
+    if (typed && typed !== wording.text) setPendingWording(wording);
+    else setValues((c) => ({ ...c, paymentTerms: wording.text }));
+  }
   const initial = useMemo(
     () => ({
       title: quote.title,
@@ -142,6 +163,7 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [pendingWording, setPendingWording] = useState<PaymentWording | null>(null);
   const [sending, setSending] = useState(false);
   const dirty = editable && JSON.stringify(values) !== JSON.stringify(initial);
 
@@ -386,43 +408,7 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                   <CardTitle>History</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ol className="grid gap-2 text-sm">
-                    <li>
-                      Started {formatDate(quote.createdAt)}
-                      {quote.createdByName && ` by ${quote.createdByName}`}
-                    </li>
-                    {quote.approvedAt && (
-                      <li>
-                        Approved {formatDate(quote.approvedAt)}
-                        {quote.approvedByName
-                          ? ` by ${quote.approvedByName}`
-                          : " (under the approval limit)"}
-                      </li>
-                    )}
-                    {quote.sentAt && (
-                      <li>
-                        Sent to {quote.sentTo} on{" "}
-                        {formatDate(quote.sentAt, { dateStyle: "medium", timeStyle: "short" })}
-                      </li>
-                    )}
-                    {quote.viewedAt && (
-                      <li>
-                        Opened by the client{" "}
-                        {formatDate(quote.viewedAt, { dateStyle: "medium", timeStyle: "short" })}
-                      </li>
-                    )}
-                    {quote.acceptedAt && (
-                      <li className="font-medium text-emerald-800 dark:text-emerald-300">
-                        Accepted by {quote.acceptedByName} on{" "}
-                        {formatDate(quote.acceptedAt, { dateStyle: "medium", timeStyle: "short" })}
-                      </li>
-                    )}
-                    {quote.declinedAt && (
-                      <li>
-                        Declined {formatDate(quote.declinedAt)}: {quote.declinedReason}
-                      </li>
-                    )}
-                  </ol>
+                  <QuoteHistory quote={quote} />
                 </CardContent>
               </Card>
 
@@ -456,7 +442,7 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                 marked VAT.
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-3">
+            <CardContent className="grid grid-cols-[minmax(0,1fr)] gap-3">
               {(editable ? values.lines : []).map((line, index) => {
                 const error = lineError(index);
                 const label = "text-muted-foreground mb-1 block text-xs";
@@ -465,6 +451,7 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                     <div className="flex items-start gap-2">
                       <Textarea
                         rows={2}
+                        className="min-w-0 flex-1"
                         aria-label={`Line ${index + 1} description`}
                         value={line.description}
                         aria-invalid={!!errors[`lines.${index}.description`]}
@@ -474,7 +461,8 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                       <Button
                         type="button"
                         variant="ghost"
-                        size="icon-sm"
+                        size="icon"
+                        className="shrink-0"
                         aria-label={`Remove line ${index + 1}`}
                         onClick={() =>
                           setValues((c) => ({
@@ -486,8 +474,8 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                         <Trash2 aria-hidden="true" />
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 items-end gap-3 sm:grid-cols-[4.5rem_5.5rem_minmax(8rem,1fr)_4.5rem_auto_auto]">
-                      <label>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-[5rem_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
+                      <label className="min-w-0">
                         <span className={label}>Qty</span>
                         <Input
                           inputMode="decimal"
@@ -496,15 +484,17 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                           onChange={(event) => setLine(line.key, { quantity: event.target.value })}
                         />
                       </label>
-                      <label>
+                      <label className="min-w-0">
                         <span className={label}>Unit</span>
-                        <Input
+                        <PresetSelect
+                          label={`Line ${index + 1} unit`}
                           value={line.unitLabel}
-                          onChange={(event) => setLine(line.key, { unitLabel: event.target.value })}
+                          options={UNITS}
+                          onChange={(value) => setLine(line.key, { unitLabel: value })}
                         />
                       </label>
-                      <label>
-                        <span className={label}>Price (PHP)</span>
+                      <label className="min-w-0">
+                        <span className={label}>Price ({quote.currency})</span>
                         <Input
                           inputMode="decimal"
                           value={line.price}
@@ -513,28 +503,32 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                           onChange={(event) => setLine(line.key, { price: event.target.value })}
                         />
                       </label>
-                      <label>
-                        <span className={label}>Disc. %</span>
-                        <Input
-                          inputMode="numeric"
+                      <label className="min-w-0">
+                        <span className={label}>Discount (%)</span>
+                        <PresetSelect
+                          label={`Line ${index + 1} discount`}
                           value={line.discountPct}
-                          onChange={(event) =>
-                            setLine(line.key, { discountPct: event.target.value })
-                          }
+                          options={DISCOUNTS}
+                          optionLabel={discountLabel}
+                          onChange={(value) => setLine(line.key, { discountPct: value })}
                         />
                       </label>
-                      <span className="flex h-9 items-center gap-2 text-sm">
+                    </div>
+                    <div className="flex items-center justify-between gap-3 border-t pt-3 text-sm">
+                      <label className="flex min-h-6 items-center gap-2">
                         <Checkbox
-                          aria-label={`Line ${index + 1} has VAT`}
                           checked={line.taxable}
                           onCheckedChange={(checked) =>
                             setLine(line.key, { taxable: checked === true })
                           }
                         />
-                        VAT
-                      </span>
-                      <span className="text-right text-sm font-medium tabular-nums sm:pb-2">
-                        {formatMinor(lineTotal(priced(line)), quote.currency)}
+                        Add VAT
+                      </label>
+                      <span>
+                        <span className="text-muted-foreground">Line total </span>
+                        <span className="font-medium tabular-nums">
+                          {formatMinor(lineTotal(priced(line)), quote.currency)}
+                        </span>
                       </span>
                     </div>
                     {error && (
@@ -599,27 +593,31 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                 </p>
               )}
 
-              <dl className="ml-auto grid w-full max-w-xs gap-1 border-t pt-3 text-sm">
-                <div className="flex justify-between">
-                  <dt>Subtotal</dt>
-                  <dd className="tabular-nums">
-                    {formatMinor(totals.subtotalMinor, quote.currency)}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt>VAT ({quote.taxRatePct}%)</dt>
-                  <dd className="tabular-nums">{formatMinor(totals.taxMinor, quote.currency)}</dd>
-                </div>
-                <div className="flex justify-between border-t pt-1 text-base font-semibold">
-                  <dt>Total</dt>
-                  <dd className="tabular-nums">{formatMinor(totals.totalMinor, quote.currency)}</dd>
-                </div>
+              <div className="ml-auto grid w-full max-w-xs gap-2 border-t pt-3">
+                <dl className="grid gap-1 text-sm">
+                  <div className="flex justify-between">
+                    <dt>Subtotal</dt>
+                    <dd className="tabular-nums">
+                      {formatMinor(totals.subtotalMinor, quote.currency)}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt>VAT ({quote.taxRatePct}%)</dt>
+                    <dd className="tabular-nums">{formatMinor(totals.taxMinor, quote.currency)}</dd>
+                  </div>
+                  <div className="flex justify-between border-t pt-1 text-base font-semibold">
+                    <dt>Total</dt>
+                    <dd className="tabular-nums">
+                      {formatMinor(totals.totalMinor, quote.currency)}
+                    </dd>
+                  </div>
+                </dl>
                 {reasons.length > 0 && (
                   <p className="pt-1 text-xs text-amber-800 dark:text-amber-300">
                     A second person approves this before it can be sent. {reasons.join(" ")}
                   </p>
                 )}
-              </dl>
+              </div>
             </CardContent>
           </Card>
 
@@ -637,25 +635,6 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                   onChange={(event) => setValues((c) => ({ ...c, title: event.target.value }))}
                 />
               </Field>
-              <Field
-                id="quote-valid"
-                label="Valid until"
-                error={errors.validUntil}
-                hint="After this date the client can no longer accept it."
-              >
-                {editable ? (
-                  <DatePicker
-                    id="quote-valid"
-                    value={values.validUntil}
-                    onChange={(value) => setValues((c) => ({ ...c, validUntil: value }))}
-                    clearable
-                  />
-                ) : (
-                  <p className="text-sm">
-                    {quote.validUntil ? formatDate(quote.validUntil) : "No end date"}
-                  </p>
-                )}
-              </Field>
               <Field id="quote-intro" label="Introduction" error={errors.intro}>
                 <Textarea
                   id="quote-intro"
@@ -665,41 +644,11 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                   onChange={(event) => setValues((c) => ({ ...c, intro: event.target.value }))}
                 />
               </Field>
-              <div className="grid gap-4 sm:grid-cols-[10rem_1fr]">
-                <Field
-                  id="quote-deposit"
-                  label="Deposit (%)"
-                  error={errors.depositPct}
-                  hint="Due when it is accepted."
-                >
-                  <Input
-                    id="quote-deposit"
-                    inputMode="numeric"
-                    value={editable ? values.depositPct : String(quote.depositPct)}
-                    readOnly={!editable}
-                    aria-invalid={!!errors.depositPct}
-                    onChange={(event) =>
-                      setValues((c) => ({ ...c, depositPct: event.target.value }))
-                    }
-                  />
-                </Field>
-                <Field id="quote-payment" label="Payment terms" error={errors.paymentTerms}>
-                  <Textarea
-                    id="quote-payment"
-                    rows={2}
-                    value={editable ? values.paymentTerms : (quote.paymentTerms ?? "")}
-                    readOnly={!editable}
-                    onChange={(event) =>
-                      setValues((c) => ({ ...c, paymentTerms: event.target.value }))
-                    }
-                  />
-                </Field>
-              </div>
               <Field
                 id="quote-terms"
                 label="Terms"
                 error={errors.terms}
-                hint="Payment, what is included, how long it is valid."
+                hint="What is included, and anything else the client should know."
               >
                 <Textarea
                   id="quote-terms"
@@ -707,6 +656,107 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                   value={editable ? values.terms : (quote.terms ?? "")}
                   readOnly={!editable}
                   onChange={(event) => setValues((c) => ({ ...c, terms: event.target.value }))}
+                />
+              </Field>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment and validity</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div
+                className={`grid items-start gap-4 ${editable ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
+              >
+                <Field
+                  id="quote-valid"
+                  label="Valid until"
+                  error={errors.validUntil}
+                  hint="After this date the client can no longer accept it."
+                >
+                  {editable ? (
+                    <DatePicker
+                      id="quote-valid"
+                      value={values.validUntil}
+                      onChange={(value) => setValues((c) => ({ ...c, validUntil: value }))}
+                      clearable
+                    />
+                  ) : (
+                    <Input
+                      id="quote-valid"
+                      readOnly
+                      value={quote.validUntil ? formatDate(quote.validUntil) : "No end date"}
+                    />
+                  )}
+                </Field>
+                {editable && (
+                  <Field id="quote-valid-for" label="Or valid for" hint="Counted from today.">
+                    <Select
+                      value=""
+                      onValueChange={(days) =>
+                        days &&
+                        setValues((c) => ({
+                          ...c,
+                          validUntil: addDays(manilaDate(new Date()), Number(days)),
+                        }))
+                      }
+                    >
+                      <SelectTrigger id="quote-valid-for" className="w-full">
+                        <SelectValue placeholder="Pick a length…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VALID_FOR_DAYS.map((days) => (
+                          <SelectItem key={days} value={String(days)}>
+                            {days} days
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+                <Field
+                  id="quote-deposit"
+                  label="Deposit (%)"
+                  error={errors.depositPct}
+                  hint="Due when it is accepted."
+                >
+                  {editable ? (
+                    <PresetSelect
+                      id="quote-deposit"
+                      label="Deposit"
+                      value={values.depositPct}
+                      options={DEPOSITS}
+                      onChange={(value) => setValues((c) => ({ ...c, depositPct: value }))}
+                    />
+                  ) : (
+                    <Input id="quote-deposit" readOnly value={`${quote.depositPct}%`} />
+                  )}
+                </Field>
+              </div>
+              <Field id="quote-payment" label="Payment terms" error={errors.paymentTerms}>
+                {editable && (
+                  <Select value="" onValueChange={(index) => index && applyWording(String(index))}>
+                    <SelectTrigger aria-label="Use a standard wording" className="w-full">
+                      <SelectValue placeholder="Use a standard wording…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_WORDINGS.map(({ name }, index) => (
+                        <SelectItem key={name} value={String(index)}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Textarea
+                  id="quote-payment"
+                  rows={3}
+                  value={editable ? values.paymentTerms : (quote.paymentTerms ?? "")}
+                  readOnly={!editable}
+                  onChange={(event) =>
+                    setValues((c) => ({ ...c, paymentTerms: event.target.value }))
+                  }
                 />
               </Field>
             </CardContent>
@@ -812,6 +862,18 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={pendingWording !== null}
+        onOpenChange={(open) => !open && setPendingWording(null)}
+        title="Replace the payment terms?"
+        description={`What is written in the payment terms now will be replaced with "${pendingWording?.name ?? ""}". You can still edit it afterwards.`}
+        confirmLabel="Replace"
+        onConfirm={() => {
+          if (pendingWording) setValues((c) => ({ ...c, paymentTerms: pendingWording.text }));
+          setPendingWording(null);
+        }}
+      />
 
       <ConfirmDialog
         open={sending}

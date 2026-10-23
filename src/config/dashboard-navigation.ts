@@ -3,6 +3,7 @@ import {
   CalendarDays,
   FileSignature,
   PackageOpen,
+  ListPlus,
   Workflow,
   Contact,
   FileText,
@@ -206,6 +207,13 @@ export const navGroups: NavGroup[] = [
         icon: Workflow,
         permission: "pipelines:manage",
         keywords: ["stages", "funnel", "probability", "sales process"],
+      },
+      {
+        href: "/dashboard/crm/custom-fields",
+        label: "Custom fields",
+        icon: ListPlus,
+        permission: "customfields:manage",
+        keywords: ["fields", "extra", "properties", "attributes", "form"],
       },
       {
         href: "/dashboard/crm/schedule",

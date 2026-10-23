@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Banknote } from "lucide-react";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
-import { Button } from "@/components/dashboard/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
+import { BillActions } from "@/features/finance/components/bill-actions";
 import { BillEditor } from "@/features/finance/components/bill-editor";
-import { BillPaymentDialog } from "@/features/finance/components/bill-payment-dialog";
+import { VoidBillPaymentButton } from "@/features/finance/components/bill-void-buttons";
 import { BillStateBadge } from "@/features/finance/components/bills-table";
+import { DueHint } from "@/features/finance/components/due-hint";
 import {
-  VoidBillButton,
-  VoidBillPaymentButton,
-} from "@/features/finance/components/bill-void-buttons";
+  ActivityTimeline,
+  DocumentSummary,
+  type ActivityItem,
+} from "@/features/finance/components/document-summary";
+import { Money } from "@/features/finance/components/money";
 import { PAYMENT_METHOD_LABEL } from "@/features/finance/invoicing";
 import { getBill, listVendors } from "@/features/finance/payable-repository";
 import { listPostableAccounts } from "@/features/finance/repository";
@@ -49,6 +51,32 @@ export default async function BillPage({ params }: { params: Promise<{ id: strin
   const payFrom = accounts.filter((account) => account.type === "asset");
   const hasPayments = bill.payments.some((payment) => payment.status === "recorded");
 
+  const history: ActivityItem[] = [
+    { at: bill.createdAt, text: "Draft started" },
+    ...(bill.approvedAt
+      ? [{ at: bill.approvedAt, text: `Approved as ${bill.number}`, tone: "success" as const }]
+      : []),
+    ...bill.payments.map((payment) => ({
+      at: payment.paidDate,
+      text:
+        payment.status === "void"
+          ? `Payment ${payment.number} was voided`
+          : `Payment ${payment.number} of ${formatMinor(payment.amountMinor + payment.whtMinor)} made`,
+      detail: `${PAYMENT_METHOD_LABEL[payment.method]} from ${payment.paidFromName}`,
+      tone: payment.status === "void" ? ("danger" as const) : ("success" as const),
+    })),
+    ...(bill.voidedAt
+      ? [
+          {
+            at: bill.voidedAt,
+            text: "Voided",
+            detail: bill.voidReason,
+            tone: "danger" as const,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <>
       <BackLink href="/dashboard/finance/bills">Bills</BackLink>
@@ -64,26 +92,24 @@ export default async function BillPage({ params }: { params: Promise<{ id: strin
           </p>
         </div>
         {isApproved && (
-          <div className="flex flex-wrap gap-2">
-            {canPay && bill.balanceMinor > 0 && (
-              <BillPaymentDialog
-                billId={bill.id}
-                number={bill.number as string}
-                vendorName={bill.vendorName}
-                balanceMinor={bill.balanceMinor}
-                accounts={payFrom}
-                today={today}
-                trigger={
-                  <Button>
-                    <Banknote aria-hidden="true" /> Record payment
-                  </Button>
-                }
-              />
-            )}
-            {canApprove && !hasPayments && (
-              <VoidBillButton id={bill.id} number={bill.number as string} />
-            )}
-          </div>
+          <BillActions
+            bill={{
+              id: bill.id,
+              number: bill.number as string,
+              vendorName: bill.vendorName,
+              balanceMinor: bill.balanceMinor,
+            }}
+            accounts={payFrom.map((account) => ({
+              id: account.id,
+              code: account.code,
+              name: account.name,
+              systemKey: account.systemKey,
+            }))}
+            today={today}
+            canPay={canPay}
+            canApprove={canApprove}
+            hasPayments={hasPayments}
+          />
         )}
       </div>
 
@@ -106,127 +132,131 @@ export default async function BillPage({ params }: { params: Promise<{ id: strin
           <p className="text-muted-foreground text-sm">This bill is still a draft.</p>
         )
       ) : (
-        <div className="grid gap-4">
+        <>
           {bill.status === "void" && (
-            <Card>
+            <Card className="mb-4">
               <CardContent className="text-sm">
                 Voided {bill.voidedAt ? formatDate(bill.voidedAt) : ""}: {bill.voidReason}
               </CardContent>
             </Card>
           )}
 
-          <Card>
-            <CardContent className="grid gap-4 text-sm sm:grid-cols-4">
-              <div>
-                <p className="text-muted-foreground text-xs">Bill date</p>
-                <p>{formatDate(bill.billDate)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Due</p>
-                <p>{formatDate(bill.dueDate)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Total</p>
-                <p className="tabular-nums">{formatMinor(bill.totalMinor)}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-xs">Still owed</p>
-                <p className="font-semibold tabular-nums">
-                  {formatMinor(isApproved ? bill.balanceMinor : 0)}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <DocumentSummary
+            label={bill.state === "paid" ? "Paid in full" : "Still to pay"}
+            amountMinor={isApproved ? bill.balanceMinor : 0}
+            hint={
+              <DueHint
+                dueDate={bill.dueDate}
+                today={today}
+                owing={isApproved && bill.balanceMinor > 0}
+              />
+            }
+            facts={[
+              { label: "Bill date", value: formatDate(bill.billDate) },
+              { label: "Due", value: formatDate(bill.dueDate) },
+              { label: "Total", value: <Money minor={bill.totalMinor} /> },
+              { label: "Paid so far", value: <Money minor={bill.paidMinor} /> },
+            ]}
+          />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>What it was for</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ul className="divide-y">
-                {bill.lines.map((line) => (
-                  <li
-                    key={line.id}
-                    className="grid gap-1 px-4 py-3 text-sm sm:grid-cols-[1fr_14rem_9rem] sm:gap-3"
-                  >
-                    <span>{line.description}</span>
-                    <span className="text-muted-foreground">
-                      {line.accountCode} {line.accountName}
-                    </span>
-                    <span className="tabular-nums sm:text-right">
-                      {formatMinor(line.amountMinor)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Payments</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {bill.payments.length === 0 ? (
-                <p className="text-muted-foreground px-4 py-3 text-sm">Nothing paid yet.</p>
-              ) : (
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>What it was for</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="text-muted-foreground hidden grid-cols-[1fr_14rem_9rem] gap-3 border-b px-4 py-2 text-xs font-medium tracking-wide uppercase sm:grid">
+                  <span>Description</span>
+                  <span>Booked to</span>
+                  <span className="text-right">Amount</span>
+                </div>
                 <ul className="divide-y">
-                  {bill.payments.map((payment) => (
+                  {bill.lines.map((line) => (
                     <li
-                      key={payment.id}
-                      className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
+                      key={line.id}
+                      className="grid gap-1 px-4 py-3 text-sm sm:grid-cols-[1fr_14rem_9rem] sm:gap-3"
                     >
-                      <div className="min-w-0">
-                        <p className="font-medium">
-                          {payment.number} · {formatDate(payment.paidDate)}
-                          {payment.status === "void" && (
-                            <StatusBadge tone="neutral" className="ml-2">
-                              Void
-                            </StatusBadge>
-                          )}
-                        </p>
-                        <p className="text-muted-foreground text-xs">
-                          {PAYMENT_METHOD_LABEL[payment.method]} from {payment.paidFromName}
-                          {payment.reference && ` · ${payment.reference}`}
-                          {payment.whtMinor > 0 &&
-                            ` · ${formatMinor(payment.whtMinor)} tax held back`}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="tabular-nums">{formatMinor(payment.amountMinor)}</span>
-                        {canPay && payment.status === "recorded" && (
-                          <VoidBillPaymentButton id={payment.id} number={payment.number} />
-                        )}
-                      </div>
+                      <span>{line.description}</span>
+                      <span className="text-muted-foreground">
+                        {line.accountCode} {line.accountName}
+                      </span>
+                      <span className="sm:text-right">
+                        <Money minor={line.amountMinor} />
+                      </span>
                     </li>
                   ))}
                 </ul>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {bill.notes && (
             <Card>
               <CardHeader>
-                <CardTitle>Notes</CardTitle>
+                <CardTitle>Payments</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm whitespace-pre-line">{bill.notes}</CardContent>
+              <CardContent className="p-0">
+                {bill.payments.length === 0 ? (
+                  <p className="text-muted-foreground px-4 py-3 text-sm">Nothing paid yet.</p>
+                ) : (
+                  <ul className="divide-y">
+                    {bill.payments.map((payment) => (
+                      <li
+                        key={payment.id}
+                        className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-medium">
+                            {payment.number} · {formatDate(payment.paidDate)}
+                            {payment.status === "void" && (
+                              <StatusBadge tone="neutral" className="ml-2">
+                                Void
+                              </StatusBadge>
+                            )}
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            {PAYMENT_METHOD_LABEL[payment.method]} from {payment.paidFromName}
+                            {payment.reference && ` · ${payment.reference}`}
+                            {payment.whtMinor > 0 &&
+                              ` · ${formatMinor(payment.whtMinor)} tax held back`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Money minor={payment.amountMinor} />
+                          {canPay && payment.status === "recorded" && (
+                            <VoidBillPaymentButton id={payment.id} number={payment.number} />
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
             </Card>
-          )}
 
-          {bill.journalEntryId && (
-            <p className="text-muted-foreground text-sm">
-              Posted to the books as{" "}
-              <Link
-                className="underline underline-offset-4"
-                href={`/dashboard/finance/journal/${bill.journalEntryId}`}
-              >
-                a journal entry
-              </Link>
-              .
-            </p>
-          )}
-        </div>
+            {bill.notes && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notes</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm whitespace-pre-line">{bill.notes}</CardContent>
+              </Card>
+            )}
+
+            <ActivityTimeline items={history} />
+
+            {bill.journalEntryId && (
+              <p className="text-muted-foreground text-sm">
+                Posted to the books as{" "}
+                <Link
+                  className="underline underline-offset-4"
+                  href={`/dashboard/finance/journal/${bill.journalEntryId}`}
+                >
+                  a journal entry
+                </Link>
+                .
+              </p>
+            )}
+          </div>
+        </>
       )}
     </>
   );

@@ -8,10 +8,10 @@ import { ResourceTable } from "@/components/dashboard/data-table/resource-table"
 import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { formatDate } from "@/lib/format";
-import { formatMinor } from "@/lib/money";
 import type { Page } from "@/lib/pagination";
 import { JOURNAL_SOURCES, JOURNAL_SOURCE_LABEL, JOURNAL_TABLE } from "../table";
 import type { JournalRow } from "../types";
+import { Money } from "./money";
 
 const columns: Column<JournalRow>[] = [
   {
@@ -53,7 +53,8 @@ const columns: Column<JournalRow>[] = [
   {
     id: "amount",
     header: "Amount",
-    cell: (entry) => <span className="tabular-nums">{formatMinor(entry.totalMinor)}</span>,
+    align: "right",
+    cell: (entry) => <Money minor={entry.totalMinor} />,
   },
   {
     id: "by",

@@ -159,3 +159,12 @@ export async function getTracker(
     obligations,
   };
 }
+
+/**
+ * Whether a tax year is one the business actually traded in: it had receipts, or a return was
+ * recorded. A year with neither (the year before the books were started, say) is not chased for
+ * returns that were never the books' to file.
+ */
+export const isLiveYear = (tracker: Tracker | null): tracker is Tracker =>
+  tracker !== null &&
+  (tracker.grossToDateMinor > 0 || tracker.obligations.some((item) => item.filing !== undefined));

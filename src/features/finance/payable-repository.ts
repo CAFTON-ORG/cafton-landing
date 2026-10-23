@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
+import { EMPTY_TOTAL, addTo, type StateTotal } from "./display";
 import { agingBucket, type PaymentMethod } from "./invoicing";
 import type {
   BillDetail,
@@ -136,12 +137,22 @@ export async function listBills(params: TableParams, today: string): Promise<Pag
           : { createdAt: dir };
 
   // Where a bill stands depends on payments, so a state filter is applied after reading them.
-  if (state === "open" || state === "partial" || state === "overdue" || state === "paid") {
+  if (
+    state === "open" ||
+    state === "partial" ||
+    state === "overdue" ||
+    state === "paid" ||
+    (state as string) === "awaiting"
+  ) {
     const all = await prisma.bill.findMany({ where, orderBy, take: 2000 });
     const paid = await paidAmounts(all.map((row) => row.id));
     const rows = all
       .map((row) => toRow(row, paid.get(row.id) ?? 0, today))
-      .filter((row) => row.state === state);
+      .filter((row) =>
+        (state as string) === "awaiting"
+          ? row.state === "open" || row.state === "partial"
+          : row.state === state,
+      );
     const base = paginate(rows, params.page, params.pageSize);
     return {
       ...base,
@@ -280,4 +291,49 @@ export async function payablesAging(today: string): Promise<PayableAgingRow[]> {
     byVendor.set(bill.vendorId, row);
   }
   return [...byVendor.values()].sort((a, b) => b.totalMinor - a.totalMinor);
+}
+
+export interface BillSummary {
+  awaiting: StateTotal;
+  overdue: StateTotal;
+  /** Approved and due within the next 7 days. */
+  dueSoon: StateTotal;
+  draft: StateTotal;
+  counts: Record<"all" | "draft" | "awaiting" | "overdue" | "paid" | "void", number>;
+}
+
+/** The headline numbers above the bill list, and how many bills each tab holds. */
+export async function billSummary(today: string): Promise<BillSummary> {
+  const empty: BillSummary = {
+    awaiting: EMPTY_TOTAL,
+    overdue: EMPTY_TOTAL,
+    dueSoon: EMPTY_TOTAL,
+    draft: EMPTY_TOTAL,
+    counts: { all: 0, draft: 0, awaiting: 0, overdue: 0, paid: 0, void: 0 },
+  };
+  if (!isDatabaseConfigured) return empty;
+  const rows = await prisma.bill.findMany({ take: 5000 });
+  const paid = await paidAmounts(
+    rows.filter((row) => row.status === "approved").map((row) => row.id),
+  );
+  const week = new Date(`${today}T00:00:00Z`).getTime() + 7 * 86_400_000;
+  const out = { ...empty, counts: { ...empty.counts } };
+  for (const row of rows) {
+    const view = toRow(row, paid.get(row.id) ?? 0, today);
+    out.counts.all += 1;
+    if (view.state === "draft") {
+      out.counts.draft += 1;
+      out.draft = addTo(out.draft, view.totalMinor);
+    } else if (view.state === "void") out.counts.void += 1;
+    else if (view.state === "paid") out.counts.paid += 1;
+    else {
+      out.counts.awaiting += 1;
+      out.awaiting = addTo(out.awaiting, view.balanceMinor);
+      if (view.state === "overdue") {
+        out.counts.overdue += 1;
+        out.overdue = addTo(out.overdue, view.balanceMinor);
+      } else if (row.dueDate.getTime() <= week) out.dueSoon = addTo(out.dueSoon, view.balanceMinor);
+    }
+  }
+  return out;
 }

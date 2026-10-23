@@ -33,7 +33,16 @@ export const JOURNAL_TABLE: TableParamsConfig = {
   defaultSort: { sort: "date", dir: "desc" },
 };
 
-export const INVOICE_STATES = ["draft", "open", "partial", "overdue", "paid", "void"] as const;
+/** "awaiting" is what is still owed (open or part paid); the others are filed under their own name. */
+export const INVOICE_STATES = [
+  "draft",
+  "awaiting",
+  "open",
+  "partial",
+  "overdue",
+  "paid",
+  "void",
+] as const;
 
 /** URL-driven state of the invoice list. */
 export const INVOICE_TABLE: TableParamsConfig = {
@@ -42,7 +51,15 @@ export const INVOICE_TABLE: TableParamsConfig = {
   defaultSort: { sort: "created", dir: "desc" },
 };
 
-export const BILL_STATES = ["draft", "open", "partial", "overdue", "paid", "void"] as const;
+export const BILL_STATES = [
+  "draft",
+  "awaiting",
+  "open",
+  "partial",
+  "overdue",
+  "paid",
+  "void",
+] as const;
 
 /** URL-driven state of the bill list. */
 export const BILL_TABLE: TableParamsConfig = {

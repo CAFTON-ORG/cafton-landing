@@ -122,6 +122,7 @@ async function dealWithAcceptedQuote(options: { email?: boolean } = {}) {
     terms: "",
     paymentTerms: "Bank transfer.",
     depositPct: 50,
+    taxRatePct: 12, // this test works with a VAT quote; a new quote starts without VAT
     validUntil: inDays(30),
     lines: [
       {

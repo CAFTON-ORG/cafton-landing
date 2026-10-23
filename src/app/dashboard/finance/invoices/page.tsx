@@ -6,8 +6,12 @@ import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { Button } from "@/components/dashboard/ui/button";
 import { InvoicesTable } from "@/features/finance/components/invoices-table";
 import { NewInvoiceDialog } from "@/features/finance/components/new-invoice-dialog";
+import { StatusTabs } from "@/features/finance/components/status-tabs";
+import { SummaryStrip, plural } from "@/features/finance/components/summary-strip";
 import {
+  invoiceSummary,
   listBillableMilestones,
+  listBillableTime,
   listInvoiceableQuotes,
   listInvoices,
 } from "@/features/finance/invoice-repository";
@@ -26,12 +30,15 @@ export default async function InvoicesPage({
   const staff = await requirePageAccess("invoices:view");
   if (!staff) return <AccessDenied area="invoices" />;
 
+  const today = manilaDate(new Date());
   const params = parseTableParams(searchParamsFromRecord(await searchParams), INVOICE_TABLE);
   const canCreate = can(staff, "invoices:create");
-  const [page, quotes, milestones] = await Promise.all([
-    listInvoices(params, manilaDate(new Date())),
+  const [page, summary, quotes, milestones, time] = await Promise.all([
+    listInvoices(params, today),
+    invoiceSummary(today),
     canCreate ? listInvoiceableQuotes() : [],
     canCreate ? listBillableMilestones() : [],
+    canCreate ? listBillableTime() : [],
   ]);
 
   return (
@@ -44,6 +51,8 @@ export default async function InvoicesPage({
             <NewInvoiceDialog
               quotes={quotes}
               milestones={milestones}
+              time={time}
+              today={today}
               trigger={
                 <Button>
                   <Plus aria-hidden="true" /> New invoice
@@ -53,7 +62,49 @@ export default async function InvoicesPage({
           ) : undefined
         }
       />
-      <InvoicesTable page={page} />
+      <SummaryStrip
+        items={[
+          {
+            label: "Overdue",
+            amountMinor: summary.overdue.amountMinor,
+            detail: plural(summary.overdue.count, "invoice"),
+            href: "/dashboard/finance/invoices?state=overdue",
+            tone: summary.overdue.count > 0 ? "danger" : "neutral",
+          },
+          {
+            label: "Awaiting payment",
+            amountMinor: summary.awaiting.amountMinor,
+            detail: plural(summary.awaiting.count, "invoice"),
+            href: "/dashboard/finance/invoices?state=awaiting",
+          },
+          {
+            label: "Paid in the last 30 days",
+            amountMinor: summary.paidRecently.amountMinor,
+            detail: plural(summary.paidRecently.count, "invoice"),
+            href: "/dashboard/finance/invoices?state=paid",
+            tone: "success",
+          },
+          {
+            label: "Drafts",
+            amountMinor: summary.draft.amountMinor,
+            detail: plural(summary.draft.count, "invoice"),
+            href: "/dashboard/finance/invoices?state=draft",
+          },
+        ]}
+      />
+      <StatusTabs
+        param="state"
+        label="Invoice status"
+        tabs={[
+          { value: "", label: "All", count: summary.counts.all },
+          { value: "draft", label: "Draft", count: summary.counts.draft },
+          { value: "awaiting", label: "Awaiting payment", count: summary.counts.awaiting },
+          { value: "overdue", label: "Overdue", count: summary.counts.overdue },
+          { value: "paid", label: "Paid", count: summary.counts.paid },
+          { value: "void", label: "Void", count: summary.counts.void },
+        ]}
+      />
+      <InvoicesTable page={page} today={today} />
     </>
   );
 }

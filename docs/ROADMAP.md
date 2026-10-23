@@ -138,7 +138,7 @@ Confirmed: base currency PHP (₱); fiscal year January to December; registered 
 - [x] Reports from the ledger: profit and loss, balance sheet, cash flow, trial balance, tax summary, with AR and AP aging; CSV and PDF export (ADR 0020)
 - [ ] Tests: ledger always balances, closed periods immutable, rounding rules
 - [x] Income tax tracker for the 8% option: the quarterly and annual returns, estimates, filings recorded and posted, deadline reminders (ADR 0021)
-- [ ] Invoicing from approved time (needs a billing rate on the project)
+- [x] Invoicing from approved time, at a rate that is set once and overridden where needed (ADR 0022); new quotes start without VAT unless the business is VAT-registered; the finance screens follow accounting-package conventions (ADR 0022)
 - Done when: books balance and reports reconcile to the ledger for seeded scenarios.
 
 ## Phase 7 - HR and payroll

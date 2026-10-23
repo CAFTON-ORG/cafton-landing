@@ -65,7 +65,8 @@ model Profile {
   /// Takes a turn at new website enquiries (round-robin). Off until someone is chosen under Users.
   takesLeads    Boolean  @default(false) @map("takes_leads")
 
-  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  role         Role          @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  billingRates BillingRate[]
 
   @@map("profiles")
 }
@@ -1047,6 +1048,7 @@ model Project {
   deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
   deal         Deal?           @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  billingRates BillingRate[]
   quote        Quote?          @relation(fields: [quoteId], references: [id], onDelete: SetNull)
   contact      Contact?        @relation(fields: [contactId], references: [id], onDelete: SetNull)
   organization Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
@@ -1812,4 +1814,39 @@ model TaxFiling {
 
   @@index([taxYear])
   @@map("tax_filings")
+}
+
+/// The finance settings of the business: always one row. Whether it is VAT-registered decides the
+/// tax new quotes start with; the rest are the usual payment terms and billing rate.
+model FinanceSettings {
+  id                     Int      @id @default(1)
+  vatRegistered          Boolean  @default(false) @map("vat_registered")
+  vatRatePct             Int      @default(12) @map("vat_rate_pct")
+  paymentTermsDays       Int      @default(15) @map("payment_terms_days")
+  paymentInstructions    String?  @map("payment_instructions")
+  /// Used when no more specific rate is set.
+  defaultHourlyRateMinor BigInt?  @map("default_hourly_rate_minor")
+  updatedBy              String?  @map("updated_by") @db.Uuid
+  updatedAt              DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("finance_settings")
+}
+
+/// An hourly rate for approved time: for a person on a project (most specific), a project, or a
+/// person. The default rate in the settings covers the rest. (One rate per combination: a unique
+/// index in the migration.)
+model BillingRate {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId       String?  @map("profile_id") @db.Uuid
+  projectId       String?  @map("project_id") @db.Uuid
+  hourlyRateMinor BigInt   @map("hourly_rate_minor")
+  updatedBy       String?  @map("updated_by") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  profile Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("billing_rates")
 }

@@ -117,6 +117,8 @@ const body = (lines: ReturnType<typeof line>[], over: Record<string, unknown> = 
   terms: "Pay 50% to start.",
   paymentTerms: "",
   depositPct: 50,
+  // These tests work with a VAT quote; a new quote itself starts without VAT (see "quote tax").
+  taxRatePct: 12,
   validUntil: inDays(30),
   lines,
   ...over,
@@ -522,5 +524,63 @@ describe("business rules around a quote", () => {
     await db.exec(`ALTER TABLE quotes ENABLE TRIGGER USER`);
     expect(await server_.expireDueQuotes()).toBeGreaterThanOrEqual(1);
     expect((await prisma.quote.findUniqueOrThrow({ where: { id } })).status).toBe("expired");
+  });
+});
+
+describe("quote tax", () => {
+  it("starts without VAT for a business that is not VAT-registered, and with its VAT once it is", async () => {
+    const settings = await import("@/features/finance/actions/settings");
+    const first = await makeDeal();
+    const plain = (await quotes.createQuote(first.id)) as { data: { id: string } };
+    expect(
+      (await prisma.quote.findUniqueOrThrow({ where: { id: plain.data.id } })).taxRatePct,
+    ).toBe(0);
+
+    expect(
+      (
+        await settings.saveFinanceSettings({
+          vatRegistered: true,
+          vatRatePct: 12,
+          paymentTermsDays: 15,
+          defaultHourlyRate: "",
+        })
+      ).ok,
+    ).toBe(true);
+    const second = await makeDeal();
+    const taxed = (await quotes.createQuote(second.id)) as { data: { id: string } };
+    expect(
+      (await prisma.quote.findUniqueOrThrow({ where: { id: taxed.data.id } })).taxRatePct,
+    ).toBe(12);
+    await settings.saveFinanceSettings({
+      vatRegistered: false,
+      vatRatePct: 12,
+      paymentTermsDays: 15,
+      defaultHourlyRate: "",
+    });
+  });
+
+  it("can be switched between no VAT and VAT while it is a draft, and the totals follow", async () => {
+    const deal = await makeDeal();
+    const made = (await quotes.createQuote(deal.id)) as { data: { id: string } };
+    const withVat = await quotes.saveQuote(
+      made.data.id,
+      body([line("10,000")], { taxRatePct: 12 }),
+    );
+    expect(withVat.ok).toBe(true);
+    let row = await prisma.quote.findUniqueOrThrow({ where: { id: made.data.id } });
+    expect([row.taxRatePct, Number(row.taxMinor), Number(row.totalMinor)]).toEqual([
+      12, 120_000, 1_120_000,
+    ]);
+
+    await quotes.saveQuote(made.data.id, body([line("10,000")], { taxRatePct: 0 }));
+    row = await prisma.quote.findUniqueOrThrow({ where: { id: made.data.id } });
+    expect([row.taxRatePct, Number(row.taxMinor), Number(row.totalMinor)]).toEqual([
+      0, 0, 1_000_000,
+    ]);
+
+    // Saved without a tax choice, it keeps the one it has.
+    await quotes.saveQuote(made.data.id, { ...body([line("10,000")]), taxRatePct: undefined });
+    row = await prisma.quote.findUniqueOrThrow({ where: { id: made.data.id } });
+    expect(row.taxRatePct).toBe(0);
   });
 });

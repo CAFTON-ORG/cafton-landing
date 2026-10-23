@@ -5,7 +5,7 @@ import { manilaDate } from "@/features/schedule/slots";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { formatDate } from "@/lib/format";
-import { getTracker } from "./tax-repository";
+import { getTracker, isLiveYear } from "./tax-repository";
 
 /**
  * The daily job: tells the people who record filings when a return is due within two weeks, and
@@ -18,7 +18,7 @@ export async function notifyTaxDeadlines(today = manilaDate(new Date())): Promis
   let sent = 0;
   for (const taxYear of [year - 1, year]) {
     const tracker = await getTracker(taxYear, today);
-    if (!tracker) continue;
+    if (!isLiveYear(tracker)) continue;
     for (const item of tracker.obligations) {
       if (item.status !== "due_soon" && item.status !== "overdue") continue;
       const { obligation } = item;

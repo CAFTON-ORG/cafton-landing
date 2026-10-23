@@ -13,6 +13,10 @@ import {
   type InvoiceStatus,
   type PaymentMethod,
 } from "./invoicing";
+import { resolveRate } from "./billing";
+import { EMPTY_TOTAL, addTo, type StateTotal } from "./display";
+import type { BillableTimeProject } from "./invoice-repository-types";
+import { getFinanceSettings, listBillingRates, rateSourcesFor } from "./settings-repository";
 import type {
   AgingRow,
   BillableMilestone,
@@ -126,13 +130,21 @@ export async function listInvoices(params: TableParams, today: string): Promise<
 
   // Where an invoice stands depends on payments, so a state filter is applied after reading them.
   const needsState =
-    state === "open" || state === "partial" || state === "overdue" || state === "paid";
+    state === "open" ||
+    state === "partial" ||
+    state === "overdue" ||
+    state === "paid" ||
+    (state as string) === "awaiting";
   if (needsState) {
     const all = await prisma.invoice.findMany({ where, include, orderBy, take: 2000 });
     const stand = await standings(all.map((row) => row.id));
     const rows = all
       .map((row) => toRow(row, stand.get(row.id)!, today))
-      .filter((row) => row.state === state);
+      .filter((row) =>
+        (state as string) === "awaiting"
+          ? row.state === "open" || row.state === "partial"
+          : row.state === state,
+      );
     const base = paginate(rows, params.page, params.pageSize);
     return {
       ...base,
@@ -371,4 +383,115 @@ export async function listInvoiceableQuotes(): Promise<
       `${row.deal.contact.firstName} ${row.deal.contact.lastName}`.trim(),
     totalMinor: num(row.totalMinor),
   }));
+}
+
+/** Projects with approved, billable time nobody has invoiced yet, and what each person's hour would bill at. */
+export async function listBillableTime(): Promise<BillableTimeProject[]> {
+  if (!isDatabaseConfigured) return [];
+  const entries = await prisma.timeEntry.findMany({
+    where: {
+      status: "approved",
+      billable: true,
+      invoiceLineId: null,
+      project: { deletedAt: null },
+    },
+    select: { projectId: true, profileId: true, minutes: true, workDate: true },
+    take: 10_000,
+  });
+  if (entries.length === 0) return [];
+  const [projects, people, rates, settings] = await Promise.all([
+    prisma.project.findMany({
+      where: { id: { in: [...new Set(entries.map((e) => e.projectId))] } },
+      select: { id: true, name: true },
+    }),
+    prisma.profile.findMany({
+      where: { id: { in: [...new Set(entries.map((e) => e.profileId))] } },
+      select: { id: true, fullName: true, email: true },
+    }),
+    listBillingRates(),
+    getFinanceSettings(),
+  ]);
+  const byProject = new Map<string, BillableTimeProject>();
+  for (const entry of entries) {
+    const project = projects.find((p) => p.id === entry.projectId);
+    if (!project) continue;
+    const row =
+      byProject.get(project.id) ??
+      ({
+        projectId: project.id,
+        projectName: project.name,
+        minutes: 0,
+        latestDate: "",
+        people: [],
+      } as BillableTimeProject);
+    row.minutes += entry.minutes;
+    const date = day(entry.workDate) as string;
+    if (date > row.latestDate) row.latestDate = date;
+    let person = row.people.find((p) => p.profileId === entry.profileId);
+    if (!person) {
+      const profile = people.find((p) => p.id === entry.profileId);
+      const rate = resolveRate(
+        rateSourcesFor(rates, settings.defaultHourlyRateMinor, project.id, entry.profileId),
+      );
+      person = {
+        profileId: entry.profileId,
+        name: profile?.fullName ?? profile?.email ?? "Someone",
+        minutes: 0,
+        rateMinor: rate?.rateMinor ?? null,
+        source: rate?.source ?? null,
+      };
+      row.people.push(person);
+    }
+    person.minutes += entry.minutes;
+    byProject.set(project.id, row);
+  }
+  return [...byProject.values()].sort((a, b) => a.projectName.localeCompare(b.projectName));
+}
+
+export interface InvoiceSummary {
+  /** Issued invoices still owed on, as of today. */
+  awaiting: StateTotal;
+  overdue: StateTotal;
+  /** Paid in full, over the last 30 days of issue dates. */
+  paidRecently: StateTotal;
+  draft: StateTotal;
+  counts: Record<"all" | "draft" | "awaiting" | "overdue" | "paid" | "void", number>;
+}
+
+/** The headline numbers above the invoice list, and how many invoices each tab holds. */
+export async function invoiceSummary(today: string): Promise<InvoiceSummary> {
+  const empty: InvoiceSummary = {
+    awaiting: EMPTY_TOTAL,
+    overdue: EMPTY_TOTAL,
+    paidRecently: EMPTY_TOTAL,
+    draft: EMPTY_TOTAL,
+    counts: { all: 0, draft: 0, awaiting: 0, overdue: 0, paid: 0, void: 0 },
+  };
+  if (!isDatabaseConfigured) return empty;
+  const rows = await prisma.invoice.findMany({ include, take: 5000 });
+  const stand = await standings(rows.filter((row) => row.status === "issued").map((row) => row.id));
+  const recent = new Date(`${today}T00:00:00Z`).getTime() - 30 * 86_400_000;
+  const out = { ...empty, counts: { ...empty.counts } };
+  for (const row of rows) {
+    const view = toRow(row, stand.get(row.id) ?? { settledMinor: 0, creditedMinor: 0 }, today);
+    out.counts.all += 1;
+    if (view.state === "draft") {
+      out.counts.draft += 1;
+      out.draft = addTo(out.draft, view.totalMinor);
+    } else if (view.state === "void") out.counts.void += 1;
+    else if (view.state === "paid") {
+      out.counts.paid += 1;
+      if (row.issueDate && row.issueDate.getTime() >= recent)
+        out.paidRecently = addTo(out.paidRecently, view.totalMinor);
+    } else {
+      // open, partly paid or overdue: all of it is awaiting payment, and the late part is overdue too.
+      out.counts.awaiting += 1;
+      out.awaiting = addTo(out.awaiting, view.balanceMinor);
+      if (view.state === "overdue") {
+        out.counts.overdue += 1;
+        out.overdue = addTo(out.overdue, view.balanceMinor);
+      }
+    }
+  }
+  return out;
 }

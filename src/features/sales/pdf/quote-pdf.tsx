@@ -264,10 +264,12 @@ export function QuoteDocument({
             <P>Subtotal</P>
             <P>{money(quote.subtotalMinor, currency)}</P>
           </View>
-          <View style={styles.totalRow}>
-            <P>VAT ({quote.taxRatePct}%)</P>
-            <P>{money(quote.taxMinor, currency)}</P>
-          </View>
+          {quote.taxRatePct > 0 && (
+            <View style={styles.totalRow}>
+              <P>VAT ({quote.taxRatePct}%)</P>
+              <P>{money(quote.taxMinor, currency)}</P>
+            </View>
+          )}
           <View style={styles.grand}>
             <P>Total</P>
             <P>{money(quote.totalMinor, currency)}</P>

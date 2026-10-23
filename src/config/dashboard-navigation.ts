@@ -292,6 +292,57 @@ export const navGroups: NavGroup[] = [
     ],
   },
   {
+    label: "Finance",
+    items: [
+      {
+        href: "/dashboard/finance",
+        label: "Overview",
+        icon: LayoutDashboard,
+        permission: "finance:view",
+        keywords: ["dashboard", "cash", "profit", "what needs attention", "summary"],
+      },
+      {
+        href: "/dashboard/finance/reports",
+        label: "Reports",
+        icon: ChartColumn,
+        permission: "finance:view",
+        keywords: [
+          "profit and loss",
+          "p&l",
+          "balance sheet",
+          "cash flow",
+          "trial balance",
+          "export",
+          "tax summary",
+        ],
+      },
+      {
+        href: "/dashboard/finance/bank",
+        label: "Bank",
+        icon: Landmark,
+        permission: "bank:view",
+        keywords: ["statement", "reconcile", "reconciliation", "import csv", "bpi", "bdo", "gcash"],
+      },
+      {
+        href: "/dashboard/finance/taxes",
+        label: "Income tax",
+        icon: Landmark,
+        permission: "finance:view",
+        keywords: [
+          "8%",
+          "1701q",
+          "1701a",
+          "bir",
+          "quarterly",
+          "filing",
+          "withholding",
+          "2307",
+          "deadline",
+        ],
+      },
+    ],
+  },
+  {
     label: "Income",
     items: [
       {
@@ -361,28 +412,6 @@ export const navGroups: NavGroup[] = [
     label: "Books",
     items: [
       {
-        href: "/dashboard/finance/reports",
-        label: "Reports",
-        icon: ChartColumn,
-        permission: "finance:view",
-        keywords: [
-          "profit and loss",
-          "p&l",
-          "balance sheet",
-          "cash flow",
-          "trial balance",
-          "export",
-          "tax summary",
-        ],
-      },
-      {
-        href: "/dashboard/finance/bank",
-        label: "Bank",
-        icon: Landmark,
-        permission: "bank:view",
-        keywords: ["statement", "reconcile", "reconciliation", "import csv", "bpi", "bdo", "gcash"],
-      },
-      {
         href: "/dashboard/finance/accounts",
         label: "Chart of accounts",
         icon: BookOpen,
@@ -404,28 +433,18 @@ export const navGroups: NavGroup[] = [
         keywords: ["close the month", "lock", "year end", "months"],
       },
       {
-        href: "/dashboard/finance/taxes",
-        label: "Income tax",
-        icon: Landmark,
-        permission: "finance:view",
-        keywords: [
-          "8%",
-          "1701q",
-          "1701a",
-          "bir",
-          "quarterly",
-          "filing",
-          "withholding",
-          "2307",
-          "deadline",
-        ],
-      },
-      {
         href: "/dashboard/finance/tax",
         label: "Tax rates",
         icon: Percent,
         permission: "finance:view",
         keywords: ["vat", "withholding", "8%", "bir"],
+      },
+      {
+        href: "/dashboard/finance/settings",
+        label: "Finance settings",
+        icon: SlidersHorizontal,
+        permission: "finance:view",
+        keywords: ["vat", "payment terms", "hourly rate", "billing rate", "quote tax"],
       },
     ],
   },
@@ -470,6 +489,7 @@ export const navItems = navGroups.flatMap((group) => leavesOf(group.items));
 /** Labels for breadcrumb segments that are not a nav item of their own. */
 export const segmentLabels: Record<string, string> = {
   dashboard: "Overview",
+  finance: "Finance",
   crm: "CRM",
   sales: "Sales",
   content: "Website",

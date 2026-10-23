@@ -15,6 +15,8 @@ import { parseMinor } from "@/lib/money";
 import { nextDocumentNumber } from "../documents";
 import { sendInvoiceEmail } from "../emails";
 import { getInvoice } from "../invoice-repository";
+import { buildTimeLines, resolveRate } from "../billing";
+import { getFinanceSettings, rateSourcesFor, type BillingRateView } from "../settings-repository";
 import {
   creditNoteSchema,
   invoiceSchema,
@@ -27,7 +29,6 @@ import {
   type PaymentInput,
 } from "../invoice-schemas";
 import {
-  DEFAULT_TERMS_DAYS,
   balanceOf,
   checkCreditNote,
   checkDraft,
@@ -118,8 +119,10 @@ export async function createInvoice(input: NewInvoiceInput): Promise<ActionResul
   return runAction(async () => {
     const actor = await guard("invoices:create");
     const data = parse(newInvoiceSchema, input);
+    const settings = await getFinanceSettings();
     const issue = today();
-    const due = addDays(issue, DEFAULT_TERMS_DAYS);
+    const due = addDays(issue, settings.paymentTermsDays);
+    const instructions = settings.paymentInstructions || null;
 
     const id = await prisma.$transaction(async (tx) => {
       let invoiceId: string;
@@ -144,6 +147,7 @@ export async function createInvoice(input: NewInvoiceInput): Promise<ActionResul
             contactId: contact?.id ?? null,
             issueDate: date(issue),
             dueDate: date(due),
+            paymentInstructions: instructions,
             createdBy: actorId(actor),
           },
         });
@@ -205,12 +209,13 @@ export async function createInvoice(input: NewInvoiceInput): Promise<ActionResul
             taxMinor: totals.taxMinor,
             totalMinor: totals.totalMinor,
             notes: quote.paymentTerms ?? null,
+            paymentInstructions: instructions,
             createdBy: actorId(actor),
             lines: { create: lines.map((line, position) => ({ ...line, position })) },
           },
         });
         invoiceId = created.id;
-      } else {
+      } else if (data.source === "milestones") {
         const milestones = await tx.milestone.findMany({
           where: { id: { in: data.milestoneIds } },
           include: { project: { include: { organization: true, contact: true } } },
@@ -261,6 +266,7 @@ export async function createInvoice(input: NewInvoiceInput): Promise<ActionResul
             dueDate: date(due),
             subtotalMinor: total,
             totalMinor: total,
+            paymentInstructions: instructions,
             createdBy: actorId(actor),
             lines: { create: lines },
           },
@@ -271,6 +277,114 @@ export async function createInvoice(input: NewInvoiceInput): Promise<ActionResul
             where: { id: milestone.id },
             data: { invoiceLineId: created.lines[index].id },
           });
+        }
+        invoiceId = created.id;
+      } else {
+        const project = await tx.project.findFirst({
+          where: { id: data.projectId, ...live },
+          include: { organization: true, contact: true },
+        });
+        if (!project) throw new ActionError("That project no longer exists.");
+        const upTo = data.upTo ?? issue;
+        const entries = await tx.timeEntry.findMany({
+          where: {
+            projectId: project.id,
+            status: "approved",
+            billable: true,
+            invoiceLineId: null,
+            workDate: { lte: date(upTo) as Date },
+          },
+          orderBy: [{ workDate: "asc" }, { createdAt: "asc" }],
+        });
+        if (entries.length === 0) {
+          throw new ActionError(
+            "There is no approved, billable time on that project that hasn't been invoiced.",
+            "rule",
+          );
+        }
+        const [people, rateRows] = await Promise.all([
+          tx.profile.findMany({
+            where: { id: { in: [...new Set(entries.map((entry) => entry.profileId))] } },
+            select: { id: true, fullName: true, email: true },
+          }),
+          tx.billingRate.findMany(),
+        ]);
+        const rates: BillingRateView[] = rateRows.map((row) => ({
+          id: row.id,
+          profileId: row.profileId ?? undefined,
+          projectId: row.projectId ?? undefined,
+          hourlyRateMinor: Number(row.hourlyRateMinor),
+        }));
+        const built = buildTimeLines({
+          projectName: project.name,
+          entries: entries.map((entry) => {
+            const person = people.find((item) => item.id === entry.profileId);
+            return {
+              id: entry.id,
+              profileId: entry.profileId,
+              personName: person?.fullName ?? person?.email ?? "Someone",
+              minutes: entry.minutes,
+              workDate: iso(entry.workDate) as string,
+            };
+          }),
+          rateFor: (profileId) =>
+            resolveRate(
+              rateSourcesFor(rates, settings.defaultHourlyRateMinor, project.id, profileId),
+            ),
+        });
+        if (built.missing.length > 0) {
+          const names = built.missing.map((person) => person.personName).join(", ");
+          throw new ActionError(
+            `No hourly rate is set for ${names}. Set a standard rate, or one for them, under Finance settings.`,
+            "rule",
+          );
+        }
+        if (built.lines.length === 0) {
+          throw new ActionError("That time is too short to bill.", "rule");
+        }
+        const total = built.lines.reduce((sum, line) => sum + line.amountMinor, 0);
+        const created = await tx.invoice.create({
+          data: {
+            clientName:
+              project.organization?.name ??
+              (project.contact ? fullName(project.contact) : project.name),
+            clientEmail: project.contact?.email || null,
+            clientAddress: project.organization?.address ?? null,
+            organizationId: project.organizationId,
+            contactId: project.contactId,
+            dealId: project.dealId,
+            projectId: project.id,
+            issueDate: date(issue),
+            dueDate: date(due),
+            subtotalMinor: total,
+            totalMinor: total,
+            paymentInstructions: instructions,
+            createdBy: actorId(actor),
+            lines: {
+              create: built.lines.map((line, position) => ({
+                position,
+                description: line.description,
+                quantityMilli: line.quantityMilli,
+                unitLabel: "hour",
+                unitPriceMinor: line.unitPriceMinor,
+                amountMinor: line.amountMinor,
+                taxable: false,
+              })),
+            },
+          },
+          include: { lines: { orderBy: { position: "asc" } } },
+        });
+        for (const [index, line] of built.lines.entries()) {
+          const linked = await tx.timeEntry.updateMany({
+            where: { id: { in: line.entryIds }, invoiceLineId: null },
+            data: { invoiceLineId: created.lines[index].id },
+          });
+          if (linked.count !== line.entryIds.length) {
+            throw new ActionError(
+              "Some of that time was just invoiced somewhere else. Try again.",
+              "rule",
+            );
+          }
         }
         invoiceId = created.id;
       }
@@ -322,7 +436,7 @@ export async function saveInvoice(input: InvoiceInput): Promise<ActionResult> {
     await prisma.$transaction(async (tx) => {
       const invoice = await tx.invoice.findUnique({
         where: { id: data.id },
-        include: { lines: { select: { id: true, milestone: { select: { id: true } } } } },
+        include: { lines: { select: { id: true } } },
       });
       if (!invoice) throw new ActionError("That invoice no longer exists.");
       if (invoice.status !== "draft")
@@ -338,35 +452,26 @@ export async function saveInvoice(input: InvoiceInput): Promise<ActionResult> {
       }));
       const totals = invoiceTotals(priced, rateBp);
 
-      // Lines that bill a milestone keep their milestone; removing one releases it (the database clears the link).
-      const keep = new Map(
-        invoice.lines.filter((line) => line.milestone).map((line) => [line.milestone!.id, line.id]),
-      );
-      void keep;
-      await tx.invoiceLine.deleteMany({ where: { invoiceId: invoice.id } });
-      const milestoneByPosition = invoice.lines.map((line) => line.milestone?.id ?? null);
-      const created = await Promise.all(
-        priced.map((line, position) =>
-          tx.invoiceLine.create({
-            data: {
-              invoiceId: invoice.id,
-              position,
-              description: line.description.trim(),
-              quantityMilli: line.quantityMilli,
-              unitLabel: line.unitLabel || "item",
-              unitPriceMinor: line.unitPriceMinor,
-              amountMinor: line.amountMinor,
-              taxable: line.taxable,
-            },
-          }),
-        ),
-      );
-      // A milestone line stays a milestone line when its position still holds the same milestone.
-      for (const [position, milestoneId] of milestoneByPosition.entries()) {
-        if (milestoneId && created[position]) {
-          await tx.milestone
-            .update({ where: { id: milestoneId }, data: { invoiceLineId: created[position].id } })
-            .catch(() => undefined);
+      // A line that is already on the draft is updated in place, so what it bills (a milestone, a
+      // batch of time) stays with it. A line that was taken off releases what it billed (the
+      // database clears the link), and a new line is simply added.
+      const existing = new Set(invoice.lines.map((line) => line.id));
+      const kept = priced.flatMap((line) => (line.id && existing.has(line.id) ? [line.id] : []));
+      await tx.invoiceLine.deleteMany({ where: { invoiceId: invoice.id, id: { notIn: kept } } });
+      for (const [position, line] of priced.entries()) {
+        const fields = {
+          position,
+          description: line.description.trim(),
+          quantityMilli: line.quantityMilli,
+          unitLabel: line.unitLabel || "item",
+          unitPriceMinor: line.unitPriceMinor,
+          amountMinor: line.amountMinor,
+          taxable: line.taxable,
+        };
+        if (line.id && existing.has(line.id)) {
+          await tx.invoiceLine.update({ where: { id: line.id }, data: fields });
+        } else {
+          await tx.invoiceLine.create({ data: { invoiceId: invoice.id, ...fields } });
         }
       }
       await tx.invoice.update({
@@ -537,8 +642,13 @@ export async function voidInvoice(input: { id: string; reason: string }): Promis
         },
       });
       // What it billed becomes billable again.
+      const billed = invoice.lines.map((line) => line.id);
       await tx.milestone.updateMany({
-        where: { invoiceLineId: { in: invoice.lines.map((line) => line.id) } },
+        where: { invoiceLineId: { in: billed } },
+        data: { invoiceLineId: null },
+      });
+      await tx.timeEntry.updateMany({
+        where: { invoiceLineId: { in: billed } },
         data: { invoiceLineId: null },
       });
       await recordAudit(

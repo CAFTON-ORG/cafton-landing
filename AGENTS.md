@@ -54,6 +54,15 @@ src/
   the card carrying the same button. A **panel on a record** (quotes, team, tasks) is a card whose
   header holds the title and its small outline "Add ..." button.
 
+- **Finance screens** read like an accounting package. A list opens with a summary strip (what is owed,
+  late, paid), then status tabs with counts, then the table. Amounts always go through `Money` in a
+  right-aligned column (a negative in parentheses and red), and a due date carries a `DueHint` ("12
+  days overdue"). A document page (invoice, bill, expense) opens with `DocumentSummary` (the amount
+  owed, how late, the key facts), shows the one main next step as a button, puts everything else under
+  `MoreActions` (a dialog opened from that menu is controlled and rendered outside it, because the menu
+  takes its children away when it closes), and ends with a `History` timeline. Finance records are
+  voided with a reason, never deleted.
+
 ## Commands
 
 `npm run dev` · `npm run verify` (format, lint, typecheck, unit and integration tests, build)

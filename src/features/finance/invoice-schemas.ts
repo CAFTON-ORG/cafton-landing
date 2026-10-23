@@ -39,6 +39,8 @@ export const invoiceSchema = z.object({
   lines: z
     .array(
       z.object({
+        /** The line's id when it is already on the draft, so what it bills (a milestone, time) stays with it. */
+        id: id.optional(),
         description: z.string().max(2000),
         /** Like "1" or "1.5". */
         quantity: z.string().trim().max(12).default("1"),
@@ -61,6 +63,17 @@ export const newInvoiceSchema = z.discriminatedUnion("source", [
   }),
   z.object({ source: z.literal("quote"), quoteId: id }),
   z.object({ source: z.literal("milestones"), milestoneIds: z.array(id).min(1).max(50) }),
+  z.object({
+    source: z.literal("time"),
+    projectId: id,
+    /** Approved time worked up to and including this day (yyyy-mm-dd); left out, up to today. */
+    upTo: z
+      .string()
+      .trim()
+      .max(10)
+      .optional()
+      .transform((value) => value || null),
+  }),
 ]);
 export type NewInvoiceInput = z.input<typeof newInvoiceSchema>;
 

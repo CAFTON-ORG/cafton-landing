@@ -136,3 +136,48 @@ export async function getExpense(id: string): Promise<ExpenseDetail | null> {
     receipts,
   };
 }
+
+export interface ExpenseSummary {
+  waiting: { count: number; amountMinor: number };
+  /** Approved so far this month (by the date of the expense). */
+  approvedThisMonth: { count: number; amountMinor: number };
+  sentBack: { count: number; amountMinor: number };
+  counts: Record<"all" | "submitted" | "approved" | "rejected" | "void", number>;
+}
+
+/** The headline numbers above the expense list, for the expenses this person may see. */
+export async function expenseSummary(
+  scope: { actorId: string; viewAll: boolean },
+  today: string,
+): Promise<ExpenseSummary> {
+  const out: ExpenseSummary = {
+    waiting: { count: 0, amountMinor: 0 },
+    approvedThisMonth: { count: 0, amountMinor: 0 },
+    sentBack: { count: 0, amountMinor: 0 },
+    counts: { all: 0, submitted: 0, approved: 0, rejected: 0, void: 0 },
+  };
+  if (!isDatabaseConfigured) return out;
+  const rows = await prisma.expense.findMany({
+    where: scope.viewAll ? {} : { submittedBy: scope.actorId },
+    select: { status: true, amountMinor: true, expenseDate: true },
+    take: 10_000,
+  });
+  const monthStart = `${today.slice(0, 7)}-01`;
+  for (const row of rows) {
+    const status = row.status as ExpenseStatus;
+    const amount = Number(row.amountMinor);
+    out.counts.all += 1;
+    out.counts[status] += 1;
+    if (status === "submitted") {
+      out.waiting.count += 1;
+      out.waiting.amountMinor += amount;
+    } else if (status === "rejected") {
+      out.sentBack.count += 1;
+      out.sentBack.amountMinor += amount;
+    } else if (status === "approved" && day(row.expenseDate)! >= monthStart) {
+      out.approvedThisMonth.count += 1;
+      out.approvedThisMonth.amountMinor += amount;
+    }
+  }
+  return out;
+}

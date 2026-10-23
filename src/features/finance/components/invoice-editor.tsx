@@ -28,6 +28,8 @@ import { MAX_LINES, invoiceTotals, lineAmount } from "../invoicing";
 import type { TaxRateView } from "../types";
 
 interface Line {
+  /** The id of a line already on the draft; absent for one just added. */
+  id?: string;
   description: string;
   quantity: string;
   unitLabel: string;
@@ -58,6 +60,7 @@ export function InvoiceEditor({
   const [instructions, setInstructions] = useState(invoice.paymentInstructions ?? "");
   const [lines, setLines] = useState<Line[]>(
     invoice.lines.map((line) => ({
+      id: line.id,
       description: line.description,
       quantity: quantityText(line.quantityMilli),
       unitLabel: line.unitLabel,

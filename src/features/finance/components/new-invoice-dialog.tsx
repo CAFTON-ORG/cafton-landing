@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
+import { DatePicker } from "@/components/dashboard/shared/date-picker";
 import { Field } from "@/components/dashboard/shared/field";
 import { Button } from "@/components/dashboard/ui/button";
 import { Checkbox } from "@/components/dashboard/ui/checkbox";
@@ -27,9 +29,11 @@ import {
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatMinor } from "@/lib/money";
 import { createInvoice } from "../actions/invoices";
+import { RATE_SOURCE_LABEL, billableMilli, hoursText } from "../billing";
+import type { BillableTimeProject } from "../invoice-repository-types";
 import type { BillableMilestone } from "../invoice-types";
 
-type Source = "quote" | "milestones" | "blank";
+type Source = "quote" | "milestones" | "time" | "blank";
 
 export interface InvoiceableQuote {
   id: string;
@@ -42,6 +46,7 @@ export interface InvoiceableQuote {
 const SOURCE_LABEL: Record<Source, string> = {
   quote: "An accepted quote",
   milestones: "Finished milestones",
+  time: "Approved time",
   blank: "A blank invoice",
 };
 
@@ -49,10 +54,15 @@ const SOURCE_LABEL: Record<Source, string> = {
 export function NewInvoiceDialog({
   quotes,
   milestones,
+  time = [],
+  today,
   trigger,
 }: {
   quotes: InvoiceableQuote[];
   milestones: BillableMilestone[];
+  /** Projects with approved time nobody has invoiced yet. */
+  time?: BillableTimeProject[];
+  today: string;
   trigger: ReactNode;
 }) {
   const router = useRouter();
@@ -62,16 +72,22 @@ export function NewInvoiceDialog({
   const [quoteId, setQuoteId] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
   const [clientName, setClientName] = useState("");
+  const [timeProjectId, setTimeProjectId] = useState("");
+  const [upTo, setUpTo] = useState(today);
   const [error, setError] = useState("");
 
   const projectId = milestones.find((milestone) => milestone.id === picked[0])?.projectId;
   const quote = quotes.find((item) => item.id === quoteId);
+  const timeProject = time.find((item) => item.projectId === timeProjectId);
+  const missingRate = timeProject?.people.some((person) => person.rateMinor === null) ?? false;
   const ready =
     source === "quote"
       ? !!quoteId
       : source === "milestones"
         ? picked.length > 0
-        : !!clientName.trim();
+        : source === "time"
+          ? !!timeProjectId && !missingRate
+          : !!clientName.trim();
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -83,7 +99,9 @@ export function NewInvoiceDialog({
             ? { source, quoteId }
             : source === "milestones"
               ? { source, milestoneIds: picked }
-              : { source, clientName },
+              : source === "time"
+                ? { source, projectId: timeProjectId, upTo }
+                : { source, clientName },
         ),
       {
         success: "Draft started.",
@@ -110,6 +128,8 @@ export function NewInvoiceDialog({
           setQuoteId("");
           setPicked([]);
           setClientName("");
+          setTimeProjectId("");
+          setUpTo(today);
           setError("");
         }
       }}
@@ -202,6 +222,86 @@ export function NewInvoiceDialog({
                 })}
                 {error && <p className="text-destructive text-sm">{error}</p>}
               </fieldset>
+            )}
+
+            {source === "time" && (
+              <>
+                <Field id="invoice-project" label="Project" required error={error}>
+                  {time.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">
+                      No approved, billable time is waiting to be invoiced. Time shows up here once
+                      a timesheet is approved.
+                    </p>
+                  ) : (
+                    <Select
+                      value={timeProjectId}
+                      onValueChange={(next) => setTimeProjectId(String(next))}
+                    >
+                      <SelectTrigger id="invoice-project" className="w-full">
+                        <SelectValue placeholder="Choose a project">
+                          {timeProject?.projectName}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {time.map((item) => (
+                          <SelectItem key={item.projectId} value={item.projectId}>
+                            {item.projectName} · {hoursText(billableMilli(item.minutes))} h
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </Field>
+                {timeProject && (
+                  <>
+                    <Field
+                      id="invoice-upto"
+                      label="Time worked up to"
+                      hint="Time after this day waits for the next invoice."
+                    >
+                      <DatePicker id="invoice-upto" value={upTo} onChange={setUpTo} />
+                    </Field>
+                    <ul className="divide-y rounded-lg border text-sm">
+                      {timeProject.people.map((person) => (
+                        <li
+                          key={person.profileId}
+                          className="flex flex-wrap items-center justify-between gap-2 px-3 py-2"
+                        >
+                          <span className="min-w-0">
+                            <span className="font-medium">{person.name}</span>
+                            <span className="text-muted-foreground block text-xs">
+                              {hoursText(billableMilli(person.minutes))} h
+                              {person.source
+                                ? " · " + RATE_SOURCE_LABEL[person.source].toLowerCase()
+                                : ""}
+                            </span>
+                          </span>
+                          <span className="tabular-nums">
+                            {person.rateMinor === null ? (
+                              <span className="text-destructive">No rate set</span>
+                            ) : (
+                              formatMinor(person.rateMinor) + " an hour"
+                            )}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {missingRate && (
+                      <p role="alert" className="text-destructive text-sm">
+                        Set a rate for everyone listed before invoicing this time: a standard rate,
+                        or one for the person or the project, under{" "}
+                        <Link
+                          className="underline underline-offset-4"
+                          href="/dashboard/finance/settings"
+                        >
+                          Finance settings
+                        </Link>
+                        .
+                      </p>
+                    )}
+                  </>
+                )}
+              </>
             )}
 
             {source === "blank" && (

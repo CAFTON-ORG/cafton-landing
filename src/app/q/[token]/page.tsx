@@ -133,10 +133,12 @@ export default async function PublicQuotePage({ params }: { params: Promise<{ to
               <dt>Subtotal</dt>
               <dd className="tabular-nums">{formatMinor(quote.subtotalMinor, quote.currency)}</dd>
             </div>
-            <div className="flex justify-between">
-              <dt>VAT ({quote.taxRatePct}%)</dt>
-              <dd className="tabular-nums">{formatMinor(quote.taxMinor, quote.currency)}</dd>
-            </div>
+            {quote.taxRatePct > 0 && (
+              <div className="flex justify-between">
+                <dt>VAT ({quote.taxRatePct}%)</dt>
+                <dd className="tabular-nums">{formatMinor(quote.taxMinor, quote.currency)}</dd>
+              </div>
+            )}
             <div className="flex justify-between border-t pt-1 text-base font-semibold">
               <dt>Total</dt>
               <dd className="tabular-nums">{formatMinor(quote.totalMinor, quote.currency)}</dd>

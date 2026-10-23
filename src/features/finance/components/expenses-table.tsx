@@ -8,11 +8,11 @@ import { ResourceTable } from "@/components/dashboard/data-table/resource-table"
 import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { StatusBadge, type StatusTone } from "@/components/dashboard/shared/status-badge";
 import { formatDate } from "@/lib/format";
-import { formatMinor } from "@/lib/money";
 import type { Page } from "@/lib/pagination";
 import type { ExpenseRow } from "../expense-types";
-import { EXPENSE_STATUS_LABEL, EXPENSE_STATUSES, type ExpenseStatus } from "../expenses";
+import { EXPENSE_STATUS_LABEL, type ExpenseStatus } from "../expenses";
 import { EXPENSE_TABLE } from "../table";
+import { Money } from "./money";
 
 const TONE: Record<ExpenseStatus, StatusTone> = {
   submitted: "warning",
@@ -74,7 +74,8 @@ const columns: Column<ExpenseRow>[] = [
     id: "amount",
     header: "Amount",
     sortable: true,
-    cell: (expense) => <span className="tabular-nums">{formatMinor(expense.amountMinor)}</span>,
+    align: "right",
+    cell: (expense) => <Money minor={expense.amountMinor} />,
   },
 ];
 
@@ -89,17 +90,6 @@ export function ExpensesTable({ page }: { page: Page<ExpenseRow> }) {
       caption="Expenses"
       searchLabel="Search expenses"
       searchPlaceholder="Search by what it was for, who was paid or who submitted it…"
-      filters={[
-        {
-          id: "status",
-          label: "Status",
-          allLabel: "Any status",
-          options: EXPENSE_STATUSES.map((status) => ({
-            value: status,
-            label: EXPENSE_STATUS_LABEL[status],
-          })),
-        },
-      ]}
       emptyIcon={Receipt}
       emptyTitle="No expenses yet"
       emptyDescription="Paid for something for the business? Submit it with the receipt and it is approved into the books."

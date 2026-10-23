@@ -71,6 +71,8 @@ export const quoteSchema = z.object({
   paymentTerms: optionalText(2000),
   /** Percent of the total due when the quote is accepted. */
   depositPct: z.coerce.number().int().min(0, "0 to 100.").max(100, "0 to 100."),
+  /** VAT added to the lines marked VAT; 0 for a quote with none. Left out, the quote keeps its own. */
+  taxRatePct: z.coerce.number().int().min(0, "0 to 100.").max(100, "0 to 100.").optional(),
   /** yyyy-mm-dd, or empty for no end date. */
   validUntil: z
     .string()

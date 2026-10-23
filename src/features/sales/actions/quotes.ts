@@ -8,6 +8,8 @@ import { live } from "@/features/crm/mappers";
 import { notify, staffIdsWith } from "@/features/notifications/server";
 import { addDays, manilaDate } from "@/features/schedule/slots";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
+import { defaultQuoteTaxPct } from "@/features/finance/settings";
+import { getFinanceSettings } from "@/features/finance/settings-repository";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { formatMinor } from "@/lib/money";
@@ -17,7 +19,6 @@ import { lineTotal, quoteTotals } from "../pricing";
 import { getPublicQuote } from "../repository";
 import {
   DEFAULT_DEPOSIT_PCT,
-  DEFAULT_TAX_RATE_PCT,
   DEFAULT_VALID_DAYS,
   LIVE_STATUSES,
   approvalReasons,
@@ -87,6 +88,8 @@ const maxDiscount = (lines: { discountPct: number }[]) =>
 export async function createQuote(dealId: string): Promise<ActionResult<{ id: string }>> {
   return runAction(async () => {
     const actor = await guard("quotes:create");
+    // Read before the transaction starts: a second query from inside it waits for another connection.
+    const startingTaxPct = defaultQuoteTaxPct(await getFinanceSettings());
     const id = await prisma.$transaction(async (tx) => {
       const deal = await tx.deal.findFirst({
         where: { id: dealId, ...live },
@@ -111,7 +114,8 @@ export async function createQuote(dealId: string): Promise<ActionResult<{ id: st
           paymentTerms: DEFAULT_PAYMENT_TERMS,
           depositPct: DEFAULT_DEPOSIT_PCT,
           currency: deal.currency,
-          taxRatePct: DEFAULT_TAX_RATE_PCT,
+          // A business that is not VAT-registered starts every quote without VAT.
+          taxRatePct: startingTaxPct,
           validUntil: new Date(addDays(manilaDate(new Date()), DEFAULT_VALID_DAYS)),
           createdBy: actorId(actor),
         },
@@ -154,7 +158,8 @@ export async function saveQuote(id: string, input: QuoteInput): Promise<ActionRe
         discountPct: line.discountPct,
         taxable: line.taxable,
       }));
-      const totals = quoteTotals(priced, quote.taxRatePct);
+      const taxRatePct = data.taxRatePct ?? quote.taxRatePct;
+      const totals = quoteTotals(priced, taxRatePct);
       const blocked = checkAmounts(totals.totalMinor, data.depositPct);
       if (blocked) throw new ActionError(blocked, "rule");
 
@@ -189,6 +194,7 @@ export async function saveQuote(id: string, input: QuoteInput): Promise<ActionRe
           terms: data.terms ?? null,
           paymentTerms: data.paymentTerms ?? null,
           depositPct: data.depositPct,
+          taxRatePct,
           validUntil: data.validUntil ? new Date(data.validUntil) : null,
           subtotalMinor: BigInt(totals.subtotalMinor),
           taxMinor: BigInt(totals.taxMinor),

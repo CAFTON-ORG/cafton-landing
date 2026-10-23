@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Ban, Check, Download, Paperclip, Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,82 +27,108 @@ import {
 } from "../actions/expenses";
 import type { ReceiptView } from "../expense-types";
 import { MAX_RECEIPTS, RECEIPT_ACCEPT } from "../expenses";
+import { MoreActions, type MoreItem } from "./more-actions";
 import { ReasonDialog } from "./reason-dialog";
 
-/** Approve, send back or void: what an approver can do with an expense. */
-export function ExpenseDecisionButtons({
+/**
+ * What can be done with an expense: the main next step is a visible button (approve for an
+ * approver; edit, passed in as `editor`, for whoever submitted it), sending it back sits beside it,
+ * and withdraw and void live in "More".
+ */
+export function ExpenseActions({
   id,
   number,
   status,
+  isApprover,
+  canWithdraw,
+  editor,
 }: {
   id: string;
   number?: string;
   status: "submitted" | "approved" | "rejected" | "void";
+  isApprover: boolean;
+  /** Whether this person may take the expense back (before it is approved). */
+  canWithdraw: boolean;
+  /** The edit button, when this person may edit. */
+  editor?: ReactNode;
 }) {
   const router = useRouter();
   const { run, pending } = useServerAction();
-  return (
-    <div className="flex flex-wrap gap-2">
-      {status === "submitted" && (
-        <>
-          <Button
-            disabled={pending}
-            onClick={() =>
-              run(() => approveExpense(id), {
-                success: (data) => `Approved ${data?.number ?? "the expense"}.`,
-                onSuccess: () => router.refresh(),
-              })
-            }
-          >
-            <Check aria-hidden="true" /> Approve
-          </Button>
-          <ReasonDialog
-            title="Send this expense back?"
-            description="The person who submitted it is told why, and can fix it and submit it again."
-            confirmLabel="Send back"
-            success="Sent back."
-            onConfirm={(reason) => rejectExpense({ id, reason })}
-            onDone={() => router.refresh()}
-            trigger={(open) => (
-              <Button variant="outline" onClick={open}>
-                <Undo2 aria-hidden="true" /> Send back
-              </Button>
-            )}
-          />
-        </>
-      )}
-      {status === "approved" && (
-        <ReasonDialog
-          title={`Void ${number}?`}
-          description={`${number} stays on record, marked void, and its posting is reversed in the books.`}
-          confirmLabel="Void expense"
-          success="Expense voided."
-          onConfirm={(reason) => voidExpense({ id, reason })}
-          onDone={() => router.refresh()}
-          trigger={(open) => (
-            <Button variant="outline" onClick={open}>
-              <Ban aria-hidden="true" /> Void
-            </Button>
-          )}
-        />
-      )}
-    </div>
-  );
-}
+  const [sendingBack, setSendingBack] = useState(false);
+  const [voiding, setVoiding] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
 
-/** Takes back an expense that has not been approved. */
-export function WithdrawExpenseButton({ id }: { id: string }) {
-  const router = useRouter();
-  const { run, pending } = useServerAction();
-  const [open, setOpen] = useState(false);
+  const items: MoreItem[] = [
+    ...(canWithdraw
+      ? [
+          {
+            kind: "action" as const,
+            label: "Withdraw",
+            icon: Trash2,
+            destructive: true,
+            onSelect: () => setWithdrawing(true),
+          },
+        ]
+      : []),
+    ...(isApprover && status === "approved"
+      ? [
+          {
+            kind: "action" as const,
+            label: "Void expense",
+            icon: Ban,
+            destructive: true,
+            onSelect: () => setVoiding(true),
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <>
-      <Button variant="outline" disabled={pending} onClick={() => setOpen(true)}>
-        <Trash2 aria-hidden="true" /> Withdraw
-      </Button>
+    <div className="flex flex-wrap items-center gap-2">
+      {isApprover && status === "submitted" && (
+        <Button
+          disabled={pending}
+          onClick={() =>
+            run(() => approveExpense(id), {
+              success: (data) => `Approved ${data?.number ?? "the expense"}.`,
+              onSuccess: () => router.refresh(),
+            })
+          }
+        >
+          <Check aria-hidden="true" /> Approve
+        </Button>
+      )}
+      {isApprover && status === "submitted" && (
+        <Button variant="outline" onClick={() => setSendingBack(true)}>
+          <Undo2 aria-hidden="true" /> Send back
+        </Button>
+      )}
+      {editor}
+      <MoreActions items={items} />
+
+      <ReasonDialog
+        open={sendingBack}
+        onOpenChange={setSendingBack}
+        title="Send this expense back?"
+        description="The person who submitted it is told why, and can fix it and submit it again."
+        confirmLabel="Send back"
+        success="Sent back."
+        onConfirm={(reason) => rejectExpense({ id, reason })}
+        onDone={() => router.refresh()}
+      />
+      <ReasonDialog
+        open={voiding}
+        onOpenChange={setVoiding}
+        title={`Void ${number}?`}
+        description={`${number} stays on record, marked void, and its posting is reversed in the books.`}
+        confirmLabel="Void expense"
+        success="Expense voided."
+        onConfirm={(reason) => voidExpense({ id, reason })}
+        onDone={() => router.refresh()}
+      />
       <ConfirmDialog
-        open={open}
-        onOpenChange={setOpen}
+        open={withdrawing}
+        onOpenChange={setWithdrawing}
         title="Withdraw this expense?"
         description="It is deleted along with its receipts. Nothing has been posted to the books yet."
         confirmLabel="Withdraw"
@@ -115,7 +141,7 @@ export function WithdrawExpenseButton({ id }: { id: string }) {
           })
         }
       />
-    </>
+    </div>
   );
 }
 

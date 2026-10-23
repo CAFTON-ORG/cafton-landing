@@ -30,9 +30,9 @@ import {
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
-import { formatMinor } from "@/lib/money";
 import { saveVendor, setVendorActive } from "../actions/payables";
 import type { BillAccount, VendorView } from "../payable-types";
+import { Money } from "./money";
 import { DEFAULT_VENDOR_TERMS_DAYS } from "../payables";
 
 interface Draft {
@@ -152,7 +152,9 @@ export function VendorsView({
                     </p>
                   </div>
                   <div className="text-right text-sm">
-                    <p className="tabular-nums">{formatMinor(vendor.owedMinor)}</p>
+                    <p>
+                      <Money minor={vendor.owedMinor} muteZero />
+                    </p>
                     <p className="text-muted-foreground text-xs">
                       {vendor.billCount} {vendor.billCount === 1 ? "bill" : "bills"}
                     </p>

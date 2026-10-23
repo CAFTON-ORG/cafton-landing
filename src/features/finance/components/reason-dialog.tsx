@@ -16,9 +16,15 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import type { ActionResult } from "@/lib/actions";
 
-/** A button that asks why before voiding something. Finance records are voided with a reason, never deleted. */
+/**
+ * A dialog that asks why before voiding or sending something back. Finance records are voided with a
+ * reason, never deleted. Give it a `trigger` and it opens itself, or control it with `open` (for a
+ * menu item, which can't hold the dialog: the menu closes and takes it away).
+ */
 export function ReasonDialog({
   trigger,
+  open: controlledOpen,
+  onOpenChange,
   title,
   description,
   confirmLabel,
@@ -26,7 +32,9 @@ export function ReasonDialog({
   onConfirm,
   onDone,
 }: {
-  trigger: (open: () => void) => ReactNode;
+  trigger?: (open: () => void) => ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   title: string;
   description: string;
   confirmLabel: string;
@@ -35,7 +43,9 @@ export function ReasonDialog({
   onDone: () => void;
 }) {
   const { run, pending } = useServerAction();
-  const [open, setOpen] = useState(false);
+  const [ownOpen, setOwnOpen] = useState(false);
+  const open = controlledOpen ?? ownOpen;
+  const setOpen = onOpenChange ?? setOwnOpen;
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
 
@@ -54,12 +64,22 @@ export function ReasonDialog({
 
   return (
     <>
-      {trigger(() => {
+      {trigger?.(() => {
         setReason("");
         setError("");
         setOpen(true);
       })}
-      <Dialog open={open} onOpenChange={(next) => !pending && setOpen(next)}>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (pending) return;
+          if (next) {
+            setReason("");
+            setError("");
+          }
+          setOpen(next);
+        }}
+      >
         <DialogContent>
           <form onSubmit={submit} noValidate className="grid gap-4">
             <DialogHeader>

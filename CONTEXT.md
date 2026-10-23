@@ -237,6 +237,12 @@ How the business pays income tax: 8% of gross receipts above 250,000 pesos a yea
 **Filing (tax)**:
 A record that a return was filed and what was paid. It is booked as income tax expense, against the cash paid and the withheld tax used, and is fixed once recorded; a mistake is voided.
 
+**Billing rate**:
+What an hour of approved time is billed at. The most specific one that is set wins: a person on a project, then a project, then a person, then the standard rate in the finance settings.
+
+**Finance settings**:
+Whether the business is VAT-registered (which decides the tax a new quote starts with), the usual payment terms and payment instructions for invoices, and the standard hourly rate.
+
 ## Money (from Phase 4)
 
 **Amount**:

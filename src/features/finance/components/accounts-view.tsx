@@ -30,10 +30,10 @@ import {
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
-import { formatMinor } from "@/lib/money";
 import { saveAccount, setAccountActive } from "../actions/books";
 import { ACCOUNT_TYPES, ACCOUNT_TYPE_LABEL, type AccountType } from "../rules";
 import type { AccountView } from "../types";
+import { Money } from "./money";
 
 interface Draft {
   id?: string;
@@ -149,8 +149,8 @@ export function AccountsView({ accounts }: { accounts: AccountView[] }) {
                             </p>
                           )}
                         </div>
-                        <span className="text-sm tabular-nums">
-                          {formatMinor(account.balanceMinor)}
+                        <span className="text-sm">
+                          <Money minor={account.balanceMinor} muteZero />
                         </span>
                         {canManage && (
                           <div className="flex gap-1">

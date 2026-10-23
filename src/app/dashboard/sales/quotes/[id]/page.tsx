@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { QuoteStatusBadge } from "@/features/sales/components/quote-status-badge";
+import { getFinanceSettings } from "@/features/finance/settings-repository";
 import { QuoteEditor } from "@/features/sales/components/quote-editor";
 import { getQuote, listCatalog } from "@/features/sales/repository";
 import { requirePageAccess } from "@/lib/auth/dal";
@@ -35,6 +36,7 @@ export default async function QuotePage({ params }: { params: Promise<{ id: stri
         key={`${quote.id}-${quote.status}-${quote.totalMinor}`}
         quote={quote}
         catalog={catalog}
+        vatRatePct={(await getFinanceSettings()).vatRatePct}
       />
     </>
   );

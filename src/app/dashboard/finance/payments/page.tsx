@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { Button } from "@/components/dashboard/ui/button";
 import { Card, CardContent } from "@/components/dashboard/ui/card";
+import { Money } from "@/features/finance/components/money";
 import { PaymentDialog } from "@/features/finance/components/payment-dialog";
 import { VoidPaymentButton } from "@/features/finance/components/void-buttons";
 import { listOpenInvoices, listPayments } from "@/features/finance/invoice-repository";
@@ -86,7 +87,7 @@ export default async function PaymentsPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="tabular-nums">{formatMinor(payment.amountMinor)}</span>
+                    <Money minor={payment.amountMinor} />
                     {canSettle && payment.status === "recorded" && (
                       <VoidPaymentButton id={payment.id} number={payment.number} />
                     )}

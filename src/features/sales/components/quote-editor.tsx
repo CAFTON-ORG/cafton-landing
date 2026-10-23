@@ -51,6 +51,7 @@ import {
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
+import { quoteTaxChoices } from "@/features/finance/settings";
 import { formatDate } from "@/lib/format";
 import { formatMinor, minorToInput, parseMinor } from "@/lib/money";
 import { addDays, manilaDate } from "@/features/schedule/slots";
@@ -127,7 +128,16 @@ function priced(line: LineState) {
  * other status shows the same page read-only, with the next step in the rail: submit, approve,
  * send, make a new version, download the PDF, copy the client's link.
  */
-export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: CatalogItemView[] }) {
+export function QuoteEditor({
+  quote,
+  catalog,
+  vatRatePct = 12,
+}: {
+  quote: QuoteView;
+  catalog: CatalogItemView[];
+  /** The VAT rate of the business, for the tax choice. */
+  vatRatePct?: number;
+}) {
   const router = useRouter();
   const { run, pending } = useServerAction();
   const canUpdate = useCan("quotes:update");
@@ -153,6 +163,7 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
       terms: quote.terms ?? "",
       paymentTerms: quote.paymentTerms ?? "",
       depositPct: String(quote.depositPct),
+      taxRatePct: String(quote.taxRatePct),
       validUntil: quote.validUntil ?? "",
       lines: fromQuote(quote),
     }),
@@ -182,12 +193,14 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
 
   const shown = editable ? values.lines.map(priced) : quote.lines;
   const totals = editable
-    ? quoteTotals(shown as ReturnType<typeof priced>[], quote.taxRatePct)
+    ? quoteTotals(shown as ReturnType<typeof priced>[], Number(values.taxRatePct) || 0)
     : {
         subtotalMinor: quote.subtotalMinor,
         taxMinor: quote.taxMinor,
         totalMinor: quote.totalMinor,
       };
+
+  const shownTaxPct = editable ? Number(values.taxRatePct) || 0 : quote.taxRatePct;
 
   function save() {
     setErrors({});
@@ -199,6 +212,7 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
           terms: values.terms,
           paymentTerms: values.paymentTerms,
           depositPct: Number(values.depositPct) || 0,
+          taxRatePct: Number(values.taxRatePct) || 0,
           validUntil: values.validUntil,
           lines: values.lines.map((line) => ({
             catalogItemId: line.catalogItemId || undefined,
@@ -438,8 +452,10 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
             <CardHeader>
               <CardTitle>Lines</CardTitle>
               <CardDescription>
-                Prices are in {quote.currency}. VAT of {quote.taxRatePct}% is added to the lines
-                marked VAT.
+                Prices are in {quote.currency}.{" "}
+                {shownTaxPct > 0
+                  ? `VAT of ${shownTaxPct}% is added to the lines marked VAT.`
+                  : "No VAT is charged on this quote."}
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-[minmax(0,1fr)] gap-3">
@@ -601,10 +617,14 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                       {formatMinor(totals.subtotalMinor, quote.currency)}
                     </dd>
                   </div>
-                  <div className="flex justify-between">
-                    <dt>VAT ({quote.taxRatePct}%)</dt>
-                    <dd className="tabular-nums">{formatMinor(totals.taxMinor, quote.currency)}</dd>
-                  </div>
+                  {shownTaxPct > 0 && (
+                    <div className="flex justify-between">
+                      <dt>VAT ({shownTaxPct}%)</dt>
+                      <dd className="tabular-nums">
+                        {formatMinor(totals.taxMinor, quote.currency)}
+                      </dd>
+                    </div>
+                  )}
                   <div className="flex justify-between border-t pt-1 text-base font-semibold">
                     <dt>Total</dt>
                     <dd className="tabular-nums">
@@ -715,6 +735,39 @@ export function QuoteEditor({ quote, catalog }: { quote: QuoteView; catalog: Cat
                     </Select>
                   </Field>
                 )}
+                <Field id="quote-tax" label="Tax" hint="Add VAT, or charge none.">
+                  {editable ? (
+                    <Select
+                      value={values.taxRatePct}
+                      onValueChange={(value) =>
+                        setValues((c) => ({ ...c, taxRatePct: String(value) }))
+                      }
+                    >
+                      <SelectTrigger id="quote-tax" className="w-full">
+                        <SelectValue>
+                          {(value: string) =>
+                            quoteTaxChoices(vatRatePct, quote.taxRatePct).find(
+                              (choice) => String(choice.pct) === value,
+                            )?.label ?? value
+                          }
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {quoteTaxChoices(vatRatePct, quote.taxRatePct).map((choice) => (
+                          <SelectItem key={choice.pct} value={String(choice.pct)}>
+                            {choice.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="quote-tax"
+                      readOnly
+                      value={quote.taxRatePct > 0 ? `VAT ${quote.taxRatePct}% added` : "No VAT"}
+                    />
+                  )}
+                </Field>
                 <Field
                   id="quote-deposit"
                   label="Deposit (%)"

@@ -42,6 +42,7 @@ let server: PGLiteSocketServer;
 let prisma: typeof import("@/lib/db").prisma;
 let actions: typeof import("./actions/invoices");
 let repo: typeof import("./invoice-repository");
+let settings: typeof import("./actions/settings");
 let books: typeof import("./repository");
 
 beforeAll(async () => {
@@ -64,6 +65,7 @@ beforeAll(async () => {
   ({ prisma } = await import("@/lib/db"));
   actions = await import("./actions/invoices");
   repo = await import("./invoice-repository");
+  settings = await import("./actions/settings");
   books = await import("./repository");
 }, 120_000);
 
@@ -422,6 +424,7 @@ describe("billing finished milestones", () => {
       dueDate: today(),
       lines: [
         {
+          id: invoice!.lines[0].id,
           description: "Design phase",
           quantity: "1",
           unitLabel: "milestone",
@@ -438,5 +441,206 @@ describe("billing finished milestones", () => {
     expect((await actions.issueInvoice(id)).ok).toBe(true);
     expect((await actions.voidInvoice({ id, reason: "Billed too early" })).ok).toBe(true);
     expect((await repo.listBillableMilestones()).some((item) => item.id === done.id)).toBe(true);
+  });
+});
+
+describe("a draft keeps what its lines bill", () => {
+  it("releases a milestone when its line is taken off the draft", async () => {
+    const project = await prisma.project.create({ data: { name: "Release test" } });
+    const milestone = await prisma.milestone.create({
+      data: {
+        projectId: project.id,
+        name: "Phase",
+        status: "done",
+        billable: true,
+        amountMinor: 100_000,
+      },
+    });
+    const created = await actions.createInvoice({
+      source: "milestones",
+      milestoneIds: [milestone.id],
+    });
+    const id = idOf(created);
+    const invoice = await repo.getInvoice(id, today());
+    // Saved with the line still there: the milestone stays on it.
+    await actions.saveInvoice({
+      id,
+      clientName: invoice!.clientName,
+      issueDate: today(),
+      dueDate: today(),
+      lines: [
+        {
+          id: invoice!.lines[0].id,
+          description: "Phase",
+          quantity: "1",
+          unitLabel: "milestone",
+          price: "1,000",
+          taxable: false,
+        },
+      ],
+    });
+    expect(
+      (await prisma.milestone.findUniqueOrThrow({ where: { id: milestone.id } })).invoiceLineId,
+    ).toBeTruthy();
+    // Saved with it taken off: the milestone can be billed again.
+    await actions.saveInvoice({
+      id,
+      clientName: invoice!.clientName,
+      issueDate: today(),
+      dueDate: today(),
+      lines: [line("50")],
+    });
+    expect(
+      (await prisma.milestone.findUniqueOrThrow({ where: { id: milestone.id } })).invoiceLineId,
+    ).toBeNull();
+  });
+});
+
+describe("billing approved time", () => {
+  const monday = (iso: string) => {
+    const d = new Date(`${iso}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+    return d;
+  };
+  const entry = (
+    projectId: string,
+    minutes: number,
+    daysAgo: number,
+    extra: Record<string, unknown> = {},
+  ) => {
+    const workDate = new Date(Date.parse(`${today()}T00:00:00Z`) - daysAgo * 86_400_000);
+    return prisma.timeEntry.create({
+      data: {
+        projectId,
+        profileId: OWNER.id,
+        workDate,
+        weekStart: monday(workDate.toISOString().slice(0, 10)),
+        minutes,
+        status: "approved",
+        billable: true,
+        ...extra,
+      },
+    });
+  };
+
+  it("won't invoice time until a rate is set, and says whose", async () => {
+    const project = await prisma.project.create({ data: { name: "Hourly job" } });
+    await entry(project.id, 120, 3);
+    const refused = await actions.createInvoice({ source: "time", projectId: project.id });
+    expect(refused).toMatchObject({ ok: false });
+    expect((refused as { error: string }).error).toMatch(/No hourly rate is set for/);
+  });
+
+  it("bills each person's hours at the most specific rate, and links the time to the line", async () => {
+    const project = await prisma.project.create({ data: { name: "Rate card job" } });
+    const first = await entry(project.id, 150, 5); // 2.5 hours
+    const second = await entry(project.id, 90, 2); // 1.5 hours
+    await entry(project.id, 600, 1, { billable: false }); // not billable: left out
+    await entry(project.id, 600, 1, { status: "submitted" }); // not approved: left out
+
+    // The standard rate first, then a project rate that beats it.
+    expect(
+      (
+        await settings.saveFinanceSettings({
+          vatRegistered: false,
+          vatRatePct: 12,
+          paymentTermsDays: 30,
+          defaultHourlyRate: "1,000",
+        })
+      ).ok,
+    ).toBe(true);
+    let made = await actions.createInvoice({ source: "time", projectId: project.id });
+    expect(made.ok).toBe(true);
+    let invoice = (await repo.getInvoice(idOf(made), today()))!;
+    // 4 hours at 1,000 = 4,000, on the 30 day terms from the settings.
+    expect(invoice.lines).toHaveLength(1);
+    expect(invoice).toMatchObject({ totalMinor: 400_000, projectName: "Rate card job" });
+    expect(invoice.lines[0]).toMatchObject({
+      quantityMilli: 4000,
+      unitPriceMinor: 100_000,
+      amountMinor: 400_000,
+    });
+    expect(
+      (await prisma.timeEntry.findUniqueOrThrow({ where: { id: first.id } })).invoiceLineId,
+    ).toBeTruthy();
+
+    // The same time can't be invoiced twice; a draft that is deleted frees it.
+    expect(await actions.createInvoice({ source: "time", projectId: project.id })).toMatchObject({
+      ok: false,
+    });
+    expect((await actions.deleteDraftInvoice(idOf(made))).ok).toBe(true);
+    expect(
+      (await prisma.timeEntry.findUniqueOrThrow({ where: { id: second.id } })).invoiceLineId,
+    ).toBeNull();
+
+    expect((await settings.saveBillingRate({ projectId: project.id, rate: "1,500" })).ok).toBe(
+      true,
+    );
+    made = await actions.createInvoice({ source: "time", projectId: project.id });
+    invoice = (await repo.getInvoice(idOf(made), today()))!;
+    expect(invoice.totalMinor).toBe(600_000); // 4 hours at 1,500
+    expect(
+      (await prisma.timeEntry.findUniqueOrThrow({ where: { id: first.id } })).invoiceLineId,
+    ).toBeTruthy();
+
+    // Issuing and voiding it makes the time billable again.
+    expect((await actions.issueInvoice(idOf(made))).ok).toBe(true);
+    expect((await actions.voidInvoice({ id: idOf(made), reason: "Billed too soon" })).ok).toBe(
+      true,
+    );
+    expect(
+      (await prisma.timeEntry.findUniqueOrThrow({ where: { id: first.id } })).invoiceLineId,
+    ).toBeNull();
+  });
+
+  it("only counts time up to the day asked for", async () => {
+    const project = await prisma.project.create({ data: { name: "Cutoff job" } });
+    await entry(project.id, 60, 10);
+    await entry(project.id, 60, 1);
+    const cutoff = new Date(Date.parse(`${today()}T00:00:00Z`) - 5 * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    const made = await actions.createInvoice({
+      source: "time",
+      projectId: project.id,
+      upTo: cutoff,
+    });
+    expect((await repo.getInvoice(idOf(made), today()))!.totalMinor).toBe(100_000); // one hour at the standard 1,000
+  });
+
+  it("approved time can't be changed, but its link to an invoice can", async () => {
+    const project = await prisma.project.create({ data: { name: "Frozen job" } });
+    const frozen = await entry(project.id, 60, 1);
+    await expect(
+      prisma.$executeRaw`UPDATE time_entries SET minutes = 5 WHERE id = ${frozen.id}::uuid`,
+    ).rejects.toThrow(/Approved time cannot be changed/);
+  });
+
+  it("rates are for finance managers, one per combination", async () => {
+    const project = await prisma.project.create({ data: { name: "Rate clash" } });
+    expect(
+      (
+        await settings.saveBillingRate({
+          profileId: OWNER.id,
+          projectId: project.id,
+          rate: "2,000",
+        })
+      ).ok,
+    ).toBe(true);
+    expect(
+      await settings.saveBillingRate({ profileId: OWNER.id, projectId: project.id, rate: "2,500" }),
+    ).toMatchObject({ ok: false });
+    expect(await settings.saveBillingRate({ rate: "100" })).toMatchObject({ ok: false });
+    expect(await settings.saveBillingRate({ projectId: project.id, rate: "0" })).toMatchObject({
+      ok: false,
+    });
+    current = SALES;
+    try {
+      expect(await settings.saveBillingRate({ projectId: project.id, rate: "100" })).toMatchObject({
+        ok: false,
+      });
+    } finally {
+      current = OWNER;
+    }
   });
 });

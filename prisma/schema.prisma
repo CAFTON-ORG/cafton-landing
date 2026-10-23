@@ -144,6 +144,7 @@ model Organization {
   custom   Json         @default("{}")
   /// Free-form labels, lower case, for filtering and grouping.
   tags     String[]     @default([])
+  projects Project[]
 
   @@index([name])
   @@map("organizations")
@@ -177,6 +178,7 @@ model Contact {
   custom       Json          @default("{}")
   /// Free-form labels, lower case, for filtering and grouping.
   tags         String[]      @default([])
+  projects     Project[]
 
   @@index([organizationId])
   @@index([lastName, firstName])
@@ -242,18 +244,18 @@ model Pipeline {
 }
 
 model PipelineStage {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  pipelineId   String    @map("pipeline_id") @db.Uuid
-  key          String    @unique
-  name         String
-  position     Int
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pipelineId     String    @map("pipeline_id") @db.Uuid
+  key            String    @unique
+  name           String
+  position       Int
   /// Chance of winning, 0 to 100. Drives the weighted forecast.
-  probability  Int
-  kind         StageKind @default(open)
+  probability    Int
+  kind           StageKind @default(open)
   /// What must be true before a deal leaves this stage.
-  exitCriteria String?   @map("exit_criteria")
+  exitCriteria   String?   @map("exit_criteria")
   /// Deal fields that must be filled in before a deal can move into this stage.
-  requiredFields String[] @default([]) @map("required_fields")
+  requiredFields String[]  @default([]) @map("required_fields")
 
   pipeline Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
   deals    Deal[]
@@ -300,6 +302,7 @@ model Deal {
   files        RecordFile[]
   /// Values of the custom fields set up under CRM > Custom fields, keyed by field key.
   custom       Json          @default("{}")
+  projects     Project[]
 
   @@index([stageId])
   @@index([contactId])
@@ -783,6 +786,7 @@ model Quote {
   deal      Deal        @relation(fields: [dealId], references: [id], onDelete: Restrict)
   lines     QuoteLine[]
   contracts Contract[]
+  project   Project?
 
   @@unique([reference, version])
   @@index([dealId])
@@ -956,4 +960,188 @@ model CustomField {
   @@unique([entity, key])
   @@index([entity, position])
   @@map("custom_fields")
+}
+
+/**
+ * ------------------------------------------------------------------ delivery
+ */
+
+enum ProjectStatus {
+  planned
+  active
+  on_hold
+  completed
+  cancelled
+
+  @@map("project_status")
+}
+
+enum MilestoneStatus {
+  pending
+  in_progress
+  done
+
+  @@map("milestone_status")
+}
+
+enum ProjectTaskStatus {
+  todo
+  in_progress
+  review
+  done
+
+  @@map("project_task_status")
+}
+
+enum ProjectTaskPriority {
+  low
+  normal
+  high
+
+  @@map("project_task_priority")
+}
+
+enum TimeEntryStatus {
+  draft
+  submitted
+  approved
+  rejected
+
+  @@map("time_entry_status")
+}
+
+/// A piece of delivery work for a client. Usually started by an accepted quote (once per quote).
+model Project {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference      String        @unique @default(dbgenerated("(('PRJ-'::text || to_char(now(), 'YYYY'::text)) || '-'::text) || lpad((nextval('project_reference_seq'::regclass))::text, 4, '0'::text)"))
+  name           String
+  description    String?
+  dealId         String?       @map("deal_id") @db.Uuid
+  quoteId        String?       @unique @map("quote_id") @db.Uuid
+  contactId      String?       @map("contact_id") @db.Uuid
+  organizationId String?       @map("organization_id") @db.Uuid
+  status         ProjectStatus @default(planned)
+  managerId      String?       @map("manager_id") @db.Uuid
+  startDate      DateTime?     @map("start_date") @db.Date
+  dueDate        DateTime?     @map("due_date") @db.Date
+  /// The agreed price (integer minor units), when there is one.
+  budgetMinor    BigInt?       @map("budget_minor")
+  currency       String        @default("PHP")
+  /// Hours the price assumes, in minutes.
+  budgetMinutes  Int?          @map("budget_minutes")
+  /// The slug of a portfolio entry that shows this project as a case study.
+  portfolioSlug  String?       @map("portfolio_slug")
+  completedAt    DateTime?     @map("completed_at") @db.Timestamptz(6)
+  createdBy      String?       @map("created_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  deal         Deal?           @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  quote        Quote?          @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  contact      Contact?        @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  organization Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  members      ProjectMember[]
+  milestones   Milestone[]
+  tasks        ProjectTask[]
+  timeEntries  TimeEntry[]
+
+  @@index([status])
+  @@index([dealId])
+  @@index([managerId])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId     String   @map("project_id") @db.Uuid
+  profileId     String   @map("profile_id") @db.Uuid
+  /// What an hour of this person costs, in minor units: the basis of budget vs actual cost.
+  costRateMinor BigInt?  @map("cost_rate_minor")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, profileId])
+  @@index([profileId])
+  @@map("project_members")
+}
+
+model Milestone {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId   String          @map("project_id") @db.Uuid
+  name        String
+  description String?
+  dueDate     DateTime?       @map("due_date") @db.Date
+  status      MilestoneStatus @default(pending)
+  position    Int             @default(0)
+  /// Finishing a billable milestone is what Finance invoices (Phase 6).
+  billable    Boolean         @default(false)
+  amountMinor BigInt?         @map("amount_minor")
+  completedAt DateTime?       @map("completed_at") @db.Timestamptz(6)
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   ProjectTask[]
+
+  @@index([projectId, position])
+  @@map("milestones")
+}
+
+model ProjectTask {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId       String              @map("project_id") @db.Uuid
+  milestoneId     String?             @map("milestone_id") @db.Uuid
+  title           String
+  description     String?
+  status          ProjectTaskStatus   @default(todo)
+  priority        ProjectTaskPriority @default(normal)
+  assigneeId      String?             @map("assignee_id") @db.Uuid
+  dueDate         DateTime?           @map("due_date") @db.Date
+  estimateMinutes Int?                @map("estimate_minutes")
+  /// Order within a board column, lowest first.
+  position        Int                 @default(0)
+  completedAt     DateTime?           @map("completed_at") @db.Timestamptz(6)
+  createdBy       String?             @map("created_by") @db.Uuid
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone   Milestone?  @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  timeEntries TimeEntry[]
+
+  @@index([projectId, status, position])
+  @@index([assigneeId])
+  @@index([milestoneId])
+  @@map("project_tasks")
+}
+
+/// Hours someone worked, a day at a time. Submitted and approved a week at a time; approved time is frozen by a trigger.
+model TimeEntry {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId   String          @map("project_id") @db.Uuid
+  taskId      String?         @map("task_id") @db.Uuid
+  profileId   String          @map("profile_id") @db.Uuid
+  workDate    DateTime        @map("work_date") @db.Date
+  /// The Monday of workDate's week (a check constraint keeps it so).
+  weekStart   DateTime        @map("week_start") @db.Date
+  minutes     Int
+  note        String?
+  billable    Boolean         @default(true)
+  status      TimeEntryStatus @default(draft)
+  submittedAt DateTime?       @map("submitted_at") @db.Timestamptz(6)
+  reviewedBy  String?         @map("reviewed_by") @db.Uuid
+  reviewedAt  DateTime?       @map("reviewed_at") @db.Timestamptz(6)
+  reviewNote  String?         @map("review_note")
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  task    ProjectTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([profileId, weekStart])
+  @@index([projectId, status])
+  @@index([status, weekStart])
+  @@map("time_entries")
 }

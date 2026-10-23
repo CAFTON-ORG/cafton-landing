@@ -259,6 +259,18 @@ export const navGroups: NavGroup[] = [
     ],
   },
   {
+    label: "Delivery",
+    items: [
+      {
+        href: "/dashboard/projects",
+        label: "Projects",
+        icon: FolderKanban,
+        permission: "projects:view",
+        keywords: ["delivery", "milestones", "tasks", "board", "client work"],
+      },
+    ],
+  },
+  {
     label: "Administration",
     items: [
       {

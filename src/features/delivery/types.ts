@@ -1,0 +1,107 @@
+import type { MilestoneStatus, ProjectStatus, TaskPriority, TaskStatus, TimeStatus } from "./rules";
+
+/** Plain data for the screens: dates are "YYYY-MM-DD", moments are ISO strings, money is minor units. */
+
+export interface PersonRef {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+}
+
+export interface TaskCount {
+  total: number;
+  done: number;
+}
+
+/** One line of the projects list. */
+export interface ProjectRow {
+  id: string;
+  reference: string;
+  name: string;
+  status: ProjectStatus;
+  clientName?: string;
+  manager?: PersonRef;
+  startDate?: string;
+  dueDate?: string;
+  budgetMinor?: number;
+  currency: string;
+  tasks: TaskCount;
+  /** Minutes logged and approved so far. */
+  approvedMinutes: number;
+  createdAt: string;
+}
+
+export interface ProjectView extends ProjectRow {
+  description?: string;
+  dealId?: string;
+  dealTitle?: string;
+  quoteId?: string;
+  quoteReference?: string;
+  contactId?: string;
+  organizationId?: string;
+  budgetMinutes?: number;
+  portfolioSlug?: string;
+  completedAt?: string;
+  /** Minutes logged on the project in any state except sent back. */
+  loggedMinutes: number;
+  /** Minutes waiting for approval. */
+  pendingMinutes: number;
+}
+
+export interface MemberView {
+  id: string;
+  profileId: string;
+  name: string;
+  avatarUrl?: string;
+  /** What an hour of this person costs, in minor units. */
+  costRateMinor?: number;
+  loggedMinutes: number;
+}
+
+export interface MilestoneView {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string;
+  dueDate?: string;
+  status: MilestoneStatus;
+  billable: boolean;
+  amountMinor?: number;
+  completedAt?: string;
+  tasks: TaskCount;
+}
+
+export interface TaskView {
+  id: string;
+  projectId: string;
+  milestoneId?: string;
+  milestoneName?: string;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignee?: PersonRef;
+  dueDate?: string;
+  estimateMinutes?: number;
+  position: number;
+  loggedMinutes: number;
+  completedAt?: string;
+}
+
+export interface TimeEntryView {
+  id: string;
+  projectId: string;
+  projectName: string;
+  projectReference: string;
+  taskId?: string;
+  taskTitle?: string;
+  person: PersonRef;
+  workDate: string;
+  weekStart: string;
+  minutes: number;
+  note?: string;
+  billable: boolean;
+  status: TimeStatus;
+  reviewNote?: string;
+  reviewedByName?: string;
+}

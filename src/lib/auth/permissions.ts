@@ -113,6 +113,23 @@ export const RESOURCES = {
       update: "Reschedule, confirm and cancel meetings",
     },
   },
+  projects: {
+    label: "Projects",
+    actions: {
+      view: "View projects, milestones and tasks",
+      create: "Start projects",
+      update: "Edit projects, manage the team, milestones and tasks",
+      delete: "Delete projects",
+    },
+  },
+  time: {
+    label: "Time and timesheets",
+    actions: {
+      view: "See everyone's logged hours, and the utilisation report",
+      log: "Log your own hours and submit your timesheet",
+      approve: "Approve or send back other people's timesheets",
+    },
+  },
   users: {
     label: "People",
     actions: {
@@ -190,6 +207,7 @@ const ADMINISTRATION: Permission[] = [
   "catalog:manage",
   "contracts:templates",
   "targets:manage",
+  "time:approve",
   "audit:view",
   "settings:update",
   "owners:manage",
@@ -213,6 +231,7 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleKey, Permission[]> = {
     (permission) =>
       permission.endsWith(":view") &&
       permission !== "users:view" &&
+      permission !== "time:view" &&
       permission !== "roles:view" &&
       permission !== "audit:view",
   ),

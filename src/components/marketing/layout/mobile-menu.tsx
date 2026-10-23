@@ -11,7 +11,7 @@ import { DotPattern } from "@/components/marketing/decor/dot-pattern";
 import { Logo } from "@/components/shared/logo";
 import { navigationItems } from "@/config/navigation";
 import { resolveSocialLinks } from "@/components/marketing/layout/social-links";
-import { useServicePillars, useSiteSettings } from "@/providers/site-settings";
+import { useHomeContent, useServicePillars, useSiteSettings } from "@/providers/site-settings";
 
 import { cn } from "@/lib/utils";
 
@@ -38,6 +38,7 @@ const ENTER =
  *   re-composited over a moving page on every frame.
  */
 export function MobileMenu() {
+  const { contactLabel } = useHomeContent().cta;
   const servicePillars = useServicePillars();
   const socialLinks = resolveSocialLinks(useSiteSettings().socials);
   const [open, setOpen] = useState(false);
@@ -179,7 +180,7 @@ export function MobileMenu() {
           >
             <Button asChild size="lg" className="group h-12 w-full cursor-pointer rounded-full text-base">
               <Link href="/contact" onClick={close}>
-                Contact Us
+                {contactLabel}
                 <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>

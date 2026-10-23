@@ -14,6 +14,7 @@ import { CategoryFilter } from "@/components/marketing/patterns/category-filter"
 import { RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
 import { getAuthorMap } from "@/features/cms/repository/authors";
+import { getDocument } from "@/features/cms/repository/documents";
 import { listBlogPosts } from "@/features/cms/repository/blog";
 
 export async function generateMetadata({ searchParams }: BlogPageProps): Promise<Metadata> {
@@ -30,7 +31,11 @@ interface BlogPageProps {
 
 export default async function Blog({ searchParams }: BlogPageProps) {
   const { page: pageParam, category: categoryParam } = await searchParams;
-  const [blogPosts, authors] = await Promise.all([listBlogPosts(), getAuthorMap()]);
+  const [blogPosts, authors, { blog: text }] = await Promise.all([
+    listBlogPosts(),
+    getAuthorMap(),
+    getDocument("listings"),
+  ]);
 
   const categories = Array.from(new Set(blogPosts.map((post) => post.category)));
   const category = categoryParam && categories.includes(categoryParam) ? categoryParam : undefined;
@@ -59,17 +64,16 @@ export default async function Blog({ searchParams }: BlogPageProps) {
         <PageShell>
           <RevealGroup>
             <RevealItem className="mb-4">
-              <Badge variant="outline" className="px-3 py-1 text-sm">Blog</Badge>
+              <Badge variant="outline" className="px-3 py-1 text-sm">{text.eyebrow}</Badge>
             </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Insights from Cafton.
+                {text.heading}
               </h1>
             </RevealItem>
             <RevealItem>
               <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-                Thoughts on process, engineering, and what we learn building
-                software around real problems.
+                {text.intro}
               </p>
             </RevealItem>
           </RevealGroup>
@@ -96,7 +100,7 @@ export default async function Blog({ searchParams }: BlogPageProps) {
             </RevealGroup>
           ) : (
             <p className="mt-8 text-center text-muted-foreground">
-              No posts in this category yet.
+              {text.empty}
             </p>
           )}
           <Pagination

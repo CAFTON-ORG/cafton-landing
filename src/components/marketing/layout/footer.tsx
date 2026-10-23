@@ -9,6 +9,7 @@ import { BackToTop } from "@/components/marketing/layout/back-to-top";
 import { resolveSocialLinks } from "@/components/marketing/layout/social-links";
 import { getSiteSettings } from "@/features/cms/repository/site";
 import { CookieSettingsButton } from "@/components/marketing/consent/cookie-settings-button";
+import { getDocument } from "@/features/cms/repository/documents";
 import { getServices } from "@/features/cms/repository/services";
 
 const companyLinks = [
@@ -48,6 +49,7 @@ function FooterColumn({
 export async function Footer() {
   const settings = await getSiteSettings();
   const servicePillars = await getServices();
+  const home = await getDocument("home");
   const socialLinks = resolveSocialLinks(settings.socials);
   return (
     <footer className="relative overflow-hidden border-t">
@@ -105,7 +107,7 @@ export async function Footer() {
                 rel="noopener noreferrer"
               >
                 <CalendarDays className="size-4" aria-hidden="true" />
-                Book a call
+                {home.cta.bookLabel}
               </Link>
               </Button>
             )}

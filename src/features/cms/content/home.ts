@@ -3,6 +3,14 @@ import type { HomeContent } from "../types";
 /** The home page's section text as the site said it before it was editable. */
 export const home: HomeContent = {
   heroEyebrow: "Software development · Baguio City",
+  hero: {
+    first: { lead: "Build", accent: "Better." },
+    second: { lead: "Solve", accent: "Smarter." },
+    text: "Practical software for businesses, organizations, and emerging ventures.",
+    contactLabel: "Contact Us",
+    workLabel: "Our Work",
+    hint: "the mark to build it",
+  },
   services: {
     heading: "What we build",
     intro:

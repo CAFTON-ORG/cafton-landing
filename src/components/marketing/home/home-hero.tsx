@@ -50,6 +50,7 @@ function rise(delay: number) {
 export function HomeHero() {
   const { facts } = useSiteSettings();
   const homeContent = useHomeContent();
+  const { hero } = homeContent;
   const router = useRouter();
   const canShow3D = useCanShow3D();
   const [heroRef, heroInViewport] = useInViewport<HTMLElement>("100px 0px");
@@ -114,16 +115,16 @@ export function HomeHero() {
             >
               <span className="block md:absolute md:left-8 md:top-[10%] md:max-w-[46%]">
                 <span className="animate-rise block" style={rise(DELAY.headline)}>
-                  Build <span className="md:block">Better.</span>
+                  {hero.first.lead} <span className="md:block">{hero.first.accent}</span>
                 </span>
               </span>
               <span className="block md:absolute md:right-8 md:top-[40%] md:max-w-[46%] md:text-right">
                 <span className="animate-rise block" style={rise(DELAY.headline)}>
-                  Solve{" "}
+                  {hero.second.lead}{" "}
                   <span
                     className={`md:block ${built ? "bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent [text-shadow:none]" : ""}`}
                   >
-                    Smarter.
+                    {hero.second.accent}
                   </span>
                 </span>
               </span>
@@ -171,7 +172,7 @@ export function HomeHero() {
                 </span>
                 <span className="pointer-coarse:hidden">Click</span>
                 <span className="hidden pointer-coarse:inline">Tap</span>
-                <span>the mark to build it</span>
+                <span>{hero.hint}</span>
               </div>
             )}
           </div>
@@ -182,8 +183,7 @@ export function HomeHero() {
               style={rise(DELAY.hint)}
             >
               <p className="text-balance text-sm leading-6 text-muted-foreground md:text-base md:leading-7">
-                Practical software for businesses, organizations, and emerging
-                ventures.
+                {hero.text}
               </p>
               <ul className="mt-3 hidden gap-x-5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80 md:flex">
                 {facts.map((fact) => (
@@ -198,7 +198,7 @@ export function HomeHero() {
             >
               <Button className="group h-11 cursor-pointer rounded-full md:h-10" asChild>
                 <Link href="/contact">
-                  Contact Us
+                  {hero.contactLabel}
                   <ArrowRight className="ms-1 size-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
@@ -209,7 +209,7 @@ export function HomeHero() {
                 asChild
               >
                 <Link href="/portfolio">
-                  Our Work
+                  {hero.workLabel}
                   <ArrowRight className="ms-1 size-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>

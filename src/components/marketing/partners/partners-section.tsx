@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { PartnerEntry, PartnerWall } from "@/components/marketing/partners/partner-entry";
+import { getDocument } from "@/features/cms/repository/documents";
 import { listPartners } from "@/features/cms/repository/partners";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +26,10 @@ const SHOWCASE_MAX = 6;
  * with filler.
  */
 export async function PartnersSection() {
-  const partners = await listPartners();
+  const [partners, { section: copy }] = await Promise.all([
+    listPartners(),
+    getDocument("partnerCopy"),
+  ]);
   const showcase = partners.length <= SHOWCASE_MAX;
   const featured = partners.filter((partner) => partner.featured);
   const rest = partners.filter((partner) => !partner.featured);
@@ -36,15 +40,14 @@ export async function PartnersSection() {
         <Reveal className="grid gap-6 lg:grid-cols-2 lg:gap-20">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Partners and sponsorships
+              {copy.eyebrow}
             </p>
             <h2 className="mt-4 text-balance text-3xl font-bold tracking-tight sm:text-5xl">
-              Backing the communities we build for.
+              {copy.heading}
             </h2>
           </div>
           <p className="max-w-lg text-lg leading-relaxed text-muted-foreground lg:pt-9">
-            Beyond client work, we show up as a sponsor and a technology
-            partner for the organizations around us.
+            {copy.text}
           </p>
         </Reveal>
 
@@ -75,7 +78,7 @@ export async function PartnersSection() {
             {rest.length > 0 && (
               <div>
                 <p className="mb-6 border-b pb-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  All partners
+                  {copy.allLabel}
                 </p>
                 <PartnerWall items={rest} />
               </div>
@@ -85,14 +88,13 @@ export async function PartnersSection() {
 
         <Reveal className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t pt-8">
           <p className="max-w-md text-muted-foreground">
-            Running an event, a school program, or a community project that
-            could use a technology partner?
+            {copy.askText}
           </p>
           <Link
             href="/contact"
             className="group inline-flex items-center text-sm font-medium"
           >
-            Partner with us
+            {copy.askLabel}
             <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </Reveal>

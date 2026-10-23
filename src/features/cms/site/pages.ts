@@ -214,6 +214,14 @@ export const aboutDefaults = about;
 
 export const homeSchema = z.object({
   heroEyebrow: line("The line", 80),
+  hero: z.object({
+    first: z.object({ lead: line("The word", 30), accent: line("The accented word", 30) }),
+    second: z.object({ lead: line("The word", 30), accent: line("The accented word", 30) }),
+    text: line("The text", 200),
+    contactLabel: line("The button text", 30),
+    workLabel: line("The button text", 30),
+    hint: line("The hint", 60),
+  }),
   services: z.object({
     heading: line("The heading", 80),
     intro: line("The introduction", 300),
@@ -247,9 +255,44 @@ export const homeSpec: DocSpec = {
     {
       title: "Sections",
       description:
-        "The animated headline is built into the page. The footer slogan and the badges come from the website settings; the values come from Core values.",
+        "The footer slogan and the badges come from the website settings; the values come from Core values.",
       fields: [
         { kind: "text", name: "heroEyebrow", label: "Line above the headline" },
+        {
+          kind: "group",
+          name: "hero",
+          label: "Top of the page",
+          hint: "The headline has two lines. On a wide screen the second word of each line drops below the first.",
+          fields: [
+            {
+              kind: "group",
+              name: "first",
+              label: "Headline, first line",
+              fields: [
+                { kind: "text", name: "lead", label: "First word" },
+                { kind: "text", name: "accent", label: "Second word" },
+              ],
+            },
+            {
+              kind: "group",
+              name: "second",
+              label: "Headline, second line",
+              fields: [
+                { kind: "text", name: "lead", label: "First word" },
+                { kind: "text", name: "accent", label: "Second word (shown in colour)" },
+              ],
+            },
+            { kind: "textarea", name: "text", label: "Short description", rows: 2 },
+            { kind: "text", name: "contactLabel", label: "Contact button" },
+            { kind: "text", name: "workLabel", label: "Work button" },
+            {
+              kind: "text",
+              name: "hint",
+              label: "Hint under the mark",
+              hint: "Follows Click (or Tap on a phone).",
+            },
+          ],
+        },
         {
           kind: "group",
           name: "services",

@@ -12,6 +12,7 @@ import { Pagination } from "@/components/marketing/patterns/pagination";
 import { CategoryFilter } from "@/components/marketing/patterns/category-filter";
 import { RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
+import { getDocument } from "@/features/cms/repository/documents";
 import { listProjects } from "@/features/cms/repository/projects";
 
 export async function generateMetadata({ searchParams }: WorkPageProps): Promise<Metadata> {
@@ -29,7 +30,10 @@ interface WorkPageProps {
 export default async function WorkPage({ searchParams }: WorkPageProps) {
   const { page: pageParam, category: categoryParam } = await searchParams;
 
-  const projects = await listProjects();
+  const [projects, { portfolio: text }] = await Promise.all([
+    listProjects(),
+    getDocument("listings"),
+  ]);
   const categories = Array.from(new Set(projects.map((project) => project.category)));
   const category = categoryParam && categories.includes(categoryParam) ? categoryParam : undefined;
   const filteredProjects = category
@@ -52,17 +56,16 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
         <PageShell>
           <RevealGroup>
             <RevealItem className="mb-4">
-              <Badge variant="outline" className="px-3 py-1 text-sm">Portfolio</Badge>
+              <Badge variant="outline" className="px-3 py-1 text-sm">{text.eyebrow}</Badge>
             </RevealItem>
             <RevealItem>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Technology we&apos;ve built around real problems.
+                {text.heading}
               </h1>
             </RevealItem>
             <RevealItem>
               <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-                We engineer custom software, web and mobile applications, and SaaS
-                products around the way organizations actually work.
+                {text.intro}
               </p>
             </RevealItem>
           </RevealGroup>
@@ -84,7 +87,7 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
             </RevealGroup>
           ) : (
             <p className="mt-8 text-center text-muted-foreground">
-              No projects in this category yet.
+              {text.empty}
             </p>
           )}
           <Pagination

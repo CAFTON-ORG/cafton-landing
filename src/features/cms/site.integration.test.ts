@@ -51,6 +51,7 @@ let db: PGlite;
 let server: PGLiteSocketServer;
 let act: typeof import("./admin/site-actions");
 let read: typeof import("./repository/site");
+let docs: typeof import("./repository/documents");
 
 const plain = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
@@ -65,6 +66,7 @@ beforeAll(async () => {
   await seedContent(db, { ...bundled, siteContent: { settings: siteSettings } });
   act = await import("./admin/site-actions");
   read = await import("./repository/site");
+  docs = await import("./repository/documents");
 }, 120_000);
 
 afterAll(async () => {
@@ -168,5 +170,25 @@ describe("website settings", () => {
     await expect(
       db.exec(`INSERT INTO site_content (key, data) VALUES ('Bad Key', '{}')`),
     ).rejects.toThrow();
+  });
+});
+
+describe("a page that gained fields after it was saved", () => {
+  it("keeps the editor's wording and fills the new fields from the bundled text", async () => {
+    const { home } = await import("./content/home");
+    const { hero: _hero, ...older } = plain(home);
+    await db.query(
+      "INSERT INTO site_content (key, data) VALUES ('home', $1::jsonb) ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data",
+      [JSON.stringify({ ...older, heroEyebrow: "Edited line" })],
+    );
+    const read = await docs.getDocument("home");
+    expect(read.heroEyebrow).toBe("Edited line");
+    expect(plain(read.hero)).toEqual(plain(home.hero));
+  });
+
+  it("serves the bundled wording for list pages and partners until someone edits them", async () => {
+    const { listings, partnerCopy } = await import("./content/listings");
+    expect(plain(await docs.getDocument("listings"))).toEqual(plain(listings));
+    expect(plain(await docs.getDocument("partnerCopy"))).toEqual(plain(partnerCopy));
   });
 });

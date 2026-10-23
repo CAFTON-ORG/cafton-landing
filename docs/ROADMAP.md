@@ -58,7 +58,9 @@ Everything else visitors read comes from the database too, so staff never need a
 - [x] Services: the four service areas (wording, order and systems; addresses and icons stay fixed) and the services page text
 - [x] Core values editable (About page and the home page "Why Cafton"): wording and order of exactly six, since the home scroll is built for six
 - [x] About page sections editable (headline, photo, what we do, story, vision, mission, approach, where we can help)
-- [x] Home page section text editable (headings, intros, buttons, call to action); the animated headline stays in code
+- [x] Home page text editable, including the animated headline (two lines of two words), the short description, the hero buttons and the hint under the mark; the navbar, menu and footer buttons use the call-to-action labels
+- [x] Blog, portfolio and events page headings and empty messages, the partners wording (About and home), and the Services menu and service-page wording are editable (Website > Pages)
+- [x] A page saved before it gained new fields keeps its edits: missing fields are filled in from the bundled text instead of the whole page falling back
 - [x] Careers: text and a list of open roles; the page indexes itself when there are roles
 - [x] Privacy policy and Legal documents editable (sections in a small safe text format, cookie table and registration cards as blocks, "last updated" date)
 - [x] Contact page text (the form's own questions stay in code)

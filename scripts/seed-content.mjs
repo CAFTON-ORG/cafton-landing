@@ -332,6 +332,8 @@ async function main() {
       about: (await load("about.ts")).about,
       home: (await load("home.ts")).home,
       contact: (await load("contact.ts")).contact,
+      listings: (await load("listings.ts")).listings,
+      partnerCopy: (await load("listings.ts")).partnerCopy,
     },
   };
 

@@ -11,6 +11,7 @@ import { scrollToTop } from "@/providers/smooth-scroll";
 import { ServicesNavMenu } from "@/components/marketing/layout/services-nav-menu";
 import { MobileMenu } from "@/components/marketing/layout/mobile-menu";
 import { navigationItems } from "@/config/navigation";
+import { useHomeContent } from "@/providers/site-settings";
 import { cn } from "@/lib/utils";
 
 /**
@@ -29,6 +30,7 @@ import { cn } from "@/lib/utils";
  * frame over the animating hero and the pinned sections.
  */
 export function Navbar() {
+  const { contactLabel } = useHomeContent().cta;
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
@@ -99,7 +101,7 @@ export function Navbar() {
             <ModeToggle variant="ghost" className="size-10 rounded-full" />
             <Button asChild className="group h-10 cursor-pointer rounded-full px-5">
               <Link href="/contact">
-                Contact Us
+                {contactLabel}
                 <ArrowRight className="ms-1 size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </Button>

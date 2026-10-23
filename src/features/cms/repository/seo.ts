@@ -14,7 +14,7 @@ import { readSiteDocument } from "./site-content";
 
 /** What staff changed, per page. One read per request. */
 export const getSeoOverrides = cache((): Promise<SeoDocument> =>
-  readSiteDocument("seo", seoDocumentSchema, seoOverrides),
+  readSiteDocument("seo", seoDocumentSchema, seoOverrides, { fill: false }),
 );
 
 /** A fixed page's search and share text: the defaults with staff changes on top. */

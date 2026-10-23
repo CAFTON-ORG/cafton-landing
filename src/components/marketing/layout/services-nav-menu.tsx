@@ -12,11 +12,12 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Logo } from "@/components/shared/logo";
-import { useServicePillars } from "@/providers/site-settings";
+import { useServicePillars, useServicesDetail } from "@/providers/site-settings";
 
 /** Hover/focus mega menu for the "Services" nav item -- a promo panel plus the 4 service pillars. */
 export function ServicesNavMenu() {
   const servicePillars = useServicePillars();
+  const detail = useServicesDetail();
   const pathname = usePathname();
   const isActive = pathname === "/services" || pathname.startsWith("/services/");
 
@@ -51,10 +52,10 @@ export function ServicesNavMenu() {
                 </div>
                 <div className="relative">
                   <p className="mt-8 text-balance text-sm font-semibold leading-snug text-foreground">
-                    Software for the whole business, not just one corner of it.
+                    {detail.navTagline}
                   </p>
                   <span className="mt-4 inline-flex h-9 items-center rounded-full bg-foreground px-4 text-xs font-medium text-background">
-                    View all services
+                    {detail.navLinkLabel}
                     <ArrowRight
                       className="ms-1.5 size-3.5 transition-transform duration-300 group-hover:translate-x-1"
                       aria-hidden="true"

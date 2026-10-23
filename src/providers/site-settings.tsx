@@ -8,6 +8,7 @@ import type {
   CoreValueContent,
   HomeContent,
   ServiceContent,
+  ServicesDetail,
   SiteSettings,
 } from "@/features/cms/types";
 
@@ -23,6 +24,7 @@ interface SiteContent {
   values: CoreValueContent[];
   valuesHeader: { heading: string; intro: string };
   home: HomeContent;
+  servicesDetail: ServicesDetail;
   booking: BookingSummary;
 }
 
@@ -38,12 +40,13 @@ export function SiteSettingsProvider({
   values,
   valuesHeader,
   home,
+  servicesDetail,
   booking,
   children,
 }: SiteContent & { children: ReactNode }) {
   const value = useMemo(
-    () => ({ settings, services, values, valuesHeader, home, booking }),
-    [settings, services, values, valuesHeader, home, booking],
+    () => ({ settings, services, values, valuesHeader, home, servicesDetail, booking }),
+    [settings, services, values, valuesHeader, home, servicesDetail, booking],
   );
   return <SiteContentContext.Provider value={value}>{children}</SiteContentContext.Provider>;
 }
@@ -73,5 +76,7 @@ export function useCoreValues() {
 export const useValuesHeader = () => useSiteContent().valuesHeader;
 
 export const useHomeContent = () => useSiteContent().home;
+
+export const useServicesDetail = () => useSiteContent().servicesDetail;
 
 export const useBooking = () => useSiteContent().booking;

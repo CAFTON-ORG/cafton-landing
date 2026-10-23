@@ -35,6 +35,7 @@ export async function SiteChrome({ children }: { children: ReactNode }) {
       values={values.items}
       valuesHeader={{ heading: values.heading, intro: values.intro }}
       home={home}
+      servicesDetail={services.detail}
       booking={{ enabled: booking.enabled, intro: booking.intro }}
     >
       <a

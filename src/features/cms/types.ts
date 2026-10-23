@@ -305,11 +305,57 @@ export interface CoreValueContent {
   description: string;
 }
 
+/** Wording shared by the service menu and every service page. */
+export interface ServicesDetail {
+  navTagline: string;
+  navLinkLabel: string;
+  talkLabel: string;
+  systemsEyebrow: string;
+  /** "{count}" becomes the number of systems. */
+  systemsHeading: string;
+  systemsHint: string;
+  faqEyebrow: string;
+  faqHeading: string;
+  relatedHeading: string;
+}
+
 export interface ServicesDocument {
   eyebrow: string;
   heading: string;
   intro: string;
+  detail: ServicesDetail;
   pillars: ServiceContent[];
+}
+
+/** The heading block of a list page (blog, portfolio, events). */
+export interface ListingHeader {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+}
+
+export interface ListingsDocument {
+  blog: ListingHeader & { empty: string };
+  portfolio: ListingHeader & { empty: string };
+  events: ListingHeader & {
+    openHeading: string;
+    pastHeading: string;
+    moreHeading: string;
+    moreText: string;
+  };
+}
+
+/** The wording around the partner plates on the About page and the home page. */
+export interface PartnerCopy {
+  section: {
+    eyebrow: string;
+    heading: string;
+    text: string;
+    allLabel: string;
+    askText: string;
+    askLabel: string;
+  };
+  strip: { eyebrow: string; heading: string; text: string; linkLabel: string };
 }
 
 export interface ValuesDocument {
@@ -383,6 +429,16 @@ export interface AboutContent {
 
 export interface HomeContent {
   heroEyebrow: string;
+  /** The animated headline: two lines, each a plain word and an accented one. */
+  hero: {
+    first: { lead: string; accent: string };
+    second: { lead: string; accent: string };
+    text: string;
+    contactLabel: string;
+    workLabel: string;
+    /** After "Click" or "Tap": what the visitor is invited to do with the mark. */
+    hint: string;
+  };
   services: { heading: string; intro: string; linkLabel: string };
   work: { heading: string; intro: string; buttonLabel: string };
   writing: { heading: string; intro: string; buttonLabel: string };

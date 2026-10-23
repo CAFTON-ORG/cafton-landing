@@ -1,21 +1,28 @@
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal, RevealItem } from "@/components/marketing/motion/reveal";
 import type { ServiceSystem } from "@/config/services";
+import type { ServicesDetail } from "@/features/cms/types";
 
 /** The systems under a service: an intro that stays in view beside a numbered list, so a long list never leaves the page's purpose behind. */
-export function ServiceSystems({ systems }: { systems: ServiceSystem[] }) {
+export function ServiceSystems({
+  systems,
+  detail,
+}: {
+  systems: ServiceSystem[];
+  detail: Pick<ServicesDetail, "systemsEyebrow" | "systemsHeading" | "systemsHint">;
+}) {
   return (
     <PageSection>
       <PageShell className="grid gap-10 lg:grid-cols-[1fr_1.8fr] lg:gap-20">
         <Reveal className="lg:sticky lg:top-28 lg:self-start">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            What&apos;s inside
+            {detail.systemsEyebrow}
           </p>
           <h2 className="mt-4 text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-            {systems.length} systems we build under this service.
+            {detail.systemsHeading.replace("{count}", String(systems.length))}
           </h2>
           <p className="mt-4 max-w-sm text-muted-foreground">
-            Start with one, or combine several. They are designed to share the same data.
+            {detail.systemsHint}
           </p>
         </Reveal>
 

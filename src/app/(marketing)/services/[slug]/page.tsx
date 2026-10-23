@@ -18,6 +18,7 @@ import { Breadcrumbs } from "@/components/marketing/patterns/breadcrumbs";
 import { DotPattern } from "@/components/marketing/decor/dot-pattern";
 import { RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { Badge } from "@/components/ui/badge";
+import { getDocument } from "@/features/cms/repository/documents";
 import { getServiceFaqs } from "@/features/cms/repository/service-faqs";
 import { listProjectsForService } from "@/features/cms/repository/projects";
 import { servicePillars } from "@/config/services";
@@ -52,6 +53,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
 
   const related = await listProjectsForService(pillar.slug);
   const faqs = await getServiceFaqs(pillar.slug);
+  const page = await getDocument("services");
   const { previous, next } = neighbours(await getServices(), pillar.slug);
 
   return (
@@ -90,7 +92,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
         />
         <RevealGroup>
           <RevealItem className="mb-4 flex items-center gap-3">
-            <Badge variant="outline" className="px-3 py-1 text-sm">Services</Badge>
+            <Badge variant="outline" className="px-3 py-1 text-sm">{page.eyebrow}</Badge>
             <pillar.icon className="size-6 text-foreground" aria-hidden="true" />
           </RevealItem>
           <RevealItem>
@@ -105,7 +107,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
             <div className="mt-8">
               <Button className="group cursor-pointer" asChild>
                 <Link href={`/contact?category=${pillar.slug}`}>
-                  Talk to us about this
+                  {page.detail.talkLabel}
                   <ArrowRight className="ms-2 size-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
@@ -114,11 +116,11 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
         </RevealGroup>
       </PageHero>
 
-      <ServiceSystems systems={pillar.systems} />
+      <ServiceSystems systems={pillar.systems} detail={page.detail} />
 
-      <RelatedProjects projects={related} heading="Related work" />
+      <RelatedProjects projects={related} heading={page.detail.relatedHeading} />
 
-      <ServiceFaq items={faqs} />
+      <ServiceFaq items={faqs} detail={page.detail} />
 
       <AdjacentNav
         noun="service"

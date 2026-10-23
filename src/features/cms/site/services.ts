@@ -16,6 +16,17 @@ export const servicesSchema = z.object({
   eyebrow: line("The label", 40),
   heading: line("The headline", 140),
   intro: line("The introduction", 400),
+  detail: z.object({
+    navTagline: line("The line", 140),
+    navLinkLabel: line("The link text", 40),
+    talkLabel: line("The button text", 60),
+    systemsEyebrow: line("The label", 40),
+    systemsHeading: line("The heading", 140),
+    systemsHint: line("The text", 300),
+    faqEyebrow: line("The label", 40),
+    faqHeading: line("The heading", 100),
+    relatedHeading: line("The heading", 60),
+  }),
   pillars: z
     .array(
       z.object({
@@ -61,6 +72,33 @@ export const servicesSpec: DocSpec = {
         { kind: "text", name: "eyebrow", label: "Small label" },
         { kind: "text", name: "heading", label: "Headline" },
         { kind: "textarea", name: "intro", label: "Introduction", rows: 3 },
+      ],
+    },
+    {
+      title: "Service pages",
+      description: "The wording shared by the Services menu and every area's own page.",
+      fields: [
+        {
+          kind: "group",
+          name: "detail",
+          label: "Menu and area pages",
+          fields: [
+            { kind: "text", name: "navTagline", label: "Line in the Services menu" },
+            { kind: "text", name: "navLinkLabel", label: "Link in the Services menu" },
+            { kind: "text", name: "talkLabel", label: "Button on an area's page" },
+            { kind: "text", name: "systemsEyebrow", label: "Small label above the systems" },
+            {
+              kind: "text",
+              name: "systemsHeading",
+              label: "Heading above the systems",
+              hint: "Write {count} where the number of systems should appear.",
+            },
+            { kind: "textarea", name: "systemsHint", label: "Text under the heading", rows: 2 },
+            { kind: "text", name: "faqEyebrow", label: "Small label above the questions" },
+            { kind: "text", name: "faqHeading", label: "Heading above the questions" },
+            { kind: "text", name: "relatedHeading", label: "Heading above related work" },
+          ],
+        },
       ],
     },
     {

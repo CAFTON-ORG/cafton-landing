@@ -5,6 +5,7 @@ import { Reveal } from "@/components/marketing/motion/reveal";
 import { LogoPlate } from "@/components/marketing/partners/logo-plate";
 import { DotPattern } from "@/components/marketing/decor/dot-pattern";
 import { Logo } from "@/components/shared/logo";
+import { getDocument } from "@/features/cms/repository/documents";
 import { listPartners } from "@/features/cms/repository/partners";
 
 /** The homepage band shows at most this many plates; the rest collapse into a "+N more" plate that links on. */
@@ -22,7 +23,10 @@ const STRIP_MAX = 4;
  * centres.
  */
 export async function PartnersStrip() {
-  const partners = await listPartners();
+  const [partners, { strip: copy }] = await Promise.all([
+    listPartners(),
+    getDocument("partnerCopy"),
+  ]);
   const ordered = [...partners].sort(
     (a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)),
   );
@@ -38,19 +42,19 @@ export async function PartnersStrip() {
       <PageShell className="relative grid items-center gap-12 lg:grid-cols-[1fr_1.5fr] lg:gap-16">
         <Reveal>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Partners and sponsorships
+            {copy.eyebrow}
           </p>
           <h2 className="mt-4 text-balance text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            In good company, and giving back.
+            {copy.heading}
           </h2>
           <p className="mt-4 max-w-sm text-muted-foreground">
-            The organizations we build with and stand behind.
+            {copy.text}
           </p>
           <Link
             href="/about#partners"
             className="group mt-6 inline-flex items-center text-sm font-medium"
           >
-            Meet our partners
+            {copy.linkLabel}
             <ArrowRight className="ms-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </Reveal>

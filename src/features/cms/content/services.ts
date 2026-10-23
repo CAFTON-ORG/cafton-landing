@@ -133,4 +133,15 @@ export const servicesPage = {
   heading: "Software for the whole business, not just one corner of it.",
   intro:
     "Four areas we build in, each covering the systems that actually move a business forward. Pick the one closest to your problem and see what's inside.",
+  detail: {
+    navTagline: "Software for the whole business, not just one corner of it.",
+    navLinkLabel: "View all services",
+    talkLabel: "Talk to us about this",
+    systemsEyebrow: "What's inside",
+    systemsHeading: "{count} systems we build under this service.",
+    systemsHint: "Start with one, or combine several. They are designed to share the same data.",
+    faqEyebrow: "Questions",
+    faqHeading: "Before you get in touch.",
+    relatedHeading: "Related work",
+  },
 };

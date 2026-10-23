@@ -3,6 +3,14 @@ import type { z } from "zod";
 import type { Permission } from "@/lib/auth/permissions";
 
 import { careers } from "../content/careers";
+import {
+  listingsDefaults,
+  listingsSchema,
+  listingsSpec,
+  partnerCopyDefaults,
+  partnerCopySchema,
+  partnerCopySpec,
+} from "./listings";
 import { bookingDefaults, bookingSchema, bookingSpec } from "./booking";
 import { careersSchema, careersSpec } from "./careers";
 import {
@@ -65,6 +73,8 @@ export const siteDocuments = {
   contact: { schema: contactSchema, defaults: contactDefaults, spec: contactSpec },
   about: { schema: aboutSchema, defaults: aboutDefaults, spec: aboutSpec },
   home: { schema: homeSchema, defaults: homeDefaults, spec: homeSpec },
+  listings: { schema: listingsSchema, defaults: listingsDefaults, spec: listingsSpec },
+  partnerCopy: { schema: partnerCopySchema, defaults: partnerCopyDefaults, spec: partnerCopySpec },
   values: { schema: valuesSchema, defaults: valuesDefaults, spec: valuesSpec },
 } satisfies Record<string, SiteDocument<never> | SiteDocument<unknown>>;
 

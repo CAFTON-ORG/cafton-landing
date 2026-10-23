@@ -158,6 +158,14 @@ export const RESOURCES = {
       pay: "Record payments to suppliers",
     },
   },
+  expenses: {
+    label: "Expenses",
+    actions: {
+      view: "See everyone's expenses",
+      submit: "Submit your own expenses and attach receipts",
+      approve: "Approve, send back and void expenses",
+    },
+  },
   users: {
     label: "People",
     actions: {
@@ -240,6 +248,8 @@ const ADMINISTRATION: Permission[] = [
   "payables:create",
   "payables:approve",
   "payables:pay",
+  "expenses:view",
+  "expenses:approve",
   "invoices:settle",
   "customfields:manage",
   "quotes:approve",
@@ -274,6 +284,7 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleKey, Permission[]> = {
       permission !== "finance:view" &&
       permission !== "invoices:view" &&
       permission !== "payables:view" &&
+      permission !== "expenses:view" &&
       permission !== "roles:view" &&
       permission !== "audit:view",
   ),

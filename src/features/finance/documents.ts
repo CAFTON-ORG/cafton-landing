@@ -12,7 +12,7 @@ type Tx = Prisma.TransactionClient;
  */
 export async function nextDocumentNumber(
   tx: Tx,
-  prefix: "INV" | "CN" | "RCT" | "BILL" | "BPAY",
+  prefix: "INV" | "CN" | "RCT" | "BILL" | "BPAY" | "EXP",
   year: number,
 ): Promise<string> {
   const key = `${prefix}:${year}`;

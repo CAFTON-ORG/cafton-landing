@@ -1494,7 +1494,8 @@ model Vendor {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  bills Bill[]
+  bills    Bill[]
+  expenses Expense[]
 
   @@map("vendors")
 }
@@ -1576,4 +1577,68 @@ model BillPayment {
   @@index([billId])
   @@index([paidDate])
   @@map("bill_payments")
+}
+
+enum ExpenseStatus {
+  submitted
+  approved
+  rejected
+  void
+
+  @@map("expense_status")
+}
+
+/// Something paid for out of pocket or from the till. Submitted, then approved (which posts it to
+/// the ledger and fixes it: a trigger enforces it) or rejected with a reason.
+model Expense {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number            String?       @unique
+  status            ExpenseStatus @default(submitted)
+  expenseDate       DateTime      @map("expense_date") @db.Date
+  payee             String
+  vendorId          String?       @map("vendor_id") @db.Uuid
+  description       String
+  /// What the cost is booked to (an account id; the foreign key lives in the migration).
+  accountId         String        @map("account_id") @db.Uuid
+  amountMinor       BigInt        @map("amount_minor")
+  currency          String        @default("PHP")
+  /// Where the money came from (an account id; the foreign key lives in the migration).
+  paidFromAccountId String        @map("paid_from_account_id") @db.Uuid
+  notes             String?
+  submittedBy       String?       @map("submitted_by") @db.Uuid
+  submittedByName   String        @default("System") @map("submitted_by_name")
+  decidedBy         String?       @map("decided_by") @db.Uuid
+  decidedByName     String?       @map("decided_by_name")
+  decidedAt         DateTime?     @map("decided_at") @db.Timestamptz(6)
+  rejectReason      String?       @map("reject_reason")
+  journalEntryId    String?       @map("journal_entry_id") @db.Uuid
+  voidedAt          DateTime?     @map("voided_at") @db.Timestamptz(6)
+  voidReason        String?       @map("void_reason")
+  voidEntryId       String?       @map("void_entry_id") @db.Uuid
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  vendor   Vendor?          @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  receipts ExpenseReceipt[]
+
+  @@index([status, expenseDate])
+  @@index([submittedBy])
+  @@map("expenses")
+}
+
+model ExpenseReceipt {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  expenseId      String   @map("expense_id") @db.Uuid
+  path           String   @unique
+  name           String
+  mime           String
+  sizeBytes      Int      @map("size_bytes")
+  uploadedBy     String?  @map("uploaded_by") @db.Uuid
+  uploadedByName String   @default("System") @map("uploaded_by_name")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+  @@map("expense_receipts")
 }

@@ -232,3 +232,18 @@ describe("CRM files storage", () => {
     expect(rls.rows).toEqual([{ relrowsecurity: true }]);
   });
 });
+
+describe("finance receipts storage", () => {
+  it("is a private bucket that no storage policy opens to signed-in users", async () => {
+    const bucket = await db.query<{ public: boolean }>(
+      "SELECT public FROM storage.buckets WHERE id = 'finance-receipts'",
+    );
+    expect(bucket.rows).toEqual([{ public: false }]);
+    const { rows } = await db.query<{ policyname: string }>(
+      `SELECT policyname FROM pg_policies
+         WHERE schemaname = 'storage' AND tablename = 'objects'
+           AND (coalesce(qual, '') ILIKE '%finance-receipts%' OR coalesce(with_check, '') ILIKE '%finance-receipts%')`,
+    );
+    expect(rows).toEqual([]);
+  });
+});

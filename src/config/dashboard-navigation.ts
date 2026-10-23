@@ -1,6 +1,7 @@
 import {
   Banknote,
   Receipt,
+  WalletCards,
   Store,
   Scale,
   Building2,
@@ -310,6 +311,13 @@ export const navGroups: NavGroup[] = [
         icon: Hourglass,
         permission: "invoices:view",
         keywords: ["aging", "overdue", "late", "who owes"],
+      },
+      {
+        href: "/dashboard/finance/expenses",
+        label: "Expenses",
+        icon: WalletCards,
+        permission: "expenses:submit",
+        keywords: ["reimburse", "receipt", "out of pocket", "spend", "claim"],
       },
       {
         href: "/dashboard/finance/vendors",

@@ -50,3 +50,12 @@ export const BILL_TABLE: TableParamsConfig = {
   sortable: ["number", "due", "total", "created"],
   defaultSort: { sort: "created", dir: "desc" },
 };
+
+export const EXPENSE_STATE_FILTERS = ["submitted", "approved", "rejected", "void"] as const;
+
+/** URL-driven state of the expense list. */
+export const EXPENSE_TABLE: TableParamsConfig = {
+  filters: { status: EXPENSE_STATE_FILTERS },
+  sortable: ["date", "amount", "created"],
+  defaultSort: { sort: "created", dir: "desc" },
+};

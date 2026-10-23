@@ -222,6 +222,9 @@ What a supplier charged the business. A draft can be edited; approving numbers i
 **Supplier**:
 A person or company the business buys from. Archived, not deleted, once it has bills.
 
+**Expense**:
+Something someone paid for the business, with a receipt. An approver approves it (which numbers it, EXP-2026-0001, and posts it to the books) or sends it back with a reason.
+
 ## Money (from Phase 4)
 
 **Amount**:

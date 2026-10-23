@@ -14,7 +14,9 @@ function createClient() {
     connectionString: process.env.DATABASE_URL ?? "",
     ...(Number.isInteger(max) && max > 0 ? { max } : {}),
   });
-  return new PrismaClient({ adapter });
+  // Posting to the books takes several queries in one transaction, and each is a round trip to the
+  // pooler, so the default 5 seconds is too tight on a remote database.
+  return new PrismaClient({ adapter, transactionOptions: { maxWait: 10_000, timeout: 20_000 } });
 }
 
 /** Single shared client; reused across hot reloads in development. */

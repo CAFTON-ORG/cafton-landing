@@ -48,19 +48,20 @@ export interface PostInput {
 export async function ensureFiscalYear(tx: Tx, year: number) {
   const existing = await tx.fiscalPeriod.count({ where: { year } });
   if (existing === 12) return;
-  for (let month = 1; month <= 12; month++) {
-    const { startsOn, endsOn } = monthRange(year, month);
-    await tx.fiscalPeriod.upsert({
-      where: { year_month: { year, month } },
-      update: {},
-      create: {
+  // One statement, not twelve: over a remote pooler each round trip counts against the transaction.
+  await tx.fiscalPeriod.createMany({
+    data: Array.from({ length: 12 }, (_, index) => {
+      const month = index + 1;
+      const { startsOn, endsOn } = monthRange(year, month);
+      return {
         year,
         month,
         startsOn: new Date(`${startsOn}T00:00:00Z`),
         endsOn: new Date(`${endsOn}T00:00:00Z`),
-      },
-    });
-  }
+      };
+    }),
+    skipDuplicates: true,
+  });
 }
 
 /** The account that plays a role ("ar", "cash", "revenue_services"...), as a line's account id. */

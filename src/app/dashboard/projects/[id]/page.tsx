@@ -16,8 +16,15 @@ import { ProjectActions } from "@/features/delivery/components/project-actions";
 import { MilestonesPanel } from "@/features/delivery/components/milestones-panel";
 import { ProjectStatusBadge } from "@/features/delivery/components/badges";
 import { TasksPanel } from "@/features/delivery/components/tasks-panel";
+import { ProjectTime } from "@/features/delivery/components/project-time";
 import { TeamPanel } from "@/features/delivery/components/team-panel";
-import { getProject, listMembers, listMilestones, listTasks } from "@/features/delivery/repository";
+import {
+  getProject,
+  listMembers,
+  listMilestones,
+  listProjectTime,
+  listTasks,
+} from "@/features/delivery/repository";
 import {
   formatMinutes,
   hoursUsage,
@@ -25,7 +32,7 @@ import {
   progressPercent,
 } from "@/features/delivery/rules";
 import { manilaDate } from "@/features/schedule/slots";
-import { requirePageAccess } from "@/lib/auth/dal";
+import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 
@@ -39,11 +46,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const project = await getProject(id);
   if (!project) notFound();
 
-  const [members, milestones, tasks, people] = await Promise.all([
+  const showTime = can(staff, "time:view");
+  const [members, milestones, tasks, people, timeEntries] = await Promise.all([
     listMembers(id),
     listMilestones(id),
     listTasks(id),
     listStaffOptions(),
+    showTime ? listProjectTime(id) : [],
   ]);
   const today = manilaDate(new Date());
   const open = isOpenProject(project.status);
@@ -123,6 +132,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               Milestones
               <TabCount n={milestones.length} />
             </TabsTrigger>
+            {showTime && <TabsTrigger value="time">Time</TabsTrigger>}
             <TabsTrigger value="team">
               Team
               <TabCount n={members.length} />
@@ -210,6 +220,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               open={open}
             />
           </TabsContent>
+          {showTime && (
+            <TabsContent value="time" className="mt-4">
+              <ProjectTime entries={timeEntries} />
+            </TabsContent>
+          )}
           <TabsContent value="team" className="mt-4">
             <TeamPanel
               projectId={id}

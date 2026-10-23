@@ -32,20 +32,28 @@ export async function logTime(input: TimeInput): Promise<ActionResult<{ id: stri
     const minutes = parseDuration(data.duration);
 
     const id = await prisma.$transaction(async (tx) => {
-      const project = await tx.project.findFirst({ where: { id: data.projectId, deletedAt: null } });
+      const project = await tx.project.findFirst({
+        where: { id: data.projectId, deletedAt: null },
+      });
       if (!project) throw new ActionError("That project no longer exists.");
       const isMember = !!(await tx.projectMember.findUnique({
         where: { projectId_profileId: { projectId: data.projectId, profileId: me } },
       }));
       const existing = data.id ? await tx.timeEntry.findUnique({ where: { id: data.id } }) : null;
       if (data.id) {
-        if (!existing || existing.profileId !== me) throw new ActionError("That entry no longer exists.");
+        if (!existing || existing.profileId !== me)
+          throw new ActionError("That entry no longer exists.");
         if (!canEditEntry(existing.status as TimeStatus)) {
-          throw new ActionError("Only a draft, or time that was sent back, can be changed.", "rule");
+          throw new ActionError(
+            "Only a draft, or time that was sent back, can be changed.",
+            "rule",
+          );
         }
       }
       if (data.taskId) {
-        const task = await tx.projectTask.findFirst({ where: { id: data.taskId, projectId: data.projectId } });
+        const task = await tx.projectTask.findFirst({
+          where: { id: data.taskId, projectId: data.projectId },
+        });
         if (!task) {
           const message = "That task isn't on this project.";
           throw new ActionError(message, "validation", { taskId: message });
@@ -53,7 +61,11 @@ export async function logTime(input: TimeInput): Promise<ActionResult<{ id: stri
       }
 
       const others = await tx.timeEntry.aggregate({
-        where: { profileId: me, workDate: atDay(data.workDate), ...(data.id ? { id: { not: data.id } } : {}) },
+        where: {
+          profileId: me,
+          workDate: atDay(data.workDate),
+          ...(data.id ? { id: { not: data.id } } : {}),
+        },
         _sum: { minutes: true },
       });
       const invalid = checkLogTime({
@@ -88,7 +100,14 @@ export async function logTime(input: TimeInput): Promise<ActionResult<{ id: stri
         // Fixing time that was sent back puts it in the draft pile again, ready to resubmit.
         await tx.timeEntry.update({
           where: { id: existing.id },
-          data: { ...fields, status: "draft", submittedAt: null, reviewedBy: null, reviewedAt: null, reviewNote: null },
+          data: {
+            ...fields,
+            status: "draft",
+            submittedAt: null,
+            reviewedBy: null,
+            reviewedAt: null,
+            reviewNote: null,
+          },
         });
         return existing.id;
       }
@@ -134,12 +153,20 @@ export async function submitWeek(weekStart: string): Promise<ActionResult<{ coun
         where: { profileId: me, weekStart: atDay(data.weekStart) },
         select: { id: true, status: true, minutes: true },
       });
-      const blocked = checkSubmitWeek(entries.map((entry) => ({ status: entry.status as TimeStatus })));
+      const blocked = checkSubmitWeek(
+        entries.map((entry) => ({ status: entry.status as TimeStatus })),
+      );
       if (blocked) throw new ActionError(blocked, "rule");
       const sendable = entries.filter((entry) => canEditEntry(entry.status as TimeStatus));
       await tx.timeEntry.updateMany({
         where: { id: { in: sendable.map((entry) => entry.id) } },
-        data: { status: "submitted", submittedAt: new Date(), reviewedBy: null, reviewedAt: null, reviewNote: null },
+        data: {
+          status: "submitted",
+          submittedAt: new Date(),
+          reviewedBy: null,
+          reviewedAt: null,
+          reviewNote: null,
+        },
       });
       await recordAudit(
         actor,
@@ -168,7 +195,9 @@ export async function submitWeek(weekStart: string): Promise<ActionResult<{ coun
 }
 
 /** Approves submitted time, or sends it back with a reason. Never your own. */
-export async function reviewTime(input: z.input<typeof reviewSchema>): Promise<ActionResult<{ count: number }>> {
+export async function reviewTime(
+  input: z.input<typeof reviewSchema>,
+): Promise<ActionResult<{ count: number }>> {
   return runAction(async () => {
     const actor = await guard("time:approve");
     const me = actorId(actor);
@@ -186,9 +215,17 @@ export async function reviewTime(input: z.input<typeof reviewSchema>): Promise<A
         reviewerId: me ?? actor.id,
         action: data.action,
         note: data.note,
-        entries: entries.map((entry) => ({ profileId: entry.profileId, status: entry.status as TimeStatus })),
+        entries: entries.map((entry) => ({
+          profileId: entry.profileId,
+          status: entry.status as TimeStatus,
+        })),
       });
-      if (blocked) throw new ActionError(blocked, "rule", data.action === "reject" && !data.note.trim() ? { note: blocked } : undefined);
+      if (blocked)
+        throw new ActionError(
+          blocked,
+          "rule",
+          data.action === "reject" && !data.note.trim() ? { note: blocked } : undefined,
+        );
 
       await tx.timeEntry.updateMany({
         where: { id: { in: entries.map((entry) => entry.id) } },

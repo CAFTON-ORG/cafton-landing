@@ -357,7 +357,10 @@ const entryInclude = {
 type EntryRow = Prisma.TimeEntryGetPayload<{ include: typeof entryInclude }>;
 
 async function toEntries(rows: EntryRow[]): Promise<TimeEntryView[]> {
-  const people = await namesFor([...rows.map((row) => row.profileId), ...rows.map((row) => row.reviewedBy)]);
+  const people = await namesFor([
+    ...rows.map((row) => row.profileId),
+    ...rows.map((row) => row.reviewedBy),
+  ]);
   return rows.map((row) => ({
     id: row.id,
     projectId: row.projectId,

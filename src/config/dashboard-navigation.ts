@@ -1,6 +1,7 @@
 import {
   Building2,
   CalendarDays,
+  Clock,
   FileSignature,
   PackageOpen,
   ListPlus,
@@ -267,6 +268,13 @@ export const navGroups: NavGroup[] = [
         icon: FolderKanban,
         permission: "projects:view",
         keywords: ["delivery", "milestones", "tasks", "board", "client work"],
+      },
+      {
+        href: "/dashboard/time",
+        label: "Timesheets",
+        icon: Clock,
+        permission: "time:log",
+        keywords: ["hours", "time tracking", "approve", "log time", "week"],
       },
     ],
   },

@@ -16,6 +16,10 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["test/setup.ts"],
+    // The integration tests build a real Postgres (PGlite) and run in parallel with every other file:
+    // on a busy machine a first query can take longer than the 5 s default.
+    testTimeout: 30_000,
+    hookTimeout: 120_000,
     restoreMocks: true,
     unstubGlobals: true,
   },

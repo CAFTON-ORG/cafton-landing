@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createDatabase } from "../../../scripts/pglite-setup.mjs";
 import { SYSTEM_ROLE_PERMISSIONS, type Permission } from "@/lib/auth/permissions";
+import { weekStartOf } from "./rules";
 
 /**
  * Delivery against a real Postgres (PGlite) built from the real migrations: a project starting from
@@ -575,5 +576,171 @@ describe("the projects list", () => {
       (await repo.listProjects({ ...params, q: "", filters: { status: "", manager: "me" } })).items
         .length,
     ).toBeGreaterThan(0);
+  });
+});
+
+describe("timesheets", () => {
+  let time: typeof import("./actions/time");
+  const today = () => new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10);
+  // Each test works on its own day, so what one logs never counts against another's 24 hours.
+  let day = today();
+  const daysAgo = (days: number) =>
+    new Date(Date.now() + 8 * 3_600_000 - days * 86_400_000).toISOString().slice(0, 10);
+
+  async function activeProject(name: string) {
+    const id = await project({ name });
+    await projects.addMember({ projectId: id, profileId: SALES.id, costRate: "200" });
+    expect((await projects.setProjectStatus(id, "active")).ok).toBe(true);
+    return id;
+  }
+  const log = (projectId: string, over: Record<string, unknown> = {}) =>
+    time.logTime({
+      projectId,
+      taskId: "",
+      workDate: day,
+      duration: "2",
+      note: "",
+      billable: true,
+      ...over,
+    });
+
+  it("logs time for the team on a project that is under way", async () => {
+    day = daysAgo(1);
+    time = await import("./actions/time");
+    const id = await activeProject("Timesheet basics");
+    const made = await log(id, { duration: "1:30", note: "Wireframes" });
+    expect(made.ok).toBe(true);
+    const entry = await prisma.timeEntry.findFirstOrThrow({ where: { projectId: id } });
+    expect(entry).toMatchObject({
+      minutes: 90,
+      status: "draft",
+      profileId: OWNER.id,
+      billable: true,
+    });
+    expect(entry.weekStart.toISOString().slice(0, 10)).toBe(weekStartOf(day));
+  });
+
+  it("refuses the future, the distant past, more than 24 hours a day, and strangers", async () => {
+    day = daysAgo(2);
+    const id = await activeProject("Timesheet limits");
+    expect(await log(id, { workDate: daysAgo(-1) })).toMatchObject({
+      ok: false,
+      fieldErrors: { workDate: expect.any(String) },
+    });
+    expect(await log(id, { workDate: daysAgo(60) })).toMatchObject({
+      ok: false,
+      fieldErrors: { workDate: expect.any(String) },
+    });
+    expect(await log(id, { duration: "soon" })).toMatchObject({
+      ok: false,
+      fieldErrors: { duration: expect.any(String) },
+    });
+    expect((await log(id, { duration: "20" })).ok).toBe(true);
+    expect(await log(id, { duration: "5" })).toMatchObject({
+      ok: false,
+      fieldErrors: { duration: expect.stringMatching(/24 hours/) },
+    });
+
+    // A planned project hasn't started; and someone off the team can't log on it.
+    const planned = await project({ name: "Not started" });
+    expect(await log(planned)).toMatchObject({ ok: false });
+    const outsider = await project({ name: "Not my team" });
+    await projects.setProjectStatus(outsider, "active");
+    current = SALES;
+    const refused = await log(outsider);
+    current = OWNER;
+    expect(refused).toMatchObject({ ok: false });
+    expect((refused as { error: string }).error).toMatch(/not on this project's team/);
+  });
+
+  it("lets a draft be changed or deleted, but not time that was submitted", async () => {
+    day = daysAgo(3);
+    const id = await activeProject("Timesheet edits");
+    const made = (await log(id, { duration: "1" })) as { data: { id: string } };
+    expect((await log(id, { id: made.data.id, duration: "3", note: "More" })).ok).toBe(true);
+    expect(
+      (await prisma.timeEntry.findUniqueOrThrow({ where: { id: made.data.id } })).minutes,
+    ).toBe(180);
+
+    const week = weekStartOf(day);
+    const sent = await time.submitWeek(week);
+    expect(sent).toMatchObject({ ok: true });
+    expect(await log(id, { id: made.data.id, duration: "4" })).toMatchObject({ ok: false });
+    expect(await time.deleteTime(made.data.id)).toMatchObject({ ok: false });
+    // Nothing is left to send.
+    expect(await time.submitWeek(week)).toMatchObject({ ok: false });
+  });
+
+  it("is approved by someone else, never by the person who logged it", async () => {
+    day = daysAgo(4);
+    const id = await activeProject("Timesheet review");
+    current = SALES;
+    const made = (await log(id, { duration: "2" })) as { data: { id: string } };
+    expect((await time.submitWeek(weekStartOf(day))).ok).toBe(true);
+    // Sales can't approve at all (a manager's power), and could not approve their own anyway.
+    expect(
+      await time.reviewTime({ ids: [made.data.id], action: "approve", note: "" }),
+    ).toMatchObject({ ok: false });
+    current = OWNER;
+
+    // A reason is required to send time back.
+    expect(
+      await time.reviewTime({ ids: [made.data.id], action: "reject", note: " " }),
+    ).toMatchObject({ ok: false });
+    expect(
+      (await time.reviewTime({ ids: [made.data.id], action: "reject", note: "Wrong task" })).ok,
+    ).toBe(true);
+    expect(await prisma.timeEntry.findUniqueOrThrow({ where: { id: made.data.id } })).toMatchObject(
+      {
+        status: "rejected",
+        reviewNote: "Wrong task",
+        reviewedBy: OWNER.id,
+      },
+    );
+    // The person fixes it (it becomes a draft again), resubmits, and it is approved.
+    current = SALES;
+    expect((await log(id, { id: made.data.id, duration: "2", note: "Fixed" })).ok).toBe(true);
+    expect((await prisma.timeEntry.findUniqueOrThrow({ where: { id: made.data.id } })).status).toBe(
+      "draft",
+    );
+    await time.submitWeek(weekStartOf(day));
+    current = OWNER;
+    expect((await time.reviewTime({ ids: [made.data.id], action: "approve", note: "" })).ok).toBe(
+      true,
+    );
+    expect((await prisma.timeEntry.findUniqueOrThrow({ where: { id: made.data.id } })).status).toBe(
+      "approved",
+    );
+    expect(
+      await prisma.notification.count({ where: { userId: SALES.id, kind: "time" } }),
+    ).toBeGreaterThanOrEqual(2);
+
+    // Approved time is a record: neither the person nor the database lets it change.
+    current = SALES;
+    expect(await log(id, { id: made.data.id, duration: "9" })).toMatchObject({ ok: false });
+    expect(await time.deleteTime(made.data.id)).toMatchObject({ ok: false });
+    current = OWNER;
+  });
+
+  it("can't review your own hours", async () => {
+    day = daysAgo(5);
+    const id = await activeProject("Own hours");
+    const made = (await log(id, { duration: "1" })) as { data: { id: string } };
+    await time.submitWeek(weekStartOf(day));
+    const refused = await time.reviewTime({ ids: [made.data.id], action: "approve", note: "" });
+    expect(refused).toMatchObject({ ok: false });
+    expect((refused as { error: string }).error).toMatch(/your own hours/);
+  });
+
+  it("holds a project open while hours wait for approval", async () => {
+    day = daysAgo(6);
+    const id = await activeProject("Waiting on approval");
+    await log(id, { duration: "1" });
+    await time.submitWeek(weekStartOf(day));
+    const blocked = await projects.setProjectStatus(id, "completed");
+    expect(blocked).toMatchObject({ ok: false });
+    expect((blocked as { error: string }).error).toMatch(/waiting for approval/);
+    expect((await repo.listSubmitted()).some((entry) => entry.projectId === id)).toBe(true);
+    expect((await repo.listLoggable(OWNER.id)).some((entry) => entry.id === id)).toBe(true);
   });
 });

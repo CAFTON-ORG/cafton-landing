@@ -1494,8 +1494,9 @@ model Vendor {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  bills    Bill[]
-  expenses Expense[]
+  bills     Bill[]
+  expenses  Expense[]
+  recurring RecurringItem[]
 
   @@map("vendors")
 }
@@ -1524,6 +1525,10 @@ model Bill {
   createdBy      String?    @map("created_by") @db.Uuid
   createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  recurringId String?        @map("recurring_id") @db.Uuid
+  recursOn    DateTime?      @map("recurs_on") @db.Date
+  recurring   RecurringItem? @relation(fields: [recurringId], references: [id], onDelete: SetNull)
 
   vendor   Vendor        @relation(fields: [vendorId], references: [id], onDelete: Restrict)
   lines    BillLine[]
@@ -1618,6 +1623,10 @@ model Expense {
   createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  recurringId String?        @map("recurring_id") @db.Uuid
+  recursOn    DateTime?      @map("recurs_on") @db.Date
+  recurring   RecurringItem? @relation(fields: [recurringId], references: [id], onDelete: SetNull)
+
   vendor   Vendor?          @relation(fields: [vendorId], references: [id], onDelete: SetNull)
   receipts ExpenseReceipt[]
 
@@ -1641,4 +1650,40 @@ model ExpenseReceipt {
 
   @@index([expenseId])
   @@map("expense_receipts")
+}
+
+/// Rent, hosting, subscriptions: makes a draft bill (or an expense waiting for approval) each time a
+/// date arrives. Nothing is posted until a person approves what it made.
+model RecurringItem {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// "bill" or "expense".
+  kind              String
+  name              String
+  /// "weekly", "monthly", "quarterly" or "yearly".
+  frequency         String
+  /// The day of the month it keeps to, so 31 January then 28 February then 31 March.
+  anchorDay         Int       @map("anchor_day")
+  nextDate          DateTime  @map("next_date") @db.Date
+  endDate           DateTime? @map("end_date") @db.Date
+  active            Boolean   @default(true)
+  vendorId          String?   @map("vendor_id") @db.Uuid
+  payee             String?
+  description       String
+  /// What the cost is booked to (an account id; the foreign key lives in the migration).
+  accountId         String    @map("account_id") @db.Uuid
+  amountMinor       BigInt    @map("amount_minor")
+  /// For an expense: where the money comes from (an account id; the foreign key lives in the migration).
+  paidFromAccountId String?   @map("paid_from_account_id") @db.Uuid
+  lastGeneratedOn   DateTime? @map("last_generated_on") @db.Date
+  createdCount      Int       @default(0) @map("created_count")
+  createdBy         String?   @map("created_by") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  vendor   Vendor?   @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  bills    Bill[]
+  expenses Expense[]
+
+  @@index([active, nextDate])
+  @@map("recurring_items")
 }

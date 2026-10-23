@@ -31,3 +31,20 @@ receipt before it can be approved. Receipts can't change once it is approved (a 
 
 `expenses:submit` (submit, edit and withdraw your own, add receipts), `expenses:view` (see everyone's)
 and `expenses:approve` (approve, send back, void). View and approve are administration.
+
+## Recurring bills and expenses
+
+Rent, hosting and subscriptions come round again. A **recurring item** is a bill (for a supplier) or
+an expense, with a frequency (weekly, monthly, every 3 months, yearly), a first date and an optional
+last date. A daily job (the existing cron, or "Make the ones that are due" on the page) makes a
+**draft bill**, or an **expense waiting for approval**, for each date that has arrived. It never
+posts to the books: a person still approves what it made, and approvers are notified.
+
+- Months keep to the day they started on, clamped to the month's length, without drifting:
+  31 January, 28 February, 31 March.
+- Each date is made once: the bill or expense records the item and the date it was made for, under a
+  unique key, so running the job twice, or after a failure, never doubles anything. A long-missed
+  item catches up at most 12 dates per run.
+- A paused item makes nothing; one past its last date switches itself off; one whose supplier was
+  archived is left alone for a person to sort out. Removing one keeps what it already made.
+- It needs `payables:create` to set up (administration).

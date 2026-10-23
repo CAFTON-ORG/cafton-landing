@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { scoreUnscoredLeads } from "@/features/crm/scoring-jobs";
 import { runReminders } from "@/features/schedule/reminders";
 import { expireDueQuotes } from "@/features/sales/server";
+import { generateDueRecurring } from "@/features/finance/recurring-server";
 import { sendDueInvoiceReminders } from "@/features/finance/reminders";
 import { expireDueContracts } from "@/features/contracts/server";
 import { env, isDatabaseConfigured } from "@/lib/env";
@@ -45,5 +46,7 @@ export async function GET(request: Request) {
     leadsScored: await scoreUnscoredLeads(),
     // Overdue invoices get a polite reminder (a few days late, then weekly, three at most).
     invoiceRemindersSent: await sendDueInvoiceReminders(),
+    // Recurring bills and expenses that fell due become drafts for a person to approve.
+    recurring: await generateDueRecurring(),
   });
 }

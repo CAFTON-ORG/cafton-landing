@@ -1,5 +1,6 @@
 import {
   Banknote,
+  CalendarSync,
   Receipt,
   WalletCards,
   Store,
@@ -289,7 +290,7 @@ export const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Finance",
+    label: "Income",
     items: [
       {
         href: "/dashboard/finance/invoices",
@@ -312,6 +313,11 @@ export const navGroups: NavGroup[] = [
         permission: "invoices:view",
         keywords: ["aging", "overdue", "late", "who owes"],
       },
+    ],
+  },
+  {
+    label: "Spending",
+    items: [
       {
         href: "/dashboard/finance/expenses",
         label: "Expenses",
@@ -334,12 +340,24 @@ export const navGroups: NavGroup[] = [
         keywords: ["payable", "supplier invoice", "owe", "pay a bill"],
       },
       {
+        href: "/dashboard/finance/recurring",
+        label: "Recurring",
+        icon: CalendarSync,
+        permission: "payables:view",
+        keywords: ["rent", "subscription", "repeat", "monthly", "autopay"],
+      },
+      {
         href: "/dashboard/finance/payables",
         label: "Payables",
         icon: Scale,
         permission: "payables:view",
         keywords: ["aging", "what we owe", "overdue bills"],
       },
+    ],
+  },
+  {
+    label: "Books",
+    items: [
       {
         href: "/dashboard/finance/accounts",
         label: "Chart of accounts",

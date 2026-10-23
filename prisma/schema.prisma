@@ -1468,3 +1468,112 @@ model CreditNote {
   @@index([invoiceId])
   @@map("credit_notes")
 }
+
+enum BillStatus {
+  draft
+  approved
+  void
+
+  @@map("bill_status")
+}
+
+/// A supplier. Archived (not deleted) once it has bills.
+model Vendor {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String
+  email            String?
+  phone            String?
+  address          String?
+  tin              String?
+  /// Where this supplier's bills usually go (an account id; the foreign key lives in the migration).
+  defaultAccountId String?  @map("default_account_id") @db.Uuid
+  termsDays        Int      @default(15) @map("terms_days")
+  notes            String?
+  active           Boolean  @default(true)
+  createdBy        String?  @map("created_by") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  bills Bill[]
+
+  @@map("vendors")
+}
+
+/// What the business owes a supplier. A draft is editable; once approved it is posted to the ledger
+/// and fixed (a trigger enforces it), and can only be voided.
+model Bill {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number         String?    @unique
+  status         BillStatus @default(draft)
+  vendorId       String     @map("vendor_id") @db.Uuid
+  vendorName     String     @map("vendor_name")
+  /// The number printed on the supplier's own invoice.
+  vendorRef      String?    @map("vendor_ref")
+  billDate       DateTime   @map("bill_date") @db.Date
+  dueDate        DateTime   @map("due_date") @db.Date
+  currency       String     @default("PHP")
+  totalMinor     BigInt     @default(0) @map("total_minor")
+  notes          String?
+  journalEntryId String?    @map("journal_entry_id") @db.Uuid
+  approvedBy     String?    @map("approved_by") @db.Uuid
+  approvedAt     DateTime?  @map("approved_at") @db.Timestamptz(6)
+  voidedAt       DateTime?  @map("voided_at") @db.Timestamptz(6)
+  voidReason     String?    @map("void_reason")
+  voidEntryId    String?    @map("void_entry_id") @db.Uuid
+  createdBy      String?    @map("created_by") @db.Uuid
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  vendor   Vendor        @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  lines    BillLine[]
+  payments BillPayment[]
+
+  @@index([status, dueDate])
+  @@index([vendorId])
+  @@map("bills")
+}
+
+model BillLine {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  billId      String @map("bill_id") @db.Uuid
+  position    Int    @default(0)
+  description String
+  /// What the cost is booked to (an account id; the foreign key lives in the migration).
+  accountId   String @map("account_id") @db.Uuid
+  amountMinor BigInt @map("amount_minor")
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@index([billId, position])
+  @@map("bill_lines")
+}
+
+/// Money paid out against one bill (cash plus any tax held back from the supplier).
+model BillPayment {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number            String    @unique
+  billId            String    @map("bill_id") @db.Uuid
+  paidDate          DateTime  @map("paid_date") @db.Date
+  /// What left the bank or the till.
+  amountMinor       BigInt    @map("amount_minor")
+  /// Expanded withholding tax held back from the supplier, to remit to the BIR.
+  whtMinor          BigInt    @default(0) @map("wht_minor")
+  method            String    @default("bank_transfer")
+  reference         String?
+  paidFromAccountId String    @map("paid_from_account_id") @db.Uuid
+  note              String?
+  /// "recorded" or "void".
+  status            String    @default("recorded")
+  journalEntryId    String    @map("journal_entry_id") @db.Uuid
+  voidEntryId       String?   @map("void_entry_id") @db.Uuid
+  voidedAt          DateTime? @map("voided_at") @db.Timestamptz(6)
+  voidReason        String?   @map("void_reason")
+  createdBy         String?   @map("created_by") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Restrict)
+
+  @@index([billId])
+  @@index([paidDate])
+  @@map("bill_payments")
+}

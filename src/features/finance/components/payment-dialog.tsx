@@ -43,7 +43,7 @@ export function PaymentDialog({
 }: {
   invoices: OpenInvoice[];
   /** Asset accounts the money can land in (cash, bank, e-wallets). */
-  accounts: { id: string; code: string; name: string }[];
+  accounts: { id: string; code: string; name: string; systemKey?: string }[];
   today: string;
   /** Put against this invoice first. */
   focusInvoiceId?: string;
@@ -99,7 +99,7 @@ export function PaymentDialog({
     setCwt("");
     setMethod("bank_transfer");
     setReference("");
-    setAccountId(accounts[0]?.id ?? "");
+    setAccountId((accounts.find((item) => item.systemKey === "bank") ?? accounts[0])?.id ?? "");
     setNote("");
     setClientName("");
     setTyped({});

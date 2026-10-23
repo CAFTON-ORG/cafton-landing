@@ -69,15 +69,19 @@ export async function listAccounts(
 
 /** Accounts a posting may use: active ones, for pickers. */
 export async function listPostableAccounts(): Promise<
-  { id: string; code: string; name: string; type: AccountType }[]
+  { id: string; code: string; name: string; type: AccountType; systemKey?: string }[]
 > {
   if (!isDatabaseConfigured) return [];
   const rows = await prisma.account.findMany({
     where: { active: true },
     orderBy: { code: "asc" },
-    select: { id: true, code: true, name: true, type: true },
+    select: { id: true, code: true, name: true, type: true, systemKey: true },
   });
-  return rows.map((row) => ({ ...row, type: row.type as AccountType }));
+  return rows.map((row) => ({
+    ...row,
+    type: row.type as AccountType,
+    systemKey: row.systemKey ?? undefined,
+  }));
 }
 
 /** Every account with its totals as of a date: the trial balance's raw material. */

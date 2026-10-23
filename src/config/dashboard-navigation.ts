@@ -1,5 +1,8 @@
 import {
   Banknote,
+  Receipt,
+  Store,
+  Scale,
   Building2,
   Hourglass,
   BookOpen,
@@ -307,6 +310,27 @@ export const navGroups: NavGroup[] = [
         icon: Hourglass,
         permission: "invoices:view",
         keywords: ["aging", "overdue", "late", "who owes"],
+      },
+      {
+        href: "/dashboard/finance/vendors",
+        label: "Suppliers",
+        icon: Store,
+        permission: "payables:view",
+        keywords: ["vendors", "who we buy from", "payee"],
+      },
+      {
+        href: "/dashboard/finance/bills",
+        label: "Bills",
+        icon: Receipt,
+        permission: "payables:view",
+        keywords: ["payable", "supplier invoice", "owe", "pay a bill"],
+      },
+      {
+        href: "/dashboard/finance/payables",
+        label: "Payables",
+        icon: Scale,
+        permission: "payables:view",
+        keywords: ["aging", "what we owe", "overdue bills"],
       },
       {
         href: "/dashboard/finance/accounts",

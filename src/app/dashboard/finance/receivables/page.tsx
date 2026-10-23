@@ -42,7 +42,12 @@ export default async function ReceivablesPage() {
               description="Issued invoices that are still unpaid appear here."
             />
           ) : (
-            <div className="overflow-x-auto">
+            <div
+              className="overflow-x-auto"
+              tabIndex={0}
+              role="region"
+              aria-label="Aging by client, scrolls sideways"
+            >
               <table className="w-full text-sm">
                 <caption className="sr-only">Receivables aging by client</caption>
                 <thead>

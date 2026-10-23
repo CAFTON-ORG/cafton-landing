@@ -126,7 +126,7 @@ export function InvoiceEditor({
         <CardHeader>
           <CardTitle>Client</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
+        <CardContent className="grid items-start gap-4 sm:grid-cols-2">
           <Field id="inv-client" label="Name" required error={errors.clientName}>
             <Input
               id="inv-client"
@@ -165,7 +165,7 @@ export function InvoiceEditor({
         <CardHeader>
           <CardTitle>Dates and tax</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
+        <CardContent className="grid items-start gap-4 sm:grid-cols-3">
           <Field id="inv-issue" label="Issue date" required error={errors.issueDate}>
             <DatePicker id="inv-issue" value={issueDate} onChange={setIssueDate} />
           </Field>
@@ -294,7 +294,7 @@ export function InvoiceEditor({
         <CardHeader>
           <CardTitle>Notes</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
+        <CardContent className="grid items-start gap-4 sm:grid-cols-2">
           <Field id="inv-notes" label="Notes to the client">
             <Textarea
               id="inv-notes"

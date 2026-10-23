@@ -149,6 +149,15 @@ export const RESOURCES = {
       settle: "Record payments and issue credit notes",
     },
   },
+  payables: {
+    label: "Suppliers and bills",
+    actions: {
+      view: "View suppliers, bills and what is owed",
+      create: "Add suppliers and draft bills",
+      approve: "Approve and void bills",
+      pay: "Record payments to suppliers",
+    },
+  },
   users: {
     label: "People",
     actions: {
@@ -227,6 +236,10 @@ const ADMINISTRATION: Permission[] = [
   "finance:manage",
   "finance:close",
   "invoices:issue",
+  "payables:view",
+  "payables:create",
+  "payables:approve",
+  "payables:pay",
   "invoices:settle",
   "customfields:manage",
   "quotes:approve",
@@ -260,6 +273,7 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRoleKey, Permission[]> = {
       permission !== "time:view" &&
       permission !== "finance:view" &&
       permission !== "invoices:view" &&
+      permission !== "payables:view" &&
       permission !== "roles:view" &&
       permission !== "audit:view",
   ),

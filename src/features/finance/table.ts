@@ -41,3 +41,12 @@ export const INVOICE_TABLE: TableParamsConfig = {
   sortable: ["number", "due", "total", "created"],
   defaultSort: { sort: "created", dir: "desc" },
 };
+
+export const BILL_STATES = ["draft", "open", "partial", "overdue", "paid", "void"] as const;
+
+/** URL-driven state of the bill list. */
+export const BILL_TABLE: TableParamsConfig = {
+  filters: { state: BILL_STATES },
+  sortable: ["number", "due", "total", "created"],
+  defaultSort: { sort: "created", dir: "desc" },
+};

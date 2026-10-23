@@ -216,6 +216,12 @@ Money received. It is put against one or more invoices (allocations); whatever i
 **Credit note**:
 Reduces what a client owes on an issued invoice. Voided by reversal like everything else.
 
+**Bill**:
+What a supplier charged the business. A draft can be edited; approving numbers it (BILL-2026-0001), posts it as owed (accounts payable) and fixes it. Paying it moves the money out; a mistake is voided, never edited.
+
+**Supplier**:
+A person or company the business buys from. Archived, not deleted, once it has bills.
+
 ## Money (from Phase 4)
 
 **Amount**:

@@ -130,7 +130,8 @@ Confirmed: base currency PHP (₱); fiscal year January to December; registered 
 
 - [x] Chart of accounts (starting chart, system roles), fiscal periods (calendar year, close in order, reopen the latest), tax rates (no VAT by default), and a double-entry ledger whose balance, append-only and closed-month rules are enforced by the database (ADR 0015)
 - [x] Invoices (from an accepted quote, finished milestones or blank), credit notes, payments with allocations and withheld tax, customer deposits, receivables aging, PDF + email, overdue reminders (ADR 0016). Invoicing from approved time waits on a billing rate.
-- [ ] Vendors, bills, expenses with receipt upload and approval, recurring entries
+- [x] Suppliers, bills (approve, pay, void), payments with tax withheld from the supplier, payables aging (ADR 0017)
+- [ ] Expenses with receipt upload and approval, recurring entries
 - [ ] Bank accounts, statement import (CSV), reconciliation
 - [x] Period close/lock; voids by reversal only (a new entry that swaps the sides, linked to the original); every posting audited
 - [ ] Reports from ledger: P&L, balance sheet, cash flow, trial balance, AR/AP aging, tax summary; CSV/PDF export

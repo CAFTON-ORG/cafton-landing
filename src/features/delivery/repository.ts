@@ -562,3 +562,16 @@ export async function listPortfolioOptions(): Promise<PortfolioOption[]> {
   const owner = new Map(linked.map((row) => [row.portfolioSlug as string, row.id]));
   return entries.map((entry) => ({ ...entry, linkedProjectId: owner.get(entry.slug) }));
 }
+
+/** The project a deal turned into, if any: what a won deal's page points at. */
+export async function getProjectForDeal(
+  dealId: string,
+): Promise<{ id: string; reference: string; name: string; status: ProjectStatus } | null> {
+  if (!isDatabaseConfigured) return null;
+  const row = await prisma.project.findFirst({
+    where: { dealId, ...live },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, reference: true, name: true, status: true },
+  });
+  return row ? { ...row, status: row.status as ProjectStatus } : null;
+}

@@ -18,7 +18,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key.toLowerCase() === "b" && (event.metaKey || event.ctrlKey)) {
+      if (event.key?.toLowerCase() === "b" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         toggle();
       }

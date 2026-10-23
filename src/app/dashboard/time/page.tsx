@@ -66,7 +66,7 @@ export default async function TimePage({
         title="Timesheets"
         description="Log the hours you work on projects, send the week for approval, and review your team's."
       />
-      <Tabs defaultValue={initial} className="min-w-0">
+      <Tabs key={initial} defaultValue={initial} className="min-w-0">
         <TabsList className="max-w-full [scrollbar-width:none] justify-start overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:hidden">
           {canLog && <TabsTrigger value="mine">My timesheet</TabsTrigger>}
           {canApprove && (

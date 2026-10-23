@@ -10,8 +10,11 @@ Delivery listens (`features/delivery/handlers.ts`) and starts a project named af
 the same client, priced at the quote's total, managed by the deal's owner. Sales never imports
 Delivery, and Finance will react to the same event the same way in Phase 6.
 
-- The handlers are connected in `src/instrumentation.ts`, which runs when the server starts. That is
-  the one place that knows both sides.
+- The handlers are connected in `src/lib/event-handlers.ts`, the one place that knows both sides.
+  `emit` loads it the first time anything is announced, inside the emitter's own bundle. (An
+  `instrumentation.ts` startup hook was tried first and does not work: Next bundles it apart from the
+  pages, so it registers on a bus that nobody emits to. Found by accepting a quote in a real server;
+  unit tests share one module graph and could not see it.)
 - A project is started **once per quote** (a unique index on `quote_id`), and a deal that already has
   a project does not get a second one when another version of the quote is accepted. Running the
   handler twice changes nothing.

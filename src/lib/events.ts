@@ -5,7 +5,7 @@ import "server-only";
  * parts react without the first one importing them. A won quote will start a project (Phase 5) and
  * an invoice schedule (Phase 6) this way, so Sales never depends on Delivery or Finance.
  *
- * Handlers run after the change is saved, one at a time. A handler that throws is logged and never
+ * Handlers are connected in `event-handlers.ts` and run after the change is saved, one at a time. A handler that throws is logged and never
  * undoes or blocks what happened.
  */
 
@@ -36,7 +36,19 @@ export function on<K extends keyof DomainEvents>(name: K, handler: Handler<K>) {
   (handlers[name] ??= [] as never).push(handler as never);
 }
 
+let handlersLoaded: Promise<unknown> | null = null;
+
+/** Connects the reacting parts (see event-handlers.ts) once, before the first event is delivered. */
+function loadHandlers() {
+  handlersLoaded ??= import("./event-handlers").catch((error) => {
+    handlersLoaded = null;
+    console.error("Event handlers could not be loaded.", error);
+  });
+  return handlersLoaded;
+}
+
 export async function emit<K extends keyof DomainEvents>(name: K, event: DomainEvents[K]) {
+  await loadHandlers();
   for (const handler of (handlers[name] ?? []) as Handler<K>[]) {
     try {
       await handler(event);

@@ -33,6 +33,8 @@ import { listTagOptions } from "@/features/crm/repository/tags";
 import { listTasksFor } from "@/features/crm/repository/tasks";
 import { checkAddTaskToDeal } from "@/features/crm/rules";
 import { checkReopenSigned } from "@/features/contracts/rules";
+import { DealProject } from "@/features/delivery/components/deal-project";
+import { getProjectForDeal } from "@/features/delivery/repository";
 import { checkWinQuotes } from "@/features/sales/rules";
 import { DealContractsPanel } from "@/features/contracts/components/deal-contracts-panel";
 import {
@@ -79,6 +81,7 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
     acceptedQuotes,
     files,
     customFields,
+    project,
   ] = await Promise.all([
     listStages(deal.pipelineId),
     listActivities({ dealId: id }),
@@ -95,6 +98,7 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
     can(staff, "contracts:create") ? acceptedQuotesForDeal(id) : Promise.resolve([]),
     listFiles({ dealId: id }),
     listCustomFields("deal"),
+    getProjectForDeal(id),
   ]);
   const services = origin ? await getServices() : [];
   const canAddTask = !checkAddTaskToDeal({
@@ -198,6 +202,11 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
                 </Fact>
               </Facts>
             </DetailsSection>
+            {(deal.stageKind === "won" || project) && (
+              <DetailsSection title="Project">
+                <DealProject dealId={id} won={deal.stageKind === "won"} project={project} />
+              </DetailsSection>
+            )}
             {customFields.length > 0 && (
               <DetailsSection title="Custom fields">
                 <CustomFieldsForm entity="deal" id={id} defs={customFields} values={deal.custom} />

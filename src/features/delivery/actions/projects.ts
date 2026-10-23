@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { logActivity } from "@/features/crm/actions/shared";
 import { live } from "@/features/crm/mappers";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
@@ -437,5 +439,64 @@ export async function linkPortfolio(projectId: string, slug: string): Promise<Ac
       );
     });
     refreshDelivery(projectId);
+  });
+}
+
+/**
+ * Starts the project of a won deal that has none: the way in when a deal was won without a quote
+ * the client accepted online (a phone call, a purchase order). Same result as an accepted quote:
+ * named after the deal, for its client, priced at the deal's value, managed by its owner.
+ */
+export async function startProjectFromDeal(dealId: string): Promise<ActionResult<{ id: string }>> {
+  return runAction(async () => {
+    const actor = await guard("projects:create");
+    const id = parse(z.string().uuid(), dealId);
+    const created = await prisma.$transaction(async (tx) => {
+      const deal = await tx.deal.findFirst({
+        where: { id, ...live },
+        include: { stage: { select: { kind: true } } },
+      });
+      if (!deal) throw new ActionError("That deal no longer exists.");
+      if (deal.stage.kind !== "won") {
+        throw new ActionError("Win the deal before starting its project.", "rule");
+      }
+      if (await tx.project.findFirst({ where: { dealId: id, ...live }, select: { id: true } })) {
+        throw new ActionError("This deal already has a project.", "rule");
+      }
+      const project = await tx.project.create({
+        data: {
+          name: deal.title,
+          dealId: deal.id,
+          contactId: deal.contactId,
+          organizationId: deal.organizationId,
+          managerId: deal.ownerId,
+          budgetMinor: deal.amountMinor,
+          currency: deal.currency,
+          createdBy: actorId(actor),
+          members: deal.ownerId ? { create: { profileId: deal.ownerId } } : undefined,
+        },
+      });
+      await logActivity(
+        tx,
+        actor,
+        { dealId: deal.id },
+        "system",
+        `Started project ${project.reference}`,
+      );
+      await recordAudit(
+        actor,
+        {
+          action: "project.create",
+          entity: "project",
+          entityId: project.id,
+          summary: `Started project ${project.reference} ${project.name} from won deal ${deal.reference}`,
+        },
+        tx,
+      );
+      return project.id;
+    });
+    refreshDelivery(created);
+    revalidatePath(`/dashboard/crm/deals/${id}`);
+    return { id: created };
   });
 }

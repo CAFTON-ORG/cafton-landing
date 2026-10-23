@@ -862,3 +862,32 @@ describe("price against cost, utilisation and case studies", () => {
     expect((await projects.linkPortfolio(second, "case-one")).ok).toBe(true);
   });
 });
+
+describe("a deal won without a quote", () => {
+  it("starts its project from the deal page, once, priced at the deal's value", async () => {
+    const open = await newDeal(OWNER.id);
+    expect(await projects.startProjectFromDeal(open.id)).toMatchObject({ ok: false });
+    expect(await repo.getProjectForDeal(open.id)).toBeNull();
+
+    const won = await wonDeal();
+    expect(await repo.getProjectForDeal(won.id)).toBeNull();
+    // Only people who may start projects.
+    current = VIEWER;
+    expect(await projects.startProjectFromDeal(won.id)).toMatchObject({ ok: false });
+    current = OWNER;
+
+    const made = await projects.startProjectFromDeal(won.id);
+    expect(made.ok).toBe(true);
+    const found = await repo.getProjectForDeal(won.id);
+    expect(found).toMatchObject({ status: "planned", name: won.title });
+    const row = await prisma.project.findFirstOrThrow({ where: { dealId: won.id } });
+    expect(Number(row.budgetMinor)).toBe(5_000_000);
+    expect(row.managerId).toBe(OWNER.id);
+    expect(
+      await prisma.projectMember.count({ where: { projectId: row.id, profileId: OWNER.id } }),
+    ).toBe(1);
+    // A second time is refused rather than duplicated.
+    expect(await projects.startProjectFromDeal(won.id)).toMatchObject({ ok: false });
+    expect(await prisma.project.count({ where: { dealId: won.id } })).toBe(1);
+  });
+});

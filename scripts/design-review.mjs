@@ -90,6 +90,7 @@ const PAGES = [
   ["finance-expenses", "/dashboard/finance/expenses"],
   ["finance-recurring", "/dashboard/finance/recurring"],
   ["finance-bank", "/dashboard/finance/bank"],
+  ["finance-taxes", "/dashboard/finance/taxes"],
   ["finance-reports", "/dashboard/finance/reports"],
   ["finance-report-profit", "/dashboard/finance/reports/profit-and-loss"],
   ["finance-report-balance", "/dashboard/finance/reports/balance-sheet"],

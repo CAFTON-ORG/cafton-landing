@@ -231,6 +231,12 @@ A bank or e-wallet account tied to an asset account in the chart. Its statement 
 **Reconciliation**:
 Checking a bank statement against the books: each statement line is matched to a posting, booked (if the books are missing it) or set aside with a reason. A period whose figures add up and whose lines are all dealt with is signed off, and then nothing in it can change.
 
+**8% income tax option**:
+How the business pays income tax: 8% of gross receipts above 250,000 pesos a year, instead of tax on profit and a percentage tax. Filed as a quarterly return (1701Q) for each of the first three quarters, each working on the year so far, and an annual return (1701A). Tax clients withheld (form 2307) is credited against it.
+
+**Filing (tax)**:
+A record that a return was filed and what was paid. It is booked as income tax expense, against the cash paid and the withheld tax used, and is fixed once recorded; a mistake is voided.
+
 ## Money (from Phase 4)
 
 **Amount**:

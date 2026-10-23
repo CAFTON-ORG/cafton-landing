@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { scoreUnscoredLeads } from "@/features/crm/scoring-jobs";
 import { runReminders } from "@/features/schedule/reminders";
 import { expireDueQuotes } from "@/features/sales/server";
+import { notifyTaxDeadlines } from "@/features/finance/tax-reminders";
 import { generateDueRecurring } from "@/features/finance/recurring-server";
 import { sendDueInvoiceReminders } from "@/features/finance/reminders";
 import { expireDueContracts } from "@/features/contracts/server";
@@ -48,5 +49,7 @@ export async function GET(request: Request) {
     invoiceRemindersSent: await sendDueInvoiceReminders(),
     // Recurring bills and expenses that fell due become drafts for a person to approve.
     recurring: await generateDueRecurring(),
+    // Income tax returns due within two weeks, or late, are flagged to whoever records filings.
+    taxReminders: await notifyTaxDeadlines(),
   });
 }

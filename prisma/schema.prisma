@@ -1777,3 +1777,39 @@ model BankReconciliation {
   @@index([bankAccountId, periodEnd])
   @@map("bank_reconciliations")
 }
+
+/// A 1701Q or 1701A recorded as filed under the 8% income tax option: what was declared and paid,
+/// posted to the ledger. A recorded filing is fixed (a trigger) and only changes by being voided.
+model TaxFiling {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taxYear            Int       @map("tax_year")
+  /// "q1", "q2", "q3" or "annual".
+  kind               String
+  /// "1701Q" or "1701A".
+  form               String
+  dueDate            DateTime  @map("due_date") @db.Date
+  /// "filed" or "void".
+  status             String    @default("filed")
+  filedOn            DateTime  @map("filed_on") @db.Date
+  /// The confirmation or reference number the BIR gave.
+  reference          String?
+  /// What the tracker estimated at the time, beside what was declared.
+  grossReceiptsMinor BigInt    @default(0) @map("gross_receipts_minor")
+  estimateMinor      BigInt    @default(0) @map("estimate_minor")
+  cashPaidMinor      BigInt    @default(0) @map("cash_paid_minor")
+  /// Settled by tax clients had withheld (creditable withholding tax).
+  cwtAppliedMinor    BigInt    @default(0) @map("cwt_applied_minor")
+  /// The cash or bank account it was paid from (an account id; the foreign key lives in the migration).
+  paidFromAccountId  String?   @map("paid_from_account_id") @db.Uuid
+  notes              String?
+  journalEntryId     String?   @map("journal_entry_id") @db.Uuid
+  voidEntryId        String?   @map("void_entry_id") @db.Uuid
+  voidedAt           DateTime? @map("voided_at") @db.Timestamptz(6)
+  voidReason         String?   @map("void_reason")
+  filedBy            String?   @map("filed_by") @db.Uuid
+  filedByName        String    @default("System") @map("filed_by_name")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([taxYear])
+  @@map("tax_filings")
+}

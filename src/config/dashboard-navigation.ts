@@ -404,6 +404,23 @@ export const navGroups: NavGroup[] = [
         keywords: ["close the month", "lock", "year end", "months"],
       },
       {
+        href: "/dashboard/finance/taxes",
+        label: "Income tax",
+        icon: Landmark,
+        permission: "finance:view",
+        keywords: [
+          "8%",
+          "1701q",
+          "1701a",
+          "bir",
+          "quarterly",
+          "filing",
+          "withholding",
+          "2307",
+          "deadline",
+        ],
+      },
+      {
         href: "/dashboard/finance/tax",
         label: "Tax rates",
         icon: Percent,

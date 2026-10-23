@@ -23,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/dashboard/ui/dialog";
+import { Checkbox } from "@/components/dashboard/ui/checkbox";
 import { Input } from "@/components/dashboard/ui/input";
 import { useServerAction } from "@/hooks/use-server-action";
 import {
@@ -35,7 +36,10 @@ import {
   setDefaultPipeline,
   updateStage,
 } from "../actions/pipelines";
+import type { StageFieldChoice } from "../pipelines";
 import type { PipelineView, StageView } from "../types";
+
+type Values = { name: string; probability: string; exitCriteria: string; requiredFields: string[] };
 
 type Editing =
   | { kind: "new-pipeline" }
@@ -51,7 +55,13 @@ type Deleting =
  * Pipelines and their stages, in one place. Open stages can be added, renamed, re-ordered and
  * removed; Won and Lost are fixed at the end of every pipeline because the forecast depends on them.
  */
-export function PipelinesEditor({ pipelines }: { pipelines: PipelineView[] }) {
+export function PipelinesEditor({
+  pipelines,
+  fieldChoices,
+}: {
+  pipelines: PipelineView[];
+  fieldChoices: StageFieldChoice[];
+}) {
   const { run, pending } = useServerAction();
   const [editing, setEditing] = useState<Editing>(null);
   const [deleting, setDeleting] = useState<Deleting>(null);
@@ -127,6 +137,11 @@ export function PipelinesEditor({ pipelines }: { pipelines: PipelineView[] }) {
                             </Badge>
                           )}
                         </span>
+                        {stage.requiredFields.length > 0 && (
+                          <span className="text-muted-foreground block text-xs">
+                            Needs: {requirementLabels(stage.requiredFields, fieldChoices)}
+                          </span>
+                        )}
                         {stage.exitCriteria && (
                           <span className="text-muted-foreground block text-xs">
                             Leaves this stage when: {stage.exitCriteria}
@@ -196,7 +211,7 @@ export function PipelinesEditor({ pipelines }: { pipelines: PipelineView[] }) {
         );
       })}
 
-      <EditDialog editing={editing} onClose={() => setEditing(null)} />
+      <EditDialog editing={editing} onClose={() => setEditing(null)} fieldChoices={fieldChoices} />
 
       <ConfirmDialog
         open={!!deleting}
@@ -230,18 +245,34 @@ export function PipelinesEditor({ pipelines }: { pipelines: PipelineView[] }) {
   );
 }
 
-function EditDialog({ editing, onClose }: { editing: Editing; onClose: () => void }) {
+function requirementLabels(tokens: string[], choices: StageFieldChoice[]) {
+  return tokens
+    .map((token) => choices.find((choice) => choice.token === token)?.label)
+    .filter(Boolean)
+    .join(", ");
+}
+
+function EditDialog({
+  editing,
+  onClose,
+  fieldChoices,
+}: {
+  editing: Editing;
+  onClose: () => void;
+  fieldChoices: StageFieldChoice[];
+}) {
   const { run, pending } = useServerAction();
   const initial =
     editing?.kind === "rename"
-      ? { name: editing.pipeline.name, probability: "", exitCriteria: "" }
+      ? { name: editing.pipeline.name, probability: "", exitCriteria: "", requiredFields: [] }
       : editing?.kind === "edit-stage"
         ? {
             name: editing.stage.name,
             probability: String(editing.stage.probability),
             exitCriteria: editing.stage.exitCriteria ?? "",
+            requiredFields: editing.stage.requiredFields,
           }
-        : { name: "", probability: "25", exitCriteria: "" };
+        : { name: "", probability: "25", exitCriteria: "", requiredFields: [] };
   // Remount per target so the fields start from the right values.
   const key = editing
     ? JSON.stringify([
@@ -257,6 +288,7 @@ function EditDialog({ editing, onClose }: { editing: Editing; onClose: () => voi
           key={key}
           editing={editing}
           initial={initial}
+          fieldChoices={fieldChoices}
           onClose={onClose}
           run={run}
           pending={pending}
@@ -269,12 +301,14 @@ function EditDialog({ editing, onClose }: { editing: Editing; onClose: () => voi
 function EditForm({
   editing,
   initial,
+  fieldChoices,
   onClose,
   run,
   pending,
 }: {
   editing: NonNullable<Editing>;
-  initial: { name: string; probability: string; exitCriteria: string };
+  initial: Values;
+  fieldChoices: StageFieldChoice[];
   onClose: () => void;
   run: ReturnType<typeof useServerAction>["run"];
   pending: boolean;
@@ -307,6 +341,7 @@ function EditForm({
             name: values.name,
             probability: values.probability,
             exitCriteria: values.exitCriteria,
+            requiredFields: values.requiredFields,
           }),
         done,
       );
@@ -318,6 +353,7 @@ function EditForm({
             name: values.name,
             probability: values.probability,
             exitCriteria: values.exitCriteria,
+            requiredFields: values.requiredFields,
           }),
         done,
       );
@@ -373,6 +409,28 @@ function EditForm({
                 onChange={(event) => setValues({ ...values, exitCriteria: event.target.value })}
               />
             </Field>
+            <fieldset className="grid gap-2">
+              <legend className="text-sm font-medium">A deal needs these to move in</legend>
+              <p className="text-muted-foreground text-xs">
+                Moving a deal here is refused until they are filled in (optional).
+              </p>
+              {fieldChoices.map((choice) => (
+                <label key={choice.token} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={values.requiredFields.includes(choice.token)}
+                    onCheckedChange={(checked) =>
+                      setValues({
+                        ...values,
+                        requiredFields: checked
+                          ? [...values.requiredFields, choice.token]
+                          : values.requiredFields.filter((token) => token !== choice.token),
+                      })
+                    }
+                  />
+                  {choice.label}
+                </label>
+              ))}
+            </fieldset>
           </>
         )}
         <DialogFooter>

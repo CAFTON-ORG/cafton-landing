@@ -103,3 +103,82 @@ export const STARTER_STAGES = [
   { name: "Won", slug: "won", probability: 100, kind: "won" },
   { name: "Lost", slug: "lost", probability: 0, kind: "lost" },
 ] as const;
+
+/** The built-in deal fields a stage can ask for, and what people call them. */
+export const STAGE_FIELDS = [
+  { key: "value", label: "Value" },
+  { key: "expected_close", label: "Expected close date" },
+  { key: "organization", label: "Organization" },
+] as const;
+
+const CUSTOM_PREFIX = "custom:";
+export const customStageField = (key: string) => `${CUSTOM_PREFIX}${key}`;
+
+export interface StageFieldChoice {
+  /** What is stored on the stage. */
+  token: string;
+  label: string;
+}
+
+/** Every field a stage can require: the built-in ones, then the deal's active custom fields. */
+export function stageFieldChoices(
+  customFields: readonly { key: string; label: string; type: string; active: boolean }[],
+): StageFieldChoice[] {
+  return [
+    ...STAGE_FIELDS.map((field) => ({ token: field.key, label: field.label })),
+    ...customFields
+      .filter((field) => field.active && field.type !== "checkbox")
+      .map((field) => ({ token: customStageField(field.key), label: field.label })),
+  ];
+}
+
+/** What was ticked, cleaned to fields that exist (so a stale or made-up token is dropped), in order. */
+export function normalizeRequiredFields(
+  tokens: readonly string[],
+  choices: readonly StageFieldChoice[],
+): string[] {
+  const allowed = choices.map((choice) => choice.token);
+  return allowed.filter((token) => tokens.includes(token));
+}
+
+export interface DealFacts {
+  amountMinor: number | null;
+  hasExpectedClose: boolean;
+  hasOrganization: boolean;
+  /** The deal's custom values, by field key. */
+  custom: Record<string, unknown>;
+}
+
+/** The labels of the fields this deal is still missing for a stage (archived custom fields are skipped). */
+export function missingStageFields(
+  required: readonly string[],
+  deal: DealFacts,
+  choices: readonly StageFieldChoice[],
+): string[] {
+  const label = (token: string) => choices.find((choice) => choice.token === token)?.label;
+  const missing: string[] = [];
+  for (const token of required) {
+    const name = label(token);
+    if (!name) continue;
+    const filled =
+      token === "value"
+        ? deal.amountMinor !== null && deal.amountMinor > 0
+        : token === "expected_close"
+          ? deal.hasExpectedClose
+          : token === "organization"
+            ? deal.hasOrganization
+            : deal.custom[token.slice(CUSTOM_PREFIX.length)] !== undefined;
+    if (!filled) missing.push(name);
+  }
+  return missing;
+}
+
+/** Why a deal can't enter a stage yet, or null. */
+export function checkStageRequirements(
+  stageName: string,
+  missing: readonly string[],
+): string | null {
+  return missing.length === 0
+    ? null
+    : `To move to ${stageName}, fill in: ${missing.join(", ")}. Open the deal to add ${missing.length === 1 ? "it" : "them"}.`;
+}

@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   checkDeletePipeline,
+  checkStageRequirements,
+  missingStageFields,
+  normalizeRequiredFields,
+  stageFieldChoices,
+  type DealFacts,
   checkDeleteStage,
   moveWithin,
   orderedIds,
@@ -54,5 +59,68 @@ describe("deleting", () => {
     expect(checkDeletePipeline({ isDefault: true, dealCount: 0 })).toMatch(/default/);
     expect(checkDeletePipeline({ isDefault: false, dealCount: 1 })).toMatch(/1 deal is/);
     expect(checkDeletePipeline({ isDefault: false, dealCount: 0 })).toBeNull();
+  });
+});
+
+describe("required fields per stage", () => {
+  const choices = stageFieldChoices([
+    { key: "region", label: "Region", type: "select", active: true },
+    { key: "vip", label: "VIP", type: "checkbox", active: true },
+    { key: "old", label: "Old", type: "text", active: false },
+  ]);
+  const deal = (over: Partial<DealFacts> = {}): DealFacts => ({
+    amountMinor: null,
+    hasExpectedClose: false,
+    hasOrganization: false,
+    custom: {},
+    ...over,
+  });
+
+  it("offers the built-in fields and the active, fillable custom ones", () => {
+    expect(choices.map((choice) => choice.token)).toEqual([
+      "value",
+      "expected_close",
+      "organization",
+      "custom:region",
+    ]);
+  });
+
+  it("drops anything that isn't an offered field", () => {
+    expect(
+      normalizeRequiredFields(["custom:region", "bogus", "value", "custom:old"], choices),
+    ).toEqual(["value", "custom:region"]);
+  });
+
+  it("names what the deal is still missing", () => {
+    const required = ["value", "expected_close", "organization", "custom:region"];
+    expect(missingStageFields(required, deal(), choices)).toEqual([
+      "Value",
+      "Expected close date",
+      "Organization",
+      "Region",
+    ]);
+    expect(
+      missingStageFields(
+        required,
+        deal({
+          amountMinor: 5000,
+          hasExpectedClose: true,
+          hasOrganization: true,
+          custom: { region: "North" },
+        }),
+        choices,
+      ),
+    ).toEqual([]);
+    // A zero value is not a value; a field that no longer exists is not asked for.
+    expect(missingStageFields(["value", "custom:gone"], deal({ amountMinor: 0 }), choices)).toEqual(
+      ["Value"],
+    );
+  });
+
+  it("explains in plain words", () => {
+    expect(checkStageRequirements("Proposal", [])).toBeNull();
+    expect(checkStageRequirements("Proposal", ["Value", "Region"])).toBe(
+      "To move to Proposal, fill in: Value, Region. Open the deal to add them.",
+    );
   });
 });

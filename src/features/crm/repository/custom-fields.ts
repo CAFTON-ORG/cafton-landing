@@ -2,7 +2,13 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import type { CustomEntity, CustomFieldDef, CustomType } from "../custom-fields";
+import {
+  CUSTOM_FILTER_PREFIX,
+  customConditions,
+  type CustomEntity,
+  type CustomFieldDef,
+  type CustomType,
+} from "../custom-fields";
 
 const toDef = (row: {
   id: string;
@@ -11,6 +17,7 @@ const toDef = (row: {
   label: string;
   type: string;
   options: string[];
+  required: boolean;
   active: boolean;
   position: number;
 }): CustomFieldDef => ({
@@ -20,6 +27,7 @@ const toDef = (row: {
   label: row.label,
   type: row.type as CustomType,
   options: row.options,
+  required: row.required,
   active: row.active,
   position: row.position,
 });
@@ -44,4 +52,21 @@ export async function listAllCustomFields(): Promise<CustomFieldDef[]> {
     orderBy: [{ entity: "asc" }, { position: "asc" }, { createdAt: "asc" }],
   });
   return rows.map(toDef);
+}
+
+/**
+ * The `where` conditions for the custom-field filters in a list's URL (`?cf_region=North`). One
+ * extra query for the field list, and only when such a filter is present.
+ */
+export async function customFilterWhere(
+  entity: CustomEntity,
+  filters: Record<string, string>,
+): Promise<{ custom: { path: string[]; equals: string | boolean } }[]> {
+  if (!Object.keys(filters).some((id) => id.startsWith(CUSTOM_FILTER_PREFIX) && filters[id])) {
+    return [];
+  }
+  const defs = await listCustomFields(entity);
+  return customConditions(filters, defs).map(({ key, equals }) => ({
+    custom: { path: [key], equals },
+  }));
 }

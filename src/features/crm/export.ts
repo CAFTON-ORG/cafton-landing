@@ -5,6 +5,8 @@ import { can, type Staff } from "@/lib/auth/dal";
 import { actorId } from "@/lib/actions";
 import { toCsv } from "@/lib/csv";
 import { parseTableParams, type TableParams } from "@/lib/table-params";
+import { csvCustomValue, type CustomEntity, type CustomValues } from "./custom-fields";
+import { listCustomFields } from "./repository/custom-fields";
 import { listContacts } from "./repository/contacts";
 import { listDeals } from "./repository/deals";
 import { listLeads } from "./repository/leads";
@@ -31,6 +33,15 @@ export async function exportCsv(
   const me = actorId(staff);
   let headers: string[];
   let rows: unknown[][];
+  let customs: CustomValues[];
+  const entity: CustomEntity =
+    kind === "leads"
+      ? "lead"
+      : kind === "contacts"
+        ? "contact"
+        : kind === "organizations"
+          ? "organization"
+          : "deal";
 
   if (kind === "leads") {
     const page = await listLeads(everything(parseTableParams(query, LEADS_TABLE)), me);
@@ -48,6 +59,7 @@ export async function exportCsv(
       "Source",
       "Received",
     ];
+    customs = page.items.map((item) => item.custom);
     rows = page.items.map((l) => [
       l.reference,
       l.name,
@@ -75,6 +87,7 @@ export async function exportCsv(
       "Deals",
       "Added",
     ];
+    customs = page.items.map((item) => item.custom);
     rows = page.items.map((c) => [
       c.name,
       c.email,
@@ -89,6 +102,7 @@ export async function exportCsv(
   } else if (kind === "organizations") {
     const page = await listOrganizations(everything(parseTableParams(query, ORGANIZATIONS_TABLE)));
     headers = ["Name", "Industry", "Size", "Website", "Phone", "Address", "Contacts", "Added"];
+    customs = page.items.map((item) => item.custom);
     rows = page.items.map((o) => [
       o.name,
       o.industry,
@@ -120,6 +134,7 @@ export async function exportCsv(
       "Lost reason",
       "Created",
     ];
+    customs = page.items.map((item) => item.custom);
     rows = page.items.map((d) => [
       d.reference,
       d.title,
@@ -136,6 +151,14 @@ export async function exportCsv(
       d.createdAt,
     ]);
   }
+
+  // Every active custom field is a column of its own, after the standard ones.
+  const fields = await listCustomFields(entity);
+  headers = [...headers, ...fields.map((field) => field.label)];
+  rows = rows.map((row, index) => [
+    ...row,
+    ...fields.map((field) => csvCustomValue(field, customs[index]?.[field.key])),
+  ]);
 
   await recordAudit(staff, {
     action: "crm.export",

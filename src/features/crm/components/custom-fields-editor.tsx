@@ -1,11 +1,13 @@
 "use client";
 
+import { TabCount } from "@/components/dashboard/shared/tab-count";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArchiveRestore, ListPlus, Pencil, Plus, Archive } from "lucide-react";
 
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Field } from "@/components/dashboard/shared/field";
+import { Checkbox } from "@/components/dashboard/ui/checkbox";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { Button } from "@/components/dashboard/ui/button";
 import {
@@ -37,6 +39,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { saveCustomField, setCustomFieldActive } from "../actions/custom-fields";
 import {
   CUSTOM_ENTITIES,
+  canBeRequired,
   CUSTOM_ENTITY_LABEL,
   CUSTOM_TYPES,
   CUSTOM_TYPE_LABEL,
@@ -53,6 +56,7 @@ interface Editing {
   label: string;
   type: CustomType;
   optionsText: string;
+  required: boolean;
 }
 
 /** The fields an administrator has added to leads, contacts, organizations and deals. */
@@ -64,7 +68,7 @@ export function CustomFieldsEditor({ fields }: { fields: CustomFieldDef[] }) {
 
   const startNew = (entity: CustomEntity) => {
     setErrors({});
-    setEditing({ entity, label: "", type: "text", optionsText: "" });
+    setEditing({ entity, label: "", type: "text", optionsText: "", required: false });
   };
   const startEdit = (field: CustomFieldDef) => {
     setErrors({});
@@ -74,6 +78,7 @@ export function CustomFieldsEditor({ fields }: { fields: CustomFieldDef[] }) {
       label: field.label,
       type: field.type,
       optionsText: field.options.join("\n"),
+      required: field.required,
     });
   };
 
@@ -88,6 +93,7 @@ export function CustomFieldsEditor({ fields }: { fields: CustomFieldDef[] }) {
           entity: editing.entity,
           label: editing.label,
           type: editing.type,
+          required: editing.required && canBeRequired(editing.type),
           options: editing.type === "select" ? editing.optionsText.split("\n") : [],
         }),
       {
@@ -117,7 +123,7 @@ export function CustomFieldsEditor({ fields }: { fields: CustomFieldDef[] }) {
             return (
               <TabsTrigger key={entity} value={entity}>
                 {CUSTOM_ENTITY_LABEL[entity]}
-                {count > 0 && <span className="ml-1">({count})</span>}
+                <TabCount n={count} />
               </TabsTrigger>
             );
           })}
@@ -152,6 +158,7 @@ export function CustomFieldsEditor({ fields }: { fields: CustomFieldDef[] }) {
                             <p className="truncate text-sm font-medium">{field.label}</p>
                             <p className="text-muted-foreground text-xs">
                               {CUSTOM_TYPE_LABEL[field.type]}
+                              {field.required && " · Required"}
                               {field.type === "select" && ` · ${field.options.join(", ")}`}
                             </p>
                           </div>
@@ -287,6 +294,23 @@ export function CustomFieldsEditor({ fields }: { fields: CustomFieldDef[] }) {
                     }
                   />
                 </Field>
+              )}
+              {canBeRequired(editing.type) && (
+                <label className="flex items-start gap-2.5 text-sm">
+                  <Checkbox
+                    checked={editing.required}
+                    onCheckedChange={(checked) =>
+                      setEditing({ ...editing, required: checked === true })
+                    }
+                    className="mt-0.5"
+                  />
+                  <span>
+                    Required
+                    <span className="text-muted-foreground block text-xs">
+                      It has to be filled in whenever the record&apos;s fields are saved.
+                    </span>
+                  </span>
+                </label>
               )}
               <DialogFooter>
                 <Button

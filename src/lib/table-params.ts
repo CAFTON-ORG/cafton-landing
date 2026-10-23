@@ -19,12 +19,21 @@ export type TableParamsConfig = {
   filters?: Record<string, readonly string[]>;
   /** Filters that accept any short value (for example a tag), not a fixed list. */
   free?: readonly string[];
+  /**
+   * Filters whose ids start with this prefix are accepted too, for filters that are data (a custom
+   * field's id is only known from the database). The value is kept as typed, up to 60 characters;
+   * the caller checks it against what that filter allows.
+   */
+  prefixed?: string;
   /** Sortable column ids. */
   sortable: readonly string[];
   defaultSort: { sort: string; dir: SortDirection };
 };
 
-type SearchParamsLike = { get(name: string): string | null };
+type SearchParamsLike = {
+  get(name: string): string | null;
+  entries(): IterableIterator<[string, string]>;
+};
 
 /** Parse and sanitise untrusted URL params into a valid `TableParams`. */
 export function parseTableParams(
@@ -44,6 +53,14 @@ export function parseTableParams(
 
   for (const id of config.free ?? []) {
     filters[id] = (searchParams.get(id) ?? "").trim().toLowerCase().slice(0, 40);
+  }
+
+  if (config.prefixed) {
+    for (const [name, raw] of searchParams.entries()) {
+      if (!name.startsWith(config.prefixed) || !/^[a-z][a-z0-9_]{0,60}$/.test(name)) continue;
+      const value = raw.trim().slice(0, 60);
+      if (value) filters[name] = value;
+    }
   }
 
   const validSort = config.sortable.includes(sort);

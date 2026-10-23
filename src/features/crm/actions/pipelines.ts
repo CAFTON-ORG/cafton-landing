@@ -14,6 +14,8 @@ import {
   checkDeletePipeline,
   checkDeleteStage,
   moveWithin,
+  normalizeRequiredFields,
+  stageFieldChoices,
   orderedIds,
   slugKey,
   uniqueKey,
@@ -40,6 +42,12 @@ async function renumber(tx: Tx, ids: string[]) {
   for (const [index, id] of ids.entries()) {
     await tx.pipelineStage.update({ where: { id }, data: { position: index + 1 } });
   }
+}
+
+/** The ticked required fields, limited to ones that exist now (deal custom fields included). */
+async function cleanRequired(tx: Tx, tokens: readonly string[]) {
+  const custom = await tx.customField.findMany({ where: { entity: "deal", active: true } });
+  return normalizeRequiredFields(tokens, stageFieldChoices(custom));
 }
 
 async function takenKeys(tx: Tx, table: "pipeline" | "stage") {
@@ -174,6 +182,7 @@ const addStageSchema = z.object({
   name,
   probability,
   exitCriteria: criteria,
+  requiredFields: z.array(z.string().max(60)).max(30).default([]),
 });
 
 /** Adds an open stage just before Won. */
@@ -199,6 +208,7 @@ export async function addStage(input: z.input<typeof addStageSchema>): Promise<A
           probability: data.probability,
           kind: "open",
           exitCriteria: data.exitCriteria,
+          requiredFields: await cleanRequired(tx, data.requiredFields),
         },
       });
       await renumber(tx, orderedIds([...pipeline.stages, stage]));
@@ -222,6 +232,7 @@ const updateStageSchema = z.object({
   name,
   probability,
   exitCriteria: criteria,
+  requiredFields: z.array(z.string().max(60)).max(30).default([]),
 });
 
 export async function updateStage(input: z.input<typeof updateStageSchema>): Promise<ActionResult> {
@@ -239,6 +250,7 @@ export async function updateStage(input: z.input<typeof updateStageSchema>): Pro
           name: data.name,
           probability: fixed ? stage.probability : data.probability,
           exitCriteria: fixed ? stage.exitCriteria : (data.exitCriteria ?? null),
+          requiredFields: fixed ? [] : await cleanRequired(tx, data.requiredFields),
         },
       });
       await recordAudit(

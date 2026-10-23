@@ -44,6 +44,8 @@ export interface StageView {
   probability: number;
   kind: StageKind;
   exitCriteria?: string;
+  /** Deal fields that must be filled in before a deal can move in (see pipelines.ts). */
+  requiredFields: string[];
 }
 
 export interface LeadView {

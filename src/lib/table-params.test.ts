@@ -72,3 +72,19 @@ describe("hasActiveFilters", () => {
     expect(hasActiveFilters(parse("status=active"))).toBe(true);
   });
 });
+
+describe("prefixed filters", () => {
+  const withPrefix: TableParamsConfig = { ...config, prefixed: "cf_" };
+
+  it("keeps ids with the prefix as typed, and ignores the rest", () => {
+    const params = parseTableParams(
+      new URLSearchParams("cf_tier=Gold&cf_BAD=x&other=1&cf_vip=yes"),
+      withPrefix,
+    );
+    expect(params.filters).toEqual({ status: "", cf_tier: "Gold", cf_vip: "yes" });
+  });
+
+  it("is off unless the list asks for it", () => {
+    expect(parse("cf_tier=Gold").filters).toEqual({ status: "" });
+  });
+});

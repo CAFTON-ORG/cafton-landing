@@ -50,9 +50,18 @@ The screens show the reason beside the disabled button; the actions enforce it e
   by an administrator. Values are a small JSON object on the record keyed by the field's key, which
   never changes, so renaming can't orphan values. A field's type can't change; archiving hides a
   field but keeps its values, and restoring brings them back. Up to 25 active fields per kind.
+  A field can be marked required: saving a record's custom fields is refused while it is empty (a
+  yes or no field can't be required, as it has no empty state). Choice and yes or no fields get a
+  filter on the list (`?cf_region=North`, checked against the field's own choices, so a stale or
+  made-up value narrows nothing), the first three active fields show as columns, and every active
+  field is a column of the CSV export.
+- **Required fields per stage.** An open stage can ask for the deal's value, expected close date,
+  organization or any active custom field. Moving a deal into the stage is refused, with the missing
+  fields named, until they are filled in (the same on the board and the deal page). Won and Lost
+  keep their own rules, and a new deal is not held to its first stage's list.
 
 ## Not done
 
-Capturing received email automatically (needs inbound mail set up with the provider), showing and
-filtering by custom fields in lists and CSV, required custom fields, custom field ordering by drag
-and drop, and files in the client-facing quote and contract pages.
+Capturing received email automatically (needs inbound mail set up with the provider), custom fields
+in CSV import and as sortable columns, custom field ordering by drag and drop, and files in the
+client-facing quote and contract pages.

@@ -88,7 +88,9 @@ HubSpot is dropped: the contact form writes to our database and the dashboard is
 - [ ] Capture received email automatically (needs inbound mail set up with the provider; received email is logged by hand for now)
 - [x] Files on leads, contacts, organizations and deals (private storage, checked by their bytes, signed short-lived links)
 - [x] Custom fields on leads, contacts, organizations and deals (CRM > Custom fields; five types; archive keeps values)
-- [ ] Custom fields in lists, filters and CSV; required custom fields
+- [x] Custom fields in lists (first three as columns), filters (choice and yes/no fields), CSV export (all of them) and as required fields
+- [x] Required fields per stage: a deal can't move into a stage until the fields that stage asks for are filled in
+- [ ] Custom fields in CSV import and as sortable columns
 - [x] Email to staff on a new lead and an acknowledgement to the enquirer (Resend, `lib/mail.ts`); invitation emails with a "send again" button
 - [x] Schedule: visitors ask for a time on the contact form (office hours, buffers, notice, blocked dates in Booking settings); staff schedule, confirm, reschedule, cancel and close out meetings; ICS invites; the database refuses overlapping meetings; meetings show on leads and deals
 - [x] Deals board with drag and drop (keyboard and touch too), forecast per stage, overdue and stale markers; stage stepper on the deal page; roles edited on their own page; shadcn Calendar date pickers

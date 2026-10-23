@@ -1,3 +1,4 @@
+import { TabCount } from "@/components/dashboard/shared/tab-count";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,13 +18,7 @@ import { listCustomFields } from "@/features/crm/repository/custom-fields";
 import { listFiles } from "@/features/crm/repository/files";
 import { ActivityTimeline } from "@/features/crm/components/activity-timeline";
 import { StageBadge } from "@/features/crm/components/badges";
-import {
-  DetailsPanel,
-  DetailsSection,
-  Fact,
-  Facts,
-  TabCount,
-} from "@/features/crm/components/detail-parts";
+import { DetailsPanel, DetailsSection, Fact, Facts } from "@/features/crm/components/detail-parts";
 import { ContactActions } from "@/features/crm/components/record-actions";
 import { TagsEditor } from "@/features/crm/components/tags-editor";
 import { NewTaskForm, TaskRows, TasksEmpty } from "@/features/crm/components/task-list";

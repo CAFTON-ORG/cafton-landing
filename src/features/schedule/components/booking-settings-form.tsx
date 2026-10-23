@@ -1,5 +1,6 @@
 "use client";
 
+import { TabCount } from "@/components/dashboard/shared/tab-count";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -293,9 +294,7 @@ export function BookingSettingsForm({ initial }: { initial: BookingSettings }) {
             </TabsTrigger>
             <TabsTrigger value="off">
               Days off
-              {values.blockedDates.length > 0 && (
-                <span className="ml-1">({values.blockedDates.length})</span>
-              )}
+              <TabCount n={values.blockedDates.length} />
             </TabsTrigger>
             <TabsTrigger value="rules">Booking rules</TabsTrigger>
             <TabsTrigger value="where">Where you meet</TabsTrigger>

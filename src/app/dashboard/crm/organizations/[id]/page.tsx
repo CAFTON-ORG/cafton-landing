@@ -1,3 +1,4 @@
+import { TabCount } from "@/components/dashboard/shared/tab-count";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -112,13 +113,16 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
         <Tabs defaultValue="contacts">
           <TabsList>
             <TabsTrigger value="contacts">
-              Contacts{contacts.length > 0 && <span className="ml-1">({contacts.length})</span>}
+              Contacts
+              <TabCount n={contacts.length} />
             </TabsTrigger>
             <TabsTrigger value="deals">
-              Deals{deals.length > 0 && <span className="ml-1">({deals.length})</span>}
+              Deals
+              <TabCount n={deals.length} />
             </TabsTrigger>
             <TabsTrigger value="files">
-              Files{files.length > 0 && <span className="ml-1">({files.length})</span>}
+              Files
+              <TabCount n={files.length} />
             </TabsTrigger>
           </TabsList>
           <TabsContent value="contacts" className="mt-4">

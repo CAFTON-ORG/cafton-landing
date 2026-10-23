@@ -11,13 +11,14 @@ import { useCan } from "@/components/dashboard/layout/staff-context";
 import { Button } from "@/components/dashboard/ui/button";
 import { Thumbnail } from "@/components/dashboard/shared/thumbnail";
 import type { Page } from "@/lib/pagination";
-import { BulkBar, TagList, tagFilter } from "./list-parts";
+import { BulkBar, TagList, customColumns, customFilters, tagFilter } from "./list-parts";
 import { SavedViews } from "./saved-views";
 import { ORGANIZATIONS_TABLE } from "../table";
 import type { OrganizationView } from "../types";
+import type { CustomFieldDef } from "../custom-fields";
 import { OrganizationDialog } from "./organization-dialog";
 
-const columns: Column<OrganizationView>[] = [
+const baseColumns: Column<OrganizationView>[] = [
   {
     id: "name",
     header: "Organization",
@@ -55,13 +56,16 @@ const columns: Column<OrganizationView>[] = [
 ];
 
 export function OrganizationsTable({
+  customFields,
   page,
   tagOptions,
 }: {
+  customFields: CustomFieldDef[];
   page: Page<OrganizationView>;
   tagOptions: string[];
 }) {
   const table = useTableParams(ORGANIZATIONS_TABLE);
+  const columns = [...baseColumns, ...customColumns<OrganizationView>(customFields)];
   const canCreate = useCan("organizations:create");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const add = (

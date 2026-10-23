@@ -1,3 +1,4 @@
+import { listCustomFields } from "@/features/crm/repository/custom-fields";
 import type { Metadata } from "next";
 import { MergeLink } from "@/features/crm/components/merge-link";
 import { ExportButton } from "@/features/crm/components/export-button";
@@ -42,7 +43,12 @@ export default async function LeadsPage({
           </div>
         }
       />
-      <LeadsTable page={page} people={people} tagOptions={tagOptions} />
+      <LeadsTable
+        customFields={await listCustomFields("lead")}
+        page={page}
+        people={people}
+        tagOptions={tagOptions}
+      />
     </>
   );
 }

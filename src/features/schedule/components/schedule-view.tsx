@@ -1,5 +1,6 @@
 "use client";
 
+import { TabCount } from "@/components/dashboard/shared/tab-count";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
@@ -236,7 +237,10 @@ export function ScheduleView({
           {requests.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Waiting for you ({requests.length})</CardTitle>
+                <CardTitle>
+                  Waiting for you
+                  <TabCount n={requests.length} />
+                </CardTitle>
               </CardHeader>
               <CardContent className="grid gap-2">
                 {requests.slice(0, 6).map((request) => (

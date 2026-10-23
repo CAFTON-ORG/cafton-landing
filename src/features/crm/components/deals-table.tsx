@@ -14,13 +14,14 @@ import { formatMinor } from "@/lib/money";
 import { Thumbnail } from "@/components/dashboard/shared/thumbnail";
 import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import type { Page } from "@/lib/pagination";
-import { BulkBar, NextStep, TagList, tagFilter } from "./list-parts";
+import { BulkBar, NextStep, TagList, customColumns, customFilters, tagFilter } from "./list-parts";
 import { SavedViews } from "./saved-views";
 import { dealsTableConfig } from "../table";
 import type { DealView, PersonRef, StageView } from "../types";
+import type { CustomFieldDef } from "../custom-fields";
 import { StageBadge } from "./badges";
 
-const columns: Column<DealView>[] = [
+const baseColumns: Column<DealView>[] = [
   {
     id: "title",
     header: "Deal",
@@ -91,12 +92,14 @@ const columns: Column<DealView>[] = [
 ];
 
 export function DealsTable({
+  customFields,
   page,
   stages,
   actions,
   people,
   tagOptions,
 }: {
+  customFields: CustomFieldDef[];
   page: Page<DealView>;
   stages: StageView[];
   actions?: React.ReactNode;
@@ -110,6 +113,7 @@ export function DealsTable({
   );
 
   const table = useTableParams(config);
+  const columns = [...baseColumns, ...customColumns<DealView>(customFields)];
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   return (
@@ -138,6 +142,7 @@ export function DealsTable({
           ],
         },
         ...tagFilter(tagOptions),
+        ...customFilters(customFields),
       ]}
       actions={
         <>

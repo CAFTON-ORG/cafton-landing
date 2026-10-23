@@ -1,3 +1,4 @@
+import { listCustomFields } from "@/features/crm/repository/custom-fields";
 import type { Metadata } from "next";
 import { MergeLink } from "@/features/crm/components/merge-link";
 import { ImportDialog } from "@/features/crm/components/import-dialog";
@@ -38,7 +39,11 @@ export default async function OrganizationsPage({
           </div>
         }
       />
-      <OrganizationsTable page={page} tagOptions={await listTagOptions("organization")} />
+      <OrganizationsTable
+        customFields={await listCustomFields("organization")}
+        page={page}
+        tagOptions={await listTagOptions("organization")}
+      />
     </>
   );
 }

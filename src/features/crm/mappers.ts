@@ -52,6 +52,7 @@ export function toStage(stage: Prisma.PipelineStageGetPayload<object>): StageVie
     probability: stage.probability,
     kind: stage.kind,
     exitCriteria: stage.exitCriteria ?? undefined,
+    requiredFields: stage.requiredFields,
   };
 }
 

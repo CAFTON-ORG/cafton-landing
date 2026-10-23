@@ -5,9 +5,19 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Tag, Trash2, UserRoundPlus, X } from "lucide-react";
 
+import type { Column } from "@/components/dashboard/data-table/data-table";
 import type { FilterConfig } from "@/components/dashboard/data-table/data-table-toolbar";
 import { useCan } from "@/components/dashboard/layout/staff-context";
 import { ConfirmDialog } from "@/components/dashboard/shared/confirm-dialog";
+import {
+  LIST_COLUMN_LIMIT,
+  customFilterId,
+  displayCustomValue,
+  filterOptions,
+  isFilterable,
+  type CustomFieldDef,
+  type CustomValues,
+} from "../custom-fields";
 import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import { Badge } from "@/components/dashboard/ui/badge";
 import { Button } from "@/components/dashboard/ui/button";
@@ -240,4 +250,29 @@ export function BulkBar({
       </Button>
     </>
   );
+}
+
+/** The first few active custom fields of a kind of record, as extra columns at the end of a list. */
+export function customColumns<T extends { custom: CustomValues }>(
+  defs: readonly CustomFieldDef[],
+): Column<T>[] {
+  return defs
+    .filter((def) => def.active)
+    .slice(0, LIST_COLUMN_LIMIT)
+    .map((def) => ({
+      id: customFilterId(def.key),
+      header: def.label,
+      hideBelow: "xl" as const,
+      cell: (row: T) => displayCustomValue(def, row.custom[def.key]) || "—",
+    }));
+}
+
+/** A dropdown for each choice or yes/no custom field, so a list can be narrowed by it. */
+export function customFilters(defs: readonly CustomFieldDef[]): FilterConfig[] {
+  return defs.filter(isFilterable).map((def) => ({
+    id: customFilterId(def.key),
+    label: def.label,
+    allLabel: `Any ${def.label.toLowerCase()}`,
+    options: filterOptions(def),
+  }));
 }

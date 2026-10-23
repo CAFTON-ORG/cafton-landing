@@ -1,5 +1,6 @@
 import "server-only";
 import { withActivity } from "./summary";
+import { customFilterWhere } from "./custom-fields";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -12,10 +13,12 @@ import type { DealView } from "../types";
 function filterWhere(
   params: Pick<TableParams, "q" | "filters">,
   staffId?: string | null,
+  custom: Prisma.DealWhereInput[] = [],
 ): Prisma.DealWhereInput {
   const q = params.q.trim();
   return {
     ...live,
+    ...(custom.length ? { AND: custom } : {}),
     ...(params.filters.tag ? { tags: { has: params.filters.tag } } : {}),
     ...(params.filters.stage || params.filters.pipeline
       ? {
@@ -48,7 +51,7 @@ export async function listDeals(
   if (!isDatabaseConfigured)
     return { items: [], total: 0, page: 1, pageSize: params.pageSize, pageCount: 1 };
 
-  const where = filterWhere(params, staffId);
+  const where = filterWhere(params, staffId, await customFilterWhere("deal", params.filters));
   const dir = params.dir;
   const orderBy: Prisma.DealOrderByWithRelationInput =
     params.sort === "amount"

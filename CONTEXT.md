@@ -112,7 +112,10 @@ A number from 0 to 100 showing how ready an enquiry looks, worked out from what 
 The staff switched on under Users to take new website enquiries. Each new enquiry goes to whoever was given one least recently; with nobody switched on, enquiries stay unassigned.
 
 **Custom field**:
-An extra fact an administrator adds to leads, contacts, organizations or deals (text, number, date, a choice from a list, or yes or no). Its values are kept on the record. Archiving a field hides it but keeps its values.
+An extra fact an administrator adds to leads, contacts, organizations or deals (text, number, date, a choice from a list, or yes or no). Its values are kept on the record. Archiving a field hides it but keeps its values. A field can be marked required (not for yes or no), which makes saving a record's fields refuse an empty value.
+
+**Stage requirement**:
+A deal field (value, expected close date, organization, or a custom field) that a pipeline stage asks for. A deal can't be moved into that stage until it is filled in.
 
 **Record file**:
 A document or image attached to a lead, contact, organization or deal, kept privately and opened through a link that expires after a minute.

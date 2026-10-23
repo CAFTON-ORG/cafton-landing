@@ -12,13 +12,22 @@ import { useCan } from "@/components/dashboard/layout/staff-context";
 import { Button } from "@/components/dashboard/ui/button";
 import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import type { Page } from "@/lib/pagination";
-import { Ago, BulkBar, NextStep, TagList, tagFilter } from "./list-parts";
+import {
+  Ago,
+  BulkBar,
+  NextStep,
+  TagList,
+  customColumns,
+  customFilters,
+  tagFilter,
+} from "./list-parts";
 import { SavedViews } from "./saved-views";
 import { CONTACTS_TABLE } from "../table";
 import type { ContactView, PersonRef } from "../types";
+import type { CustomFieldDef } from "../custom-fields";
 import { ContactDialog } from "./contact-dialog";
 
-const columns: Column<ContactView>[] = [
+const baseColumns: Column<ContactView>[] = [
   {
     id: "name",
     header: "Name",
@@ -80,17 +89,20 @@ const columns: Column<ContactView>[] = [
 ];
 
 export function ContactsTable({
+  customFields,
   page,
   organizations,
   people,
   tagOptions,
 }: {
+  customFields: CustomFieldDef[];
   page: Page<ContactView>;
   organizations: PersonRef[];
   people: PersonRef[];
   tagOptions: string[];
 }) {
   const table = useTableParams(CONTACTS_TABLE);
+  const columns = [...baseColumns, ...customColumns<ContactView>(customFields)];
   const canCreate = useCan("contacts:create");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const add = (

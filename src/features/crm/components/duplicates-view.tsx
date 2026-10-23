@@ -1,5 +1,6 @@
 "use client";
 
+import { TabCount } from "@/components/dashboard/shared/tab-count";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Building2, GitMerge, ShieldCheck } from "lucide-react";
@@ -46,18 +47,20 @@ export function DuplicatesView({
       <TabsList>
         {canLeads && (
           <TabsTrigger value="leads">
-            Leads{leads.length > 0 && <span className="ml-1">({leads.length})</span>}
+            Leads
+            <TabCount n={leads.length} />
           </TabsTrigger>
         )}
         {canContacts && (
           <TabsTrigger value="contacts">
-            Contacts{contacts.length > 0 && <span className="ml-1">({contacts.length})</span>}
+            Contacts
+            <TabCount n={contacts.length} />
           </TabsTrigger>
         )}
         {canOrganizations && (
           <TabsTrigger value="organizations">
             Organizations
-            {organizations.length > 0 && <span className="ml-1">({organizations.length})</span>}
+            <TabCount n={organizations.length} />
           </TabsTrigger>
         )}
       </TabsList>

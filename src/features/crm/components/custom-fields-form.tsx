@@ -109,7 +109,13 @@ export function CustomFieldsForm({
         const fieldId = `cf-${def.key}`;
         const value = draft[def.key];
         return (
-          <Field key={def.id} id={fieldId} label={def.label} error={errors[def.key]}>
+          <Field
+            key={def.id}
+            id={fieldId}
+            label={def.label}
+            required={def.required}
+            error={errors[def.key]}
+          >
             {def.type === "text" && (
               <Input
                 id={fieldId}

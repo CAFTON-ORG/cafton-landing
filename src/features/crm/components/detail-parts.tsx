@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
 import { Card, CardContent } from "@/components/dashboard/ui/card";
-import { Badge } from "@/components/dashboard/ui/badge";
 
 /**
  * The side panel of a record, the way CRMs lay it out (HubSpot's "About", Pipedrive's "Summary"):
@@ -43,13 +42,4 @@ export function Fact({ label, children }: { label: string; children: ReactNode }
 
 export function Facts({ children }: { children: ReactNode }) {
   return <dl className="grid gap-2.5">{children}</dl>;
-}
-
-/** "(3)" after a tab title, when there is something to count. */
-export function TabCount({ n }: { n: number }) {
-  return n > 0 ? (
-    <Badge variant="secondary" className="ml-1.5 h-4 min-w-4 px-1 tabular-nums">
-      {n}
-    </Badge>
-  ) : null;
 }

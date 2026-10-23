@@ -1,3 +1,4 @@
+import { listCustomFields } from "@/features/crm/repository/custom-fields";
 import type { Metadata } from "next";
 import { ExportButton } from "@/features/crm/components/export-button";
 import { Columns3, Plus, Table2 } from "lucide-react";
@@ -130,6 +131,7 @@ export default async function DealsPage({
         <DealsBoard stages={stages} deals={await listBoardDeals(params, actorId(staff))} />
       ) : (
         <DealsTable
+          customFields={await listCustomFields("deal")}
           stages={stages}
           page={await listDeals(params, actorId(staff))}
           people={people}

@@ -45,6 +45,8 @@ export interface CustomFieldDef {
   type: CustomType;
   /** The choices of a "choice from a list" field; empty for the other types. */
   options: string[];
+  /** Must be filled in when the record's fields are saved. Never true for a yes/no field. */
+  required: boolean;
   active: boolean;
   position: number;
 }
@@ -199,7 +201,57 @@ export function applyCustomValues(
     else if (parsed.value === null) delete values[def.key];
     else values[def.key] = parsed.value;
   }
+  for (const def of defs) {
+    if (def.active && def.required && def.type !== "checkbox" && !(def.key in values)) {
+      errors[def.key] = "This field is required.";
+    }
+  }
   return { values, errors };
+}
+
+/** A yes/no field has no "empty", so it can't be required. */
+export const canBeRequired = (type: CustomType) => type !== "checkbox";
+
+/** How many custom fields a list shows as columns; the rest are on the record and in the CSV. */
+export const LIST_COLUMN_LIMIT = 3;
+
+/** The URL filter id of a custom field: `cf_region`. */
+export const CUSTOM_FILTER_PREFIX = "cf_";
+export const customFilterId = (key: string) => `${CUSTOM_FILTER_PREFIX}${key}`;
+
+/** Only choice and yes/no fields can be filtered: exact values, so a list of them makes sense. */
+export const isFilterable = (def: CustomFieldDef) =>
+  def.active && (def.type === "select" || def.type === "checkbox");
+
+/** The filter dropdown choices of a field: its list, or Yes and No. */
+export function filterOptions(def: CustomFieldDef): { value: string; label: string }[] {
+  return def.type === "checkbox"
+    ? [
+        { value: "yes", label: "Yes" },
+        { value: "no", label: "No" },
+      ]
+    : def.options.map((option) => ({ value: option, label: option }));
+}
+
+/**
+ * The conditions for the custom-field filters in a URL: one per filterable field of this kind of
+ * record whose value is allowed. Anything else in the URL is ignored.
+ */
+export function customConditions(
+  filters: Record<string, string>,
+  defs: readonly CustomFieldDef[],
+): { key: string; equals: string | boolean }[] {
+  const result: { key: string; equals: string | boolean }[] = [];
+  for (const def of defs) {
+    const value = filters[customFilterId(def.key)];
+    if (!value || !isFilterable(def)) continue;
+    if (def.type === "checkbox") {
+      if (value === "yes" || value === "no") result.push({ key: def.key, equals: value === "yes" });
+    } else if (def.options.includes(value)) {
+      result.push({ key: def.key, equals: value });
+    }
+  }
+  return result;
 }
 
 /** What the database holds, narrowed to values this module understands (nothing else gets through). */
@@ -234,6 +286,16 @@ export function mergeCustomValues(primary: unknown, others: readonly unknown[]):
     }
   }
   return result;
+}
+
+/** A value in a CSV: dates and text as stored, numbers plain (no thousands separators), yes/no as words. */
+export function csvCustomValue(
+  def: CustomFieldDef,
+  value: CustomValue | undefined,
+): string | number {
+  if (value === undefined) return "";
+  if (def.type === "checkbox") return value ? "Yes" : "No";
+  return typeof value === "number" ? value : String(value);
 }
 
 /** The permission that lets someone fill in the custom fields of each kind of record. */

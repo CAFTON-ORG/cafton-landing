@@ -11,15 +11,24 @@ import { useTableParams } from "@/components/dashboard/data-table/use-table-para
 import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import { formatRelative } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
-import { Ago, BulkBar, NextStep, TagList, tagFilter } from "./list-parts";
+import {
+  Ago,
+  BulkBar,
+  NextStep,
+  TagList,
+  customColumns,
+  customFilters,
+  tagFilter,
+} from "./list-parts";
 import { SavedViews } from "./saved-views";
 import { LEADS_TABLE } from "../table";
 import type { PersonRef } from "../types";
+import type { CustomFieldDef } from "../custom-fields";
 import { LEAD_STATUSES, LEAD_STATUS_LABEL, type LeadView } from "../types";
 import { LEAD_BANDS, LEAD_BAND_LABEL } from "../scoring";
 import { LeadScoreBadge, LeadStatusBadge } from "./badges";
 
-const columns: Column<LeadView>[] = [
+const baseColumns: Column<LeadView>[] = [
   {
     id: "name",
     header: "Enquiry",
@@ -94,15 +103,18 @@ const columns: Column<LeadView>[] = [
 ];
 
 export function LeadsTable({
+  customFields,
   page,
   people,
   tagOptions,
 }: {
+  customFields: CustomFieldDef[];
   page: Page<LeadView>;
   people: PersonRef[];
   tagOptions: string[];
 }) {
   const table = useTableParams(LEADS_TABLE);
+  const columns = [...baseColumns, ...customColumns<LeadView>(customFields)];
   const [selected, setSelected] = useState<Set<string>>(new Set());
   return (
     <ResourceTable
@@ -150,6 +162,7 @@ export function LeadsTable({
           options: LEAD_BANDS.map((band) => ({ value: band, label: LEAD_BAND_LABEL[band] })),
         },
         ...tagFilter(tagOptions),
+        ...customFilters(customFields),
       ]}
       emptyIcon={Inbox}
       emptyTitle="No enquiries yet"

@@ -1,6 +1,8 @@
 "use server";
 
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
+import { asValues } from "../custom-fields";
+import { checkStageRequirements, missingStageFields, stageFieldChoices } from "../pipelines";
 import { notify } from "@/features/notifications/server";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
@@ -196,6 +198,22 @@ export async function moveDeal(id: string, stageId: string): Promise<ActionResul
       }
       const blocked = checkMoveDeal(state(deal), target);
       if (blocked) throw new ActionError(blocked, "rule");
+      const unmet = checkStageRequirements(
+        target.name,
+        missingStageFields(
+          target.requiredFields,
+          {
+            amountMinor: deal.amountMinor === null ? null : Number(deal.amountMinor),
+            hasExpectedClose: deal.expectedCloseDate !== null,
+            hasOrganization: deal.organizationId !== null,
+            custom: asValues(deal.custom),
+          },
+          stageFieldChoices(
+            await tx.customField.findMany({ where: { entity: "deal", active: true } }),
+          ),
+        ),
+      );
+      if (unmet) throw new ActionError(unmet, "rule");
 
       await tx.deal.update({
         where: { id },

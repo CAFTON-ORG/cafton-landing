@@ -7,7 +7,12 @@ import {
   asValues,
   checkDefinition,
   checkFieldLimit,
+  canBeRequired,
   checkTypeChange,
+  customConditions,
+  csvCustomValue,
+  filterOptions,
+  isFilterable,
   displayCustomValue,
   keyFromLabel,
   mergeCustomValues,
@@ -24,6 +29,7 @@ const def = (over: Partial<CustomFieldDef> = {}): CustomFieldDef => ({
   label: "Region",
   type: "text",
   options: [],
+  required: false,
   active: true,
   position: 0,
   ...over,
@@ -185,5 +191,57 @@ describe("mergeCustomValues", () => {
     ).toEqual({ region: "Luzon", seats: 4, tier: "Gold", note: "x" });
     expect(mergeCustomValues(null, [{ a: 1 }])).toEqual({ a: 1 });
     expect(mergeCustomValues({ a: 1 }, [])).toEqual({ a: 1 });
+  });
+});
+
+describe("required fields", () => {
+  const required = def({ required: true });
+
+  it("refuses to save a record while a required field is empty", () => {
+    const { errors } = applyCustomValues({}, [required], { region: "" });
+    expect(errors.region).toBe("This field is required.");
+  });
+
+  it("is satisfied by a value that was already stored", () => {
+    expect(applyCustomValues({ region: "North" }, [required], {}).errors).toEqual({});
+  });
+
+  it("does not ask for archived fields, and a yes/no field can't be required", () => {
+    expect(applyCustomValues({}, [def({ required: true, active: false })], {}).errors).toEqual({});
+    expect(canBeRequired("checkbox")).toBe(false);
+    expect(canBeRequired("text")).toBe(true);
+    const box = def({ type: "checkbox", required: true });
+    expect(applyCustomValues({}, [box], {}).errors).toEqual({});
+  });
+});
+
+describe("list filters and columns", () => {
+  const tier = def({ key: "tier", label: "Tier", type: "select", options: ["Gold", "Silver"] });
+  const vip = def({ key: "vip", label: "VIP", type: "checkbox" });
+  const note = def({ key: "note", label: "Note" });
+
+  it("only choice and yes/no fields can be filtered", () => {
+    expect([tier, vip, note].map(isFilterable)).toEqual([true, true, false]);
+    expect(isFilterable({ ...tier, active: false })).toBe(false);
+  });
+
+  it("turns allowed URL filters into conditions and ignores the rest", () => {
+    const filters = { cf_tier: "Gold", cf_vip: "no", cf_note: "x", cf_missing: "y" };
+    expect(customConditions(filters, [tier, vip, note])).toEqual([
+      { key: "tier", equals: "Gold" },
+      { key: "vip", equals: false },
+    ]);
+    expect(customConditions({ cf_tier: "Bronze", cf_vip: "maybe" }, [tier, vip])).toEqual([]);
+  });
+
+  it("offers Yes and No for a yes/no field and the list for a choice field", () => {
+    expect(filterOptions(vip).map((option) => option.value)).toEqual(["yes", "no"]);
+    expect(filterOptions(tier).map((option) => option.value)).toEqual(["Gold", "Silver"]);
+  });
+
+  it("writes CSV values plainly", () => {
+    expect(csvCustomValue(vip, true)).toBe("Yes");
+    expect(csvCustomValue(def({ type: "number" }), 12500)).toBe(12500);
+    expect(csvCustomValue(note, undefined)).toBe("");
   });
 });

@@ -1,4 +1,5 @@
 import "server-only";
+import { customFilterWhere } from "./custom-fields";
 import { withActivity } from "./summary";
 
 import type { Prisma } from "@/generated/prisma/client";
@@ -19,8 +20,10 @@ export async function listContacts(params: TableParams): Promise<Page<ContactVie
     return { items: [], total: 0, page: 1, pageSize: params.pageSize, pageCount: 1 };
 
   const q = params.q.trim();
+  const custom = await customFilterWhere("contact", params.filters);
   const where: Prisma.ContactWhereInput = {
     ...live,
+    ...(custom.length ? { AND: custom } : {}),
     ...(params.filters.tag ? { tags: { has: params.filters.tag } } : {}),
     ...(q
       ? {

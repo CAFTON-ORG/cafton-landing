@@ -94,6 +94,7 @@ let emailActions: typeof import("./actions/email");
 let fileActions: typeof import("./actions/files");
 let fieldActions: typeof import("./actions/custom-fields");
 let fieldRepo: typeof import("./repository/custom-fields");
+let exporter: typeof import("./export");
 let fileRoute: typeof import("@/app/api/crm/files/[id]/route");
 let dal: typeof import("@/lib/auth/dal");
 let mail: typeof import("@/lib/mail");
@@ -144,6 +145,7 @@ beforeAll(async () => {
   fileActions = await import("./actions/files");
   fieldActions = await import("./actions/custom-fields");
   fieldRepo = await import("./repository/custom-fields");
+  exporter = await import("./export");
   fileRoute = await import("@/app/api/crm/files/[id]/route");
   dal = await import("@/lib/auth/dal");
   mail = await import("@/lib/mail");
@@ -914,6 +916,85 @@ describe("custom fields", () => {
     expect((refused as { error: string }).error).toMatch(/limit of 25/);
   });
 
+  it("refuses to save a record while a required field is empty", async () => {
+    const made = await field({ entity: "contact", label: "Contract ref", required: true });
+    expect(made.ok).toBe(true);
+    const record = await contact(160);
+
+    const refused = await fieldActions.setCustomValues({
+      entity: "contact",
+      id: record.id,
+      values: { contract_ref: "" },
+    });
+    expect(refused).toMatchObject({
+      ok: false,
+      fieldErrors: { contract_ref: "This field is required." },
+    });
+    expect(
+      (
+        await fieldActions.setCustomValues({
+          entity: "contact",
+          id: record.id,
+          values: { contract_ref: "C-9" },
+        })
+      ).ok,
+    ).toBe(true);
+
+    // A yes/no field can't be required, even if asked to be.
+    const box = await field({
+      entity: "contact",
+      label: "Newsletter",
+      type: "checkbox",
+      required: true,
+    });
+    const boxId = (box as { data: { id: string } }).data.id;
+    expect((await prisma.customField.findUniqueOrThrow({ where: { id: boxId } })).required).toBe(
+      false,
+    );
+  });
+
+  it("filters a list by a choice field and exports the custom columns", async () => {
+    await field({ label: "Segment", type: "select", options: ["Enterprise", "Startup"] });
+    const a = await lead(170);
+    const b = await lead(171);
+    await prisma.lead.update({
+      where: { id: a.id },
+      data: { custom: { segment: "Enterprise", preferred_region: "Luzon" } },
+    });
+    await prisma.lead.update({ where: { id: b.id }, data: { custom: { segment: "Startup" } } });
+
+    const params = (filters: Record<string, string>) => ({
+      q: "Lead",
+      filters,
+      sort: "created",
+      dir: "desc" as const,
+      page: 1,
+      pageSize: 50,
+    });
+    const names = async (filters: Record<string, string>) =>
+      (await leadRepo.listLeads(params(filters))).items.map((item) => item.id);
+
+    const both = await names({});
+    expect(both).toEqual(expect.arrayContaining([a.id, b.id]));
+    expect(await names({ cf_segment: "Enterprise" })).toEqual([a.id]);
+    expect(await names({ cf_segment: "Startup" })).toEqual([b.id]);
+    // A value the field doesn't offer, or a field that isn't filterable, narrows nothing.
+    expect(await names({ cf_segment: "Bronze" })).toEqual(both);
+    expect(await names({ cf_preferred_region: "Luzon" })).toEqual(both);
+
+    const csv = await exporter.exportCsv(
+      "leads",
+      new URLSearchParams("cf_segment=Enterprise"),
+      OWNER as never,
+    );
+    const [header, row] = csv.body.split(/\r?\n/);
+    expect(header).toContain("Segment");
+    expect(header).toContain("Preferred region");
+    expect(csv.count).toBe(1);
+    expect(row).toContain("Enterprise");
+    expect(row).toContain("Luzon");
+  });
+
   it("carries custom values and files to the kept record when contacts are merged", async () => {
     const keep = await contact(150, { custom: { a: 1 } });
     const dupe = await contact(151, { custom: { a: 2, b: 3 } });
@@ -971,6 +1052,77 @@ describe("CSV import", () => {
 });
 
 describe("pipelines", () => {
+  it("refuses to move a deal into a stage until its required fields are filled in", async () => {
+    await pipelines.createPipeline({ name: "Gated" });
+    const gated = (await pipelineRepo.listPipelines()).find((p) => p.name === "Gated")!;
+    const [first, second] = gated.stages;
+    // Written directly: an earlier test fills the deal fields to their limit.
+    await prisma.customField.create({
+      data: { entity: "deal", key: "region", label: "Region", type: "text", position: 99 },
+    });
+
+    const added = await pipelines.addStage({
+      pipelineId: gated.id,
+      name: "Contracting",
+      probability: 60,
+      requiredFields: ["value", "expected_close", "custom:region", "custom:nonsense"],
+    });
+    expect(added.ok).toBe(true);
+    const stage = (await pipelineRepo.listPipelines())
+      .find((p) => p.id === gated.id)!
+      .stages.find((st) => st.name === "Contracting")!;
+    // Only fields that exist are kept.
+    expect(stage.requiredFields).toEqual(["value", "expected_close", "custom:region"]);
+    expect(first.id).not.toBe(second.id);
+
+    const c = await contact(180);
+    await deals.createDeal({
+      title: "Gated deal",
+      contactId: c.id,
+      pipelineId: gated.id,
+      ownerId: "none",
+      organizationId: "none",
+      amount: "",
+      expectedCloseDate: "",
+      description: "",
+    });
+    const deal = await prisma.deal.findFirstOrThrow({ where: { title: "Gated deal" } });
+
+    const refused = await deals.moveDeal(deal.id, stage.id);
+    expect(refused).toMatchObject({ ok: false });
+    expect((refused as { error: string }).error).toBe(
+      "To move to Contracting, fill in: Value, Expected close date, Region. Open the deal to add them.",
+    );
+    expect((await prisma.deal.findUniqueOrThrow({ where: { id: deal.id } })).stageId).toBe(
+      gated.stages[0].id,
+    );
+
+    await prisma.deal.update({
+      where: { id: deal.id },
+      data: {
+        amountMinor: 250000,
+        expectedCloseDate: new Date("2027-01-15"),
+        custom: { region: "North" },
+      },
+    });
+    expect((await deals.moveDeal(deal.id, stage.id)).ok).toBe(true);
+    expect((await prisma.deal.findUniqueOrThrow({ where: { id: deal.id } })).stageId).toBe(
+      stage.id,
+    );
+
+    // Editing the stage can lift the requirement again.
+    expect(
+      (
+        await pipelines.updateStage({
+          id: stage.id,
+          name: "Contracting",
+          probability: 60,
+          requiredFields: [],
+        })
+      ).ok,
+    ).toBe(true);
+  });
+
   it("keeps a deal inside its own pipeline and protects busy stages", async () => {
     const created = await pipelines.createPipeline({ name: "Partnerships" });
     expect(created.ok).toBe(true);

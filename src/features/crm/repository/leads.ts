@@ -1,5 +1,6 @@
 import "server-only";
 import { withActivity } from "./summary";
+import { customFilterWhere } from "./custom-fields";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -37,13 +38,14 @@ export async function listLeads(
   if (!isDatabaseConfigured) return emptyPage(params.pageSize);
 
   const q = params.q.trim();
+  const custom = await customFilterWhere("lead", params.filters);
   const where: Prisma.LeadWhereInput = {
     ...live,
     ...(params.filters.tag ? { tags: { has: params.filters.tag } } : {}),
     ...(params.filters.status ? { status: params.filters.status as LeadView["status"] } : {}),
     ...(params.filters.owner === "me" && staffId ? { ownerId: staffId } : {}),
     ...(params.filters.owner === "unassigned" ? { ownerId: null } : {}),
-    ...(params.filters.band ? { AND: [bandWhere(params.filters.band as LeadBand)] } : {}),
+    AND: [...(params.filters.band ? [bandWhere(params.filters.band as LeadBand)] : []), ...custom],
     ...(q
       ? {
           OR: [

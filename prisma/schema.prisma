@@ -252,6 +252,8 @@ model PipelineStage {
   kind         StageKind @default(open)
   /// What must be true before a deal leaves this stage.
   exitCriteria String?   @map("exit_criteria")
+  /// Deal fields that must be filled in before a deal can move into this stage.
+  requiredFields String[] @default([]) @map("required_fields")
 
   pipeline Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
   deals    Deal[]
@@ -943,6 +945,8 @@ model CustomField {
   type      String
   /// The choices of a "select" field.
   options   String[] @default([])
+  /// Must be filled in whenever the record's custom fields are saved.
+  required  Boolean  @default(false)
   position  Int      @default(0)
   /// Archived fields are hidden from forms but keep their values.
   active    Boolean  @default(true)

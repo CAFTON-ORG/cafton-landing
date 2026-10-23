@@ -1,4 +1,5 @@
 import "server-only";
+import { customFilterWhere } from "./custom-fields";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -17,8 +18,10 @@ export async function listOrganizations(params: TableParams): Promise<Page<Organ
     return { items: [], total: 0, page: 1, pageSize: params.pageSize, pageCount: 1 };
 
   const q = params.q.trim();
+  const custom = await customFilterWhere("organization", params.filters);
   const where: Prisma.OrganizationWhereInput = {
     ...live,
+    ...(custom.length ? { AND: custom } : {}),
     ...(params.filters.tag ? { tags: { has: params.filters.tag } } : {}),
     ...(q
       ? {

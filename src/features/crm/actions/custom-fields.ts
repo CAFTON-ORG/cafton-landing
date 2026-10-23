@@ -15,6 +15,7 @@ import {
   MAX_OPTION,
   MAX_OPTIONS,
   applyCustomValues,
+  canBeRequired,
   checkDefinition,
   checkFieldLimit,
   checkTypeChange,
@@ -39,6 +40,7 @@ const definitionSchema = z.object({
     .array(z.string().max(MAX_OPTION * 2))
     .max(MAX_OPTIONS * 2)
     .default([]),
+  required: z.boolean().default(false),
 });
 export type CustomFieldInput = z.input<typeof definitionSchema>;
 
@@ -49,6 +51,7 @@ const toDef = (row: {
   label: string;
   type: string;
   options: string[];
+  required: boolean;
   active: boolean;
   position: number;
 }): CustomFieldDef => ({
@@ -73,6 +76,7 @@ export async function saveCustomField(
     const invalid = checkDefinition({ label: data.label, type: data.type, options });
     if (invalid) throw new ActionError(invalid, "validation", { label: invalid });
     const label = data.label.trim();
+    const required = data.required && canBeRequired(data.type);
 
     const saved = await prisma.$transaction(async (tx) => {
       if (data.id) {
@@ -80,7 +84,10 @@ export async function saveCustomField(
         if (!existing) throw new ActionError("That field no longer exists.");
         const blocked = checkTypeChange(existing.type as CustomType, data.type);
         if (blocked) throw new ActionError(blocked, "rule");
-        await tx.customField.update({ where: { id: existing.id }, data: { label, options } });
+        await tx.customField.update({
+          where: { id: existing.id },
+          data: { label, options, required },
+        });
         await recordAudit(
           actor,
           {
@@ -110,6 +117,7 @@ export async function saveCustomField(
           label,
           type: data.type,
           options,
+          required,
           position: all.reduce((highest, field) => Math.max(highest, field.position), -1) + 1,
         },
       });

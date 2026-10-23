@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Field } from "@/components/dashboard/shared/field";
 import { Button } from "@/components/dashboard/ui/button";
 import {
+  CardAction,
   Card,
   CardContent,
   CardDescription,
@@ -154,73 +155,73 @@ export function Timesheet({
 
   return (
     <Card>
-      <CardHeader className="flex-row flex-wrap items-start justify-between gap-4">
-        <div>
-          <CardTitle>
-            Week of {formatDate(weekStart)}
-            <span className="text-muted-foreground ml-2 text-sm font-normal tabular-nums">
-              {formatMinutes(total)} logged
-            </span>
-          </CardTitle>
-          <CardDescription>
-            {waiting > 0 && `${waiting} waiting for approval. `}
-            {approved > 0 && `${approved} approved. `}
-            {sendable.length > 0 && `${sendable.length} not sent yet.`}
-            {entries.length === 0 && "Nothing logged this week."}
-          </CardDescription>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1" role="group" aria-label="Choose a week">
-            <Button
-              size="icon-sm"
-              variant="outline"
-              aria-label="Previous week"
-              nativeButton={false}
-              render={<Link href={`/dashboard/time?week=${previousWeek}`} />}
-            >
-              <ChevronLeft aria-hidden="true" />
-            </Button>
+      <CardHeader>
+        <CardTitle>
+          Week of {formatDate(weekStart)}
+          <span className="text-muted-foreground ml-2 text-sm font-normal tabular-nums">
+            {formatMinutes(total)} logged
+          </span>
+        </CardTitle>
+        <CardDescription>
+          {waiting > 0 && `${waiting} waiting for approval. `}
+          {approved > 0 && `${approved} approved. `}
+          {sendable.length > 0 && `${sendable.length} not sent yet.`}
+          {entries.length === 0 && "Nothing logged this week."}
+        </CardDescription>
+        <CardAction stackOnPhone className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1" role="group" aria-label="Choose a week">
+              <Button
+                size="icon-sm"
+                variant="outline"
+                aria-label="Previous week"
+                nativeButton={false}
+                render={<Link href={`/dashboard/time?week=${previousWeek}`} />}
+              >
+                <ChevronLeft aria-hidden="true" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                nativeButton={false}
+                render={<Link href={`/dashboard/time?week=${thisWeek}`} />}
+                disabled={weekStart === thisWeek}
+              >
+                This week
+              </Button>
+              <Button
+                size="icon-sm"
+                variant="outline"
+                aria-label="Next week"
+                nativeButton={false}
+                render={<Link href={`/dashboard/time?week=${nextWeek}`} />}
+              >
+                <ChevronRight aria-hidden="true" />
+              </Button>
+            </div>
             <Button
               size="sm"
               variant="outline"
-              nativeButton={false}
-              render={<Link href={`/dashboard/time?week=${thisWeek}`} />}
-              disabled={weekStart === thisWeek}
+              onClick={() => open(today >= days[0] && today <= days[6] ? today : days[0])}
+              disabled={projects.length === 0}
             >
-              This week
+              <Plus aria-hidden="true" /> Log time
             </Button>
             <Button
-              size="icon-sm"
-              variant="outline"
-              aria-label="Next week"
-              nativeButton={false}
-              render={<Link href={`/dashboard/time?week=${nextWeek}`} />}
+              size="sm"
+              disabled={pending || sendable.length === 0}
+              onClick={() =>
+                run(() => submitWeek(weekStart), {
+                  success: (data) =>
+                    `Sent ${data?.count ?? 0} ${data?.count === 1 ? "entry" : "entries"} for approval.`,
+                  onSuccess: () => router.refresh(),
+                })
+              }
             >
-              <ChevronRight aria-hidden="true" />
+              <Send aria-hidden="true" /> Submit week
             </Button>
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => open(today >= days[0] && today <= days[6] ? today : days[0])}
-            disabled={projects.length === 0}
-          >
-            <Plus aria-hidden="true" /> Log time
-          </Button>
-          <Button
-            size="sm"
-            disabled={pending || sendable.length === 0}
-            onClick={() =>
-              run(() => submitWeek(weekStart), {
-                success: (data) =>
-                  `Sent ${data?.count ?? 0} ${data?.count === 1 ? "entry" : "entries"} for approval.`,
-                onSuccess: () => router.refresh(),
-              })
-            }
-          >
-            <Send aria-hidden="true" /> Submit week
-          </Button>
-        </div>
+        </CardAction>
       </CardHeader>
       <CardContent className="grid gap-4">
         {projects.length === 0 && (

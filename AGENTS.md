@@ -45,6 +45,14 @@ src/
   with URL-driven params; people use `UserAvatar` (circle), things use `Thumbnail` (rounded
   square); long forms use tabs; the shell is one screen tall and `MainScroll` is the only
   scroll area (never give the dashboard `<main>` a global `min-height`).
+- **Dashboard layout of a card:** a card's buttons go in `CardAction` inside `CardHeader` (title and
+  optional description on the left, buttons top right; `stackOnPhone` for a wide group). Never
+  `flex-row` on `CardHeader`: it is a grid, so that class does nothing and the buttons drop under
+  the title. A **management page** (templates, catalog, pipelines) puts its one primary "New ..."
+  button right-aligned above the list card (`flex justify-end`), the list inside one `Card` with
+  `CardContent className="p-0"` and `divide-y` rows of `px-4 py-3`, and the empty state inside
+  the card carrying the same button. A **panel on a record** (quotes, team, tasks) is a card whose
+  header holds the title and its small outline "Add ..." button.
 
 ## Commands
 
@@ -59,7 +67,7 @@ attribution lines to commits or pull requests.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 

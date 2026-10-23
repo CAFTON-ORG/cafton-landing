@@ -9,6 +9,7 @@ import { Field } from "@/components/dashboard/shared/field";
 import { Person } from "@/components/dashboard/shared/person";
 import { Button } from "@/components/dashboard/ui/button";
 import {
+  CardAction,
   Card,
   CardContent,
   CardDescription,
@@ -98,39 +99,39 @@ export function Approvals({ entries, me }: { entries: TimeEntryView[]; me: strin
         const own = group.person.id === me;
         return (
           <Card key={group.key}>
-            <CardHeader className="flex-row flex-wrap items-start justify-between gap-4">
-              <div>
-                <CardTitle className="flex flex-wrap items-center gap-3">
-                  <Person name={group.person.name} avatarUrl={group.person.avatarUrl} />
-                  <span className="text-muted-foreground text-sm font-normal">
-                    Week of {formatDate(group.weekStart)} · {formatMinutes(group.minutes)}
-                  </span>
-                </CardTitle>
-                <CardDescription>
-                  {own
-                    ? "This is your own timesheet. Someone else has to approve it."
-                    : `${group.entries.length} ${group.entries.length === 1 ? "entry" : "entries"}`}
-                </CardDescription>
-              </div>
-              {!own && (
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={pending}
-                    onClick={() => {
-                      setNote("");
-                      setError("");
-                      setRejecting(group);
-                    }}
-                  >
-                    <CornerUpLeft aria-hidden="true" /> Send back
-                  </Button>
-                  <Button size="sm" disabled={pending} onClick={() => review(group, "approve")}>
-                    <Check aria-hidden="true" /> Approve
-                  </Button>
-                </div>
-              )}
+            <CardHeader>
+              <CardTitle className="flex flex-wrap items-center gap-3">
+                <Person name={group.person.name} avatarUrl={group.person.avatarUrl} />
+                <span className="text-muted-foreground text-sm font-normal">
+                  Week of {formatDate(group.weekStart)} · {formatMinutes(group.minutes)}
+                </span>
+              </CardTitle>
+              <CardDescription>
+                {own
+                  ? "This is your own timesheet. Someone else has to approve it."
+                  : `${group.entries.length} ${group.entries.length === 1 ? "entry" : "entries"}`}
+              </CardDescription>
+              <CardAction stackOnPhone className="flex flex-wrap items-center justify-end gap-2">
+                {!own && (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={pending}
+                      onClick={() => {
+                        setNote("");
+                        setError("");
+                        setRejecting(group);
+                      }}
+                    >
+                      <CornerUpLeft aria-hidden="true" /> Send back
+                    </Button>
+                    <Button size="sm" disabled={pending} onClick={() => review(group, "approve")}>
+                      <Check aria-hidden="true" /> Approve
+                    </Button>
+                  </div>
+                )}
+              </CardAction>
             </CardHeader>
             <CardContent>
               <ul className="divide-y rounded-lg border">

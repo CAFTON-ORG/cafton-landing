@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Person } from "@/components/dashboard/shared/person";
 import { Button } from "@/components/dashboard/ui/button";
 import {
+  CardAction,
   Card,
   CardContent,
   CardDescription,
@@ -22,28 +23,28 @@ import type { UtilisationRow } from "../types";
 export function UtilisationReport({ rows, weeks }: { rows: UtilisationRow[]; weeks: number }) {
   return (
     <Card>
-      <CardHeader className="flex-row flex-wrap items-start justify-between gap-4">
-        <div>
-          <CardTitle>Utilisation</CardTitle>
-          <CardDescription>
-            Billable approved hours out of {formatMinutes(weeks * WORK_WEEK_MINUTES)} available over
-            the last {weeks === 1 ? "week" : `${weeks} weeks`}.
-          </CardDescription>
-        </div>
-        <div className="flex gap-1" role="group" aria-label="Report range">
-          {REPORT_WEEKS.map((option) => (
-            <Button
-              key={option}
-              size="sm"
-              variant={option === weeks ? "secondary" : "ghost"}
-              aria-current={option === weeks ? "true" : undefined}
-              nativeButton={false}
-              render={<Link href={`/dashboard/time?tab=utilisation&weeks=${option}`} />}
-            >
-              {option === 1 ? "This week" : `${option} weeks`}
-            </Button>
-          ))}
-        </div>
+      <CardHeader>
+        <CardTitle>Utilisation</CardTitle>
+        <CardDescription>
+          Billable approved hours out of {formatMinutes(weeks * WORK_WEEK_MINUTES)} available over
+          the last {weeks === 1 ? "week" : `${weeks} weeks`}.
+        </CardDescription>
+        <CardAction stackOnPhone className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex gap-1" role="group" aria-label="Report range">
+            {REPORT_WEEKS.map((option) => (
+              <Button
+                key={option}
+                size="sm"
+                variant={option === weeks ? "secondary" : "ghost"}
+                aria-current={option === weeks ? "true" : undefined}
+                nativeButton={false}
+                render={<Link href={`/dashboard/time?tab=utilisation&weeks=${option}`} />}
+              >
+                {option === 1 ? "This week" : `${option} weeks`}
+              </Button>
+            ))}
+          </div>
+        </CardAction>
       </CardHeader>
       <CardContent>
         {rows.length === 0 ? (

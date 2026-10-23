@@ -7,15 +7,10 @@ import { LayoutTemplate, Pencil, Plus, Trash2, X } from "lucide-react";
 import { ConfirmDialog } from "@/components/dashboard/shared/confirm-dialog";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Field } from "@/components/dashboard/shared/field";
+import { IconTile } from "@/components/dashboard/shared/icon-tile";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { Button } from "@/components/dashboard/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/dashboard/ui/card";
+import { Card, CardContent } from "@/components/dashboard/ui/card";
 import { Checkbox } from "@/components/dashboard/ui/checkbox";
 import {
   Dialog,
@@ -143,46 +138,43 @@ export function TemplatesView({ templates }: { templates: TemplateView[] }) {
         },
     );
 
+  const add = (
+    <Button
+      onClick={() => {
+        setError("");
+        setDraft(blank);
+      }}
+    >
+      <Plus aria-hidden="true" /> New template
+    </Button>
+  );
+
   return (
     <>
+      {templates.length > 0 && <div className="mb-4 flex justify-end">{add}</div>}
       <Card>
-        <CardHeader className="flex-row items-start justify-between gap-4">
-          <div>
-            <CardTitle>Project templates</CardTitle>
-            <CardDescription>
-              Start a project with its milestones and tasks already laid out. Billable milestones
-              take a share of the project&apos;s price.
-            </CardDescription>
-          </div>
-          <Button
-            size="sm"
-            onClick={() => {
-              setError("");
-              setDraft(blank);
-            }}
-          >
-            <Plus aria-hidden="true" /> New template
-          </Button>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {templates.length === 0 ? (
             <EmptyState
-              compact
               icon={LayoutTemplate}
               title="No templates yet"
-              description="Add one for the kind of project you do most, like a website build."
+              description="Add one for the kind of project you do most, like a website build. Starting a project from it lays out its milestones and tasks."
+              action={add}
             />
           ) : (
-            <ul className="divide-y rounded-lg border">
+            <ul className="divide-y">
               {templates.map((template) => (
-                <li key={template.id} className="flex flex-wrap items-center gap-3 p-3">
+                <li key={template.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                  <IconTile icon={LayoutTemplate} />
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
                       {template.name}
                       {!template.active && <StatusBadge tone="neutral">Switched off</StatusBadge>}
                     </p>
                     <p className="text-muted-foreground text-xs">
-                      {template.milestones.length} milestones · {template.tasks.length} tasks
+                      {template.milestones.length}{" "}
+                      {template.milestones.length === 1 ? "milestone" : "milestones"} ·{" "}
+                      {template.tasks.length} {template.tasks.length === 1 ? "task" : "tasks"}
                       {template.description && ` · ${template.description}`}
                     </p>
                   </div>

@@ -5,7 +5,13 @@ import { EmptyState } from "@/components/dashboard/shared/empty-state";
 
 import { useCan } from "@/components/dashboard/layout/staff-context";
 import { Button } from "@/components/dashboard/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
+import {
+  CardAction,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/dashboard/ui/card";
 import type { PersonRef } from "@/features/crm/types";
 import type { MeetingView } from "../types";
 import { MeetingCard } from "./meeting-card";
@@ -24,17 +30,19 @@ export function MeetingsPanel({
   const canCreate = useCan("meetings:create");
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2">
+      <CardHeader>
         <CardTitle>Meetings</CardTitle>
-        {canCreate && (
-          <MeetingDialog
-            people={people}
-            defaults={defaults}
-            trigger={<Button size="sm" variant="outline" />}
-          >
-            <CalendarPlus aria-hidden="true" /> Schedule
-          </MeetingDialog>
-        )}
+        <CardAction className="flex flex-wrap items-center justify-end gap-2">
+          {canCreate && (
+            <MeetingDialog
+              people={people}
+              defaults={defaults}
+              trigger={<Button size="sm" variant="outline" />}
+            >
+              <CalendarPlus aria-hidden="true" /> Schedule
+            </MeetingDialog>
+          )}
+        </CardAction>
       </CardHeader>
       <CardContent className="grid gap-3">
         {meetings.length === 0 ? (

@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Field } from "@/components/dashboard/shared/field";
 import { Button } from "@/components/dashboard/ui/button";
 import {
+  CardAction,
   Card,
   CardContent,
   CardDescription,
@@ -118,20 +119,20 @@ export function MilestonesPanel({
 
   return (
     <Card>
-      <CardHeader className="flex-row items-start justify-between gap-4">
-        <div>
-          <CardTitle>Milestones</CardTitle>
-          <CardDescription>
-            Steps towards delivery.
-            {billableTotal > 0 &&
-              ` ${formatMinor(billableTotal, currency)} will be invoiced as they are finished.`}
-          </CardDescription>
-        </div>
-        {canUpdate && (
-          <Button size="sm" onClick={() => edit()}>
-            <Plus aria-hidden="true" /> Add milestone
-          </Button>
-        )}
+      <CardHeader>
+        <CardTitle>Milestones</CardTitle>
+        <CardDescription>
+          Steps towards delivery.
+          {billableTotal > 0 &&
+            ` ${formatMinor(billableTotal, currency)} will be invoiced as they are finished.`}
+        </CardDescription>
+        <CardAction className="flex flex-wrap items-center justify-end gap-2">
+          {canUpdate && (
+            <Button size="sm" variant="outline" onClick={() => edit()}>
+              <Plus aria-hidden="true" /> Add milestone
+            </Button>
+          )}
+        </CardAction>
       </CardHeader>
       <CardContent>
         {milestones.length === 0 ? (

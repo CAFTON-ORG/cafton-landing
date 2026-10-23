@@ -36,6 +36,7 @@ import { Person } from "@/components/dashboard/shared/person";
 import { Button } from "@/components/dashboard/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -228,45 +229,45 @@ export function TasksPanel({
   const total = tasks.length;
   return (
     <Card>
-      <CardHeader className="flex-row flex-wrap items-start justify-between gap-4">
-        <div>
-          <CardTitle>Tasks</CardTitle>
-          <CardDescription>
-            {total === 0
-              ? "Nothing planned yet."
-              : `${tasks.filter((task) => task.status === "done").length} of ${total} done.`}
-          </CardDescription>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div
-            role="group"
-            aria-label="Tasks view"
-            className="bg-muted inline-flex rounded-lg p-0.5"
-          >
-            {(
-              [
-                ["list", "List", LayoutList],
-                ["board", "Board", SquareKanban],
-              ] as const
-            ).map(([key, label, Icon]) => (
-              <Button
-                key={key}
-                type="button"
-                size="sm"
-                variant={view === key ? "secondary" : "ghost"}
-                aria-pressed={view === key}
-                onClick={() => setView(key)}
-              >
-                <Icon aria-hidden="true" /> {label}
+      <CardHeader>
+        <CardTitle>Tasks</CardTitle>
+        <CardDescription>
+          {total === 0
+            ? "Nothing planned yet."
+            : `${tasks.filter((task) => task.status === "done").length} of ${total} done.`}
+        </CardDescription>
+        <CardAction stackOnPhone className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div
+              role="group"
+              aria-label="Tasks view"
+              className="bg-muted inline-flex rounded-lg p-0.5"
+            >
+              {(
+                [
+                  ["list", "List", LayoutList],
+                  ["board", "Board", SquareKanban],
+                ] as const
+              ).map(([key, label, Icon]) => (
+                <Button
+                  key={key}
+                  type="button"
+                  size="sm"
+                  variant={view === key ? "secondary" : "ghost"}
+                  aria-pressed={view === key}
+                  onClick={() => setView(key)}
+                >
+                  <Icon aria-hidden="true" /> {label}
+                </Button>
+              ))}
+            </div>
+            {canUpdate && (
+              <Button size="sm" variant="outline" onClick={() => edit()}>
+                <Plus aria-hidden="true" /> Add task
               </Button>
-            ))}
+            )}
           </div>
-          {canUpdate && (
-            <Button size="sm" onClick={() => edit()}>
-              <Plus aria-hidden="true" /> Add task
-            </Button>
-          )}
-        </div>
+        </CardAction>
       </CardHeader>
       <CardContent>
         {total === 0 ? (

@@ -10,7 +10,13 @@ import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { Field } from "@/components/dashboard/shared/field";
 import { Button } from "@/components/dashboard/ui/button";
 import { IconTile } from "@/components/dashboard/shared/icon-tile";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/dashboard/ui/card";
+import {
+  CardAction,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/dashboard/ui/card";
 import {
   Dialog,
   DialogBody,
@@ -73,9 +79,11 @@ export function DealContractsPanel({
 
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2">
+      <CardHeader>
         <CardTitle>Contracts</CardTitle>
-        {canCreate && start}
+        <CardAction className="flex flex-wrap items-center justify-end gap-2">
+          {canCreate && start}
+        </CardAction>
       </CardHeader>
       <CardContent className="grid gap-3">
         {contracts.length === 0 ? (

@@ -11,6 +11,7 @@ import { Field } from "@/components/dashboard/shared/field";
 import { Person } from "@/components/dashboard/shared/person";
 import { Button } from "@/components/dashboard/ui/button";
 import {
+  CardAction,
   Card,
   CardContent,
   CardDescription,
@@ -89,18 +90,23 @@ export function TeamPanel({
 
   return (
     <Card>
-      <CardHeader className="flex-row items-start justify-between gap-4">
-        <div>
-          <CardTitle>Team</CardTitle>
-          <CardDescription>
-            Only people on the team can be given tasks or log hours here.
-          </CardDescription>
-        </div>
-        {canUpdate && (
-          <Button size="sm" onClick={() => open({ kind: "add" })} disabled={available.length === 0}>
-            <Plus aria-hidden="true" /> Add someone
-          </Button>
-        )}
+      <CardHeader>
+        <CardTitle>Team</CardTitle>
+        <CardDescription>
+          Only people on the team can be given tasks or log hours here.
+        </CardDescription>
+        <CardAction className="flex flex-wrap items-center justify-end gap-2">
+          {canUpdate && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => open({ kind: "add" })}
+              disabled={available.length === 0}
+            >
+              <Plus aria-hidden="true" /> Add someone
+            </Button>
+          )}
+        </CardAction>
       </CardHeader>
       <CardContent>
         {members.length === 0 ? (

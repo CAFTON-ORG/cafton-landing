@@ -39,7 +39,7 @@ try {
     process.exit(0);
   }
   // The demo data has no signed-in staff, so a project needs two people to work on it: add them
-  // (with an auth user each, as sign-in would) when the database has fewer.
+  // when the database has fewer.
   let people = await client.query("SELECT id FROM profiles ORDER BY created_at LIMIT 2");
   for (const [index, staff] of [
     ["11111111-aaaa-4aaa-8aaa-111111111111", "Demo Manager"],
@@ -48,13 +48,9 @@ try {
     if (people.rows.length > index) continue;
     const [id, name] = staff;
     const email = name.toLowerCase().replace(" ", ".") + "@cafton.com";
-    // The local auth stub only lets invited emails in; the profile itself does not need the row.
-    await client
-      .query("INSERT INTO auth.users (id, email) VALUES ($1, $2) ON CONFLICT DO NOTHING", [
-        id,
-        email,
-      ])
-      .catch(() => undefined);
+    // No auth.users row: its sign-up trigger only lets invited emails in, and a refused insert
+    // leaves the local database connection in a state the next statement trips over. A profile
+    // does not need one.
     await client.query(
       `INSERT INTO profiles (id, email, full_name, role_id)
        SELECT $1, $2, $3, id FROM roles WHERE key = 'admin' ON CONFLICT DO NOTHING`,

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { AlarmClock, FolderKanban, Plus, Rocket } from "lucide-react";
+import Link from "next/link";
+import { AlarmClock, FolderKanban, LayoutTemplate, Plus, Rocket } from "lucide-react";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
@@ -10,6 +11,7 @@ import { ProjectDialog } from "@/features/delivery/components/project-dialog";
 import { ProjectsTable } from "@/features/delivery/components/projects-table";
 import {
   listDealsReadyForProject,
+  listTemplates,
   listProjects,
   projectTotals,
 } from "@/features/delivery/repository";
@@ -31,11 +33,13 @@ export default async function ProjectsPage({
 
   const params = parseTableParams(searchParamsFromRecord(await searchParams), PROJECTS_TABLE);
   const canCreate = can(staff, "projects:create");
-  const [page, totals, people, deals] = await Promise.all([
+  const canTemplates = can(staff, "projects:templates");
+  const [page, totals, people, deals, templates] = await Promise.all([
     listProjects(params, actorId(staff)),
     projectTotals(manilaDate(new Date())),
     canCreate ? listStaffOptions() : [],
     canCreate ? listDealsReadyForProject() : [],
+    canCreate ? listTemplates({ activeOnly: true }) : [],
   ]);
 
   return (
@@ -44,16 +48,30 @@ export default async function ProjectsPage({
         title="Projects"
         description="Client work from start to delivery. A project starts when a client accepts a quote."
         action={
-          canCreate ? (
-            <ProjectDialog
-              people={people}
-              deals={deals}
-              trigger={
-                <Button>
-                  <Plus aria-hidden="true" /> Start a project
+          canCreate || canTemplates ? (
+            <div className="flex flex-wrap gap-2">
+              {canTemplates && (
+                <Button
+                  variant="outline"
+                  nativeButton={false}
+                  render={<Link href="/dashboard/projects/templates" />}
+                >
+                  <LayoutTemplate aria-hidden="true" /> Templates
                 </Button>
-              }
-            />
+              )}
+              {canCreate && (
+                <ProjectDialog
+                  people={people}
+                  deals={deals}
+                  templates={templates}
+                  trigger={
+                    <Button>
+                      <Plus aria-hidden="true" /> Start a project
+                    </Button>
+                  }
+                />
+              )}
+            </div>
           ) : undefined
         }
       />

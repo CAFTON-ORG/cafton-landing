@@ -423,3 +423,143 @@ export function checkPortfolioLink(input: {
   if (input.linkedElsewhere) return "That portfolio entry already tells another project's story.";
   return null;
 }
+
+/* ----------------------------------------------------------------- comments */
+
+export const MAX_COMMENT = 2000;
+
+/** Why a comment can't be posted, or null. */
+export function checkComment(body: string): string | null {
+  if (!body.trim()) return "Write something first.";
+  if (body.trim().length > MAX_COMMENT) return `Keep it under ${MAX_COMMENT} characters.`;
+  return null;
+}
+
+/* ---------------------------------------------------------------- templates */
+
+export const MAX_TEMPLATE_MILESTONES = 30;
+export const MAX_TEMPLATE_TASKS = 100;
+
+export interface TemplateMilestone {
+  name: string;
+  /** Share of the project's price this milestone invoices when done; 0 means it doesn't bill. */
+  billablePercent: number;
+}
+
+export interface TemplateTask {
+  title: string;
+  /** The name of one of the template's milestones, or "" for none. */
+  milestone: string;
+  estimateMinutes?: number;
+}
+
+export interface TemplateBody {
+  milestones: TemplateMilestone[];
+  tasks: TemplateTask[];
+}
+
+/** What is wrong with a template, in plain words, or null. */
+export function checkTemplate(input: { name: string } & TemplateBody): string | null {
+  if (!input.name.trim()) return "Give the template a name.";
+  if (input.name.trim().length > MAX_NAME) return `Keep the name under ${MAX_NAME} characters.`;
+  if (input.milestones.length > MAX_TEMPLATE_MILESTONES) {
+    return `A template can have at most ${MAX_TEMPLATE_MILESTONES} milestones.`;
+  }
+  if (input.tasks.length > MAX_TEMPLATE_TASKS) {
+    return `A template can have at most ${MAX_TEMPLATE_TASKS} tasks.`;
+  }
+  const names = new Set<string>();
+  for (const milestone of input.milestones) {
+    const name = milestone.name.trim().toLowerCase();
+    if (!name) return "Every milestone needs a name.";
+    if (name.length > MAX_NAME) return `Keep milestone names under ${MAX_NAME} characters.`;
+    if (names.has(name)) return `Two milestones are called "${milestone.name.trim()}".`;
+    names.add(name);
+    if (
+      !Number.isInteger(milestone.billablePercent) ||
+      milestone.billablePercent < 0 ||
+      milestone.billablePercent > 100
+    ) {
+      return `The share to invoice for "${milestone.name.trim()}" must be a whole number from 0 to 100.`;
+    }
+  }
+  const share = input.milestones.reduce((sum, milestone) => sum + milestone.billablePercent, 0);
+  if (share > 100)
+    return `The milestones invoice ${share}% of the price. It can't be more than 100%.`;
+  for (const task of input.tasks) {
+    if (!task.title.trim()) return "Every task needs a title.";
+    if (task.title.trim().length > MAX_TASK_TITLE) {
+      return `Keep task titles under ${MAX_TASK_TITLE} characters.`;
+    }
+    if (task.milestone && !names.has(task.milestone.trim().toLowerCase())) {
+      return `The task "${task.title.trim()}" belongs to a milestone that isn't in the template.`;
+    }
+    if (
+      task.estimateMinutes !== undefined &&
+      (!Number.isInteger(task.estimateMinutes) || task.estimateMinutes <= 0)
+    ) {
+      return `The estimate for "${task.title.trim()}" must be more than zero.`;
+    }
+  }
+  return null;
+}
+
+export interface TemplatePlan {
+  milestones: { name: string; position: number; billable: boolean; amountMinor: number | null }[];
+  tasks: {
+    title: string;
+    milestone: string | null;
+    estimateMinutes: number | null;
+    position: number;
+  }[];
+}
+
+/**
+ * What applying a template creates. Billable amounts are each milestone's share of the price,
+ * rounded down so together they never exceed it; with no price nothing bills (there is nothing to
+ * take a share of) and the milestones are plain steps.
+ */
+export function planFromTemplate(template: TemplateBody, budgetMinor: number | null): TemplatePlan {
+  const milestones = template.milestones.map((milestone, position) => {
+    const amount =
+      budgetMinor !== null && milestone.billablePercent > 0
+        ? Math.floor((budgetMinor * milestone.billablePercent) / 100)
+        : 0;
+    return {
+      name: milestone.name.trim(),
+      position,
+      billable: amount > 0,
+      amountMinor: amount > 0 ? amount : null,
+    };
+  });
+  const canonical = new Map(
+    milestones.map((milestone) => [milestone.name.toLowerCase(), milestone.name]),
+  );
+  const tasks = template.tasks.map((task, position) => ({
+    title: task.title.trim(),
+    milestone: task.milestone ? (canonical.get(task.milestone.trim().toLowerCase()) ?? null) : null,
+    estimateMinutes: task.estimateMinutes ?? null,
+    position,
+  }));
+  return { milestones, tasks };
+}
+
+/** A template can be applied to a project that is still open and has nothing planned yet. */
+export function checkApplyTemplate(input: {
+  status: ProjectStatus;
+  milestones: number;
+  tasks: number;
+}): string | null {
+  if (!isOpenProject(input.status)) return "This project is closed. Reopen it first.";
+  if (input.milestones > 0 || input.tasks > 0) {
+    return "This project already has milestones or tasks. A template is for a project with nothing planned yet.";
+  }
+  return null;
+}
+
+/* -------------------------------------------------------------- client link */
+
+/** The client's progress page can be shared for any project that has not been cancelled. */
+export function checkShareProgress(status: ProjectStatus): string | null {
+  return status === "cancelled" ? "A cancelled project can't be shared with the client." : null;
+}

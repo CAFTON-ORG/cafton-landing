@@ -7,7 +7,14 @@ import type { Tx } from "@/features/crm/actions/shared";
 import { live } from "@/features/crm/mappers";
 import { ActionError } from "@/lib/actions";
 import { parseMinor } from "@/lib/money";
-import { parseDuration, type CloseFacts, type ProjectStatus } from "../rules";
+import {
+  checkTemplate,
+  parseDuration,
+  planFromTemplate,
+  type CloseFacts,
+  type ProjectStatus,
+  type TemplateBody,
+} from "../rules";
 
 export { guard };
 export type { Tx };
@@ -65,4 +72,53 @@ export async function closeFactsFor(tx: Tx, projectId: string): Promise<CloseFac
 export async function assertStaff(tx: Tx, profileId: string, field: string, message: string) {
   const profile = await tx.profile.findUnique({ where: { id: profileId }, select: { id: true } });
   if (!profile) throw new ActionError(message, "validation", { [field]: message });
+}
+
+/**
+ * Creates a template's milestones and tasks on a project, inside the caller's transaction. Billable
+ * amounts are shares of the project's price (nothing bills when it has none). Returns what was made.
+ */
+export async function applyTemplateTx(
+  tx: Tx,
+  project: { id: string; budgetMinor: bigint | null },
+  template: { milestones: unknown; tasks: unknown },
+): Promise<{ milestones: number; tasks: number }> {
+  const parts: TemplateBody = {
+    milestones: (Array.isArray(template.milestones)
+      ? template.milestones
+      : []) as TemplateBody["milestones"],
+    tasks: (Array.isArray(template.tasks) ? template.tasks : []) as TemplateBody["tasks"],
+  };
+  const invalid = checkTemplate({ name: "template", ...parts });
+  if (invalid) throw new ActionError(`That template can't be used: ${invalid}`, "rule");
+  const plan = planFromTemplate(
+    parts,
+    project.budgetMinor === null ? null : Number(project.budgetMinor),
+  );
+
+  const ids = new Map<string, string>();
+  for (const milestone of plan.milestones) {
+    const created = await tx.milestone.create({
+      data: {
+        projectId: project.id,
+        name: milestone.name,
+        position: milestone.position,
+        billable: milestone.billable,
+        amountMinor: milestone.amountMinor,
+      },
+    });
+    ids.set(milestone.name, created.id);
+  }
+  for (const task of plan.tasks) {
+    await tx.projectTask.create({
+      data: {
+        projectId: project.id,
+        milestoneId: task.milestone ? ids.get(task.milestone) : null,
+        title: task.title,
+        estimateMinutes: task.estimateMinutes,
+        position: task.position,
+      },
+    });
+  }
+  return { milestones: plan.milestones.length, tasks: plan.tasks.length };
 }

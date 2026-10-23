@@ -16,6 +16,8 @@ import { ProjectActions } from "@/features/delivery/components/project-actions";
 import { MilestonesPanel } from "@/features/delivery/components/milestones-panel";
 import { ProjectStatusBadge } from "@/features/delivery/components/badges";
 import { TasksPanel } from "@/features/delivery/components/tasks-panel";
+import { ApplyTemplateCard } from "@/features/delivery/components/apply-template-card";
+import { ShareProgressCard } from "@/features/delivery/components/share-progress-card";
 import { CaseStudyCard } from "@/features/delivery/components/case-study-card";
 import { FinancialsCard } from "@/features/delivery/components/financials-card";
 import { ProjectTime } from "@/features/delivery/components/project-time";
@@ -25,8 +27,10 @@ import {
   listMembers,
   getFinancials,
   listMilestones,
+  getProgressSharing,
   listPortfolioOptions,
   listProjectTime,
+  listTemplates,
   listTasks,
 } from "@/features/delivery/repository";
 import {
@@ -36,6 +40,7 @@ import {
   progressPercent,
 } from "@/features/delivery/rules";
 import { manilaDate } from "@/features/schedule/slots";
+import { actorId } from "@/lib/actions";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
@@ -52,16 +57,29 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   const showTime = can(staff, "time:view");
   const completed = project.status === "completed";
-  const [members, milestones, tasks, people, timeEntries, financials, portfolio] =
-    await Promise.all([
-      listMembers(id),
-      listMilestones(id),
-      listTasks(id),
-      listStaffOptions(),
-      showTime ? listProjectTime(id) : [],
-      showTime ? getFinancials(id) : null,
-      completed ? listPortfolioOptions() : [],
-    ]);
+  const canShare = can(staff, "projects:update");
+  const empty = project.tasks.total === 0;
+  const [
+    members,
+    milestones,
+    tasks,
+    people,
+    timeEntries,
+    financials,
+    portfolio,
+    sharing,
+    templates,
+  ] = await Promise.all([
+    listMembers(id),
+    listMilestones(id),
+    listTasks(id),
+    listStaffOptions(),
+    showTime ? listProjectTime(id) : [],
+    showTime ? getFinancials(id) : null,
+    completed ? listPortfolioOptions() : [],
+    canShare ? getProgressSharing(id) : null,
+    canShare && empty && isOpenProject(project.status) ? listTemplates({ activeOnly: true }) : [],
+  ]);
   const today = manilaDate(new Date());
   const open = isOpenProject(project.status);
   const progress = progressPercent(project.tasks);
@@ -200,7 +218,18 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 </CardContent>
               </Card>
             </div>
+            {templates.length > 0 && milestones.length === 0 && (
+              <ApplyTemplateCard projectId={id} templates={templates} />
+            )}
             {financials && <FinancialsCard financials={financials} />}
+            {canShare && (
+              <ShareProgressCard
+                projectId={id}
+                sharedAt={sharing?.sharedAt}
+                canEdit
+                cancelled={project.status === "cancelled"}
+              />
+            )}
             {completed && (
               <CaseStudyCard
                 projectId={id}
@@ -226,6 +255,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               team={team}
               today={today}
               open={open}
+              me={actorId(staff) ?? undefined}
             />
           </TabsContent>
           <TabsContent value="milestones" className="mt-4">

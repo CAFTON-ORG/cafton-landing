@@ -18,6 +18,7 @@ import {
 } from "@dnd-kit/core";
 import {
   GripVertical,
+  MessageSquare,
   LayoutList,
   ListChecks,
   Pencil,
@@ -76,6 +77,7 @@ import {
 } from "../rules";
 import type { MilestoneView, PersonRef, TaskView } from "../types";
 import { TaskPriorityBadge, TaskStatusBadge } from "./badges";
+import { TaskComments } from "./task-comments";
 
 interface Draft {
   id?: string;
@@ -112,6 +114,7 @@ export function TasksPanel({
   team,
   today,
   open,
+  me,
 }: {
   projectId: string;
   tasks: TaskView[];
@@ -120,6 +123,8 @@ export function TasksPanel({
   team: PersonRef[];
   today: string;
   open: boolean;
+  /** The signed-in person, so their own comments can be removed. */
+  me?: string;
 }) {
   const router = useRouter();
   const canUpdate = useCan("projects:update") && open;
@@ -303,6 +308,7 @@ export function TasksPanel({
                     {task.loggedMinutes > 0 && (
                       <span>{formatMinutes(task.loggedMinutes)} logged</span>
                     )}
+                    {task.commentCount > 0 && <CommentCount n={task.commentCount} />}
                   </p>
                 </div>
                 {task.priority === "high" && <TaskPriorityBadge priority={task.priority} />}
@@ -494,6 +500,7 @@ export function TasksPanel({
                     onChange={(event) => setDraft({ ...draft, description: event.target.value })}
                   />
                 </Field>
+                {draft.id && <TaskComments taskId={draft.id} me={me} />}
               </DialogBody>
               <DialogFooter>
                 <Button
@@ -717,6 +724,7 @@ function CardBody({
             fallback="Unassigned"
           />
         </span>
+        {task.commentCount > 0 && <CommentCount n={task.commentCount} />}
         {task.dueDate && (
           <span
             className={cn(
@@ -731,5 +739,14 @@ function CardBody({
       </div>
       {footer}
     </article>
+  );
+}
+
+function CommentCount({ n }: { n: number }) {
+  return (
+    <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
+      <MessageSquare className="size-3.5" aria-hidden="true" />
+      <span aria-label={`${n} ${n === 1 ? "comment" : "comments"}`}>{n}</span>
+    </span>
   );
 }

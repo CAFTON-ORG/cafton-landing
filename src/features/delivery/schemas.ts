@@ -1,7 +1,10 @@
 import { z } from "zod";
 
 import {
+  MAX_COMMENT,
   MAX_NAME,
+  MAX_TEMPLATE_MILESTONES,
+  MAX_TEMPLATE_TASKS,
   MAX_NOTE,
   MAX_TASK_TITLE,
   MILESTONE_STATUSES,
@@ -44,6 +47,7 @@ export const projectSchema = z.object({
   name: z.string().trim().min(1, "Give the project a name.").max(MAX_NAME),
   description: text(MAX_NOTE),
   dealId: optionalId,
+  templateId: optionalId,
   managerId: optionalId,
   startDate: day,
   dueDate: day,
@@ -123,3 +127,39 @@ export const reviewSchema = z.object({
   action: z.enum(["approve", "reject"]),
   note: z.string().trim().max(500).optional().default(""),
 });
+
+export const commentSchema = z.object({
+  taskId: id,
+  body: z.string().max(MAX_COMMENT * 2),
+});
+
+export const templateSchema = z.object({
+  id: id.optional(),
+  name: z
+    .string()
+    .trim()
+    .max(MAX_NAME * 2),
+  description: text(MAX_NOTE),
+  active: z.boolean().default(true),
+  milestones: z
+    .array(
+      z.object({
+        name: z.string().max(MAX_NAME * 2),
+        billablePercent: z.number(),
+      }),
+    )
+    .max(MAX_TEMPLATE_MILESTONES * 2),
+  tasks: z
+    .array(
+      z.object({
+        title: z.string().max(MAX_TASK_TITLE * 2),
+        milestone: z
+          .string()
+          .max(MAX_NAME * 2)
+          .default(""),
+        estimateMinutes: z.number().optional(),
+      }),
+    )
+    .max(MAX_TEMPLATE_TASKS * 2),
+});
+export type TemplateInput = z.input<typeof templateSchema>;

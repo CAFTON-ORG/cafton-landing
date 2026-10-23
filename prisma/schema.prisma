@@ -1012,30 +1012,33 @@ enum TimeEntryStatus {
 
 /// A piece of delivery work for a client. Usually started by an accepted quote (once per quote).
 model Project {
-  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  reference      String        @unique @default(dbgenerated("(('PRJ-'::text || to_char(now(), 'YYYY'::text)) || '-'::text) || lpad((nextval('project_reference_seq'::regclass))::text, 4, '0'::text)"))
-  name           String
-  description    String?
-  dealId         String?       @map("deal_id") @db.Uuid
-  quoteId        String?       @unique @map("quote_id") @db.Uuid
-  contactId      String?       @map("contact_id") @db.Uuid
-  organizationId String?       @map("organization_id") @db.Uuid
-  status         ProjectStatus @default(planned)
-  managerId      String?       @map("manager_id") @db.Uuid
-  startDate      DateTime?     @map("start_date") @db.Date
-  dueDate        DateTime?     @map("due_date") @db.Date
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference         String        @unique @default(dbgenerated("(('PRJ-'::text || to_char(now(), 'YYYY'::text)) || '-'::text) || lpad((nextval('project_reference_seq'::regclass))::text, 4, '0'::text)"))
+  name              String
+  description       String?
+  dealId            String?       @map("deal_id") @db.Uuid
+  quoteId           String?       @unique @map("quote_id") @db.Uuid
+  contactId         String?       @map("contact_id") @db.Uuid
+  organizationId    String?       @map("organization_id") @db.Uuid
+  status            ProjectStatus @default(planned)
+  managerId         String?       @map("manager_id") @db.Uuid
+  startDate         DateTime?     @map("start_date") @db.Date
+  dueDate           DateTime?     @map("due_date") @db.Date
   /// The agreed price (integer minor units), when there is one.
-  budgetMinor    BigInt?       @map("budget_minor")
-  currency       String        @default("PHP")
+  budgetMinor       BigInt?       @map("budget_minor")
+  currency          String        @default("PHP")
   /// Hours the price assumes, in minutes.
-  budgetMinutes  Int?          @map("budget_minutes")
+  budgetMinutes     Int?          @map("budget_minutes")
   /// The slug of a portfolio entry that shows this project as a case study.
-  portfolioSlug  String?       @map("portfolio_slug")
-  completedAt    DateTime?     @map("completed_at") @db.Timestamptz(6)
-  createdBy      String?       @map("created_by") @db.Uuid
-  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  portfolioSlug     String?       @map("portfolio_slug")
+  completedAt       DateTime?     @map("completed_at") @db.Timestamptz(6)
+  /// SHA-256 of the secret in the client's progress link; null while nothing is shared.
+  progressTokenHash String?       @unique @map("progress_token_hash")
+  progressSharedAt  DateTime?     @map("progress_shared_at") @db.Timestamptz(6)
+  createdBy         String?       @map("created_by") @db.Uuid
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
   deal         Deal?           @relation(fields: [dealId], references: [id], onDelete: SetNull)
   quote        Quote?          @relation(fields: [quoteId], references: [id], onDelete: SetNull)
@@ -1107,9 +1110,10 @@ model ProjectTask {
   createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  milestone   Milestone?  @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone   Milestone?    @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
   timeEntries TimeEntry[]
+  comments    TaskComment[]
 
   @@index([projectId, status, position])
   @@index([assigneeId])
@@ -1144,4 +1148,37 @@ model TimeEntry {
   @@index([projectId, status])
   @@index([status, weekStart])
   @@map("time_entries")
+}
+
+model TaskComment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taskId     String   @map("task_id") @db.Uuid
+  authorId   String?  @map("author_id") @db.Uuid
+  /// Snapshot, so the comment still reads correctly after the person is removed.
+  authorName String   @map("author_name")
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  task ProjectTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+  @@map("task_comments")
+}
+
+/// A reusable plan: milestones (with the share of the price each invoices) and tasks to start from.
+model ProjectTemplate {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  description String?
+  /// TemplateMilestone[] (see features/delivery/rules.ts).
+  milestones  Json     @default("[]")
+  /// TemplateTask[].
+  tasks       Json     @default("[]")
+  active      Boolean  @default(true)
+  createdBy   String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([active, name])
+  @@map("project_templates")
 }

@@ -71,8 +71,24 @@ hours logged is kept (mark it done instead of deleting).
 - **Case studies:** a completed project can be linked to one portfolio entry (an entry tells one
   project's story); the link is optional and clearing it frees the entry.
 
+## Comments, templates and the client's progress page
+
+- **Comments** on a task: a short conversation (2,000 characters each), the author's name is kept as
+  written so it still reads after the person is removed. You remove your own; people who can delete
+  projects remove anyone's. Deleting a task takes its comments (the database cascades).
+- **Project templates** (`projects:templates`, administrators): milestones with the _share of the
+  price_ each invoices, and tasks that sit under them. Applying one to a project that has nothing
+  planned, or choosing one when starting a project, creates them; amounts are shares of the price
+  rounded down so they never exceed it, and with no price nothing bills. Projects keep what they
+  were given: editing or deleting a template changes nothing already created.
+- **Client progress page** (`/p/<secret>`): a private link like quote and contract links, with only
+  its SHA-256 hash stored, so the secret is shown once and renewing is how you get it again (it
+  stops the old one). The page shows the status, due date, overall progress, how many pieces of
+  work are done and the milestones, and nothing about money, hours, people or notes; a test checks
+  that. Stopping sharing, deleting the project or cancelling it ends the link. Not indexed.
+
 ## Not done
 
-Invoicing from approved hours and billable milestones (Phase 6, which consumes `time_entries` and
-`milestones`), project templates, task comments and attachments, recurring tasks, a client-facing
-progress page, and per-task time budgets.
+Attachments on tasks (they need their own private storage and the same byte checks as CRM files),
+recurring tasks, per-task time budgets, and invoicing from approved hours and billable milestones
+(Phase 6, which consumes `time_entries` and `milestones`).

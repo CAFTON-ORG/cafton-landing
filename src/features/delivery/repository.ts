@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { Prisma } from "@/generated/prisma/client";
+import { TOKEN_SHAPE, hashToken } from "@/features/sales/integrity";
 import { live, namesFor, type People } from "@/features/crm/mappers";
 import { fullName } from "@/features/crm/rules";
 import { prisma } from "@/lib/db";
@@ -16,17 +17,22 @@ import {
   type ProjectStatus,
   type TaskPriority,
   type TaskStatus,
+  type TemplateMilestone,
+  type TemplateTask,
   type TimeStatus,
 } from "./rules";
 import type {
+  CommentView,
   MemberView,
   MilestoneView,
   PortfolioOption,
   ProjectFinancials,
   ProjectRow,
+  PublicProgress,
   ProjectView,
   TaskCount,
   TaskView,
+  TemplateView,
   TimeEntryView,
   UtilisationRow,
 } from "./types";
@@ -280,7 +286,10 @@ export async function listMilestones(projectId: string): Promise<MilestoneView[]
 
 /* ------------------------------------------------------------------- tasks */
 
-const taskInclude = { milestone: { select: { name: true } } } satisfies Prisma.ProjectTaskInclude;
+const taskInclude = {
+  milestone: { select: { name: true } },
+  _count: { select: { comments: true } },
+} satisfies Prisma.ProjectTaskInclude;
 
 export async function listTasks(projectId: string): Promise<TaskView[]> {
   if (!isDatabaseConfigured) return [];
@@ -316,6 +325,7 @@ export async function listTasks(projectId: string): Promise<TaskView[]> {
     estimateMinutes: row.estimateMinutes ?? undefined,
     position: row.position,
     loggedMinutes: minutes.get(row.id) ?? 0,
+    commentCount: row._count.comments,
     completedAt: iso(row.completedAt),
   }));
 }
@@ -574,4 +584,89 @@ export async function getProjectForDeal(
     select: { id: true, reference: true, name: true, status: true },
   });
   return row ? { ...row, status: row.status as ProjectStatus } : null;
+}
+
+/* --------------------------------------------------------- comments, templates */
+
+export async function listComments(taskId: string): Promise<CommentView[]> {
+  if (!isDatabaseConfigured) return [];
+  const rows = await prisma.taskComment.findMany({
+    where: { taskId },
+    orderBy: { createdAt: "asc" },
+    take: 500,
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    taskId: row.taskId,
+    authorId: row.authorId ?? undefined,
+    authorName: row.authorName,
+    body: row.body,
+    createdAt: row.createdAt.toISOString(),
+  }));
+}
+
+const asTemplateParts = (row: { milestones: unknown; tasks: unknown }) => ({
+  milestones: (Array.isArray(row.milestones) ? row.milestones : []) as TemplateMilestone[],
+  tasks: (Array.isArray(row.tasks) ? row.tasks : []) as TemplateTask[],
+});
+
+export async function listTemplates(
+  options: { activeOnly?: boolean } = {},
+): Promise<TemplateView[]> {
+  if (!isDatabaseConfigured) return [];
+  const rows = await prisma.projectTemplate.findMany({
+    where: options.activeOnly ? { active: true } : {},
+    orderBy: [{ active: "desc" }, { name: "asc" }],
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description ?? undefined,
+    active: row.active,
+    ...asTemplateParts(row),
+  }));
+}
+
+/* ----------------------------------------------------------- client progress */
+
+/** The client's view of a project, from the secret in their link; null when the link isn't valid (any more). */
+export async function getPublicProgress(token: string): Promise<PublicProgress | null> {
+  if (!isDatabaseConfigured || !TOKEN_SHAPE.test(token)) return null;
+  const row = await prisma.project.findFirst({
+    where: { progressTokenHash: hashToken(token), ...live },
+    include: {
+      organization: { select: { name: true } },
+      contact: { select: { firstName: true, lastName: true } },
+      milestones: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
+    },
+  });
+  if (!row) return null;
+  const counts = await taskCounts("projectId", [row.id]);
+  return {
+    reference: row.reference,
+    name: row.name,
+    clientName: row.organization?.name ?? (row.contact ? fullName(row.contact) : undefined),
+    status: row.status as ProjectStatus,
+    startDate: day(row.startDate),
+    dueDate: day(row.dueDate),
+    completedAt: iso(row.completedAt),
+    tasks: counts.get(row.id) ?? { total: 0, done: 0 },
+    milestones: row.milestones.map((milestone) => ({
+      name: milestone.name,
+      status: milestone.status as MilestoneStatus,
+      dueDate: day(milestone.dueDate),
+      completedAt: iso(milestone.completedAt),
+    })),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+/** Whether a progress link is currently shared for a project, and since when. */
+export async function getProgressSharing(projectId: string): Promise<{ sharedAt: string } | null> {
+  if (!isDatabaseConfigured) return null;
+  const row = await prisma.project.findFirst({
+    where: { id: projectId, ...live, progressTokenHash: { not: null } },
+    select: { progressSharedAt: true },
+  });
+  return row?.progressSharedAt ? { sharedAt: row.progressSharedAt.toISOString() } : null;
 }

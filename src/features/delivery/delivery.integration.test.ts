@@ -891,3 +891,204 @@ describe("a deal won without a quote", () => {
     expect(await prisma.project.count({ where: { dealId: won.id } })).toBe(1);
   });
 });
+
+describe("comments, templates and the client's progress link", () => {
+  let extras: typeof import("./actions/extras");
+  const task = async (projectId: string, title = "Discuss me") => {
+    const made = await work.saveTask({
+      projectId,
+      title,
+      assigneeId: "",
+      milestoneId: "",
+      priority: "normal",
+      dueDate: "",
+      estimate: "",
+    });
+    return (made as { data: { id: string } }).data.id;
+  };
+
+  it("keeps a conversation on a task, and only its author (or a manager) removes a comment", async () => {
+    extras = await import("./actions/extras");
+    const id = await project({ name: "Comments" });
+    const taskId = await task(id);
+    expect(await extras.addComment({ taskId, body: "  " })).toMatchObject({
+      ok: false,
+      fieldErrors: { body: expect.any(String) },
+    });
+    expect((await extras.addComment({ taskId, body: "First thought" })).ok).toBe(true);
+    current = SALES;
+    const reply = (await extras.addComment({ taskId, body: "A reply" })) as {
+      data: { id: string };
+    };
+    current = OWNER;
+
+    const thread = (await extras.getComments(taskId)) as {
+      data: { authorName: string; body: string; id: string }[];
+    };
+    expect(thread.data.map((comment) => comment.body)).toEqual(["First thought", "A reply"]);
+    expect((await repo.listTasks(id))[0].commentCount).toBe(2);
+
+    // Sales can't remove the owner's comment; the owner (a manager) can remove anyone's.
+    const first = thread.data[0].id;
+    current = SALES;
+    expect(await extras.deleteComment(first)).toMatchObject({ ok: false });
+    expect((await extras.deleteComment(reply.data.id)).ok).toBe(true);
+    current = OWNER;
+    expect((await extras.deleteComment(first)).ok).toBe(true);
+    expect((await repo.listTasks(id))[0].commentCount).toBe(0);
+    // Deleting the task takes its comments with it (the database cascades).
+    await extras.addComment({ taskId, body: "Bye" });
+    expect((await work.deleteTask(taskId)).ok).toBe(true);
+    expect(await prisma.taskComment.count({ where: { taskId } })).toBe(0);
+  });
+
+  it("shares progress with a private link that only its hash is stored for, and renewing replaces it", async () => {
+    const id = await project({ name: "Shared with the client", budget: "50000" });
+    await work.saveMilestone({
+      projectId: id,
+      name: "Design",
+      description: "",
+      dueDate: "",
+      billable: true,
+      amount: "20000",
+    });
+    await task(id, "Done one");
+    await prisma.projectTask.updateMany({ where: { projectId: id }, data: { status: "done" } });
+    await task(id, "Still open");
+    expect(await repo.getProgressSharing(id)).toBeNull();
+
+    const first = (await extras.shareProgress(id)) as { data: { link: string } };
+    const token = first.data.link.split("/p/")[1];
+    expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    const stored = await prisma.project.findUniqueOrThrow({ where: { id } });
+    expect(stored.progressTokenHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(stored.progressTokenHash).not.toContain(token);
+
+    // The client sees where the work stands, and nothing about money, hours or people.
+    const view = await repo.getPublicProgress(token);
+    expect(view).toMatchObject({
+      name: "Shared with the client",
+      status: "planned",
+      tasks: { total: 2, done: 1 },
+      milestones: [{ name: "Design", status: "pending" }],
+    });
+    const text = JSON.stringify(view);
+    for (const secret of ["budget", "amount", "minutes", "cost", "manager", "20000", "50000"]) {
+      expect(text.toLowerCase()).not.toContain(secret);
+    }
+
+    // Renewing stops the old link; stopping stops them all; nonsense is simply not found.
+    const second = (await extras.shareProgress(id)) as { data: { link: string } };
+    const renewed = second.data.link.split("/p/")[1];
+    expect(renewed).not.toBe(token);
+    expect(await repo.getPublicProgress(token)).toBeNull();
+    expect((await repo.getPublicProgress(renewed))?.name).toBe("Shared with the client");
+    expect((await extras.stopSharingProgress(id)).ok).toBe(true);
+    expect(await repo.getPublicProgress(renewed)).toBeNull();
+    expect(await repo.getPublicProgress("short")).toBeNull();
+    expect(await repo.getPublicProgress("x".repeat(43))).toBeNull();
+  });
+
+  it("won't share a cancelled project, and a deleted project's link stops working", async () => {
+    const cancelled = await project({ name: "Cancelled one" });
+    await projects.setProjectStatus(cancelled, "cancelled");
+    expect(await extras.shareProgress(cancelled)).toMatchObject({ ok: false });
+
+    const gone = await project({ name: "Deleted one" });
+    const link = (await extras.shareProgress(gone)) as { data: { link: string } };
+    await projects.deleteProject(gone);
+    expect(await repo.getPublicProgress(link.data.link.split("/p/")[1])).toBeNull();
+  });
+
+  it("keeps templates for people who manage them, and applies one to an empty project", async () => {
+    const template = {
+      name: "Website build",
+      description: "",
+      active: true,
+      milestones: [
+        { name: "Design", billablePercent: 30 },
+        { name: "Build", billablePercent: 70 },
+      ],
+      tasks: [
+        { title: "Wireframes", milestone: "Design", estimateMinutes: 480 },
+        { title: "Hosting", milestone: "" },
+      ],
+    };
+    current = SALES;
+    expect(await extras.saveTemplate(template)).toMatchObject({ ok: false });
+    current = OWNER;
+    expect(
+      await extras.saveTemplate({
+        ...template,
+        milestones: [
+          { name: "A", billablePercent: 80 },
+          { name: "B", billablePercent: 80 },
+        ],
+      }),
+    ).toMatchObject({ ok: false });
+    const saved = (await extras.saveTemplate(template)) as { data: { id: string } };
+    expect(saved.data.id).toBeTruthy();
+    expect((await repo.listTemplates({ activeOnly: true })).map((t) => t.name)).toContain(
+      "Website build",
+    );
+
+    const id = await project({ name: "From a template", budget: "100000" });
+    const applied = (await extras.applyTemplate(id, saved.data.id)) as {
+      data: { milestones: number; tasks: number };
+    };
+    expect(applied.data).toEqual({ milestones: 2, tasks: 2 });
+    const milestones = await repo.listMilestones(id);
+    expect(milestones.map((m) => [m.name, m.amountMinor])).toEqual([
+      ["Design", 3_000_000],
+      ["Build", 7_000_000],
+    ]);
+    expect(milestones.every((m) => m.billable)).toBe(true);
+    const tasks = await repo.listTasks(id);
+    expect(tasks.find((t) => t.title === "Wireframes")).toMatchObject({
+      milestoneName: "Design",
+      estimateMinutes: 480,
+    });
+    // Not twice, and never on a project that already has a plan.
+    expect(await extras.applyTemplate(id, saved.data.id)).toMatchObject({ ok: false });
+  });
+
+  it("starts a new project from a template, and bills nothing when it has no price", async () => {
+    const found = (await repo.listTemplates()).find((t) => t.name === "Website build")!;
+    const made = await projects.createProject({
+      name: "Born from a template",
+      dealId: "",
+      managerId: OWNER.id,
+      templateId: found.id,
+      budget: "",
+      budgetHours: "",
+    });
+    expect(made.ok).toBe(true);
+    const id = (made as { data: { id: string } }).data.id;
+    const milestones = await repo.listMilestones(id);
+    expect(milestones).toHaveLength(2);
+    expect(milestones.every((m) => !m.billable && m.amountMinor === undefined)).toBe(true);
+
+    // A template that was switched off can't be used.
+    await extras.saveTemplate({
+      id: found.id,
+      name: found.name,
+      description: "",
+      active: false,
+      milestones: found.milestones,
+      tasks: found.tasks,
+    });
+    expect(
+      await projects.createProject({
+        name: "Too late",
+        dealId: "",
+        managerId: "",
+        templateId: found.id,
+        budget: "",
+        budgetHours: "",
+      }),
+    ).toMatchObject({ ok: false, fieldErrors: { templateId: expect.any(String) } });
+    expect((await extras.deleteTemplate(found.id)).ok).toBe(true);
+    // Projects keep what they were given.
+    expect(await repo.listMilestones(id)).toHaveLength(2);
+  });
+});

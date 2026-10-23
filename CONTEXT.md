@@ -187,6 +187,12 @@ A piece of work on a project: to do, in progress, in review or done. Only people
 **Time entry**:
 Hours a person worked on a project on one day. Draft, then submitted with the rest of the week, then approved (never by the person themselves) or sent back with a reason. Approved time can't be changed.
 
+**Project template**:
+A reusable plan of milestones (each with a share of the price it invoices) and tasks. Applied once to a project with nothing planned yet; the project keeps what it was given.
+
+**Progress link**:
+The private page a client can follow a project on: status, milestones and task progress, never money, hours or people. Made on the project page; only a hash of its secret is kept, so renewing makes a new one and stops the old.
+
 **Utilisation**:
 Billable approved hours as a share of a 40-hour week.
 

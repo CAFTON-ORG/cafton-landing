@@ -120,7 +120,8 @@ HubSpot is dropped: the contact form writes to our database and the dashboard is
 - [x] Timesheets: log by day, submit a week, managers approve or send back with a reason (never their own), notifications, a Time tab on the project
 - [x] Budget vs actual: hours against the hours the price assumed, cost from approved hours at each member's hourly cost, margin; utilisation by person over 1 to 13 weeks
 - [x] Link a completed project to its portfolio entry (a case study)
-- [ ] Project templates, task comments and attachments, a client-facing progress page
+- [x] Project templates (milestones with a share of the price, tasks), task comments, and a private client progress page that shows status and milestones but never money, hours or people
+- [ ] Task attachments (need private storage with the same byte checks as CRM files)
 - Done when: approved hours and milestones can be selected for invoicing. Met: both are stored as approved, immutable records ready for Phase 6.
 
 ## Phase 6 - Finance and accounting

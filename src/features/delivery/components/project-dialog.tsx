@@ -39,12 +39,15 @@ export function ProjectDialog({
   project,
   people,
   deals = [],
+  templates = [],
   trigger,
 }: {
   project?: ProjectView;
   people: PersonRef[];
   /** Won deals without a project, offered when starting one. */
   deals?: { id: string; title: string }[];
+  /** Active templates a new project can start from. */
+  templates?: { id: string; name: string }[];
   trigger: ReactNode;
 }) {
   const router = useRouter();
@@ -55,6 +58,7 @@ export function ProjectDialog({
     name: project?.name ?? "",
     description: project?.description ?? "",
     dealId: "",
+    templateId: "",
     managerId: project?.manager?.id ?? "",
     startDate: project?.startDate ?? "",
     dueDate: project?.dueDate ?? "",
@@ -78,6 +82,7 @@ export function ProjectDialog({
     const payload = {
       ...values,
       dealId: values.dealId || "none",
+      templateId: values.templateId || "none",
       managerId: values.managerId || "none",
     };
     run(() => (project ? updateProject(project.id, payload) : createProject(payload)), {
@@ -150,6 +155,35 @@ export function ProjectDialog({
                     {deals.map((deal) => (
                       <SelectItem key={deal.id} value={deal.id}>
                         {deal.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            )}
+            {!project && templates.length > 0 && (
+              <Field
+                id="project-templateId"
+                label="Start from a template"
+                error={errors.templateId}
+                hint="Adds the template's milestones and tasks. Billable milestones take a share of the price."
+              >
+                <Select
+                  value={values.templateId || NO_DEAL}
+                  onValueChange={(next) => set("templateId")(next === NO_DEAL ? "" : String(next))}
+                >
+                  <SelectTrigger id="project-templateId" className="w-full">
+                    <SelectValue>
+                      {(current: string) =>
+                        templates.find((template) => template.id === current)?.name ?? "No template"
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_DEAL}>No template</SelectItem>
+                    {templates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

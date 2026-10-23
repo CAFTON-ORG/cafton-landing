@@ -1,4 +1,12 @@
-import type { MilestoneStatus, ProjectStatus, TaskPriority, TaskStatus, TimeStatus } from "./rules";
+import type {
+  MilestoneStatus,
+  ProjectStatus,
+  TaskPriority,
+  TaskStatus,
+  TimeStatus,
+  TemplateMilestone,
+  TemplateTask,
+} from "./rules";
 
 /** Plain data for the screens: dates are "YYYY-MM-DD", moments are ISO strings, money is minor units. */
 
@@ -85,6 +93,7 @@ export interface TaskView {
   estimateMinutes?: number;
   position: number;
   loggedMinutes: number;
+  commentCount: number;
   completedAt?: string;
 }
 
@@ -137,4 +146,39 @@ export interface PortfolioOption {
   client: string;
   /** The project already telling its story, if any. */
   linkedProjectId?: string;
+}
+
+export interface CommentView {
+  id: string;
+  taskId: string;
+  authorId?: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface TemplateView {
+  id: string;
+  name: string;
+  description?: string;
+  milestones: TemplateMilestone[];
+  tasks: TemplateTask[];
+  active: boolean;
+}
+
+/**
+ * What a client sees on their progress link. Deliberately small: no hours, costs, people or
+ * internal notes, only where the work stands.
+ */
+export interface PublicProgress {
+  reference: string;
+  name: string;
+  clientName?: string;
+  status: ProjectStatus;
+  startDate?: string;
+  dueDate?: string;
+  completedAt?: string;
+  tasks: TaskCount;
+  milestones: { name: string; status: MilestoneStatus; dueDate?: string; completedAt?: string }[];
+  updatedAt: string;
 }

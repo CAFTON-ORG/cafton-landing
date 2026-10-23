@@ -120,6 +120,7 @@ export const RESOURCES = {
       create: "Start projects",
       update: "Edit projects, manage the team, milestones and tasks",
       delete: "Delete projects",
+      templates: "Add and edit project templates",
     },
   },
   time: {
@@ -202,6 +203,7 @@ const ADMINISTRATION: Permission[] = [
   "roles:view",
   "roles:manage",
   "pipelines:manage",
+  "projects:templates",
   "customfields:manage",
   "quotes:approve",
   "catalog:manage",

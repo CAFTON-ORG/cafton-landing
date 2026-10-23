@@ -22,6 +22,7 @@ import {
   type ProjectInput,
 } from "../schemas";
 import {
+  applyTemplateTx,
   assertStaff,
   closeFactsFor,
   guard,
@@ -100,6 +101,14 @@ export async function createProject(input: ProjectInput): Promise<ActionResult<{
           "system",
           `Started project ${project.reference}`,
         );
+      }
+      if (data.templateId) {
+        const template = await tx.projectTemplate.findUnique({ where: { id: data.templateId } });
+        if (!template || !template.active) {
+          const message = "That template isn't available. Pick another.";
+          throw new ActionError(message, "validation", { templateId: message });
+        }
+        await applyTemplateTx(tx, project, template);
       }
       await recordAudit(
         actor,

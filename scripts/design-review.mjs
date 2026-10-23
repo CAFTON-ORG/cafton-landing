@@ -76,6 +76,7 @@ const PAGES = [
   ["contract-templates", "/dashboard/sales/contracts/templates"],
   ["projects", "/dashboard/projects"],
   ["project-detail", `/dashboard/projects/${ids.delivery}`],
+  ["project-templates", "/dashboard/projects/templates"],
   ["timesheet", "/dashboard/time"],
   ["approvals", "/dashboard/time?tab=approvals"],
   ["utilisation", "/dashboard/time?tab=utilisation"],

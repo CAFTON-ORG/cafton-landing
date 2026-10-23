@@ -4,7 +4,12 @@ import {
   BACKDATE_DAYS,
   canEditEntry,
   checkLogTime,
+  checkApplyTemplate,
+  checkComment,
   checkMilestone,
+  checkShareProgress,
+  checkTemplate,
+  planFromTemplate,
   checkMilestoneDone,
   checkProject,
   checkProjectStatusChange,
@@ -324,5 +329,90 @@ describe("margin and reports", () => {
     expect(checkPortfolioLink({ ...ok, projectStatus: "active" })).toMatch(/completed project/);
     expect(checkPortfolioLink({ ...ok, slugExists: false })).toMatch(/no longer exists/);
     expect(checkPortfolioLink({ ...ok, linkedElsewhere: true })).toMatch(/another project/);
+  });
+});
+
+describe("comments", () => {
+  it("needs something to say, within a limit", () => {
+    expect(checkComment("  ")).toMatch(/Write something/);
+    expect(checkComment("x".repeat(2001))).toMatch(/2000/);
+    expect(checkComment("Looks good")).toBeNull();
+  });
+});
+
+describe("project templates", () => {
+  const body = {
+    milestones: [
+      { name: "Design", billablePercent: 30 },
+      { name: "Build", billablePercent: 50 },
+      { name: "Handover", billablePercent: 20 },
+    ],
+    tasks: [
+      { title: "Wireframes", milestone: "Design", estimateMinutes: 480 },
+      { title: "Set up hosting", milestone: "" },
+    ],
+  };
+
+  it("accepts a sensible template", () => {
+    expect(checkTemplate({ name: "Website build", ...body })).toBeNull();
+  });
+
+  it("explains what is wrong", () => {
+    const t = (over: object) => checkTemplate({ name: "T", ...body, ...over });
+    expect(checkTemplate({ name: " ", ...body })).toMatch(/name/);
+    expect(
+      t({
+        milestones: [
+          { name: "A", billablePercent: 60 },
+          { name: "a", billablePercent: 10 },
+        ],
+      }),
+    ).toMatch(/Two milestones/);
+    expect(
+      t({
+        milestones: [
+          { name: "A", billablePercent: 60 },
+          { name: "B", billablePercent: 50 },
+        ],
+      }),
+    ).toMatch(/110%/);
+    expect(t({ milestones: [{ name: "A", billablePercent: 1.5 }] })).toMatch(/whole number/);
+    expect(t({ tasks: [{ title: "X", milestone: "Nowhere" }] })).toMatch(/isn't in the template/);
+    expect(t({ tasks: [{ title: "X", milestone: "", estimateMinutes: 0 }] })).toMatch(
+      /more than zero/,
+    );
+    expect(t({ tasks: [{ title: " ", milestone: "" }] })).toMatch(/title/);
+  });
+
+  it("plans milestones as shares of the price that never add up to more than it", () => {
+    const plan = planFromTemplate(body, 100_001);
+    expect(plan.milestones.map((m) => m.amountMinor)).toEqual([30_000, 50_000, 20_000]);
+    expect(plan.milestones.reduce((sum, m) => sum + (m.amountMinor ?? 0), 0)).toBeLessThanOrEqual(
+      100_001,
+    );
+    expect(plan.milestones.every((m) => m.billable)).toBe(true);
+    expect(plan.tasks.map((t) => [t.title, t.milestone, t.estimateMinutes])).toEqual([
+      ["Wireframes", "Design", 480],
+      ["Set up hosting", null, null],
+    ]);
+  });
+
+  it("bills nothing when the project has no price", () => {
+    const plan = planFromTemplate(body, null);
+    expect(plan.milestones.every((m) => !m.billable && m.amountMinor === null)).toBe(true);
+  });
+
+  it("applies only to an open project with nothing planned", () => {
+    expect(checkApplyTemplate({ status: "planned", milestones: 0, tasks: 0 })).toBeNull();
+    expect(checkApplyTemplate({ status: "planned", milestones: 1, tasks: 0 })).toMatch(
+      /nothing planned/,
+    );
+    expect(checkApplyTemplate({ status: "completed", milestones: 0, tasks: 0 })).toMatch(/closed/);
+  });
+
+  it("shares progress for any project but a cancelled one", () => {
+    expect(checkShareProgress("active")).toBeNull();
+    expect(checkShareProgress("completed")).toBeNull();
+    expect(checkShareProgress("cancelled")).toMatch(/cancelled/);
   });
 });

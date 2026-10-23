@@ -30,7 +30,7 @@ npm run db:local       # in-memory Postgres (PGlite) built from prisma/migration
 ## Dashboard setup (Supabase)
 
 1. In Supabase, create a project. **Authentication > Providers**: enable **Google** (create OAuth credentials in Google Cloud; Supabase shows the redirect URI). **Authentication > URL Configuration**: add `http://localhost:3000/auth/callback` and your production URL.
-2. Copy `.env.example` to `.env` and fill in `DATABASE_URL` (pooled, port 6543), `DIRECT_URL` (direct or session pooler, port 5432), `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+2. Copy `.env.example` to `.env` and fill in `DATABASE_URL` (pooled, port 6543), `DIRECT_URL` (direct or session pooler, port 5432), `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. For files on CRM records also set `SUPABASE_SERVICE_ROLE_KEY` (Supabase > Project settings > API): a server-only secret that bypasses all access rules, so keep it out of the browser, out of git and out of any `NEXT_PUBLIC_` name.
 3. `npm run db:deploy` applies the migrations (tables, built-in roles, the invite-only sign-up trigger, RLS).
 4. `npm run staff:invite -- you@gmail.com owner` creates the first owner. Then sign in at `/login` with that Google account.
 5. Invite everyone else from **Dashboard > People**.

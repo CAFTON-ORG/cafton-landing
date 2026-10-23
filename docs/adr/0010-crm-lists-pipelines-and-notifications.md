@@ -12,7 +12,7 @@
 `
 `## Not done
 `
-`Email logging, custom fields, lead scoring and assignment rules, files on records, merging leads, per-stage required fields, multi-currency totals.
+`Per-stage required fields and multi-currency totals. Email from a record, files, custom fields, lead scoring, round-robin assignment and lead merge were added later: see ADR 0013.
 `
 
 ## Speed

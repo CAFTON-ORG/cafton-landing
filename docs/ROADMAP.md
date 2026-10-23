@@ -15,7 +15,7 @@ Goal: a safe base to build on, with no visible change to the public site.
 - [x] Set up base-nova: second shadcn config for `components/dashboard` without touching `components/ui`; scope dashboard tokens so landing theme is unaffected
 - [x] ADRs: placement, monolith, auth, UI coexistence, money/soft-delete conventions
 - [x] Folder structure standardised against the template (ADR 0004): `(marketing)`, `components/{ui,shared,marketing,dashboard}`, `features/{cms,crm}`, `config/`, `providers/`
-- [ ] Playwright smoke + axe test for the public routes (needs `npx playwright install chromium`)
+- [x] Playwright smoke + axe test for the public routes (52 checks, light and dark, desktop and phone: `npm run build && npm run e2e`)
 - Done when: landing renders pixel-identical, all existing routes 200, CI green.
 
 ## Phase 1 - Auth, RBAC and dashboard shell
@@ -29,8 +29,8 @@ Goal: a safe base to build on, with no visible change to the public site.
 - [x] Tests: permission rules, users/roles rules, invite claims, migration + trigger + append-only + RLS via PGlite
 - [x] `npm run staff:invite` to bootstrap the first owner
 - [ ] Apply the migration to the Supabase project, enable the Google provider, invite the first owner (see README), then sign in end to end
-- [ ] Playwright + axe pass on the shell (needs `npx playwright install chromium`)
-- [ ] In-app notifications skeleton (moved to Phase 8 with email digests)
+- [x] Playwright + axe pass on the shell: `npm run design:review` opens every dashboard screen and dialog in light and dark, desktop and phone, and fails on console errors, WCAG 2.2 A/AA violations and sideways scroll (needs a local database, because the CI end-to-end run can't sign in)
+- [x] In-app notifications: built with the CRM in Phase 3 (the bell); email digests stay in Phase 8
 - Done when: only invited staff can sign in; each role sees only its menu; every mutation writes an audit row.
 
 ## Phase 2 - CMS (replace hard-coded content) [complete]
@@ -82,12 +82,18 @@ HubSpot is dropped: the contact form writes to our database and the dashboard is
 - [x] Notes you can edit, pin and delete (author or administrator); "last contact" and "next step" columns; a warning on deals with nothing planned
 - [x] In-app notifications (bell): new enquiry, meeting request, things assigned to you, tasks due; a daily job raises the due ones
 - [x] Several pipelines and a stage editor (add, rename, re-order, probability, exit criteria; Won and Lost stay last); a deal stays in its pipeline
-- [ ] Email logging (send and receive from a record), custom fields, lead scoring and round-robin assignment, files on records, merge of leads
+- [x] Lead scoring (explainable, from the contact form's answers; Hot, Warm, Cold; sort and filter) and round-robin assignment of new enquiries (Users > New leads)
+- [x] Merge of leads (timeline, tasks, meetings, tags, custom values and files move to the kept lead)
+- [x] Send an email from a lead, contact or deal (replies come to you; kept on the timeline once sent)
+- [ ] Capture received email automatically (needs inbound mail set up with the provider; received email is logged by hand for now)
+- [x] Files on leads, contacts, organizations and deals (private storage, checked by their bytes, signed short-lived links)
+- [x] Custom fields on leads, contacts, organizations and deals (CRM > Custom fields; five types; archive keeps values)
+- [ ] Custom fields in lists, filters and CSV; required custom fields
 - [x] Email to staff on a new lead and an acknowledgement to the enquirer (Resend, `lib/mail.ts`); invitation emails with a "send again" button
 - [x] Schedule: visitors ask for a time on the contact form (office hours, buffers, notice, blocked dates in Booking settings); staff schedule, confirm, reschedule, cancel and close out meetings; ICS invites; the database refuses overlapping meetings; meetings show on leads and deals
 - [x] Deals board with drag and drop (keyboard and touch too), forecast per stage, overdue and stale markers; stage stepper on the deal page; roles edited on their own page; shadcn Calendar date pickers
 - [x] Reminder email the morning before a meeting (daily job `/api/cron/reminders`, `vercel.json`, needs `CRON_SECRET`); a personal calendar link staff can subscribe to in Google, Outlook or Apple Calendar
-- [ ] Edit pipeline stages in the UI
+- [x] Edit pipeline stages in the UI (CRM > Pipelines, administrators only)
 - Done when: a website enquiry can be followed to a won deal without leaving the dashboard. (Verified against PGlite; verify once more against Supabase after `db:deploy`.)
 
 ## Phase 4 - Sales
@@ -97,6 +103,9 @@ HubSpot is dropped: the contact form writes to our database and the dashboard is
 - [x] Contracts/SOW templates and e-acceptance record: templates with merge fields, drafted per deal from an accepted quote, hashed link, content fingerprint, signed online, frozen and kept (`docs/adr/0012-contracts-and-sales-overview.md`)
 - [ ] Won quote creates Project (Phase 5) and invoice schedule (Phase 6) via domain events, not direct imports (the event bus and the `quote.accepted` event exist; the Delivery and Finance handlers come with those phases)
 - [x] Sales dashboard: pipeline value, win rate, cycle time, per-owner monthly targets
+- [x] Quote editor polish: dropdowns for unit, discount, deposit and a "valid for" quick pick, standard payment wordings (asks before replacing typed text), discounts above the approval limit marked in the list, line rows that fit at any width, and a timeline of what happened to the quote
+- [x] Quote PDF: page footer (it was drawn off the page), table header repeated on every page, even spacing, status shown only when the quote is not simply sent; covered by a test that reads the PDF back
+- [x] Winning a deal waits for any quote still out or awaiting approval; a deal with a signed contract can't be reopened (ADR 0013)
 - Done when: a deal produces a sent, accepted, auditable quote.
 
 ## Phase 5 - Delivery (projects and time)

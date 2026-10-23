@@ -2,6 +2,7 @@ import {
   Banknote,
   CalendarSync,
   Landmark,
+  ChartColumn,
   Receipt,
   WalletCards,
   Store,
@@ -359,6 +360,21 @@ export const navGroups: NavGroup[] = [
   {
     label: "Books",
     items: [
+      {
+        href: "/dashboard/finance/reports",
+        label: "Reports",
+        icon: ChartColumn,
+        permission: "finance:view",
+        keywords: [
+          "profit and loss",
+          "p&l",
+          "balance sheet",
+          "cash flow",
+          "trial balance",
+          "export",
+          "tax summary",
+        ],
+      },
       {
         href: "/dashboard/finance/bank",
         label: "Bank",

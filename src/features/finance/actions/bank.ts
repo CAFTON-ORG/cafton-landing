@@ -199,13 +199,11 @@ export async function importStatement(input: ImportInput): Promise<ActionResult<
       understood: mapped.understood,
       firstDate: dates[0],
       lastDate: dates.at(-1),
-      sample: mapped.rows
-        .slice(0, 3)
-        .map(({ date: when, description, amountMinor }) => ({
-          date: when,
-          description,
-          amountMinor,
-        })),
+      sample: mapped.rows.slice(0, 3).map(({ date: when, description, amountMinor }) => ({
+        date: when,
+        description,
+        amountMinor,
+      })),
     };
     if (data.dryRun || fresh.length === 0) return report;
 

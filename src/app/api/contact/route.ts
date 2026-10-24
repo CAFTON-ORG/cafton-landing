@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { contactSchema } from "@/lib/contact";
-import { submitContactToHubSpot } from "@/lib/hubspot";
-import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
-import { SITE_URL } from "@/lib/site";
-import { verifyTurnstileToken } from "@/lib/turnstile";
+import { contactSchema } from "@/features/crm/rules/contact";
+import { createLeadFromWebsite } from "@/features/crm/services/intake";
+import { MEETING_MODES } from "@/features/schedule/types/core";
+import { checkRateLimit, getClientKey } from "@/lib/security/rate-limit";
+import { verifyTurnstileToken } from "@/lib/security/turnstile";
 
 /**
  * Generous for a human filling in a contact form, useless for a flood.
@@ -37,31 +37,15 @@ const requestSchema = z.object({
     // "//evil.com" is a protocol-relative URL: it starts with "/" but
     // resolves to another origin entirely. Backslashes get normalised to
     // slashes by some parsers, so they're out too.
-    .refine(
-      (value) => !value.startsWith("//") && !value.includes("\\"),
-      "Invalid page path",
-    ),
+    .refine((value) => !value.startsWith("//") && !value.includes("\\"), "Invalid page path"),
   turnstileToken: z.string().min(1).max(2_048),
+  /** A time picked on the form's calendar. It is checked again on the server. */
+  meeting: z.object({ start: z.iso.datetime(), mode: z.enum(MEETING_MODES) }).optional(),
 });
-
-function getCookieValue(cookieHeader: string, name: string) {
-  const value = cookieHeader
-    .split(";")
-    .map((cookie) => cookie.trim().split("=", 2))
-    .find(([key]) => key === name)?.[1];
-  if (!value) return undefined;
-  // A malformed escape ("%E0%A4%A") makes decodeURIComponent throw, which
-  // would turn a junk cookie into a 500 for an otherwise valid submission.
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return undefined;
-  }
-}
 
 export async function POST(request: Request) {
   // Before any parsing or outbound calls: a flood shouldn't get to spend our
-  // Turnstile quota or HubSpot rate budget, let alone reach them.
+  // Turnstile quota or reach the database, let alone fill it.
   const limit = checkRateLimit(`contact:${getClientKey(request)}`, RATE_LIMIT);
   if (!limit.allowed) {
     return NextResponse.json(
@@ -113,18 +97,21 @@ export async function POST(request: Request) {
     );
   }
 
-  // Built against our own configured origin, never the request's `Origin`
-  // header -- that header is attacker-controlled, so trusting it let anyone
-  // write "https://their-site.example/..." into the CRM record's page URL.
-  const result = await submitContactToHubSpot(
+  // The page path is validated above (same-origin path only), so it is safe to store as given.
+  const result = await createLeadFromWebsite(
     parsed.data.contact,
-    parsed.data.leadSource,
     {
+      leadSource: parsed.data.leadSource,
       pageName: parsed.data.pageName,
-      pageUri: new URL(parsed.data.pagePath, SITE_URL).toString(),
-      hutk: getCookieValue(request.headers.get("cookie") ?? "", "hubspotutk"),
+      pagePath: parsed.data.pagePath,
+    },
+    parsed.data.meeting && {
+      start: new Date(parsed.data.meeting.start),
+      mode: parsed.data.meeting.mode,
     },
   );
 
-  return NextResponse.json(result, { status: result.ok ? 200 : 502 });
+  return NextResponse.json(result.ok ? { ok: true, meeting: result.meeting } : result, {
+    status: result.ok ? 200 : 502,
+  });
 }

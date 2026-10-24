@@ -1,0 +1,1852 @@
+// Source of truth for the platform's tables. Models are added phase by phase
+// (see docs/ROADMAP.md). Things Prisma cannot express (exclusion constraints,
+// check constraints, the auth.users trigger, RLS, append-only triggers) live in
+// the migration SQL.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ------------------------------------------------------------ access (Phase 1)
+
+model Role {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key         String   @unique
+  name        String   @unique
+  description String?
+  /// System roles take their permissions from code (lib/auth/permissions.ts).
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  permissions RolePermission[]
+  profiles    Profile[]
+  invites     StaffInvite[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId     String @map("role_id") @db.Uuid
+  permission String
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permission])
+  @@map("role_permissions")
+}
+
+/// Sign-up is invite-only: an auth user whose email is not here is rejected by a trigger.
+model StaffInvite {
+  email     String   @id
+  roleId    String   @map("role_id") @db.Uuid
+  invitedBy String?  @map("invited_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@map("staff_invites")
+}
+
+/// One row per signed-in staff member. `id` equals auth.users.id (Supabase Auth).
+model Profile {
+  id            String   @id @db.Uuid
+  email         String
+  fullName      String?  @map("full_name")
+  avatarUrl     String?  @map("avatar_url")
+  roleId        String   @map("role_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// Secret in the address of this person's calendar subscription link; null until they ask for one.
+  calendarToken String?  @unique @map("calendar_token")
+  /// Takes a turn at new website enquiries (round-robin). Off until someone is chosen under Users.
+  takesLeads    Boolean  @default(false) @map("takes_leads")
+
+  role         Role          @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  billingRates BillingRate[]
+
+  @@map("profiles")
+}
+
+/// Append-only (enforced by a trigger): who did what, to what, when.
+model AuditLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Null for the development preview user and for system actions.
+  actorId   String?  @map("actor_id") @db.Uuid
+  /// Snapshot, so history still reads correctly after the person is removed.
+  actorName String   @map("actor_name")
+  /// Dotted verb, e.g. "user.invite", "role.update".
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  summary   String
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc)])
+  @@index([entity, entityId])
+  @@map("audit_log")
+}
+
+// ------------------------------------------------------------------ CRM (Phase 3)
+// Money is stored as integer minor units (centavos) with an ISO currency code.
+// Business records are soft-deleted (deleted_at); tasks and activities are not.
+
+enum LeadStatus {
+  new
+  qualified
+  disqualified
+  converted
+
+  @@map("lead_status")
+}
+
+enum StageKind {
+  open
+  won
+  lost
+
+  @@map("stage_kind")
+}
+
+enum ActivityType {
+  note
+  call
+  email
+  meeting
+  stage_change
+  system
+
+  @@map("activity_type")
+}
+
+model Organization {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  industry  String?
+  size      String?
+  website   String?
+  phone     String?
+  address   String?
+  notes     String?
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  contacts Contact[]
+  deals    Deal[]
+  files    RecordFile[]
+  /// Values of the custom fields set up under CRM > Custom fields, keyed by field key.
+  custom   Json         @default("{}")
+  /// Free-form labels, lower case, for filtering and grouping.
+  tags     String[]     @default([])
+  projects Project[]
+  invoices Invoice[]
+  payments Payment[]
+
+  @@index([name])
+  @@map("organizations")
+}
+
+model Contact {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  firstName      String    @map("first_name")
+  lastName       String    @map("last_name")
+  email          String
+  phone          String?
+  position       String?
+  organizationId String?   @map("organization_id") @db.Uuid
+  ownerId        String?   @map("owner_id") @db.Uuid
+  source         String    @default("manual")
+  notes          String?
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedBy      String?   @map("updated_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  deals        Deal[]
+  leads        Lead[]
+  activities   Activity[]
+  tasks        Task[]
+  meetings     Meeting[]
+  files        RecordFile[]
+  /// Values of the custom fields set up under CRM > Custom fields, keyed by field key.
+  custom       Json          @default("{}")
+  /// Free-form labels, lower case, for filtering and grouping.
+  tags         String[]      @default([])
+  projects     Project[]
+  invoices     Invoice[]
+  payments     Payment[]
+
+  @@index([organizationId])
+  @@index([lastName, firstName])
+  @@map("contacts")
+}
+
+/// A website enquiry (the contact form). `answers` keeps the whole submission; the
+/// promoted columns exist for lists and filters.
+model Lead {
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference          String     @unique @default(dbgenerated("(('LD-'::text || to_char(now(), 'YYYY'::text)) || '-'::text) || lpad((nextval('lead_reference_seq'::regclass))::text, 4, '0'::text)"))
+  firstName          String     @map("first_name")
+  lastName           String     @map("last_name")
+  email              String
+  phone              String?
+  businessName       String?    @map("business_name")
+  goalsArea          String?    @map("goals_area")
+  budget             String?
+  timeline           String?
+  source             String     @default("website")
+  pagePath           String?    @map("page_path")
+  answers            Json
+  status             LeadStatus @default(new)
+  disqualifiedReason String?    @map("disqualified_reason")
+  ownerId            String?    @map("owner_id") @db.Uuid
+  contactId          String?    @map("contact_id") @db.Uuid
+  convertedAt        DateTime?  @map("converted_at") @db.Timestamptz(6)
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?  @map("deleted_at") @db.Timestamptz(6)
+
+  contact    Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  deal       Deal?
+  activities Activity[]
+  tasks      Task[]
+  meetings   Meeting[]
+  files      RecordFile[]
+  /// Values of the custom fields set up under CRM > Custom fields, keyed by field key.
+  custom     Json         @default("{}")
+  /// Free-form labels, lower case, for filtering and grouping.
+  tags       String[]     @default([])
+  /// 0 to 100 from the contact form answers (features/crm/scoring.ts). Null until scored.
+  score      Int?
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([email])
+  @@index([score])
+  @@map("leads")
+}
+
+/// Pipeline stages are data, not an enum, so the sales process can change without a migration.
+/// A sales pipeline: its own ordered stages, with exactly one Won and one Lost.
+model Pipeline {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key       String  @unique
+  name      String
+  position  Int     @default(0)
+  isDefault Boolean @default(false) @map("is_default")
+
+  stages PipelineStage[]
+
+  @@map("pipelines")
+}
+
+model PipelineStage {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pipelineId     String    @map("pipeline_id") @db.Uuid
+  key            String    @unique
+  name           String
+  position       Int
+  /// Chance of winning, 0 to 100. Drives the weighted forecast.
+  probability    Int
+  kind           StageKind @default(open)
+  /// What must be true before a deal leaves this stage.
+  exitCriteria   String?   @map("exit_criteria")
+  /// Deal fields that must be filled in before a deal can move into this stage.
+  requiredFields String[]  @default([]) @map("required_fields")
+
+  pipeline Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  deals    Deal[]
+
+  @@map("pipeline_stages")
+}
+
+model Deal {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference         String    @unique @default(dbgenerated("(('DL-'::text || to_char(now(), 'YYYY'::text)) || '-'::text) || lpad((nextval('deal_reference_seq'::regclass))::text, 4, '0'::text)"))
+  title             String
+  contactId         String    @map("contact_id") @db.Uuid
+  organizationId    String?   @map("organization_id") @db.Uuid
+  stageId           String    @map("stage_id") @db.Uuid
+  /// Integer minor units (centavos). Null until a value is known.
+  amountMinor       BigInt?   @map("amount_minor")
+  currency          String    @default("PHP")
+  ownerId           String?   @map("owner_id") @db.Uuid
+  expectedCloseDate DateTime? @map("expected_close_date") @db.Date
+  source            String    @default("manual")
+  description       String?
+  lostReason        String?   @map("lost_reason")
+  leadId            String?   @unique @map("lead_id") @db.Uuid
+  stageChangedAt    DateTime  @default(now()) @map("stage_changed_at") @db.Timestamptz(6)
+  wonAt             DateTime? @map("won_at") @db.Timestamptz(6)
+  lostAt            DateTime? @map("lost_at") @db.Timestamptz(6)
+  createdBy         String?   @map("created_by") @db.Uuid
+  updatedBy         String?   @map("updated_by") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Restrict)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  stage        PipelineStage @relation(fields: [stageId], references: [id], onDelete: Restrict)
+  lead         Lead?         @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  activities   Activity[]
+  tasks        Task[]
+  meetings     Meeting[]
+  /// Free-form labels, lower case, for filtering and grouping.
+  tags         String[]      @default([])
+  quotes       Quote[]
+  contracts    Contract[]
+  files        RecordFile[]
+  /// Values of the custom fields set up under CRM > Custom fields, keyed by field key.
+  custom       Json          @default("{}")
+  projects     Project[]
+  invoices     Invoice[]
+
+  @@index([stageId])
+  @@index([contactId])
+  @@index([ownerId])
+  @@map("deals")
+}
+
+/// The timeline. Attached to a lead, contact or deal (at least one).
+model Activity {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type          ActivityType @default(note)
+  body          String
+  leadId        String?      @map("lead_id") @db.Uuid
+  contactId     String?      @map("contact_id") @db.Uuid
+  dealId        String?      @map("deal_id") @db.Uuid
+  createdBy     String?      @map("created_by") @db.Uuid
+  /// Snapshot, like the audit log.
+  createdByName String       @map("created_by_name")
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// Pinned notes stay at the top of the timeline.
+  pinned        Boolean      @default(false)
+  editedAt      DateTime?    @map("edited_at") @db.Timestamptz(6)
+
+  lead    Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, createdAt(sort: Desc)])
+  @@index([contactId, createdAt(sort: Desc)])
+  @@index([leadId, createdAt(sort: Desc)])
+  @@map("activities")
+}
+
+model Task {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title      String
+  dueAt      DateTime? @map("due_at") @db.Timestamptz(6)
+  doneAt     DateTime? @map("done_at") @db.Timestamptz(6)
+  assigneeId String?   @map("assignee_id") @db.Uuid
+  leadId     String?   @map("lead_id") @db.Uuid
+  contactId  String?   @map("contact_id") @db.Uuid
+  dealId     String?   @map("deal_id") @db.Uuid
+  createdBy  String?   @map("created_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  lead    Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([assigneeId, doneAt])
+  @@index([dueAt])
+  @@map("tasks")
+}
+
+// -------------------------------------------------------------------- CMS (Phase 2)
+// The public website's content. Rich, optional parts (gallery, prizes, steps, links)
+// are JSON validated by features/cms/schemas.ts; everything that is filtered, sorted
+// or linked is a real column. `position` is the editor-controlled order for lists
+// that are not sorted by date. Content is soft-deleted; only `published` rows are
+// public. Slugs are unique among live rows (partial index in the migration).
+
+enum PublishStatus {
+  draft
+  published
+
+  @@map("publish_status")
+}
+
+enum AuthorKind {
+  organization
+  person
+
+  @@map("author_kind")
+}
+
+model Author {
+  /// Stable key referenced by content (e.g. "cafton"), not a generated id.
+  id        String     @id
+  kind      AuthorKind
+  name      String
+  role      String?
+  /// Path or URL of the avatar image.
+  avatar    String?
+  /// Public profile page, if any.
+  url       String?
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  posts    BlogPost[]
+  projects PortfolioProject[]
+  events   Event[]
+
+  @@map("authors")
+}
+
+model BlogPost {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String
+  authorId       String        @map("author_id")
+  title          String
+  excerpt        String
+  /// Paragraphs, in order.
+  content        String[]
+  /// Photos/galleries placed after a paragraph (BlogMedia[]).
+  media          Json?
+  /// The date shown on the post.
+  date           DateTime      @db.Date
+  category       String
+  imageLight     String?       @map("image_light")
+  imageDark      String?       @map("image_dark")
+  imageAlt       String?       @map("image_alt")
+  seoTitle       String?       @map("seo_title")
+  seoDescription String?       @map("seo_description")
+  status         PublishStatus @default(draft)
+  position       Int           @default(0)
+  createdBy      String?       @map("created_by") @db.Uuid
+  updatedBy      String?       @map("updated_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  author Author @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([slug])
+  @@index([status, date(sort: Desc)])
+  @@map("blog_posts")
+}
+
+model PortfolioProject {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String
+  authorId       String        @map("author_id")
+  client         String
+  title          String
+  category       String
+  /// Slugs of the service pillars this project belongs to.
+  services       String[]
+  summary        String
+  description    String
+  problem        String?
+  solution       String?
+  recognition    String?
+  imageLight     String?       @map("image_light")
+  imageDark      String?       @map("image_dark")
+  imageAlt       String?       @map("image_alt")
+  seoTitle       String?       @map("seo_title")
+  seoDescription String?       @map("seo_description")
+  /// "cover" or "contain".
+  imageFit       String?       @map("image_fit")
+  /// More screenshots (BlogImage[]).
+  media          Json?
+  liveUrl        String?       @map("live_url")
+  status         PublishStatus @default(draft)
+  position       Int           @default(0)
+  createdBy      String?       @map("created_by") @db.Uuid
+  updatedBy      String?       @map("updated_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  author Author @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([slug])
+  @@index([status, position])
+  @@map("portfolio_projects")
+}
+
+model Event {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug           String
+  authorId       String        @map("author_id")
+  title          String
+  type           String
+  tagline        String
+  summary        String
+  seoTitle       String?       @map("seo_title")
+  seoDescription String?       @map("seo_description")
+  campaignUrl    String?       @map("campaign_url")
+  startsAt       DateTime?     @map("starts_at") @db.Timestamptz(6)
+  endsAt         DateTime?     @map("ends_at") @db.Timestamptz(6)
+  /// Force-close regardless of dates.
+  closed         Boolean       @default(false)
+  /// { src, alt, width, height }
+  poster         Json?
+  about          String[]
+  prizesHeading  String?       @map("prizes_heading")
+  /// EventPrize[]
+  prizes         Json
+  /// EventStep[]
+  steps          Json?
+  /// [label, value][]
+  facts          Json?
+  closedTitle    String?       @map("closed_title")
+  closedNote     String?       @map("closed_note")
+  /// EventPromo
+  promo          Json?
+  status         PublishStatus @default(draft)
+  position       Int           @default(0)
+  createdBy      String?       @map("created_by") @db.Uuid
+  updatedBy      String?       @map("updated_by") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  author Author @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([slug])
+  @@index([status, position])
+  @@map("events")
+}
+
+model Partner {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String
+  name        String
+  shortName   String        @map("short_name")
+  /// PartnerLogo { src, fit, plate? }
+  logo        Json
+  roles       String[]
+  featured    Boolean       @default(false)
+  description String?
+  /// PartnerLink[]
+  links       Json?
+  status      PublishStatus @default(draft)
+  position    Int           @default(0)
+  createdBy   String?       @map("created_by") @db.Uuid
+  updatedBy   String?       @map("updated_by") @db.Uuid
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  @@index([slug])
+  @@index([status, position])
+  @@map("partners")
+}
+
+/// Questions shown on a service page, per service pillar.
+model ServiceFaq {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  serviceSlug String   @map("service_slug")
+  question    String
+  answer      String
+  position    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([serviceSlug, position])
+  @@map("service_faqs")
+}
+
+// ------------------------------------------------------------------- media (Phase 2)
+
+/// An image in the media library. The bytes live in the Supabase Storage bucket `media`;
+/// this row is what the dashboard lists, describes (alt text) and protects from deletion
+/// while content still uses it.
+model Media {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Path inside the bucket: content/<uuid>.<ext>
+  path         String   @unique
+  /// The original file name, for the library only.
+  name         String
+  /// Default alt text, offered when the image is picked. Each use can still say something different.
+  alt          String   @default("")
+  mime         String
+  sizeBytes    Int      @map("size_bytes")
+  width        Int
+  height       Int
+  uploadedById String?  @map("uploaded_by") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc)])
+  @@map("media")
+}
+
+/// One editable document per area of the public site (settings, SEO, About text...). The
+/// shape of `data` for each `key` is defined and validated in code (features/cms/site).
+model SiteContent {
+  key         String   @id
+  data        Json
+  updatedById String?  @map("updated_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("site_content")
+}
+
+enum MeetingStatus {
+  requested
+  confirmed
+  completed
+  cancelled
+  no_show
+
+  @@map("meeting_status")
+}
+
+enum MeetingMode {
+  video
+  phone
+  in_person
+
+  @@map("meeting_mode")
+}
+
+/// A scheduled conversation with someone outside Cafton. Linked to the lead, contact and deal it is about.
+/// The database refuses two requested or confirmed meetings that overlap (hand-written constraint).
+model Meeting {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String
+  startsAt        DateTime      @map("starts_at") @db.Timestamptz(6)
+  endsAt          DateTime      @map("ends_at") @db.Timestamptz(6)
+  mode            MeetingMode   @default(video)
+  /// A video link, a phone number or an address, depending on the mode.
+  location        String?
+  status          MeetingStatus @default(requested)
+  /// "website" when the visitor asked for it on the contact form, "staff" otherwise.
+  source          String        @default("staff")
+  notes           String?
+  cancelledReason String?       @map("cancelled_reason")
+  attendeeName    String        @map("attendee_name")
+  attendeeEmail   String        @map("attendee_email")
+  attendeePhone   String?       @map("attendee_phone")
+  leadId          String?       @map("lead_id") @db.Uuid
+  contactId       String?       @map("contact_id") @db.Uuid
+  dealId          String?       @map("deal_id") @db.Uuid
+  ownerId         String?       @map("owner_id") @db.Uuid
+  createdBy       String?       @map("created_by") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lead    Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([startsAt])
+  @@index([status, startsAt])
+  @@index([leadId])
+  @@index([contactId])
+  @@index([dealId])
+  @@map("meetings")
+}
+
+/// One row per reminder already sent, so the daily job never sends the same one twice.
+model ReminderLog {
+  id     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind   String
+  refId  String   @map("ref_id")
+  /// What the reminder was about (for a meeting, its start time), so a moved meeting is reminded again.
+  forKey String   @map("for_key")
+  sentAt DateTime @default(now()) @map("sent_at") @db.Timestamptz(6)
+
+  @@unique([kind, refId, forKey])
+  @@map("reminder_logs")
+}
+
+/// A saved search/filter of a list, per person or shared with the team.
+model SavedView {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// "leads", "contacts", "organizations", "deals" or "tasks".
+  resource  String
+  name      String
+  /// The list's address query, e.g. "status=new&owner=me".
+  query     String
+  shared    Boolean  @default(false)
+  ownerId   String?  @map("owner_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([resource, ownerId])
+  @@map("saved_views")
+}
+
+/// In-app notifications for one staff member.
+model Notification {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  /// What happened: "lead.new", "meeting.request", "task.assigned", "lead.assigned", "deal.assigned", "task.due".
+  kind      String
+  title     String
+  body      String?
+  href      String?
+  readAt    DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([userId, readAt, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+enum PricingModel {
+  fixed
+  hourly
+  retainer
+
+  @@map("pricing_model")
+}
+
+enum QuoteStatus {
+  draft
+  pending_approval
+  approved
+  sent
+  accepted
+  declined
+  expired
+  superseded
+  withdrawn
+
+  @@map("quote_status")
+}
+
+/// What we sell: a service or product with a price and how it is charged.
+model CatalogItem {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String
+  description    String?
+  pricingModel   PricingModel @default(fixed) @map("pricing_model")
+  /// Integer minor units (centavos) per unit.
+  unitPriceMinor BigInt       @map("unit_price_minor")
+  /// What one unit is: "project", "hour", "month".
+  unitLabel      String       @default("project") @map("unit_label")
+  /// Whether VAT is added to it.
+  taxable        Boolean      @default(true)
+  active         Boolean      @default(true)
+  createdBy      String?      @map("created_by") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lines QuoteLine[]
+
+  @@index([active, name])
+  @@map("catalog_items")
+}
+
+/// A priced offer for a deal. A revision is a new row with the next version number.
+model Quote {
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// "QT-2026-0001". Every version of one quote shares it.
+  reference          String
+  version            Int         @default(1)
+  dealId             String      @map("deal_id") @db.Uuid
+  title              String
+  intro              String?
+  terms              String?
+  currency           String      @default("PHP")
+  status             QuoteStatus @default(draft)
+  /// Percent VAT applied to taxable lines, frozen when the quote is made.
+  taxRatePct         Int         @default(12) @map("tax_rate_pct")
+  subtotalMinor      BigInt      @default(0) @map("subtotal_minor")
+  taxMinor           BigInt      @default(0) @map("tax_minor")
+  totalMinor         BigInt      @default(0) @map("total_minor")
+  validUntil         DateTime?   @map("valid_until") @db.Date
+  /// SHA-256 of the secret in the public link. The link itself is shown once (when sent or renewed)
+  /// and never stored, so a database leak does not leak working links.
+  tokenHash          String?     @unique @map("token_hash")
+  /// Proof of exactly what was sent: a hash of the wording, lines, totals and validity at send time.
+  sentHash           String?     @map("sent_hash")
+  acceptedHash       String?     @map("accepted_hash")
+  /// Share of the total due when the quote is accepted.
+  depositPct         Int         @default(50) @map("deposit_pct")
+  paymentTerms       String?     @map("payment_terms")
+  withdrawnAt        DateTime?   @map("withdrawn_at") @db.Timestamptz(6)
+  withdrawnReason    String?     @map("withdrawn_reason")
+  approvedBy         String?     @map("approved_by") @db.Uuid
+  approvedAt         DateTime?   @map("approved_at") @db.Timestamptz(6)
+  sentAt             DateTime?   @map("sent_at") @db.Timestamptz(6)
+  sentTo             String?     @map("sent_to")
+  viewedAt           DateTime?   @map("viewed_at") @db.Timestamptz(6)
+  acceptedAt         DateTime?   @map("accepted_at") @db.Timestamptz(6)
+  /// The e-acceptance record: who typed their name, from where, and what they agreed to.
+  acceptedByName     String?     @map("accepted_by_name")
+  acceptedByEmail    String?     @map("accepted_by_email")
+  acceptedIp         String?     @map("accepted_ip")
+  acceptedUserAgent  String?     @map("accepted_user_agent")
+  acceptedTotalMinor BigInt?     @map("accepted_total_minor")
+  declinedAt         DateTime?   @map("declined_at") @db.Timestamptz(6)
+  declinedReason     String?     @map("declined_reason")
+  createdBy          String?     @map("created_by") @db.Uuid
+  createdAt          DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  deal      Deal        @relation(fields: [dealId], references: [id], onDelete: Restrict)
+  lines     QuoteLine[]
+  contracts Contract[]
+  project   Project?
+  invoices  Invoice[]
+
+  @@unique([reference, version])
+  @@index([dealId])
+  @@index([status])
+  @@map("quotes")
+}
+
+model QuoteLine {
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quoteId        String  @map("quote_id") @db.Uuid
+  position       Int
+  catalogItemId  String? @map("catalog_item_id") @db.Uuid
+  description    String
+  /// Quantity in thousandths (1.5 hours = 1500), so no floating point.
+  quantityMilli  Int     @map("quantity_milli")
+  unitLabel      String  @default("unit") @map("unit_label")
+  unitPriceMinor BigInt  @map("unit_price_minor")
+  /// Discount in whole percent, 0 to 100.
+  discountPct    Int     @default(0) @map("discount_pct")
+  taxable        Boolean @default(true)
+  /// Line total after discount, before tax.
+  totalMinor     BigInt  @map("total_minor")
+
+  quote Quote        @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  item  CatalogItem? @relation(fields: [catalogItemId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId, position])
+  @@map("quote_lines")
+}
+
+/// A person's sales goal for one month, in centavos.
+model SalesTarget {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId     String   @map("owner_id") @db.Uuid
+  /// The first day of the month the target is for.
+  month       DateTime @db.Date
+  amountMinor BigInt   @map("amount_minor")
+  createdBy   String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([ownerId, month])
+  @@index([month])
+  @@map("sales_targets")
+}
+
+enum ContractKind {
+  contract
+  sow
+
+  @@map("contract_kind")
+}
+
+enum ContractStatus {
+  draft
+  sent
+  accepted
+  declined
+  withdrawn
+  expired
+
+  @@map("contract_status")
+}
+
+/// Reusable wording for contracts and statements of work. Merge fields are filled in per deal.
+model ContractTemplate {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  kind      ContractKind @default(contract)
+  body      String
+  active    Boolean      @default(true)
+  createdBy String?      @map("created_by") @db.Uuid
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  contracts Contract[]
+
+  @@index([kind, active])
+  @@map("contract_templates")
+}
+
+/// A contract or statement of work for a deal, accepted by the client through a secret link.
+model Contract {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference         String         @unique
+  dealId            String         @map("deal_id") @db.Uuid
+  quoteId           String?        @map("quote_id") @db.Uuid
+  templateId        String?        @map("template_id") @db.Uuid
+  kind              ContractKind   @default(contract)
+  title             String
+  /// The full wording, merge fields already filled in. Editable only while a draft.
+  body              String
+  status            ContractStatus @default(draft)
+  validUntil        DateTime?      @map("valid_until") @db.Date
+  tokenHash         String?        @unique @map("token_hash")
+  sentHash          String?        @map("sent_hash")
+  acceptedHash      String?        @map("accepted_hash")
+  sentAt            DateTime?      @map("sent_at") @db.Timestamptz(6)
+  sentTo            String?        @map("sent_to")
+  viewedAt          DateTime?      @map("viewed_at") @db.Timestamptz(6)
+  acceptedAt        DateTime?      @map("accepted_at") @db.Timestamptz(6)
+  acceptedByName    String?        @map("accepted_by_name")
+  acceptedByEmail   String?        @map("accepted_by_email")
+  acceptedIp        String?        @map("accepted_ip")
+  acceptedUserAgent String?        @map("accepted_user_agent")
+  declinedAt        DateTime?      @map("declined_at") @db.Timestamptz(6)
+  declinedReason    String?        @map("declined_reason")
+  withdrawnAt       DateTime?      @map("withdrawn_at") @db.Timestamptz(6)
+  withdrawnReason   String?        @map("withdrawn_reason")
+  createdBy         String?        @map("created_by") @db.Uuid
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  deal     Deal              @relation(fields: [dealId], references: [id], onDelete: Restrict)
+  quote    Quote?            @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  template ContractTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@index([dealId])
+  @@index([status])
+  @@map("contracts")
+}
+
+/// A file attached to a lead, contact, organization or deal (exactly one of them). The bytes live in
+/// the private `crm-files` bucket under a random name; `name` is only what people see.
+model RecordFile {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  leadId         String?  @map("lead_id") @db.Uuid
+  contactId      String?  @map("contact_id") @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  dealId         String?  @map("deal_id") @db.Uuid
+  /// "crm/<uuid>.<ext>"; never built from anything the uploader typed.
+  path           String   @unique
+  name           String
+  mime           String
+  sizeBytes      Int      @map("size_bytes")
+  uploadedBy     String?  @map("uploaded_by") @db.Uuid
+  /// Snapshot, so it still reads correctly after the person is removed.
+  uploadedByName String   @map("uploaded_by_name")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  lead         Lead?         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  contact      Contact?      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deal         Deal?         @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([contactId])
+  @@index([organizationId])
+  @@index([dealId])
+  @@map("record_files")
+}
+
+/// A field an administrator adds to one kind of record (lead, contact, organization or deal).
+/// Values are stored on the record under `key`, which never changes.
+model CustomField {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entity    String
+  key       String
+  label     String
+  type      String
+  /// The choices of a "select" field.
+  options   String[] @default([])
+  /// Must be filled in whenever the record's custom fields are saved.
+  required  Boolean  @default(false)
+  position  Int      @default(0)
+  /// Archived fields are hidden from forms but keep their values.
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([entity, key])
+  @@index([entity, position])
+  @@map("custom_fields")
+}
+
+/**
+ * ------------------------------------------------------------------ delivery
+ */
+
+enum ProjectStatus {
+  planned
+  active
+  on_hold
+  completed
+  cancelled
+
+  @@map("project_status")
+}
+
+enum MilestoneStatus {
+  pending
+  in_progress
+  done
+
+  @@map("milestone_status")
+}
+
+enum ProjectTaskStatus {
+  todo
+  in_progress
+  review
+  done
+
+  @@map("project_task_status")
+}
+
+enum ProjectTaskPriority {
+  low
+  normal
+  high
+
+  @@map("project_task_priority")
+}
+
+enum TimeEntryStatus {
+  draft
+  submitted
+  approved
+  rejected
+
+  @@map("time_entry_status")
+}
+
+/// A piece of delivery work for a client. Usually started by an accepted quote (once per quote).
+model Project {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference         String        @unique @default(dbgenerated("(('PRJ-'::text || to_char(now(), 'YYYY'::text)) || '-'::text) || lpad((nextval('project_reference_seq'::regclass))::text, 4, '0'::text)"))
+  name              String
+  description       String?
+  dealId            String?       @map("deal_id") @db.Uuid
+  quoteId           String?       @unique @map("quote_id") @db.Uuid
+  contactId         String?       @map("contact_id") @db.Uuid
+  organizationId    String?       @map("organization_id") @db.Uuid
+  status            ProjectStatus @default(planned)
+  managerId         String?       @map("manager_id") @db.Uuid
+  startDate         DateTime?     @map("start_date") @db.Date
+  dueDate           DateTime?     @map("due_date") @db.Date
+  /// The agreed price (integer minor units), when there is one.
+  budgetMinor       BigInt?       @map("budget_minor")
+  currency          String        @default("PHP")
+  /// Hours the price assumes, in minutes.
+  budgetMinutes     Int?          @map("budget_minutes")
+  /// The slug of a portfolio entry that shows this project as a case study.
+  portfolioSlug     String?       @map("portfolio_slug")
+  completedAt       DateTime?     @map("completed_at") @db.Timestamptz(6)
+  /// SHA-256 of the secret in the client's progress link; null while nothing is shared.
+  progressTokenHash String?       @unique @map("progress_token_hash")
+  progressSharedAt  DateTime?     @map("progress_shared_at") @db.Timestamptz(6)
+  createdBy         String?       @map("created_by") @db.Uuid
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?     @map("deleted_at") @db.Timestamptz(6)
+
+  deal         Deal?           @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  billingRates BillingRate[]
+  quote        Quote?          @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  contact      Contact?        @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  organization Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  members      ProjectMember[]
+  milestones   Milestone[]
+  tasks        ProjectTask[]
+  timeEntries  TimeEntry[]
+  invoices     Invoice[]
+
+  @@index([status])
+  @@index([dealId])
+  @@index([managerId])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId     String   @map("project_id") @db.Uuid
+  profileId     String   @map("profile_id") @db.Uuid
+  /// What an hour of this person costs, in minor units: the basis of budget vs actual cost.
+  costRateMinor BigInt?  @map("cost_rate_minor")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, profileId])
+  @@index([profileId])
+  @@map("project_members")
+}
+
+model Milestone {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId   String          @map("project_id") @db.Uuid
+  name        String
+  description String?
+  dueDate     DateTime?       @map("due_date") @db.Date
+  status      MilestoneStatus @default(pending)
+  position    Int             @default(0)
+  /// Finishing a billable milestone is what Finance invoices (Phase 6).
+  billable    Boolean         @default(false)
+  amountMinor BigInt?         @map("amount_minor")
+  completedAt DateTime?       @map("completed_at") @db.Timestamptz(6)
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks         ProjectTask[]
+  invoiceLine   InvoiceLine?  @relation(fields: [invoiceLineId], references: [id], onDelete: SetNull)
+  invoiceLineId String?       @unique @map("invoice_line_id") @db.Uuid
+
+  @@index([projectId, position])
+  @@map("milestones")
+}
+
+model ProjectTask {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId       String              @map("project_id") @db.Uuid
+  milestoneId     String?             @map("milestone_id") @db.Uuid
+  title           String
+  description     String?
+  status          ProjectTaskStatus   @default(todo)
+  priority        ProjectTaskPriority @default(normal)
+  assigneeId      String?             @map("assignee_id") @db.Uuid
+  dueDate         DateTime?           @map("due_date") @db.Date
+  estimateMinutes Int?                @map("estimate_minutes")
+  /// Order within a board column, lowest first.
+  position        Int                 @default(0)
+  completedAt     DateTime?           @map("completed_at") @db.Timestamptz(6)
+  createdBy       String?             @map("created_by") @db.Uuid
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone   Milestone?    @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  timeEntries TimeEntry[]
+  comments    TaskComment[]
+
+  @@index([projectId, status, position])
+  @@index([assigneeId])
+  @@index([milestoneId])
+  @@map("project_tasks")
+}
+
+/// Hours someone worked, a day at a time. Submitted and approved a week at a time; approved time is frozen by a trigger.
+model TimeEntry {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId   String          @map("project_id") @db.Uuid
+  taskId      String?         @map("task_id") @db.Uuid
+  profileId   String          @map("profile_id") @db.Uuid
+  workDate    DateTime        @map("work_date") @db.Date
+  /// The Monday of workDate's week (a check constraint keeps it so).
+  weekStart   DateTime        @map("week_start") @db.Date
+  minutes     Int
+  note        String?
+  billable    Boolean         @default(true)
+  status      TimeEntryStatus @default(draft)
+  submittedAt DateTime?       @map("submitted_at") @db.Timestamptz(6)
+  reviewedBy  String?         @map("reviewed_by") @db.Uuid
+  reviewedAt  DateTime?       @map("reviewed_at") @db.Timestamptz(6)
+  reviewNote  String?         @map("review_note")
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project       Project      @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  task          ProjectTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  invoiceLine   InvoiceLine? @relation(fields: [invoiceLineId], references: [id], onDelete: SetNull)
+  invoiceLineId String?      @map("invoice_line_id") @db.Uuid
+
+  @@index([profileId, weekStart])
+  @@index([projectId, status])
+  @@index([status, weekStart])
+  @@map("time_entries")
+}
+
+model TaskComment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taskId     String   @map("task_id") @db.Uuid
+  authorId   String?  @map("author_id") @db.Uuid
+  /// Snapshot, so the comment still reads correctly after the person is removed.
+  authorName String   @map("author_name")
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  task ProjectTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+  @@map("task_comments")
+}
+
+/// A reusable plan: milestones (with the share of the price each invoices) and tasks to start from.
+model ProjectTemplate {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  description String?
+  /// TemplateMilestone[] (see features/delivery/rules.ts).
+  milestones  Json     @default("[]")
+  /// TemplateTask[].
+  tasks       Json     @default("[]")
+  active      Boolean  @default(true)
+  createdBy   String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([active, name])
+  @@map("project_templates")
+}
+
+/**
+ * ------------------------------------------------------------------- finance
+ */
+
+enum AccountType {
+  asset
+  liability
+  equity
+  revenue
+  expense
+
+  @@map("account_type")
+}
+
+/// The chart of accounts. Accounts with a systemKey are the ones Finance posts to by role.
+model Account {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String      @unique
+  name        String
+  type        AccountType
+  description String?
+  /// The role this account plays ("ar", "cash", "revenue_services"...): the code and name can change.
+  systemKey   String?     @unique @map("system_key")
+  active      Boolean     @default(true)
+  createdBy   String?     @map("created_by") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lines       JournalLine[]
+  bankAccount BankAccount?
+
+  @@index([type, code])
+  @@map("accounts")
+}
+
+/// One calendar month. A closed month takes no new postings (a database trigger enforces it).
+model FiscalPeriod {
+  id       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  year     Int
+  month    Int
+  startsOn DateTime  @map("starts_on") @db.Date
+  endsOn   DateTime  @map("ends_on") @db.Date
+  /// "open" or "closed".
+  status   String    @default("open")
+  closedAt DateTime? @map("closed_at") @db.Timestamptz(6)
+  closedBy String?   @map("closed_by") @db.Uuid
+
+  @@unique([year, month])
+  @@index([startsOn, endsOn])
+  @@map("fiscal_periods")
+}
+
+model TaxRate {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String   @unique
+  name      String
+  /// Basis points: 1200 is 12.00%.
+  rateBp    Int      @map("rate_bp")
+  /// "vat", "percentage" or "withholding".
+  kind      String   @default("vat")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("tax_rates")
+}
+
+/// A balanced set of postings. Append-only (a trigger enforces it): a mistake is undone by a
+/// reversing entry, never edited.
+model JournalEntry {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number        String   @unique @default(dbgenerated("(('JE-'::text || to_char(now(), 'YYYY'::text)) || '-'::text) || lpad((nextval('journal_entry_seq'::regclass))::text, 4, '0'::text)"))
+  entryDate     DateTime @map("entry_date") @db.Date
+  memo          String
+  /// manual, invoice, credit_note, payment, bill, expense, bank, reversal, opening or tax.
+  sourceKind    String   @default("manual") @map("source_kind")
+  sourceId      String?  @map("source_id") @db.Uuid
+  /// Set on an entry that undoes another; an entry can be undone once.
+  reversesId    String?  @unique @map("reverses_id") @db.Uuid
+  createdBy     String?  @map("created_by") @db.Uuid
+  createdByName String   @map("created_by_name")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  reverses   JournalEntry? @relation("Reversal", fields: [reversesId], references: [id], onDelete: Restrict)
+  reversedBy JournalEntry? @relation("Reversal")
+  lines      JournalLine[]
+
+  @@index([entryDate])
+  @@index([sourceKind, sourceId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entryId     String  @map("entry_id") @db.Uuid
+  accountId   String  @map("account_id") @db.Uuid
+  position    Int     @default(0)
+  /// Integer centavos. A line is a debit or a credit, never both and never neither.
+  debitMinor  BigInt  @default(0) @map("debit_minor")
+  creditMinor BigInt  @default(0) @map("credit_minor")
+  memo        String?
+
+  entry   JournalEntry @relation(fields: [entryId], references: [id], onDelete: Restrict)
+  account Account      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([entryId])
+  @@index([accountId])
+  @@map("journal_lines")
+}
+
+enum InvoiceStatus {
+  draft
+  issued
+  void
+
+  @@map("invoice_status")
+}
+
+/// Gapless document numbers: one row per series ("invoice:2026"), taken inside the transaction that uses it.
+model DocumentCounter {
+  key        String @id
+  lastNumber Int    @default(0) @map("last_number")
+
+  @@map("document_counters")
+}
+
+/// What a client is billed. A draft is editable and unnumbered; once issued it is fixed (a trigger
+/// enforces it) and can only be voided. The ledger entry, account links and credit notes it
+/// leaves are kept in the database with plain ids (their foreign keys live in the migration).
+model Invoice {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number              String?       @unique
+  status              InvoiceStatus @default(draft)
+  organizationId      String?       @map("organization_id") @db.Uuid
+  contactId           String?       @map("contact_id") @db.Uuid
+  clientName          String        @map("client_name")
+  clientEmail         String?       @map("client_email")
+  clientAddress       String?       @map("client_address")
+  clientTin           String?       @map("client_tin")
+  dealId              String?       @map("deal_id") @db.Uuid
+  projectId           String?       @map("project_id") @db.Uuid
+  quoteId             String?       @map("quote_id") @db.Uuid
+  issueDate           DateTime?     @map("issue_date") @db.Date
+  dueDate             DateTime?     @map("due_date") @db.Date
+  currency            String        @default("PHP")
+  taxCode             String        @default("NOVAT") @map("tax_code")
+  taxRateBp           Int           @default(0) @map("tax_rate_bp")
+  subtotalMinor       BigInt        @default(0) @map("subtotal_minor")
+  taxMinor            BigInt        @default(0) @map("tax_minor")
+  totalMinor          BigInt        @default(0) @map("total_minor")
+  notes               String?
+  paymentInstructions String?       @map("payment_instructions")
+  /// The ledger entry made when it was issued.
+  journalEntryId      String?       @map("journal_entry_id") @db.Uuid
+  sentAt              DateTime?     @map("sent_at") @db.Timestamptz(6)
+  sentTo              String?       @map("sent_to")
+  reminderCount       Int           @default(0) @map("reminder_count")
+  lastReminderAt      DateTime?     @map("last_reminder_at") @db.Timestamptz(6)
+  voidedAt            DateTime?     @map("voided_at") @db.Timestamptz(6)
+  voidReason          String?       @map("void_reason")
+  voidEntryId         String?       @map("void_entry_id") @db.Uuid
+  createdBy           String?       @map("created_by") @db.Uuid
+  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  organization Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  contact      Contact?            @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  deal         Deal?               @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  project      Project?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  quote        Quote?              @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  lines        InvoiceLine[]
+  allocations  PaymentAllocation[]
+  creditNotes  CreditNote[]
+
+  @@index([status, dueDate])
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([dealId])
+  @@map("invoices")
+}
+
+model InvoiceLine {
+  id             String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceId      String  @map("invoice_id") @db.Uuid
+  position       Int     @default(0)
+  description    String
+  /// Thousandths: 1500 is 1.5.
+  quantityMilli  Int     @default(1000) @map("quantity_milli")
+  unitLabel      String  @default("item") @map("unit_label")
+  unitPriceMinor BigInt  @map("unit_price_minor")
+  amountMinor    BigInt  @map("amount_minor")
+  taxable        Boolean @default(false)
+
+  invoice     Invoice     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  milestone   Milestone?
+  timeEntries TimeEntry[]
+
+  @@index([invoiceId, position])
+  @@map("invoice_lines")
+}
+
+/// Money received. Recorded once, settles one or more invoices through allocations (cash plus any
+/// tax the client withheld), and is undone only by voiding it.
+model Payment {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number           String    @unique
+  receivedDate     DateTime  @map("received_date") @db.Date
+  /// What actually arrived.
+  amountMinor      BigInt    @map("amount_minor")
+  /// Creditable withholding tax the client held back: counts towards the invoice, never arrived as cash.
+  cwtMinor         BigInt    @default(0) @map("cwt_minor")
+  method           String    @default("bank_transfer")
+  reference        String?
+  /// The cash or bank account it went into.
+  depositAccountId String    @map("deposit_account_id") @db.Uuid
+  organizationId   String?   @map("organization_id") @db.Uuid
+  contactId        String?   @map("contact_id") @db.Uuid
+  clientName       String    @map("client_name")
+  note             String?
+  /// "recorded" or "void".
+  status           String    @default("recorded")
+  journalEntryId   String    @map("journal_entry_id") @db.Uuid
+  voidEntryId      String?   @map("void_entry_id") @db.Uuid
+  voidedAt         DateTime? @map("voided_at") @db.Timestamptz(6)
+  voidReason       String?   @map("void_reason")
+  createdBy        String?   @map("created_by") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  contact      Contact?            @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  allocations  PaymentAllocation[]
+
+  @@index([receivedDate])
+  @@index([organizationId])
+  @@map("payments")
+}
+
+model PaymentAllocation {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paymentId   String @map("payment_id") @db.Uuid
+  invoiceId   String @map("invoice_id") @db.Uuid
+  /// How much of the payment (cash and withholding together) settles this invoice.
+  amountMinor BigInt @map("amount_minor")
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@unique([paymentId, invoiceId])
+  @@index([invoiceId])
+  @@map("payment_allocations")
+}
+
+/// Takes part of an invoice back (a discount agreed afterwards, a return). Reduces what is owed.
+model CreditNote {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number         String    @unique
+  invoiceId      String    @map("invoice_id") @db.Uuid
+  issueDate      DateTime  @map("issue_date") @db.Date
+  reason         String
+  subtotalMinor  BigInt    @map("subtotal_minor")
+  taxMinor       BigInt    @default(0) @map("tax_minor")
+  totalMinor     BigInt    @map("total_minor")
+  /// "issued" or "void".
+  status         String    @default("issued")
+  journalEntryId String    @map("journal_entry_id") @db.Uuid
+  voidEntryId    String?   @map("void_entry_id") @db.Uuid
+  voidedAt       DateTime? @map("voided_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+  @@map("credit_notes")
+}
+
+enum BillStatus {
+  draft
+  approved
+  void
+
+  @@map("bill_status")
+}
+
+/// A supplier. Archived (not deleted) once it has bills.
+model Vendor {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String
+  email            String?
+  phone            String?
+  address          String?
+  tin              String?
+  /// Where this supplier's bills usually go (an account id; the foreign key lives in the migration).
+  defaultAccountId String?  @map("default_account_id") @db.Uuid
+  termsDays        Int      @default(15) @map("terms_days")
+  notes            String?
+  active           Boolean  @default(true)
+  createdBy        String?  @map("created_by") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  bills     Bill[]
+  expenses  Expense[]
+  recurring RecurringItem[]
+
+  @@map("vendors")
+}
+
+/// What the business owes a supplier. A draft is editable; once approved it is posted to the ledger
+/// and fixed (a trigger enforces it), and can only be voided.
+model Bill {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number         String?    @unique
+  status         BillStatus @default(draft)
+  vendorId       String     @map("vendor_id") @db.Uuid
+  vendorName     String     @map("vendor_name")
+  /// The number printed on the supplier's own invoice.
+  vendorRef      String?    @map("vendor_ref")
+  billDate       DateTime   @map("bill_date") @db.Date
+  dueDate        DateTime   @map("due_date") @db.Date
+  currency       String     @default("PHP")
+  totalMinor     BigInt     @default(0) @map("total_minor")
+  notes          String?
+  journalEntryId String?    @map("journal_entry_id") @db.Uuid
+  approvedBy     String?    @map("approved_by") @db.Uuid
+  approvedAt     DateTime?  @map("approved_at") @db.Timestamptz(6)
+  voidedAt       DateTime?  @map("voided_at") @db.Timestamptz(6)
+  voidReason     String?    @map("void_reason")
+  voidEntryId    String?    @map("void_entry_id") @db.Uuid
+  createdBy      String?    @map("created_by") @db.Uuid
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  recurringId String?        @map("recurring_id") @db.Uuid
+  recursOn    DateTime?      @map("recurs_on") @db.Date
+  recurring   RecurringItem? @relation(fields: [recurringId], references: [id], onDelete: SetNull)
+
+  vendor   Vendor        @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  lines    BillLine[]
+  payments BillPayment[]
+
+  @@index([status, dueDate])
+  @@index([vendorId])
+  @@map("bills")
+}
+
+model BillLine {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  billId      String @map("bill_id") @db.Uuid
+  position    Int    @default(0)
+  description String
+  /// What the cost is booked to (an account id; the foreign key lives in the migration).
+  accountId   String @map("account_id") @db.Uuid
+  amountMinor BigInt @map("amount_minor")
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@index([billId, position])
+  @@map("bill_lines")
+}
+
+/// Money paid out against one bill (cash plus any tax held back from the supplier).
+model BillPayment {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number            String    @unique
+  billId            String    @map("bill_id") @db.Uuid
+  paidDate          DateTime  @map("paid_date") @db.Date
+  /// What left the bank or the till.
+  amountMinor       BigInt    @map("amount_minor")
+  /// Expanded withholding tax held back from the supplier, to remit to the BIR.
+  whtMinor          BigInt    @default(0) @map("wht_minor")
+  method            String    @default("bank_transfer")
+  reference         String?
+  paidFromAccountId String    @map("paid_from_account_id") @db.Uuid
+  note              String?
+  /// "recorded" or "void".
+  status            String    @default("recorded")
+  journalEntryId    String    @map("journal_entry_id") @db.Uuid
+  voidEntryId       String?   @map("void_entry_id") @db.Uuid
+  voidedAt          DateTime? @map("voided_at") @db.Timestamptz(6)
+  voidReason        String?   @map("void_reason")
+  createdBy         String?   @map("created_by") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Restrict)
+
+  @@index([billId])
+  @@index([paidDate])
+  @@map("bill_payments")
+}
+
+enum ExpenseStatus {
+  submitted
+  approved
+  rejected
+  void
+
+  @@map("expense_status")
+}
+
+/// Something paid for out of pocket or from the till. Submitted, then approved (which posts it to
+/// the ledger and fixes it: a trigger enforces it) or rejected with a reason.
+model Expense {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number            String?       @unique
+  status            ExpenseStatus @default(submitted)
+  expenseDate       DateTime      @map("expense_date") @db.Date
+  payee             String
+  vendorId          String?       @map("vendor_id") @db.Uuid
+  description       String
+  /// What the cost is booked to (an account id; the foreign key lives in the migration).
+  accountId         String        @map("account_id") @db.Uuid
+  amountMinor       BigInt        @map("amount_minor")
+  currency          String        @default("PHP")
+  /// Where the money came from (an account id; the foreign key lives in the migration).
+  paidFromAccountId String        @map("paid_from_account_id") @db.Uuid
+  notes             String?
+  submittedBy       String?       @map("submitted_by") @db.Uuid
+  submittedByName   String        @default("System") @map("submitted_by_name")
+  decidedBy         String?       @map("decided_by") @db.Uuid
+  decidedByName     String?       @map("decided_by_name")
+  decidedAt         DateTime?     @map("decided_at") @db.Timestamptz(6)
+  rejectReason      String?       @map("reject_reason")
+  journalEntryId    String?       @map("journal_entry_id") @db.Uuid
+  voidedAt          DateTime?     @map("voided_at") @db.Timestamptz(6)
+  voidReason        String?       @map("void_reason")
+  voidEntryId       String?       @map("void_entry_id") @db.Uuid
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  recurringId String?        @map("recurring_id") @db.Uuid
+  recursOn    DateTime?      @map("recurs_on") @db.Date
+  recurring   RecurringItem? @relation(fields: [recurringId], references: [id], onDelete: SetNull)
+
+  vendor   Vendor?          @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  receipts ExpenseReceipt[]
+
+  @@index([status, expenseDate])
+  @@index([submittedBy])
+  @@map("expenses")
+}
+
+model ExpenseReceipt {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  expenseId      String   @map("expense_id") @db.Uuid
+  path           String   @unique
+  name           String
+  mime           String
+  sizeBytes      Int      @map("size_bytes")
+  uploadedBy     String?  @map("uploaded_by") @db.Uuid
+  uploadedByName String   @default("System") @map("uploaded_by_name")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+  @@map("expense_receipts")
+}
+
+/// Rent, hosting, subscriptions: makes a draft bill (or an expense waiting for approval) each time a
+/// date arrives. Nothing is posted until a person approves what it made.
+model RecurringItem {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// "bill" or "expense".
+  kind              String
+  name              String
+  /// "weekly", "monthly", "quarterly" or "yearly".
+  frequency         String
+  /// The day of the month it keeps to, so 31 January then 28 February then 31 March.
+  anchorDay         Int       @map("anchor_day")
+  nextDate          DateTime  @map("next_date") @db.Date
+  endDate           DateTime? @map("end_date") @db.Date
+  active            Boolean   @default(true)
+  vendorId          String?   @map("vendor_id") @db.Uuid
+  payee             String?
+  description       String
+  /// What the cost is booked to (an account id; the foreign key lives in the migration).
+  accountId         String    @map("account_id") @db.Uuid
+  amountMinor       BigInt    @map("amount_minor")
+  /// For an expense: where the money comes from (an account id; the foreign key lives in the migration).
+  paidFromAccountId String?   @map("paid_from_account_id") @db.Uuid
+  lastGeneratedOn   DateTime? @map("last_generated_on") @db.Date
+  createdCount      Int       @default(0) @map("created_count")
+  createdBy         String?   @map("created_by") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  vendor   Vendor?   @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  bills    Bill[]
+  expenses Expense[]
+
+  @@index([active, nextDate])
+  @@map("recurring_items")
+}
+
+/// A bank (or e-wallet) account at an institution, tied to the asset account in the books that its
+/// statement is checked against.
+model BankAccount {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  /// The ledger account whose balance the statement is checked against (an asset).
+  accountId  String   @unique @map("account_id") @db.Uuid
+  /// The last digits of the account number, never the whole number.
+  numberHint String?  @map("number_hint")
+  active     Boolean  @default(true)
+  createdBy  String?  @map("created_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  account         Account              @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  imports         BankImport[]
+  lines           BankLine[]
+  reconciliations BankReconciliation[]
+
+  @@map("bank_accounts")
+}
+
+model BankImport {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bankAccountId  String   @map("bank_account_id") @db.Uuid
+  fileName       String   @map("file_name")
+  rowsInFile     Int      @map("rows_in_file")
+  rowsNew        Int      @map("rows_new")
+  importedBy     String?  @map("imported_by") @db.Uuid
+  importedByName String   @default("System") @map("imported_by_name")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  lines       BankLine[]
+
+  @@index([bankAccountId])
+  @@map("bank_imports")
+}
+
+/// One line of a bank statement: what the bank says happened. It never changes after import; only
+/// the decision about it does (matched to a posting, or set aside).
+model BankLine {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bankAccountId String    @map("bank_account_id") @db.Uuid
+  importId      String?   @map("import_id") @db.Uuid
+  lineDate      DateTime  @map("line_date") @db.Date
+  description   String
+  reference     String?
+  /// Positive is money in, negative is money out.
+  amountMinor   BigInt    @map("amount_minor")
+  balanceMinor  BigInt?   @map("balance_minor")
+  fingerprint   String
+  /// "unmatched", "matched" or "ignored".
+  status        String    @default("unmatched")
+  /// The ledger line it was put against (a plain id; the foreign key lives in the migration).
+  journalLineId String?   @unique @map("journal_line_id") @db.Uuid
+  decidedBy     String?   @map("decided_by") @db.Uuid
+  decidedAt     DateTime? @map("decided_at") @db.Timestamptz(6)
+  note          String?
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  import      BankImport? @relation(fields: [importId], references: [id], onDelete: SetNull)
+
+  @@unique([bankAccountId, fingerprint])
+  @@index([bankAccountId, lineDate])
+  @@index([bankAccountId, status])
+  @@map("bank_lines")
+}
+
+/// A signed-off period: a record, never changed.
+model BankReconciliation {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bankAccountId String   @map("bank_account_id") @db.Uuid
+  periodStart   DateTime @map("period_start") @db.Date
+  periodEnd     DateTime @map("period_end") @db.Date
+  openingMinor  BigInt   @map("opening_minor")
+  closingMinor  BigInt   @map("closing_minor")
+  lineCount     Int      @map("line_count")
+  signedBy      String?  @map("signed_by") @db.Uuid
+  signedByName  String   @default("System") @map("signed_by_name")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+
+  @@index([bankAccountId, periodEnd])
+  @@map("bank_reconciliations")
+}
+
+/// A 1701Q or 1701A recorded as filed under the 8% income tax option: what was declared and paid,
+/// posted to the ledger. A recorded filing is fixed (a trigger) and only changes by being voided.
+model TaxFiling {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taxYear            Int       @map("tax_year")
+  /// "q1", "q2", "q3" or "annual".
+  kind               String
+  /// "1701Q" or "1701A".
+  form               String
+  dueDate            DateTime  @map("due_date") @db.Date
+  /// "filed" or "void".
+  status             String    @default("filed")
+  filedOn            DateTime  @map("filed_on") @db.Date
+  /// The confirmation or reference number the BIR gave.
+  reference          String?
+  /// What the tracker estimated at the time, beside what was declared.
+  grossReceiptsMinor BigInt    @default(0) @map("gross_receipts_minor")
+  estimateMinor      BigInt    @default(0) @map("estimate_minor")
+  cashPaidMinor      BigInt    @default(0) @map("cash_paid_minor")
+  /// Settled by tax clients had withheld (creditable withholding tax).
+  cwtAppliedMinor    BigInt    @default(0) @map("cwt_applied_minor")
+  /// The cash or bank account it was paid from (an account id; the foreign key lives in the migration).
+  paidFromAccountId  String?   @map("paid_from_account_id") @db.Uuid
+  notes              String?
+  journalEntryId     String?   @map("journal_entry_id") @db.Uuid
+  voidEntryId        String?   @map("void_entry_id") @db.Uuid
+  voidedAt           DateTime? @map("voided_at") @db.Timestamptz(6)
+  voidReason         String?   @map("void_reason")
+  filedBy            String?   @map("filed_by") @db.Uuid
+  filedByName        String    @default("System") @map("filed_by_name")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([taxYear])
+  @@map("tax_filings")
+}
+
+/// The finance settings of the business: always one row. Whether it is VAT-registered decides the
+/// tax new quotes start with; the rest are the usual payment terms and billing rate.
+model FinanceSettings {
+  id                     Int      @id @default(1)
+  vatRegistered          Boolean  @default(false) @map("vat_registered")
+  vatRatePct             Int      @default(12) @map("vat_rate_pct")
+  paymentTermsDays       Int      @default(15) @map("payment_terms_days")
+  paymentInstructions    String?  @map("payment_instructions")
+  /// Used when no more specific rate is set.
+  defaultHourlyRateMinor BigInt?  @map("default_hourly_rate_minor")
+  updatedBy              String?  @map("updated_by") @db.Uuid
+  updatedAt              DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("finance_settings")
+}
+
+/// An hourly rate for approved time: for a person on a project (most specific), a project, or a
+/// person. The default rate in the settings covers the rest. (One rate per combination: a unique
+/// index in the migration.)
+model BillingRate {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId       String?  @map("profile_id") @db.Uuid
+  projectId       String?  @map("project_id") @db.Uuid
+  hourlyRateMinor BigInt   @map("hourly_rate_minor")
+  updatedBy       String?  @map("updated_by") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  profile Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("billing_rates")
+}

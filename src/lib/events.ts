@@ -1,37 +1,59 @@
-import type { CaftonEvent, EventStatus } from "@/types/content";
+import "server-only";
 
-export function getEventFacts(event: CaftonEvent): [string, string][] {
-  if (event.facts) return event.facts;
-  return [
-    ["When", formatEventDates(event)],
-    ["Prizes", `${event.prizes.length} winners`],
-    ["Enter", "Online, through Gleam"],
-  ];
+/**
+ * A tiny in-process event bus: one part of the system announces that something happened, and other
+ * parts react without the first one importing them. A won quote will start a project (Phase 5) and
+ * an invoice schedule (Phase 6) this way, so Sales never depends on Delivery or Finance.
+ *
+ * Handlers are connected in `event-handlers.ts` and run after the change is saved, one at a time. A handler that throws is logged and never
+ * undoes or blocks what happened.
+ */
+
+export interface DomainEvents {
+  "quote.accepted": {
+    quoteId: string;
+    reference: string;
+    dealId: string;
+    totalMinor: number;
+    currency: string;
+    acceptedByName: string;
+  };
+  "contract.accepted": {
+    contractId: string;
+    reference: string;
+    dealId: string;
+    quoteId?: string;
+    kind: string;
+    acceptedByName: string;
+  };
 }
 
-export function getEventStatus(
-  event: CaftonEvent,
-  now: Date = new Date(),
-): EventStatus {
-  if (event.closed) return "closed";
-  if (event.endsAt && now > new Date(event.endsAt)) return "closed";
-  if (event.startsAt && now < new Date(event.startsAt)) return "upcoming";
-  return "open";
+type Handler<K extends keyof DomainEvents> = (event: DomainEvents[K]) => Promise<void> | void;
+
+const handlers: { [K in keyof DomainEvents]?: Handler<K>[] } = {};
+
+export function on<K extends keyof DomainEvents>(name: K, handler: Handler<K>) {
+  (handlers[name] ??= [] as never).push(handler as never);
 }
 
-const dateFormat = new Intl.DateTimeFormat("en-US", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  timeZone: "Asia/Manila",
-});
+let handlersLoaded: Promise<unknown> | null = null;
 
-export function formatEventDates(event: CaftonEvent): string {
-  const { startsAt, endsAt } = event;
-  if (startsAt && endsAt) {
-    return `${dateFormat.format(new Date(startsAt))} to ${dateFormat.format(new Date(endsAt))}`;
+/** Connects the reacting parts (see event-handlers.ts) once, before the first event is delivered. */
+function loadHandlers() {
+  handlersLoaded ??= import("./event-handlers").catch((error) => {
+    handlersLoaded = null;
+    console.error("Event handlers could not be loaded.", error);
+  });
+  return handlersLoaded;
+}
+
+export async function emit<K extends keyof DomainEvents>(name: K, event: DomainEvents[K]) {
+  await loadHandlers();
+  for (const handler of (handlers[name] ?? []) as Handler<K>[]) {
+    try {
+      await handler(event);
+    } catch (error) {
+      console.error(`Event handler for ${name} failed.`, error);
+    }
   }
-  if (endsAt) return `Ends ${dateFormat.format(new Date(endsAt))}`;
-  if (startsAt) return `Starts ${dateFormat.format(new Date(startsAt))}`;
-  return event.closed ? "Completed" : "Dates to be announced";
 }

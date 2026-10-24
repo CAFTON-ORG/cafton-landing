@@ -40,3 +40,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma generated client (created by `prisma generate`)
+/src/generated
+
+# tests
+/playwright-report
+/test-results
+
+# site snapshots (scripts/site-snapshot.mjs)
+/.snapshots
+/.next-preview
+/.design-review
+
+__pycache__/
+*.pyc

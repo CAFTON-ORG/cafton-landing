@@ -1,10 +1,16 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   ci:
@@ -13,16 +19,24 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install Dependencies
         run: npm ci
+
+      # What ships to production must have no high or critical known vulnerabilities. Dev-only
+      # tooling is reviewed separately (see SECURITY.md, "Known advisories").
+      - name: Dependency Audit
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Format Check
+        run: npm run format:check
 
       - name: Type Check
         run: npm run typecheck
@@ -30,8 +44,23 @@ jobs:
       - name: Run Linter
         run: npm run lint
 
+      - name: Unit and Integration Tests
+        run: npm run test
+
       - name: Build
         run: npm run build
+
+      - name: Install Browser
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end and Accessibility Tests
+        run: npm run e2e
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
 
   notify-pr-opened:
     if: github.event.action == 'opened'

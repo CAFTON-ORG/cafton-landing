@@ -1,0 +1,76 @@
+# Cafton
+
+The Cafton public website and, being built in phases, its internal operating system (CMS, CRM, sales, delivery, finance, HR) in one Next.js 16 app.
+
+- Architecture and decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/adr/](docs/adr/)
+- Phased plan and progress: [docs/ROADMAP.md](docs/ROADMAP.md)
+- Vocabulary: [CONTEXT.md](CONTEXT.md)
+- Conventions for coding agents: [AGENTS.md](AGENTS.md)
+
+## Stack
+
+Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind v4 · Prisma 7 on Postgres · Supabase Auth and Storage · Zod · Vitest + Testing Library · Playwright + axe. Public site primitives: shadcn/Radix. Dashboard primitives: shadcn `base-nova` (Base UI).
+
+## Getting started
+
+```bash
+npm install            # also runs `prisma generate`
+cp .env.example .env.local
+npm run dev            # http://localhost:3000
+```
+
+The public site runs with no environment variables set (the contact form needs the database: without it, visitors are asked to email instead). Platform services (database, Supabase, email) are optional until the phase that needs them.
+
+Optional local database, no Supabase needed:
+
+```bash
+npm run db:local       # in-memory Postgres (PGlite) built from prisma/migrations
+```
+
+## Dashboard setup (Supabase)
+
+1. In Supabase, create a project. **Authentication > Providers**: enable **Google** (create OAuth credentials in Google Cloud; Supabase shows the redirect URI). **Authentication > URL Configuration**: add `http://localhost:3000/auth/callback` and your production URL.
+2. Copy `.env.example` to `.env` and fill in `DATABASE_URL` (pooled, port 6543), `DIRECT_URL` (direct or session pooler, port 5432), `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. For files on CRM records also set `SUPABASE_SERVICE_ROLE_KEY` (Supabase > Project settings > API): a server-only secret that bypasses all access rules, so keep it out of the browser, out of git and out of any `NEXT_PUBLIC_` name.
+3. `npm run db:deploy` applies the migrations (tables, built-in roles, the invite-only sign-up trigger, RLS).
+4. `npm run staff:invite -- you@gmail.com owner` creates the first owner. Then sign in at `/login` with that Google account.
+5. Invite everyone else from **Dashboard > People**.
+
+Without Supabase configured, `npm run dev` signs you in automatically as a preview owner so you can work on the UI.
+
+## Scripts
+
+| Script                                                          | Purpose                                                                                                      |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `npm run dev` / `build` / `start`                               | Next.js                                                                                                      |
+| `npm run lint` / `typecheck` / `test`                           | ESLint, `next typegen` + `tsc`, Vitest                                                                       |
+| `npm run verify`                                                | lint + typecheck + test + build (what CI runs)                                                               |
+| `npm run e2e`                                                   | Playwright against a production build (`npm run build` first)                                                |
+| `npm run format` / `format:check`                               | Prettier                                                                                                     |
+| `npm run db:generate` / `db:deploy` / `db:status` / `db:studio` | Prisma                                                                                                       |
+| `npm run db:local`                                              | throw-away local Postgres                                                                                    |
+| `npm run staff:invite -- <email> [role]`                        | invite a person from the command line (first owner)                                                          |
+| `npm run db:seed-content`                                       | copy the site's bundled content into the database (adds what is missing; `-- --overwrite` resets)            |
+| `npm run db:seed-demo`                                          | sample CRM data in a LOCAL database (refuses anything else)                                                  |
+| `npm run design:review`                                         | screenshots of every dashboard screen (light/dark, desktop/phone) plus axe accessibility and overflow checks |
+| `npm run snapshot:save` / `snapshot:check`                      | prove the public site's markup did not change                                                                |
+
+## Where things go
+
+```
+src/app/(marketing)/     public website routes
+src/app/dashboard/       internal system (from Phase 1)
+src/components/ui/       Radix primitives (public site, generated by shadcn)
+src/components/marketing/  public-site components, grouped by page area
+src/components/dashboard/  dashboard components (ui/ is Base UI)
+src/components/shared/   neutral components usable by both
+src/features/<domain>/   data, rules and actions per business domain
+src/config/              site identity, navigation, static site copy
+src/providers/           theme, consent, smooth scroll
+src/lib/                 framework-level helpers only
+```
+
+Rules and reasons: [ADR 0004](docs/adr/0004-folder-structure.md). Import boundaries between the two surfaces are enforced by ESLint.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security: [SECURITY.md](SECURITY.md).

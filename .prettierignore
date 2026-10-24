@@ -1,0 +1,19 @@
+.next
+node_modules
+package-lock.json
+next-env.d.ts
+.claude
+src/components/ui
+playwright-report
+test-results
+prisma/migrations
+src/generated
+
+# The public site predates Prettier. Formatting it reorders Tailwind classes and rewrites
+# thousands of lines for no visible change, so do that as its own deliberate commit, if ever.
+src/components/marketing
+src/app/(marketing)
+src/features/cms/content
+.next-preview
+.design-review
+.snapshots

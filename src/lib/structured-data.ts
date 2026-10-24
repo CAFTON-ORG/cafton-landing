@@ -1,12 +1,11 @@
-import { SITE_URL } from "@/lib/site";
-import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
-import type { Author } from "@/types/content";
+import { SITE_NAME, SITE_URL } from "@/config/site";
+import type { Author, SiteSettings } from "@/features/cms/types/core";
 
 const ORGANIZATION_ID = `${SITE_URL}/#organization`;
 const WEBSITE_ID = `${SITE_URL}/#website`;
 
 /** Organization and WebSite entities, rendered once site-wide in the root layout. */
-export const siteJsonLd = {
+export const siteJsonLd = (settings: SiteSettings) => ({
   "@context": "https://schema.org",
   "@graph": [
     {
@@ -17,23 +16,16 @@ export const siteJsonLd = {
       url: SITE_URL,
       logo: `${SITE_URL}/cafton.png`,
       image: `${SITE_URL}/cafton-lengthwise.png`,
-      description: SITE_DESCRIPTION,
-      email: "contact@cafton.com",
-      foundingDate: "2026",
+      description: settings.description,
+      email: settings.email,
+      foundingDate: settings.established,
       address: {
         "@type": "PostalAddress",
-        addressLocality: "Baguio City",
-        addressCountry: "PH",
+        addressLocality: settings.city,
+        addressCountry: settings.countryCode,
       },
-      areaServed: { "@type": "Country", name: "Philippines" },
-      sameAs: [
-        "https://www.facebook.com/profile.php?id=61593222069389",
-        "https://www.instagram.com/cafton.official",
-        "https://www.linkedin.com/company/cafton",
-        "https://www.tiktok.com/@cafton.official",
-        "https://x.com/cafton_official",
-        "https://www.youtube.com/@caftonofficial",
-      ],
+      areaServed: { "@type": "Country", name: settings.country },
+      sameAs: settings.socials.map((link) => link.url),
     },
     {
       "@type": "WebSite",
@@ -44,7 +36,7 @@ export const siteJsonLd = {
       publisher: { "@id": ORGANIZATION_ID },
     },
   ],
-};
+});
 
 /** schema.org author: the Cafton organization for the team account, a Person otherwise. */
 export function authorJsonLd(author: Author) {
@@ -52,7 +44,9 @@ export function authorJsonLd(author: Author) {
   return {
     "@type": "Person",
     name: author.name,
-    ...(author.url && { url: author.url.startsWith("http") ? author.url : `${SITE_URL}${author.url}` }),
+    ...(author.url && {
+      url: author.url.startsWith("http") ? author.url : `${SITE_URL}${author.url}`,
+    }),
   };
 }
 

@@ -25,10 +25,9 @@ export function useInViewport<T extends HTMLElement>(
     const el = ref.current;
     if (!el) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => setInViewport(entry.isIntersecting),
-      { rootMargin },
-    );
+    const observer = new IntersectionObserver(([entry]) => setInViewport(entry.isIntersecting), {
+      rootMargin,
+    });
     observer.observe(el);
 
     return () => observer.disconnect();

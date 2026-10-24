@@ -1,15 +1,16 @@
+import { serializeJsonLd } from "@/lib/json-ld";
+
 /**
  * Renders structured data as a `<script>` tag, per Next.js's own recommended
- * pattern. `JSON.stringify` alone doesn't sanitize for XSS -- escaping `<`
- * to its unicode equivalent is the documented mitigation, since `data` here
- * is always our own static content, never user input, but the escape costs
- * nothing and matches the framework's own guidance.
+ * pattern. `serializeJsonLd` escapes everything that could end the script
+ * element, so this is safe even when `data` includes CMS content.
  */
 export function JsonLd({ data }: { data: object }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
+      // eslint-disable-next-line react/no-danger -- audited: output of serializeJsonLd, which escapes < > & so the data cannot leave the script element
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   );
 }

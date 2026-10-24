@@ -26,7 +26,7 @@ export interface Staff {
 
 /** Used only outside production when Supabase or the database is not configured. */
 const DEV_STAFF: Staff = {
-  id: "dev-preview",
+  id: "00000000-0000-4000-8000-0000000000d1",
   name: "Dev Preview",
   email: "dev@cafton.local",
   roleKey: "owner",

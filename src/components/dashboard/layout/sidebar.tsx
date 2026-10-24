@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Brand } from "@/components/dashboard/shared/brand";
+import { Brand, WORKSPACE_LABEL } from "@/components/dashboard/shared/brand";
 import { cn } from "@/lib/utils";
 import { NavLinks } from "./nav-links";
 import { useSidebar } from "./sidebar-context";
@@ -30,7 +30,7 @@ export function Sidebar() {
           href="/dashboard"
           className="rounded-md focus-visible:ring-2 focus-visible:outline-none"
         >
-          <Brand showName={!collapsed} />
+          <Brand showName={!collapsed} subtitle={WORKSPACE_LABEL} />
         </Link>
       </div>
 

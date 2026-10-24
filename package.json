@@ -26,6 +26,7 @@
     "db:seed-demo": "node scripts/seed-demo.mjs",
     "db:seed-sales": "node scripts/seed-sales.mjs",
     "db:seed-delivery": "node scripts/seed-delivery.mjs",
+    "db:seed-mock": "node scripts/seed-mock.mjs",
     "design:review": "node scripts/design-review.mjs",
     "db:seed-content": "node scripts/seed-content.mjs"
   },

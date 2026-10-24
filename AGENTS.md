@@ -43,7 +43,7 @@ src/
   for business records. Finance records are voided, not deleted.
 - **Dashboard UI:** status colours only through `StatusBadge`; list pages use `ResourceTable`
   with URL-driven params; people use `UserAvatar` (circle), things use `Thumbnail` (rounded
-  square); long forms use tabs; the shell is one screen tall and `MainScroll` is the only
+  square); long forms use tabs, and every tab bar is the one pill style (`Tabs` or `SegmentedNav`, with `TabCount` badges), never an underline style; the shell is one screen tall and `MainScroll` is the only
   scroll area (never give the dashboard `<main>` a global `min-height`).
 - **Dashboard layout of a card:** a card's buttons go in `CardAction` inside `CardHeader` (title and
   optional description on the left, buttons top right; `stackOnPhone` for a wide group). Never

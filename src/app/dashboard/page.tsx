@@ -1,40 +1,140 @@
-import { History, ShieldCheck, Users } from "lucide-react";
-import { EmptyState } from "@/components/dashboard/shared/empty-state";
+import type { Metadata } from "next";
 import Link from "next/link";
+import {
+  CalendarClock,
+  Check,
+  FolderKanban,
+  Handshake,
+  Hourglass,
+  Landmark,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
+import { AttentionList } from "@/components/dashboard/shared/attention-list";
+import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
+import { Button } from "@/components/dashboard/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/dashboard/ui/card";
-import { listRecentAudit } from "@/features/audit/repository";
-import { listRoles } from "@/features/roles/repository";
-import { listAllUsers } from "@/features/users/repository";
+import { IncomeExpenseChart } from "@/features/finance/components/income-expense-chart";
+import { getOverview } from "@/features/overview/repository";
+import {
+  barWidth,
+  count,
+  firstName,
+  greeting,
+  longManilaDate,
+  manilaHour,
+} from "@/features/overview/rules";
 import { can, verifySession } from "@/lib/auth/dal";
 import { isDatabaseConfigured } from "@/lib/env";
 import { formatRelative } from "@/lib/format";
+import { formatMinor } from "@/lib/money";
+
+export const metadata: Metadata = { title: "Overview" };
 
 export default async function OverviewPage() {
   const staff = await verifySession();
-  const showPeople = can(staff, "users:view");
-  const showRoles = can(staff, "roles:view");
-  const showAudit = can(staff, "audit:view");
+  const now = new Date();
+  const data = await getOverview(staff, now);
+  const { pipeline, finance, projects, schedule, tasks, people } = data;
 
-  const [users, roles, recent] = await Promise.all([
-    showPeople ? listAllUsers() : [],
-    showRoles ? listRoles() : [],
-    showAudit ? listRecentAudit(6) : [],
-  ]);
+  const cards: {
+    label: string;
+    value: string;
+    hint?: string;
+    tone?: "neutral" | "warning" | "danger" | "success";
+    icon: LucideIcon;
+    href: string;
+  }[] = [];
+  if (pipeline)
+    cards.push({
+      label: "Open pipeline",
+      value: formatMinor(pipeline.openValueMinor),
+      hint: `${count(pipeline.openCount, "deal")} open, ${formatMinor(pipeline.weightedMinor)} weighted`,
+      icon: Handshake,
+      href: "/dashboard/crm/deals",
+    });
+  if (finance)
+    cards.push(
+      {
+        label: "Cash and bank",
+        value: formatMinor(finance.cashMinor),
+        hint: `${formatMinor(finance.monthProfitMinor)} profit this month`,
+        icon: Landmark,
+        href: "/dashboard/finance",
+      },
+      {
+        label: "Owed to you",
+        value: formatMinor(finance.owedToYouMinor),
+        hint:
+          finance.overdueMinor > 0
+            ? `${formatMinor(finance.overdueMinor)} is overdue`
+            : "Nothing is overdue",
+        tone: finance.overdueMinor > 0 ? "danger" : "success",
+        icon: Hourglass,
+        href: "/dashboard/finance/invoices",
+      },
+    );
+  if (projects)
+    cards.push({
+      label: "Active projects",
+      value: String(projects.active),
+      hint:
+        projects.overdue > 0
+          ? `${projects.overdue} past due, ${projects.planned} planned`
+          : `${projects.planned} planned`,
+      tone: projects.overdue > 0 ? "warning" : "neutral",
+      icon: FolderKanban,
+      href: "/dashboard/projects",
+    });
+  if (cards.length === 0 && people)
+    cards.push({
+      label: "People with access",
+      value: String(people.active),
+      hint: `${people.invited} invited`,
+      icon: Users,
+      href: "/dashboard/users",
+    });
+
+  const topStage = Math.max(0, ...(pipeline?.byStage.map((stage) => stage.valueMinor) ?? []));
+  const quick = [
+    { href: "/dashboard/crm/leads", label: "Leads", show: can(staff, "leads:view") },
+    { href: "/dashboard/crm/deals", label: "Deals", show: can(staff, "deals:view") },
+    { href: "/dashboard/sales/quotes", label: "Quotes", show: can(staff, "quotes:view") },
+    { href: "/dashboard/projects", label: "Projects", show: can(staff, "projects:view") },
+    { href: "/dashboard/time", label: "Log time", show: can(staff, "time:view") },
+    { href: "/dashboard/finance/invoices", label: "Invoices", show: can(staff, "invoices:view") },
+    { href: "/dashboard/crm/schedule", label: "Schedule", show: can(staff, "meetings:view") },
+  ].filter((item) => item.show);
+
+  const chart = finance && (
+    <Card>
+      <CardHeader>
+        <CardTitle>Income and expenses</CardTitle>
+        <CardDescription>
+          The last six months. {formatMinor(finance.yearProfitMinor)} profit so far this year.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <IncomeExpenseChart bars={finance.bars} />
+      </CardContent>
+    </Card>
+  );
 
   return (
     <>
       <PageHeader
-        title={`Welcome, ${staff.name.split(" ")[0]}`}
-        description={`Signed in as ${staff.roleName}.`}
+        title={`${greeting(manilaHour(now))}, ${firstName(staff.name)}`}
+        description={`${longManilaDate(now)}. Signed in as ${staff.roleName}.`}
       />
 
       {!isDatabaseConfigured && (
@@ -47,61 +147,90 @@ export default async function OverviewPage() {
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {showPeople && (
-          <StatCard
-            label="People with access"
-            value={String(users.filter((user) => user.status === "Active").length)}
-            hint={`${users.filter((user) => user.status === "Invited").length} invited`}
-            icon={Users}
-          />
-        )}
-        {showRoles && <StatCard label="Roles" value={String(roles.length)} icon={ShieldCheck} />}
-        {showAudit && (
-          <StatCard
-            label="Recent changes"
-            value={String(recent.length)}
-            hint="Latest activity below"
-            icon={History}
-          />
+      {cards.length > 0 && (
+        <div className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {cards.map((card) => (
+            <StatCard key={card.label} {...card} />
+          ))}
+        </div>
+      )}
+
+      <div className="mb-4 grid gap-4 xl:grid-cols-[3fr_2fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Needs your attention</CardTitle>
+            <CardDescription>What to do next, most pressing first.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <AttentionList items={data.attention} emptyText="You are all caught up." />
+          </CardContent>
+        </Card>
+
+        {pipeline ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Sales pipeline</CardTitle>
+              <CardDescription>
+                Open value by stage. {count(pipeline.wonThisMonthCount, "deal")} won this month (
+                {formatMinor(pipeline.wonThisMonthMinor)}).
+              </CardDescription>
+              <CardAction>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  nativeButton={false}
+                  render={<Link href="/dashboard/crm/deals" />}
+                >
+                  Open board
+                </Button>
+              </CardAction>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+              {pipeline.byStage.length === 0 ? (
+                <EmptyState title="No open deals" description="Open deals show up here by stage." />
+              ) : (
+                pipeline.byStage.map((stage) => (
+                  <div key={stage.stageId} className="grid gap-1">
+                    <div className="flex items-baseline justify-between gap-2 text-sm">
+                      <span className="font-medium">{stage.name}</span>
+                      <span className="text-muted-foreground tabular-nums">
+                        {stage.count} · {formatMinor(stage.valueMinor)}
+                      </span>
+                    </div>
+                    <div className="bg-muted h-2 overflow-hidden rounded-full">
+                      <div
+                        className="bg-primary h-full rounded-full"
+                        style={{ width: `${barWidth(stage.valueMinor, topStage)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          chart
         )}
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        {showAudit && (
+      <div className="mb-4 grid gap-4 xl:grid-cols-[3fr_2fr]">
+        {pipeline && chart ? (
+          chart
+        ) : (
           <Card>
             <CardHeader>
-              <CardTitle>Recent activity</CardTitle>
-              <CardDescription>
-                <Link href="/dashboard/audit" className="underline underline-offset-4">
-                  See the full audit log
-                </Link>
-              </CardDescription>
+              <CardTitle>Your week</CardTitle>
             </CardHeader>
-            <CardContent>
-              {recent.length === 0 ? (
-                <EmptyState
-                  compact
-                  icon={History}
-                  title="No activity yet"
-                  description="Changes made in the dashboard will show up here."
-                />
-              ) : (
-                <ul className="divide-y">
-                  {recent.map((entry) => (
-                    <li
-                      key={entry.id}
-                      className="flex items-start justify-between gap-4 py-2 text-sm"
-                    >
-                      <span>
-                        <span className="font-medium">{entry.actor}</span> · {entry.summary}
-                      </span>
-                      <time dateTime={entry.at} className="text-muted-foreground shrink-0">
-                        {formatRelative(entry.at)}
-                      </time>
-                    </li>
-                  ))}
-                </ul>
+            <CardContent className="text-muted-foreground grid gap-2 text-sm">
+              <p className="flex items-center gap-2">
+                <Check className="size-4" aria-hidden="true" />
+                {tasks ? count(tasks.open, "open task") : "No tasks assigned to you."}
+              </p>
+              {schedule && (
+                <p className="flex items-center gap-2">
+                  <CalendarClock className="size-4" aria-hidden="true" />
+                  {count(schedule.upcoming, "upcoming meeting")}
+                </p>
               )}
             </CardContent>
           </Card>
@@ -109,23 +238,47 @@ export default async function OverviewPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>What&rsquo;s coming</CardTitle>
-            <CardDescription>
-              The platform is built in phases. Each one adds a section to the menu.
-            </CardDescription>
+            <CardTitle>Recent activity</CardTitle>
+            <CardDescription>The latest changes across the system.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ol className="text-muted-foreground grid gap-1.5 text-sm">
-              <li>Content management for the website</li>
-              <li>CRM: leads, contacts, deals and pipeline</li>
-              <li>Sales: quotes and contracts</li>
-              <li>Delivery: projects and time</li>
-              <li>Finance and accounting</li>
-              <li>HR and payroll</li>
-            </ol>
+          <CardContent className="p-0">
+            {data.recent.length === 0 ? (
+              <p className="text-muted-foreground px-4 py-6 text-sm">Nothing has changed yet.</p>
+            ) : (
+              <ul className="divide-y">
+                {data.recent.map((entry) => (
+                  <li key={entry.id} className="px-4 py-3 text-sm">
+                    <p className="font-medium">{entry.summary}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {entry.actor} · {formatRelative(entry.at, now)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {quick.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Jump to</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {quick.map((item) => (
+              <Button
+                key={item.href}
+                variant="outline"
+                nativeButton={false}
+                render={<Link href={item.href} />}
+              >
+                {item.label}
+              </Button>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 }

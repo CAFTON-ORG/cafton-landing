@@ -140,6 +140,7 @@ Confirmed: base currency PHP (₱); fiscal year January to December; registered 
 - [x] Income tax tracker for the 8% option: the quarterly and annual returns, estimates, filings recorded and posted, deadline reminders (ADR 0021)
 - [x] Invoicing from approved time, at a rate that is set once and overridden where needed (ADR 0022); new quotes start without VAT unless the business is VAT-registered; the finance screens follow accounting-package conventions (ADR 0022)
 - Done when: books balance and reports reconcile to the ledger for seeded scenarios.
+- [x] Before Phase 7: a role-aware home overview, one underline tab style across the dashboard, a workspace subtitle in the sidebar header, and a mock-data seed for everything except the website content (ADR 0023)
 
 ## Phase 7 - HR and payroll
 

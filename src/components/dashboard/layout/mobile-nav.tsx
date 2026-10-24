@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu } from "lucide-react";
-import { Brand } from "@/components/dashboard/shared/brand";
+import { Brand, WORKSPACE_LABEL } from "@/components/dashboard/shared/brand";
 import { Button } from "@/components/dashboard/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/dashboard/ui/sheet";
 import { NavLinks } from "./nav-links";
@@ -26,7 +26,7 @@ export function MobileNav() {
         <SheetTitle className="sr-only">Navigation</SheetTitle>
         <div className="flex h-full flex-col gap-6 p-4">
           <Link href="/dashboard" onClick={() => setOpen(false)} className="px-2">
-            <Brand />
+            <Brand subtitle={WORKSPACE_LABEL} />
           </Link>
           <div className="flex-1 overflow-y-auto">
             <NavLinks onNavigate={() => setOpen(false)} />

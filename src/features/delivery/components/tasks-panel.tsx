@@ -75,8 +75,8 @@ import {
   isOverdue,
   type TaskPriority,
   type TaskStatus,
-} from "../rules";
-import type { MilestoneView, PersonRef, TaskView } from "../types";
+} from "../rules/core";
+import type { MilestoneView, PersonRef, TaskView } from "../types/core";
 import { TaskPriorityBadge, TaskStatusBadge } from "./badges";
 import { TaskComments } from "./task-comments";
 

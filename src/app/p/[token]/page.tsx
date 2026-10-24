@@ -10,7 +10,7 @@ import {
   PROJECT_STATUS_LABEL,
   progressPercent,
   type MilestoneStatus,
-} from "@/features/delivery/rules";
+} from "@/features/delivery/rules/core";
 
 // A private link: never indexed, never cached.
 export const metadata: Metadata = {

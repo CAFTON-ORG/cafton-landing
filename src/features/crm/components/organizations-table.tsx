@@ -13,8 +13,8 @@ import { Thumbnail } from "@/components/dashboard/shared/thumbnail";
 import type { Page } from "@/lib/pagination";
 import { BulkBar, TagList, customColumns, customFilters, tagFilter } from "./list-parts";
 import { SavedViews } from "./saved-views";
-import { ORGANIZATIONS_TABLE } from "../table";
-import type { OrganizationView } from "../types";
+import { ORGANIZATIONS_TABLE } from "../rules/table";
+import type { OrganizationView } from "../types/core";
 import type { CustomFieldDef } from "../rules/custom-fields";
 import { OrganizationDialog } from "./organization-dialog";
 

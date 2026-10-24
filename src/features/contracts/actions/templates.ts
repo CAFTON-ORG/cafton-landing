@@ -6,7 +6,7 @@ import { guard } from "@/features/crm/actions/guard";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
-import { templateSchema, type TemplateInput } from "../schemas";
+import { templateSchema, type TemplateInput } from "../schemas/core";
 
 const refresh = () => revalidatePath("/dashboard/sales/contracts/templates");
 

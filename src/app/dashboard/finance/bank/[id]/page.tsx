@@ -16,7 +16,7 @@ import {
   listReconciliations,
 } from "@/features/finance/repository/bank";
 import { listPostableAccounts } from "@/features/finance/repository/ledger";
-import { BANK_LINE_TABLE } from "@/features/finance/table";
+import { BANK_LINE_TABLE } from "@/features/finance/rules/table";
 import { addDays, manilaDate } from "@/features/schedule/rules/slots";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";

@@ -6,7 +6,7 @@ import { renderEmail } from "@/lib/mail-templates";
 import { env } from "@/lib/env";
 import { renderContractPdf } from "../pdf/contract-pdf";
 import { CONTRACT_KIND_LABEL } from "../rules/core";
-import type { PublicContract } from "../types";
+import type { PublicContract } from "../types/core";
 
 export const contractLink = (token: string) => `${siteOrigin()}/c/${token}`;
 

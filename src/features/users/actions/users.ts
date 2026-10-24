@@ -17,8 +17,8 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { renderEmail } from "@/lib/mail-templates";
 import { sendMail, siteOrigin } from "@/lib/mail";
-import { emailSchema, inviteSchema, type InviteInput } from "../schemas";
-import { checkAssignable, checkRemoval, checkRoleChange, checkTakesLeads } from "../rules";
+import { emailSchema, inviteSchema, type InviteInput } from "../schemas/core";
+import { checkAssignable, checkRemoval, checkRoleChange, checkTakesLeads } from "../rules/core";
 
 async function guard(permission: Permission) {
   const staff = await requirePermission(permission);

@@ -12,7 +12,7 @@ import type {
   OrganizationView,
   PersonRef,
   StageView,
-} from "../types";
+} from "../types/core";
 
 /** Soft-deleted rows are invisible everywhere. */
 export const live = { deletedAt: null } as const;

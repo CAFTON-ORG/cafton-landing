@@ -15,7 +15,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { createTask, deleteTask, setTaskDone } from "../actions/activity";
-import type { PersonRef, Subject, TaskView } from "../types";
+import type { PersonRef, Subject, TaskView } from "../types/core";
 import { UrgencyBadge } from "./badges";
 import { NONE, PersonSelect } from "./owner-select";
 

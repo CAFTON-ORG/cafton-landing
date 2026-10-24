@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createDatabase } from "../../../scripts/pglite-setup.mjs";
 import { SYSTEM_ROLE_PERMISSIONS, type Permission } from "@/lib/auth/permissions";
-import { weekStartOf } from "./rules";
+import { weekStartOf } from "./rules/core";
 
 /**
  * Delivery against a real Postgres (PGlite) built from the real migrations: a project starting from

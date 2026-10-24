@@ -12,12 +12,10 @@ const features = fs
   .filter((entry) => entry.isDirectory() && !entry.name.startsWith("_"))
   .map((entry) => entry.name);
 
-/** Layers that are always a folder, with the files inside named by area. */
-const LAYER_FOLDERS = ["actions", "repository", "services"];
-/** Layers that are one file, or a folder once a feature has several areas. */
-const SPLITTABLE = ["types", "schemas", "rules"];
+/** Every layer is a folder, with files named by area (`core.ts` for the main one). */
+const LAYER_FOLDERS = ["actions", "repository", "services", "types", "schemas", "rules"];
 /** Named extras a feature may have. `content`, `lib` and `site` belong to the website content (cms). */
-const EXTRAS = ["components", "pdf", "table.ts", "content", "lib", "site"];
+const EXTRAS = ["components", "pdf", "content", "lib", "site"];
 
 const sub = (feature: string) => fs.readdirSync(path.join(root, feature), { withFileTypes: true });
 const isTest = (name: string) => /\.test\.tsx?$/.test(name);
@@ -26,7 +24,7 @@ describe.each(features)("feature layout: %s", (feature) => {
   const entries = sub(feature);
   const names = entries.map((entry) => entry.name);
 
-  it("keeps the server layers in folders, not single files", () => {
+  it("keeps every layer in a folder, not a single file", () => {
     for (const layer of LAYER_FOLDERS) {
       expect(names, `${feature}/${layer}.ts should be ${layer}/<area>.ts`).not.toContain(
         `${layer}.ts`,
@@ -43,21 +41,8 @@ describe.each(features)("feature layout: %s", (feature) => {
     }
   });
 
-  it("has a file or a folder for types, schemas and rules, never both", () => {
-    for (const layer of SPLITTABLE) {
-      expect(
-        names.includes(`${layer}.ts`) && names.includes(layer),
-        `${feature} has ${layer}.ts and ${layer}/`,
-      ).toBe(false);
-    }
-  });
-
   it("holds only the standard parts at its root", () => {
-    const allowed = new Set([
-      ...LAYER_FOLDERS,
-      ...SPLITTABLE.flatMap((layer) => [layer, `${layer}.ts`]),
-      ...EXTRAS,
-    ]);
+    const allowed = new Set([...LAYER_FOLDERS, ...EXTRAS]);
     const stray = names.filter((name) => !allowed.has(name) && !isTest(name));
     expect(stray, `${feature} has files outside the standard layout`).toEqual([]);
   });

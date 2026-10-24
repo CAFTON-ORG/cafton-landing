@@ -6,7 +6,7 @@ import { notifyStaffOfRequest, sendConfirmed, sendRequestReceived } from "./emai
 import { busyIntervals, getMeeting } from "../repository/schedule";
 import { isOverlapError } from "../rules/core";
 import { addDays, formatManila, isOfferedSlot, manilaDate, slotsByDate } from "../rules/slots";
-import type { MeetingMode } from "../types";
+import type { MeetingMode } from "../types/core";
 
 /** What the visitor is told about the time they asked for. */
 export type BookingOutcome = "requested" | "confirmed" | "unavailable";

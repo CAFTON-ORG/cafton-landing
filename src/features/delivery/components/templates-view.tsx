@@ -37,8 +37,8 @@ import {
   MAX_TEMPLATE_TASKS,
   durationInput,
   parseDuration,
-} from "../rules";
-import type { TemplateView } from "../types";
+} from "../rules/core";
+import type { TemplateView } from "../types/core";
 
 interface Draft {
   id?: string;

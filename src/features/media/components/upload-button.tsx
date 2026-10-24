@@ -6,7 +6,7 @@ import { Upload } from "lucide-react";
 import { Button } from "@/components/dashboard/ui/button";
 import { useCan } from "@/components/dashboard/layout/staff-context";
 import { ACCEPTED_IMAGE_TYPES } from "@/lib/media";
-import type { MediaItem } from "../types";
+import type { MediaItem } from "../types/core";
 import { useUpload } from "./use-upload";
 
 /** A button that opens the file picker (several files allowed) and uploads what is chosen. */

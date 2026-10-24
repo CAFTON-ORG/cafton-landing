@@ -19,7 +19,7 @@ import { Input } from "@/components/dashboard/ui/input";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { createContact, updateContact } from "../actions/contacts";
-import type { ContactView, PersonRef } from "../types";
+import type { ContactView, PersonRef } from "../types/core";
 import { PersonSelect } from "./owner-select";
 
 /** Create (no `contact`) or edit a contact. The trigger is whatever the caller passes in. */

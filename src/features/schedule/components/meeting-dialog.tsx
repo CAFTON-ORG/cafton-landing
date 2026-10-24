@@ -29,11 +29,16 @@ import {
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { PersonSelect } from "@/features/crm/components/owner-select";
-import type { PersonRef } from "@/features/crm/types";
+import type { PersonRef } from "@/features/crm/types/core";
 import { useServerAction } from "@/hooks/use-server-action";
 import { createMeeting, suggestTimes, updateMeeting } from "../actions/schedule";
 import { manilaDate, manilaTime } from "../rules/slots";
-import { MEETING_MODES, MEETING_MODE_LABEL, type MeetingMode, type MeetingView } from "../types";
+import {
+  MEETING_MODES,
+  MEETING_MODE_LABEL,
+  type MeetingMode,
+  type MeetingView,
+} from "../types/core";
 
 const DURATIONS = [15, 30, 45, 60, 90, 120];
 

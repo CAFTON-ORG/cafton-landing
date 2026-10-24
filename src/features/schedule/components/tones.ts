@@ -1,4 +1,4 @@
-import type { MeetingStatus } from "../types";
+import type { MeetingStatus } from "../types/core";
 
 /** Colours of a meeting on the calendar, by status. */
 export const CHIP_TONE: Record<MeetingStatus, string> = {

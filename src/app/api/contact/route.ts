@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { contactSchema } from "@/features/crm/rules/contact";
 import { createLeadFromWebsite } from "@/features/crm/services/intake";
-import { MEETING_MODES } from "@/features/schedule/types";
+import { MEETING_MODES } from "@/features/schedule/types/core";
 import { checkRateLimit, getClientKey } from "@/lib/security/rate-limit";
 import { verifyTurnstileToken } from "@/lib/security/turnstile";
 

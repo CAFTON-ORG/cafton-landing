@@ -1,4 +1,4 @@
-import type { QuoteView } from "../types";
+import type { QuoteView } from "../types/core";
 
 export type HistoryKind =
   | "started"

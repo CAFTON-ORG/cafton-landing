@@ -9,7 +9,7 @@ import { sendMail, siteOrigin } from "@/lib/mail";
 import { renderEmail } from "@/lib/mail-templates";
 import { buildIcs, icsAttachment } from "../rules/ics";
 import { formatManila, formatManilaTime } from "../rules/slots";
-import { MEETING_MODE_LABEL, type MeetingView } from "../types";
+import { MEETING_MODE_LABEL, type MeetingView } from "../types/core";
 
 /** Staff who may act on meetings: they are told when a visitor asks for one. */
 export async function staffEmailsWith(permission: Permission): Promise<string[]> {

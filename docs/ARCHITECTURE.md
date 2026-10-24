@@ -48,9 +48,9 @@ src/
     dashboard/               dashboard UI: ui/ (Base UI base-nova), layout/, data-table/, shared/
   features/                  business domains
     <domain>/
-      types.ts | types/      shapes, safe anywhere
-      schemas.ts | schemas/  Zod, shared with client forms
-      rules.ts | rules/      pure business rules, used by UI and actions, unit tested
+      types/                 shapes, safe anywhere
+      schemas/               Zod, shared with client forms
+      rules/                 pure business rules, used by UI and actions, unit tested
       repository/            reads, server-only, the only code that queries
       services/              server logic that is not a request: transactions, jobs, email, events
       actions/               writes, "use server": requirePermission -> Zod -> service/repository -> audit -> revalidate

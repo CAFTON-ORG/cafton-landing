@@ -11,7 +11,7 @@ import { nextLeadOwner } from "../repository/assignment";
 import { scoreLead } from "../rules/scoring";
 import { acknowledgeLead, notifyStaffOfLead } from "./emails";
 import { bookFromWebsite, type BookingOutcome } from "@/features/schedule/services/website";
-import type { MeetingMode } from "@/features/schedule/types";
+import type { MeetingMode } from "@/features/schedule/types/core";
 
 export type IntakeResult =
   { ok: true; reference: string; meeting?: BookingOutcome } | { ok: false; message: string };

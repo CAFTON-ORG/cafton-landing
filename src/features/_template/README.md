@@ -9,14 +9,14 @@ for every feature (ADR 0024) and `src/features/structure.test.ts` fails when a f
 
 ```
 <name>/
-├── types.ts            shapes the feature passes around (a folder `types/` once there are several areas)
-├── schemas.ts          Zod: shared by the form and the action (`schemas/` when there are several areas)
-├── rules.ts            pure business rules: no database, no `server-only`, unit tested (`rules/` likewise)
+├── types/              shapes the feature passes around (`core.ts`, then one file per area)
+├── schemas/            Zod: shared by the form and the action
+├── rules/              pure business rules: no database, no `server-only`, unit tested (`core.ts` + areas)
 ├── repository/         data access: the only code that touches the database. `server-only`.
 ├── services/           server logic that is not a request: transactions, jobs, email, event handlers. `server-only`.
 ├── actions/            "use server" mutations: thin. guard, parse, call a service or repository, audit, revalidate
 ├── components/         UI. Never imports repository or services
-├── pdf/  table.ts      named extras when needed
+├── pdf/               named extras when needed (a PDF layout). List state (search, sort, filters from the URL) is `rules/table.ts`
 ```
 
 ## Data flow
@@ -30,8 +30,8 @@ mechanical: `actions/` become controllers, `services/` and `repository/` move ac
 
 ## Checklist
 
-1. `types.ts`, then `schemas.ts`.
-2. `rules.ts` for anything with a decision in it, with a `rules.test.ts` beside it.
+1. `types/core.ts`, then `schemas/core.ts`.
+2. `rules/core.ts` for anything with a decision in it, with a `core.test.ts` beside it.
 3. `repository/<area>.ts` (`import "server-only"`): reads and writes, owner or permission scoped.
 4. `services/<area>.ts` only when an action needs more than one repository call in a transaction, or a job or email needs the same logic.
 5. `actions/<area>.ts`: `"use server"`, `requirePermission()` first, then parse, write, audit, revalidate.

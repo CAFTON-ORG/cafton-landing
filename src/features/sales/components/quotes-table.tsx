@@ -12,8 +12,8 @@ import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import type { Page } from "@/lib/pagination";
 import { QUOTE_STATUSES, QUOTE_STATUS_LABEL } from "../rules/core";
-import { QUOTES_TABLE } from "../table";
-import type { QuoteRow } from "../types";
+import { QUOTES_TABLE } from "../rules/table";
+import type { QuoteRow } from "../types/core";
 import { QuoteStatusBadge } from "./quote-status-badge";
 
 const columns: Column<QuoteRow>[] = [

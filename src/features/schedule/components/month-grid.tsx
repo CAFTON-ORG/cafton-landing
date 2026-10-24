@@ -5,7 +5,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { monthGrid } from "../rules/calendar";
 import { formatManilaTime } from "../rules/slots";
-import type { MeetingView } from "../types";
+import type { MeetingView } from "../types/core";
 import { CHIP_TONE } from "./tones";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

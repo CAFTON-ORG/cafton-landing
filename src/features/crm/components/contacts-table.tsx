@@ -22,8 +22,8 @@ import {
   tagFilter,
 } from "./list-parts";
 import { SavedViews } from "./saved-views";
-import { CONTACTS_TABLE } from "../table";
-import type { ContactView, PersonRef } from "../types";
+import { CONTACTS_TABLE } from "../rules/table";
+import type { ContactView, PersonRef } from "../types/core";
 import type { CustomFieldDef } from "../rules/custom-fields";
 import { ContactDialog } from "./contact-dialog";
 

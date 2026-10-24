@@ -14,7 +14,7 @@ import {
   checkReopenLead,
   fullName,
 } from "../rules/core";
-import { reasonSchema } from "../schemas";
+import { reasonSchema } from "../schemas/core";
 import { buildEnquirySummary, type ContactFormData } from "../rules/contact";
 import { guard, refreshCrm } from "./guard";
 import { findLiveContactByEmail, firstOpenStage, logActivity } from "./shared";

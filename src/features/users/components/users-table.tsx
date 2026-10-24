@@ -27,9 +27,9 @@ import { formatDate, getInitials } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
 import { hasActiveFilters } from "@/lib/table-params";
 import { changeUserRole, removeUser, resendInvite, setTakesLeads } from "../actions/users";
-import { checkRemoval, checkRoleChange, checkTakesLeads } from "../rules";
-import { USER_STATUSES, type DashboardUser, type RoleOption } from "../types";
-import { usersTableConfig } from "../table";
+import { checkRemoval, checkRoleChange, checkTakesLeads } from "../rules/core";
+import { USER_STATUSES, type DashboardUser, type RoleOption } from "../types/core";
+import { usersTableConfig } from "../rules/table";
 import { InviteDialog } from "./invite-dialog";
 
 export function UsersTable({

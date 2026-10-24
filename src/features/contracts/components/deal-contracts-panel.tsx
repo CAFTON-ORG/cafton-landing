@@ -39,7 +39,7 @@ import { formatMinor } from "@/lib/money";
 import { createContract } from "../actions/contracts";
 import { needsQuote } from "../rules/merge";
 import { CONTRACT_KIND_LABEL } from "../rules/core";
-import type { ContractRow, QuoteChoice, TemplateView } from "../types";
+import type { ContractRow, QuoteChoice, TemplateView } from "../types/core";
 import { ContractStatusBadge } from "./contract-status-badge";
 
 /** The contracts and statements of work of one deal, with a button to draft another from a template. */

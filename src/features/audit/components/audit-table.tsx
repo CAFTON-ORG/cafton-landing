@@ -12,8 +12,8 @@ import { Button } from "@/components/dashboard/ui/button";
 import { formatDate } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
 import { hasActiveFilters } from "@/lib/table-params";
-import { AUDIT_TABLE } from "../table";
-import { AUDIT_ENTITIES, type AuditRow } from "../types";
+import { AUDIT_TABLE } from "../rules/table";
+import { AUDIT_ENTITIES, type AuditRow } from "../types/core";
 
 const columns: Column<AuditRow>[] = [
   {

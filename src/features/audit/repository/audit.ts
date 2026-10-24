@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import type { Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
-import type { AuditRow } from "../types";
+import type { AuditRow } from "../types/core";
 
 /** Newest first. Filters by free text (summary, person, action) and entity type. */
 export async function listAudit(params: TableParams): Promise<Page<AuditRow>> {

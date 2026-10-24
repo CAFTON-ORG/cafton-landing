@@ -15,7 +15,7 @@ import {
   listProjects,
   projectTotals,
 } from "@/features/delivery/repository/delivery";
-import { PROJECTS_TABLE } from "@/features/delivery/table";
+import { PROJECTS_TABLE } from "@/features/delivery/rules/table";
 import { manilaDate } from "@/features/schedule/rules/slots";
 import { actorId } from "@/lib/actions";
 import { can, requirePageAccess } from "@/lib/auth/dal";

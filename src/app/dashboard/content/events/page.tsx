@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { listEvents } from "@/features/cms/repository/admin";
-import { CONTENT_TABLE } from "@/features/cms/table";
+import { CONTENT_TABLE } from "@/features/cms/rules/table";
 import { ContentTable } from "@/features/cms/components/content-table";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";

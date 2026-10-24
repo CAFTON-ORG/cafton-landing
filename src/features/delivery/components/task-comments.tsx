@@ -11,8 +11,8 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatRelative } from "@/lib/format";
 import { addComment, deleteComment, getComments } from "../actions/extras";
-import { MAX_COMMENT } from "../rules";
-import type { CommentView } from "../types";
+import { MAX_COMMENT } from "../rules/core";
+import type { CommentView } from "../types/core";
 
 /** The conversation on one task: read it, add to it, remove your own. */
 export function TaskComments({ taskId, me }: { taskId: string; me?: string }) {

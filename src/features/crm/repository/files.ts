@@ -4,7 +4,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import type { FileSubject } from "../rules/files";
-import type { FileView } from "../types";
+import type { FileView } from "../types/core";
 
 /** The database filter for one record's files. */
 export const filesWhere = (subject: FileSubject): Prisma.RecordFileWhereInput => ({

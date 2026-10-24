@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { MAX_UPLOAD_BYTES } from "@/lib/media";
 import { uploadMedia } from "../actions/media";
-import type { MediaItem } from "../types";
+import type { MediaItem } from "../types/core";
 
 /**
  * Uploads files one request each (hosts cap request size) and reports as it goes.

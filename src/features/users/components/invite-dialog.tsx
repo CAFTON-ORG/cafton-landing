@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/dashboard/ui/select";
 import { inviteUser } from "../actions/users";
-import type { RoleOption } from "../types";
+import type { RoleOption } from "../types/core";
 
 export function InviteDialog({ roles }: { roles: RoleOption[] }) {
   const [open, setOpen] = useState(false);

@@ -9,7 +9,7 @@ import { useTableParams } from "@/components/dashboard/data-table/use-table-para
 import { formatDate } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
 import type { InvoiceRow } from "../types/invoices";
-import { INVOICE_TABLE } from "../table";
+import { INVOICE_TABLE } from "../rules/table";
 import { DueHint } from "./due-hint";
 import { InvoiceStateBadge } from "./invoice-state-badge";
 import { Money } from "./money";

@@ -7,8 +7,8 @@ import {
 } from "@/components/dashboard/ui/card";
 import { formatMinor } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { formatMinutes, margin } from "../rules";
-import type { ProjectFinancials } from "../types";
+import { formatMinutes, margin } from "../rules/core";
+import type { ProjectFinancials } from "../types/core";
 
 /**
  * What the project earns against what it costs. Only approved hours count, valued at each member's

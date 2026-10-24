@@ -33,7 +33,7 @@ import {
   greeting,
   longManilaDate,
   manilaHour,
-} from "@/features/overview/rules";
+} from "@/features/overview/rules/core";
 import { can, verifySession } from "@/lib/auth/dal";
 import { isDatabaseConfigured } from "@/lib/env";
 import { formatRelative } from "@/lib/format";

@@ -6,7 +6,7 @@ import { actorId, runAction, type ActionResult } from "@/lib/actions";
 import { verifySession } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { listNotifications } from "../services/notify";
-import type { NotificationView } from "../types";
+import type { NotificationView } from "../types/core";
 
 async function me() {
   const staff = await verifySession();

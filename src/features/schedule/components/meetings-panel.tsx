@@ -12,8 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/dashboard/ui/card";
-import type { PersonRef } from "@/features/crm/types";
-import type { MeetingView } from "../types";
+import type { PersonRef } from "@/features/crm/types/core";
+import type { MeetingView } from "../types/core";
 import { MeetingCard } from "./meeting-card";
 import { MeetingDialog, type MeetingDefaults } from "./meeting-dialog";
 

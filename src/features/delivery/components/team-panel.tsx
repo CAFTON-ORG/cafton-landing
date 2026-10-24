@@ -31,8 +31,8 @@ import { PersonSelect } from "@/features/crm/components/owner-select";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatMinor, minorToInput } from "@/lib/money";
 import { addMember, removeMember, setMemberCostRate } from "../actions/projects";
-import { formatMinutes } from "../rules";
-import type { MemberView, PersonRef } from "../types";
+import { formatMinutes } from "../rules/core";
+import type { MemberView, PersonRef } from "../types/core";
 
 type Editing = { kind: "add" } | { kind: "rate"; member: MemberView } | null;
 

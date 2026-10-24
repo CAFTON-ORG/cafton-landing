@@ -38,7 +38,7 @@ import {
   hoursUsage,
   isOpenProject,
   progressPercent,
-} from "@/features/delivery/rules";
+} from "@/features/delivery/rules/core";
 import { manilaDate } from "@/features/schedule/rules/slots";
 import { actorId } from "@/lib/actions";
 import { can, requirePageAccess } from "@/lib/auth/dal";

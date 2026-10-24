@@ -6,7 +6,7 @@ import { Field } from "@/components/dashboard/shared/field";
 import { Checkbox } from "@/components/dashboard/ui/checkbox";
 import { Input } from "@/components/dashboard/ui/input";
 import { Label } from "@/components/dashboard/ui/label";
-import type { MediaItem } from "@/features/media/types";
+import type { MediaItem } from "@/features/media/types/core";
 import { ImageField } from "./image-field";
 
 /**

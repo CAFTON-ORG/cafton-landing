@@ -28,7 +28,7 @@ import { listLeads } from "@/features/crm/repository/leads";
 import { countNewLeads } from "@/features/crm/repository/leads";
 import { getForecast } from "@/features/crm/repository/pipeline";
 import { countOpenTasks } from "@/features/crm/repository/tasks";
-import { LEADS_TABLE } from "@/features/crm/table";
+import { LEADS_TABLE } from "@/features/crm/rules/table";
 import { listMeetings, listRequests } from "@/features/schedule/repository/schedule";
 import { formatManila } from "@/features/schedule/rules/slots";
 import { actorId } from "@/lib/actions";

@@ -24,11 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/dashboard/ui/select";
-import type { PersonRef } from "@/features/crm/types";
+import type { PersonRef } from "@/features/crm/types/core";
 import { cn } from "@/lib/utils";
 import { shiftMonth, startOfWeek } from "../rules/calendar";
 import { addDays, manilaDate } from "../rules/slots";
-import type { MeetingView } from "../types";
+import type { MeetingView } from "../types/core";
 import { CalendarFeed } from "./calendar-feed";
 import { MeetingCard } from "./meeting-card";
 import { MeetingDialog } from "./meeting-dialog";

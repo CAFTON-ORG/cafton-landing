@@ -48,8 +48,8 @@ import {
   isOverdue,
   progressPercent,
   type MilestoneStatus,
-} from "../rules";
-import type { MilestoneView } from "../types";
+} from "../rules/core";
+import type { MilestoneView } from "../types/core";
 
 interface Draft {
   id?: string;

@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { OrganizationsTable } from "@/features/crm/components/organizations-table";
 import { listTagOptions } from "@/features/crm/repository/tags";
 import { listOrganizations } from "@/features/crm/repository/organizations";
-import { ORGANIZATIONS_TABLE } from "@/features/crm/table";
+import { ORGANIZATIONS_TABLE } from "@/features/crm/rules/table";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";
 

@@ -7,7 +7,7 @@ import { Button } from "@/components/dashboard/ui/button";
 import { EntryDialog } from "@/features/finance/components/entry-dialog";
 import { JournalTable } from "@/features/finance/components/journal-table";
 import { listJournal, listPostableAccounts } from "@/features/finance/repository/ledger";
-import { JOURNAL_TABLE } from "@/features/finance/table";
+import { JOURNAL_TABLE } from "@/features/finance/rules/table";
 import { manilaDate } from "@/features/schedule/rules/slots";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";

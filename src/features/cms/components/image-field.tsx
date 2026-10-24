@@ -9,7 +9,7 @@ import { Button } from "@/components/dashboard/ui/button";
 import { Input } from "@/components/dashboard/ui/input";
 import { MediaPicker } from "@/features/media/components/media-picker";
 import { useUpload } from "@/features/media/components/use-upload";
-import type { MediaItem } from "@/features/media/types";
+import type { MediaItem } from "@/features/media/types/core";
 import { ACCEPTED_IMAGE_TYPES } from "@/lib/media";
 import { cn } from "@/lib/utils";
 

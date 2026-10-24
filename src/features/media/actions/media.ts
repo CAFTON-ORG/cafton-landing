@@ -13,8 +13,8 @@ import { ACCEPTED_IMAGE_TYPES, MAX_UPLOAD_BYTES, MEDIA_BUCKET, newMediaPath } fr
 import { ImageRejected, sanitizeImage } from "@/lib/security/image";
 import { createClient } from "@/lib/supabase/server";
 import { getMedia } from "../repository/media";
-import { checkAltText, checkDeleteMedia } from "../rules";
-import type { MediaItem } from "../types";
+import { checkAltText, checkDeleteMedia } from "../rules/core";
+import type { MediaItem } from "../types/core";
 
 async function guard(permission: Permission) {
   const staff = await requirePermission(permission);

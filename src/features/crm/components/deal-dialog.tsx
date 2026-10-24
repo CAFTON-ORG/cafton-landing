@@ -29,7 +29,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { minorToInput } from "@/lib/money";
 import { createDeal, updateDeal } from "../actions/deals";
 import { checkEditAmount } from "../rules/core";
-import type { DealView, PersonRef } from "../types";
+import type { DealView, PersonRef } from "../types/core";
 import { PersonSelect } from "./owner-select";
 
 /** Create (no `deal`) or edit a deal. */

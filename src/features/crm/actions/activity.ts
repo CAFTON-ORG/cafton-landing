@@ -5,7 +5,7 @@ import { notify } from "@/features/notifications/services/notify";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { checkAddTaskToDeal } from "../rules/core";
-import { activitySchema, taskSchema, type ActivityInput, type TaskInput } from "../schemas";
+import { activitySchema, taskSchema, type ActivityInput, type TaskInput } from "../schemas/core";
 import { guard, refreshCrm } from "./guard";
 import { assertSubjectExists, logActivity, subjectPermission } from "./shared";
 

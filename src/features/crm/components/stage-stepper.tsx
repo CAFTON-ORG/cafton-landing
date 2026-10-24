@@ -7,7 +7,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { cn } from "@/lib/utils";
 import { moveDeal } from "../actions/deals";
 import { checkMoveDeal } from "../rules/core";
-import type { StageView } from "../types";
+import type { StageView } from "../types/core";
 
 /**
  * Where a deal is on its way through the pipeline, as the chevron-style progress bar people know

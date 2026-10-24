@@ -3,7 +3,7 @@ import "server-only";
 import { SYSTEM_ROLE_ORDER, resolvePermissions } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import type { RoleSummary } from "../types";
+import type { RoleSummary } from "../types/core";
 
 export async function listRoles(): Promise<RoleSummary[]> {
   if (!isDatabaseConfigured) return [];

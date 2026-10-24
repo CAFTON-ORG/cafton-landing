@@ -4,7 +4,7 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { UsersTable } from "@/features/users/components/users-table";
 import { listRoleOptions, listUsers } from "@/features/users/repository/users";
-import { usersTableConfig } from "@/features/users/table";
+import { usersTableConfig } from "@/features/users/rules/table";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";

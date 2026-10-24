@@ -44,7 +44,7 @@ import {
   PRICING_MODEL_LABEL,
   type CatalogItemView,
   type PricingModel,
-} from "../types";
+} from "../types/core";
 
 /** The price list: what Cafton sells and how it is charged. Quotes pick from it. */
 export function CatalogView({ items }: { items: CatalogItemView[] }) {

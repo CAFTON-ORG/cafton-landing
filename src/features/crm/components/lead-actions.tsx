@@ -34,7 +34,7 @@ import {
   checkQualify,
   checkReopenLead,
 } from "../rules/core";
-import type { LeadView, PersonRef } from "../types";
+import type { LeadView, PersonRef } from "../types/core";
 import { Person } from "@/components/dashboard/shared/person";
 import { PersonSelect } from "./owner-select";
 

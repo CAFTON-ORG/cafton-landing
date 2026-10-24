@@ -9,7 +9,7 @@ import { LeadsTable } from "@/features/crm/components/leads-table";
 import { listTagOptions } from "@/features/crm/repository/tags";
 import { listStaffOptions } from "@/features/crm/repository/pipeline";
 import { listLeads } from "@/features/crm/repository/leads";
-import { LEADS_TABLE } from "@/features/crm/table";
+import { LEADS_TABLE } from "@/features/crm/rules/table";
 import { actorId } from "@/lib/actions";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";

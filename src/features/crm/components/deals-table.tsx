@@ -16,8 +16,8 @@ import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import type { Page } from "@/lib/pagination";
 import { BulkBar, NextStep, TagList, customColumns, customFilters, tagFilter } from "./list-parts";
 import { SavedViews } from "./saved-views";
-import { dealsTableConfig } from "../table";
-import type { DealView, PersonRef, StageView } from "../types";
+import { dealsTableConfig } from "../rules/table";
+import type { DealView, PersonRef, StageView } from "../types/core";
 import type { CustomFieldDef } from "../rules/custom-fields";
 import { StageBadge } from "./badges";
 

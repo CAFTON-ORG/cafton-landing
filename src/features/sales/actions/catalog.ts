@@ -6,8 +6,8 @@ import { guard } from "@/features/crm/actions/guard";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
-import { catalogItemSchema, type CatalogItemInput } from "../schemas";
-import type { PricingModel } from "../types";
+import { catalogItemSchema, type CatalogItemInput } from "../schemas/core";
+import type { PricingModel } from "../types/core";
 
 const refresh = () => revalidatePath("/dashboard/sales/catalog");
 

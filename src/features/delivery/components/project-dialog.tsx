@@ -29,8 +29,8 @@ import { PersonSelect } from "@/features/crm/components/owner-select";
 import { useServerAction } from "@/hooks/use-server-action";
 import { minorToInput } from "@/lib/money";
 import { createProject, updateProject } from "../actions/projects";
-import { durationInput } from "../rules";
-import type { PersonRef, ProjectView } from "../types";
+import { durationInput } from "../rules/core";
+import type { PersonRef, ProjectView } from "../types/core";
 
 const NO_DEAL = "none";
 

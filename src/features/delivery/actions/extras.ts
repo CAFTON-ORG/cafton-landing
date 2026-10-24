@@ -16,9 +16,9 @@ import {
   checkShareProgress,
   checkTemplate,
   type ProjectStatus,
-} from "../rules";
-import { commentSchema, templateSchema, type TemplateInput } from "../schemas";
-import type { CommentView } from "../types";
+} from "../rules/core";
+import { commentSchema, templateSchema, type TemplateInput } from "../schemas/core";
+import type { CommentView } from "../types/core";
 import { applyTemplateTx, guard, loadProject, refreshDelivery } from "./shared";
 
 /* ----------------------------------------------------------------- comments */

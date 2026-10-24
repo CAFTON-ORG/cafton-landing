@@ -15,8 +15,8 @@ import {
   weekStartOf,
   type ProjectStatus,
   type TimeStatus,
-} from "../rules";
-import { reviewSchema, timeSchema, weekSchema, type TimeInput } from "../schemas";
+} from "../rules/core";
+import { reviewSchema, timeSchema, weekSchema, type TimeInput } from "../schemas/core";
 import { guard, refreshDelivery } from "./shared";
 import { z } from "zod";
 

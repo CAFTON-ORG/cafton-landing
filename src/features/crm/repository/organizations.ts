@@ -7,7 +7,7 @@ import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
 import { live, toOrganization } from "./mappers";
-import type { OrganizationView } from "../types";
+import type { OrganizationView } from "../types/core";
 
 const include = {
   _count: { select: { contacts: { where: live }, deals: { where: live } } },

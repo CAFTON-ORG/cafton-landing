@@ -34,7 +34,7 @@ import {
   submitTarget,
   type QuoteStatus,
 } from "../rules/core";
-import { quoteSchema, type QuoteInput } from "../schemas";
+import { quoteSchema, type QuoteInput } from "../schemas/core";
 import { fingerprintOf, moveDealAfter } from "../services/quotes";
 
 const DEFAULT_INTRO =

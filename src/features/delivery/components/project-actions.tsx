@@ -9,8 +9,8 @@ import { ConfirmDialog } from "@/components/dashboard/shared/confirm-dialog";
 import { Button } from "@/components/dashboard/ui/button";
 import { useServerAction } from "@/hooks/use-server-action";
 import { deleteProject, setProjectStatus } from "../actions/projects";
-import { PROJECT_STATUS_LABEL, nextProjectStatuses, type ProjectStatus } from "../rules";
-import type { PersonRef, ProjectView } from "../types";
+import { PROJECT_STATUS_LABEL, nextProjectStatuses, type ProjectStatus } from "../rules/core";
+import type { PersonRef, ProjectView } from "../types/core";
 import { ProjectDialog } from "./project-dialog";
 
 /** What each move is called on a button, from where the project is now. */

@@ -9,7 +9,7 @@ import { useTableParams } from "@/components/dashboard/data-table/use-table-para
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { formatDate } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
-import { JOURNAL_SOURCES, JOURNAL_SOURCE_LABEL, JOURNAL_TABLE } from "../table";
+import { JOURNAL_SOURCES, JOURNAL_SOURCE_LABEL, JOURNAL_TABLE } from "../rules/table";
 import type { JournalRow } from "../types/core";
 import { Money } from "./money";
 

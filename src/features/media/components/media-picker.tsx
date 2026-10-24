@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/dashboard/ui/input";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { listMediaForPicker } from "../actions/media";
-import type { MediaItem } from "../types";
+import type { MediaItem } from "../types/core";
 import { UploadButton } from "./upload-button";
 
 /**

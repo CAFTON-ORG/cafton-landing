@@ -7,7 +7,7 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { HOLDING } from "../rules/core";
 import type { Interval } from "../rules/slots";
-import type { MeetingMode, MeetingStatus, MeetingView } from "../types";
+import type { MeetingMode, MeetingStatus, MeetingView } from "../types/core";
 
 const include = {
   lead: { select: { id: true, reference: true } },

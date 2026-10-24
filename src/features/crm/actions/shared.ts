@@ -4,7 +4,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { actorId } from "@/lib/actions";
 import { ActionError } from "@/lib/actions";
 import { live } from "../repository/mappers";
-import type { Subject } from "../types";
+import type { Subject } from "../types/core";
 
 export type Tx = Prisma.TransactionClient;
 

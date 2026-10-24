@@ -22,7 +22,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { minorToInput } from "@/lib/money";
 import { deleteDeal, loseDeal, reopenDeal, winDeal } from "../actions/deals";
 import { checkDealDelete, checkReopenDeal } from "../rules/core";
-import type { DealView, PersonRef } from "../types";
+import type { DealView, PersonRef } from "../types/core";
 import { DealDialog } from "./deal-dialog";
 
 export function DealActions({

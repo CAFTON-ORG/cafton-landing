@@ -28,7 +28,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate, formatRelative } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
 import { deleteContent, setContentStatus } from "../actions/content";
-import { CONTENT_TABLE } from "../table";
+import { CONTENT_TABLE } from "../rules/table";
 import {
   CONTENT_STATUSES,
   STATUS_LABEL,

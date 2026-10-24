@@ -11,7 +11,7 @@ import { listTagOptions } from "@/features/crm/repository/tags";
 import { listContacts } from "@/features/crm/repository/contacts";
 import { listOrganizationOptions } from "@/features/crm/repository/organizations";
 import { listStaffOptions } from "@/features/crm/repository/pipeline";
-import { CONTACTS_TABLE } from "@/features/crm/table";
+import { CONTACTS_TABLE } from "@/features/crm/rules/table";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";
 

@@ -10,8 +10,8 @@ import {
   CardTitle,
 } from "@/components/dashboard/ui/card";
 import { formatDate } from "@/lib/format";
-import { formatMinutes } from "../rules";
-import type { TimeEntryView } from "../types";
+import { formatMinutes } from "../rules/core";
+import type { TimeEntryView } from "../types/core";
 import { TimeStatusBadge } from "./badges";
 
 /** The latest hours logged on a project, with who logged them and where each stands. Read-only. */

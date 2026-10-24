@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { namesFor } from "./mappers";
 import { fullName } from "../rules/core";
-import type { Subject, TaskView } from "../types";
+import type { Subject, TaskView } from "../types/core";
 
 const include = {
   lead: { select: { id: true, reference: true, firstName: true, lastName: true } },

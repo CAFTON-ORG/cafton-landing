@@ -19,7 +19,7 @@ import { listRecentAudit } from "@/features/audit/repository/audit";
 import { listAllUsers } from "@/features/users/repository/users";
 import { can } from "@/lib/auth/dal";
 import { formatMinor } from "@/lib/money";
-import { count, rankAttention, type AttentionItem } from "../rules";
+import { count, rankAttention, type AttentionItem } from "../rules/core";
 
 type Staff = Parameters<typeof can>[0];
 

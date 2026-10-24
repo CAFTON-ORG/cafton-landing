@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
-import type { DashboardUser, RoleOption } from "../types";
+import type { DashboardUser, RoleOption } from "../types/core";
 
 const roleSelect = { select: { id: true, key: true, name: true } } as const;
 

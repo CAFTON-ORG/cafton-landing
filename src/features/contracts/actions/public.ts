@@ -14,7 +14,7 @@ import { sendMail } from "@/lib/mail";
 import { renderEmail } from "@/lib/mail-templates";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { checkRespond, CONTRACT_KIND_LABEL, type ContractStatus } from "../rules/core";
-import { respondSchema, type RespondInput } from "../schemas";
+import { respondSchema, type RespondInput } from "../schemas/core";
 import { fingerprintOf } from "../services/contracts";
 
 /** The system acting for a client who used the public link: there is no staff member to name. */

@@ -16,9 +16,9 @@ import {
   sanitizeFileName,
   type FileSubject,
 } from "../rules/files";
-import { fileSubjectSchema } from "../schemas";
+import { fileSubjectSchema } from "../schemas/core";
 import { filesWhere } from "../repository/files";
-import type { FileView } from "../types";
+import type { FileView } from "../types/core";
 import { guard, refreshCrm } from "./guard";
 import { assertSubjectExists, logActivity } from "./shared";
 

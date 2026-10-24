@@ -19,7 +19,7 @@ import { Input } from "@/components/dashboard/ui/input";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { createOrganization, updateOrganization } from "../actions/contacts";
-import type { OrganizationView } from "../types";
+import type { OrganizationView } from "../types/core";
 
 export function OrganizationDialog({
   organization,

@@ -16,8 +16,8 @@ import {
   CONTRACT_STATUSES,
   CONTRACT_STATUS_LABEL,
 } from "../rules/core";
-import { CONTRACTS_TABLE } from "../table";
-import type { ContractRow } from "../types";
+import { CONTRACTS_TABLE } from "../rules/table";
+import type { ContractRow } from "../types/core";
 import { ContractStatusBadge } from "./contract-status-badge";
 
 const columns: Column<ContractRow>[] = [

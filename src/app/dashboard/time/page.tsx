@@ -14,7 +14,7 @@ import {
   listWeek,
   utilisationReport,
 } from "@/features/delivery/repository/delivery";
-import { reportWeeks, weekStartOf } from "@/features/delivery/rules";
+import { reportWeeks, weekStartOf } from "@/features/delivery/rules/core";
 import { addDays, manilaDate } from "@/features/schedule/rules/slots";
 import { actorId } from "@/lib/actions";
 import { can, verifySession } from "@/lib/auth/dal";

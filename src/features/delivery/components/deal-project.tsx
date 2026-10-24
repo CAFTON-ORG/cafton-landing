@@ -8,7 +8,7 @@ import { useCan } from "@/components/dashboard/layout/staff-context";
 import { Button } from "@/components/dashboard/ui/button";
 import { useServerAction } from "@/hooks/use-server-action";
 import { startProjectFromDeal } from "../actions/projects";
-import { PROJECT_STATUS_LABEL, type ProjectStatus } from "../rules";
+import { PROJECT_STATUS_LABEL, type ProjectStatus } from "../rules/core";
 
 /**
  * On a deal's page: the project it became, or, for a won deal with none, the button that starts

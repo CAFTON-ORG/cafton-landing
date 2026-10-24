@@ -17,7 +17,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "../actions/notifications";
-import type { NotificationView } from "../types";
+import type { NotificationView } from "../types/core";
 
 /**
  * The bell in the top bar. The page only carries the unread count; the list is read when the bell

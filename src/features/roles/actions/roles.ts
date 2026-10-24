@@ -8,8 +8,8 @@ import { requirePermission } from "@/lib/auth/dal";
 import { normalisePermissions } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import { checkDeletable, checkEditable, checkGrantable, slugifyRoleName } from "../rules";
-import { roleSchema, type RoleInput } from "../schemas";
+import { checkDeletable, checkEditable, checkGrantable, slugifyRoleName } from "../rules/core";
+import { roleSchema, type RoleInput } from "../schemas/core";
 
 async function guard() {
   const staff = await requirePermission("roles:manage");

@@ -28,8 +28,8 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { reviewTime } from "../actions/time";
-import { formatMinutes } from "../rules";
-import type { TimeEntryView } from "../types";
+import { formatMinutes } from "../rules/core";
+import type { TimeEntryView } from "../types/core";
 
 interface Group {
   key: string;

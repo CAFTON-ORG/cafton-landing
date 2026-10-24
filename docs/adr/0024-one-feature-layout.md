@@ -13,20 +13,17 @@ in, and lifting the server code into an API later would have meant untangling it
 
 ```
 features/<domain>/
-├── types.ts | types/          shapes (a folder once there are several areas)
-├── schemas.ts | schemas/      Zod, shared by the form and the action
-├── rules.ts | rules/          pure business rules, no database, unit tested
-├── repository/                data access, `server-only`
-├── services/                  server logic that is not a request: transactions, jobs, email, event handlers
-├── actions/                   "use server" mutations, thin
-├── components/                UI, never imports repository or services
-└── pdf/  table.ts             named extras
+├── types/            shapes
+├── schemas/          Zod, shared by the form and the action
+├── rules/            pure business rules, no database, unit tested
+├── repository/       data access, `server-only`
+├── services/         server logic that is not a request: transactions, jobs, email, event handlers
+├── actions/          "use server" mutations, thin
+├── components/       UI, never imports repository or services
+└── pdf/             named extras (a PDF layout)
 ```
 
-`repository/`, `services/` and `actions/` are always folders, with files named by area (`finance/
-repository/invoices.ts`). `types`, `schemas` and `rules` are one file until a feature has several
-areas, then a folder with `core.ts` plus one file per area. `src/features/structure.test.ts` fails the
-build when a feature drifts, and `src/features/_template/` is the copy-me skeleton.
+Every layer is always a folder (never `rules.ts` beside `rules/`), with files named by area and `core.ts` for the main one (`finance/repository/invoices.ts`, `crm/rules/core.ts`). `src/features/structure.test.ts` fails the build when a feature drifts, and `src/features/_template/` is the copy-me skeleton.
 
 ## Why it suits an API later
 

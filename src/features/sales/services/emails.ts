@@ -7,7 +7,7 @@ import { formatMinor } from "@/lib/money";
 import { sendMail, siteOrigin } from "@/lib/mail";
 import { renderEmail } from "@/lib/mail-templates";
 import { renderQuotePdf } from "../pdf/quote-pdf";
-import type { PublicQuote } from "../types";
+import type { PublicQuote } from "../types/core";
 
 export const quoteLink = (token: string) => `${siteOrigin()}/q/${token}`;
 

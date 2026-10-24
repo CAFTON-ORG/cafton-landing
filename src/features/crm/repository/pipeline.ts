@@ -5,7 +5,7 @@ import { isDatabaseConfigured } from "@/lib/env";
 import { DEFAULT_CURRENCY, weightedMinor } from "@/lib/money";
 import { fromManila, manilaDate } from "@/features/schedule/rules/slots";
 import { live, toStage } from "./mappers";
-import type { ForecastView, PersonRef, PipelineView, StageView } from "../types";
+import type { ForecastView, PersonRef, PipelineView, StageView } from "../types/core";
 
 /** The stages of one pipeline (the default one when none is named), in order. */
 export async function listStages(pipelineId?: string): Promise<StageView[]> {

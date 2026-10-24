@@ -12,7 +12,7 @@ import { listDeals } from "../repository/deals";
 import { listLeads } from "../repository/leads";
 import { listOrganizations } from "../repository/organizations";
 import { listPipelines } from "../repository/pipeline";
-import { CONTACTS_TABLE, LEADS_TABLE, ORGANIZATIONS_TABLE, dealsTableConfig } from "../table";
+import { CONTACTS_TABLE, LEADS_TABLE, ORGANIZATIONS_TABLE, dealsTableConfig } from "../rules/table";
 
 export const EXPORT_KINDS = ["leads", "contacts", "organizations", "deals"] as const;
 export type ExportKind = (typeof EXPORT_KINDS)[number];

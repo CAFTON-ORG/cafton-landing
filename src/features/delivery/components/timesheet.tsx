@@ -41,9 +41,9 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { deleteTime, logTime, submitWeek } from "../actions/time";
-import { canEditEntry, durationInput, formatMinutes, weekDates } from "../rules";
+import { canEditEntry, durationInput, formatMinutes, weekDates } from "../rules/core";
 import type { LoggableProject } from "../repository/delivery";
-import type { TimeEntryView } from "../types";
+import type { TimeEntryView } from "../types/core";
 import { TimeStatusBadge } from "./badges";
 
 interface Draft {

@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 
 import { prisma } from "@/lib/db";
 import { escapeText, fold, stamp } from "../rules/ics";
-import { MEETING_MODE_LABEL, type MeetingMode } from "../types";
+import { MEETING_MODE_LABEL, type MeetingMode } from "../types/core";
 
 /** A new unguessable link token: 32 random bytes, URL safe, 43 characters. */
 export const newCalendarToken = () => randomBytes(32).toString("base64url");

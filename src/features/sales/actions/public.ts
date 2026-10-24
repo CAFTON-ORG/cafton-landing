@@ -16,7 +16,7 @@ import { checkRateLimit } from "@/lib/security/rate-limit";
 import { TOKEN_SHAPE, hashToken } from "../services/integrity";
 import { checkRespond, type QuoteStatus } from "../rules/core";
 import { fingerprintOf, moveDealAfter } from "../services/quotes";
-import { respondSchema, type RespondInput } from "../schemas";
+import { respondSchema, type RespondInput } from "../schemas/core";
 
 /** The system acting for a client who used the public link: there is no staff member to name. */
 const CLIENT = { id: "client-link", name: "Client (public quote link)" };

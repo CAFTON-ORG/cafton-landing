@@ -55,7 +55,7 @@ import {
   type ActivityView,
   type LoggableActivityType,
   type Subject,
-} from "../types";
+} from "../types/core";
 
 const ICON: Record<ActivityView["type"], LucideIcon> = {
   note: StickyNote,

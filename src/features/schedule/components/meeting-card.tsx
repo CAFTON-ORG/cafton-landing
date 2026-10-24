@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/dashboard/ui/dialog";
 import { Textarea } from "@/components/dashboard/ui/textarea";
-import type { PersonRef } from "@/features/crm/types";
+import type { PersonRef } from "@/features/crm/types/core";
 import { useServerAction } from "@/hooks/use-server-action";
 import { cn } from "@/lib/utils";
 import { setMeetingStatus } from "../actions/schedule";
@@ -31,7 +31,7 @@ import {
   type MeetingMode,
   type MeetingStatus,
   type MeetingView,
-} from "../types";
+} from "../types/core";
 import { MeetingDialog } from "./meeting-dialog";
 
 export const STATUS_TONE: Record<MeetingStatus, StatusTone> = {

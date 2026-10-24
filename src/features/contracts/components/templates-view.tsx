@@ -35,7 +35,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { deleteTemplate, saveTemplate } from "../actions/templates";
 import { MERGE_FIELDS } from "../rules/merge";
 import { CONTRACT_KINDS, CONTRACT_KIND_LABEL, type ContractKind } from "../rules/core";
-import type { TemplateView } from "../types";
+import type { TemplateView } from "../types/core";
 
 /** The wording library for contracts and statements of work. */
 export function TemplatesView({ templates }: { templates: TemplateView[] }) {

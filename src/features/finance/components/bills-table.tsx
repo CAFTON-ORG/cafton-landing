@@ -11,7 +11,7 @@ import { formatDate } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
 import type { BillRow } from "../types/payables";
 import { BILL_STATE_LABEL, type BillState } from "../rules/payables";
-import { BILL_TABLE } from "../table";
+import { BILL_TABLE } from "../rules/table";
 import { DueHint } from "./due-hint";
 import { Money } from "./money";
 

@@ -77,7 +77,7 @@ import {
 } from "../rules/options";
 import { lineTotal, parseQuantity, quantityText, quoteTotals } from "../rules/pricing";
 import { approvalReasons, canEdit, checkWithdraw } from "../rules/core";
-import type { CatalogItemView, QuoteView } from "../types";
+import type { CatalogItemView, QuoteView } from "../types/core";
 import { QuoteHistory } from "./quote-history";
 import { QuoteStatusBadge } from "./quote-status-badge";
 

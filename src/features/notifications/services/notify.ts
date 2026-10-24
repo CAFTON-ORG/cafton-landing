@@ -3,7 +3,7 @@ import "server-only";
 import { resolvePermissions, type Permission } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import type { NotificationView } from "../types";
+import type { NotificationView } from "../types/core";
 
 export interface NewNotification {
   kind: string;

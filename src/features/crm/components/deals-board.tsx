@@ -61,7 +61,7 @@ import { manilaDate } from "@/features/schedule/rules/slots";
 import { loseDeal, moveDeal, winDeal } from "../actions/deals";
 import { pipelineStats } from "../rules/stats";
 import { checkMoveDeal } from "../rules/core";
-import type { DealView, StageView } from "../types";
+import type { DealView, StageView } from "../types/core";
 
 const DAY = 86_400_000;
 const daysIn = (iso: string) =>

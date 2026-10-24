@@ -13,8 +13,8 @@ import {
   CardTitle,
 } from "@/components/dashboard/ui/card";
 import { Progress } from "@/components/dashboard/ui/progress";
-import { REPORT_WEEKS, WORK_WEEK_MINUTES, formatMinutes } from "../rules";
-import type { UtilisationRow } from "../types";
+import { REPORT_WEEKS, WORK_WEEK_MINUTES, formatMinutes } from "../rules/core";
+import type { UtilisationRow } from "../types/core";
 
 /**
  * Who is spending their time on billable work. Utilisation is billable approved hours as a share

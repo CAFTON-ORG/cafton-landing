@@ -15,7 +15,7 @@ import { listTagOptions } from "@/features/crm/repository/tags";
 import { listBoardDeals, listDeals } from "@/features/crm/repository/deals";
 import { listOrganizationOptions } from "@/features/crm/repository/organizations";
 import { listPipelines, listStaffOptions } from "@/features/crm/repository/pipeline";
-import { dealsTableConfig } from "@/features/crm/table";
+import { dealsTableConfig } from "@/features/crm/rules/table";
 import { actorId } from "@/lib/actions";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";

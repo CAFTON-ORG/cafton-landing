@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 import { LOGO_PATH_D } from "@/components/shared/logo";
 import { quantityText } from "../rules/pricing";
 import { QUOTE_STATUS_LABEL } from "../rules/core";
-import type { PublicQuote } from "../types";
+import type { PublicQuote } from "../types/core";
 
 /**
  * The quote as a branded A4 document. The built-in PDF fonts have no peso sign, so amounts read

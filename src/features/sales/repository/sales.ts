@@ -10,7 +10,13 @@ import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
 import { effectiveStatus, type QuoteStatus } from "../rules/core";
-import type { CatalogItemView, PricingModel, PublicQuote, QuoteRow, QuoteView } from "../types";
+import type {
+  CatalogItemView,
+  PricingModel,
+  PublicQuote,
+  QuoteRow,
+  QuoteView,
+} from "../types/core";
 
 const day = (date: Date | null) => (date ? date.toISOString().slice(0, 10) : undefined);
 const iso = (date: Date | null) => (date ? date.toISOString() : undefined);

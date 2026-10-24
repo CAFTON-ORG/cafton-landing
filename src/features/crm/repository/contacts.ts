@@ -8,7 +8,7 @@ import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
 import { live, namesFor, toContact } from "./mappers";
-import type { ContactView } from "../types";
+import type { ContactView } from "../types/core";
 
 const include = {
   organization: { select: { name: true } },

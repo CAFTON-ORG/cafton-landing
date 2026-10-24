@@ -13,14 +13,14 @@ import {
   checkPortfolioLink,
   checkProjectStatusChange,
   type ProjectStatus,
-} from "../rules";
+} from "../rules/core";
 import {
   memberSchema,
   projectSchema,
   statusSchema,
   type MemberInput,
   type ProjectInput,
-} from "../schemas";
+} from "../schemas/core";
 import {
   applyTemplateTx,
   assertStaff,

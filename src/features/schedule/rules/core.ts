@@ -1,4 +1,4 @@
-import type { MeetingStatus } from "../types";
+import type { MeetingStatus } from "../types/core";
 
 /** Rules for meetings. Pure: shared by the dashboard and the Server Actions, and unit tested. */
 

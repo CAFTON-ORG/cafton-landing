@@ -16,7 +16,7 @@ import {
   meetingStatusSchema,
   type MeetingInput,
   type MeetingStatusInput,
-} from "../schemas";
+} from "../schemas/core";
 import { addDays, formatManila, fromManila, manilaTime, slotsForDate } from "../rules/slots";
 
 const OVERLAP = "That time overlaps another meeting. Pick a different time.";

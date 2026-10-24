@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/dashboard/ui/select";
-import type { PersonRef } from "../types";
+import type { PersonRef } from "../types/core";
 
 export const NONE = "none";
 

@@ -34,7 +34,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate, formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { bulkAssign, bulkDelete, bulkTag, type BulkResult } from "../actions/bulk";
-import type { PersonRef } from "../types";
+import type { PersonRef } from "../types/core";
 import type { Taggable } from "../rules/tags";
 
 /** The tags of a row, a few as badges and "+n" for the rest. */

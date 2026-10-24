@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { mediaPublicUrl } from "@/lib/media";
 import { paginate, type Page } from "@/lib/pagination";
-import type { MediaItem } from "../types";
+import type { MediaItem } from "../types/core";
 
 /**
  * How many pieces of content mention a stored image. Content refers to an image by its

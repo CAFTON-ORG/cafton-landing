@@ -13,7 +13,7 @@ import {
   type MilestoneStatus,
   type ProjectStatus,
   type TaskStatus,
-} from "../rules";
+} from "../rules/core";
 import {
   milestoneSchema,
   milestoneStatusSchema,
@@ -21,7 +21,7 @@ import {
   taskSchema,
   type MilestoneInput,
   type TaskInput,
-} from "../schemas";
+} from "../schemas/core";
 import { guard, loadProject, moneyField, refreshDelivery, type Tx } from "./shared";
 
 const date = (value: string | null) => (value ? new Date(`${value}T00:00:00Z`) : null);

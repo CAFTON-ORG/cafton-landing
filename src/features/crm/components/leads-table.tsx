@@ -21,10 +21,10 @@ import {
   tagFilter,
 } from "./list-parts";
 import { SavedViews } from "./saved-views";
-import { LEADS_TABLE } from "../table";
-import type { PersonRef } from "../types";
+import { LEADS_TABLE } from "../rules/table";
+import type { PersonRef } from "../types/core";
 import type { CustomFieldDef } from "../rules/custom-fields";
-import { LEAD_STATUSES, LEAD_STATUS_LABEL, type LeadView } from "../types";
+import { LEAD_STATUSES, LEAD_STATUS_LABEL, type LeadView } from "../types/core";
 import { LEAD_BANDS, LEAD_BAND_LABEL } from "../rules/scoring";
 import { LeadScoreBadge, LeadStatusBadge } from "./badges";
 

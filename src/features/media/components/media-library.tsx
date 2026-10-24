@@ -16,8 +16,8 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatBytes } from "@/lib/media";
 import type { Page } from "@/lib/pagination";
 import { deleteMedia, updateMediaAlt } from "../actions/media";
-import { checkDeleteMedia } from "../rules";
-import type { MediaItem } from "../types";
+import { checkDeleteMedia } from "../rules/core";
+import type { MediaItem } from "../types/core";
 import { UploadButton } from "./upload-button";
 
 function MediaCard({ item, onDelete }: { item: MediaItem; onDelete: (item: MediaItem) => void }) {

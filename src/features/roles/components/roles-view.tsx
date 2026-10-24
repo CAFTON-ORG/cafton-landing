@@ -16,9 +16,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/dashboard/ui/card";
-import { checkDeletable } from "../rules";
+import { checkDeletable } from "../rules/core";
 import { deleteRole } from "../actions/roles";
-import type { RoleSummary } from "../types";
+import type { RoleSummary } from "../types/core";
 
 export function RolesView({ roles }: { roles: RoleSummary[] }) {
   const canManage = useCan("roles:manage");

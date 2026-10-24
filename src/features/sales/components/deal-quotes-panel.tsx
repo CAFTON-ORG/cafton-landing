@@ -19,7 +19,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import { createQuote } from "../actions/quotes";
-import type { QuoteRow } from "../types";
+import type { QuoteRow } from "../types/core";
 import { QuoteStatusBadge } from "./quote-status-badge";
 
 /** The quotes made for one deal, newest first, with a button to start another. */

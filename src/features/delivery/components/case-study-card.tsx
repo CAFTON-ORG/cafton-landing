@@ -23,7 +23,7 @@ import {
 } from "@/components/dashboard/ui/select";
 import { useServerAction } from "@/hooks/use-server-action";
 import { linkPortfolio } from "../actions/projects";
-import type { PortfolioOption } from "../types";
+import type { PortfolioOption } from "../types/core";
 
 const NONE = "none";
 

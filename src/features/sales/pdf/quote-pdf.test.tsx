@@ -1,7 +1,7 @@
 import { inflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 
-import type { PublicQuote } from "../types";
+import type { PublicQuote } from "../types/core";
 import { renderQuotePdf } from "./quote-pdf";
 
 const company = { name: "Cafton", email: "contact@cafton.com", place: "Baguio City, Philippines" };

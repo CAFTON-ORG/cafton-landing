@@ -7,7 +7,7 @@ import { sendMail } from "@/lib/mail";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { live } from "../repository/mappers";
 import { checkEmailable } from "../rules/core";
-import { sendEmailSchema, type SendEmailInput } from "../schemas";
+import { sendEmailSchema, type SendEmailInput } from "../schemas/core";
 import { guard, refreshCrm } from "./guard";
 import { assertSubjectExists, logActivity, subjectPermission } from "./shared";
 

@@ -36,8 +36,8 @@ import {
   type Resource,
 } from "@/lib/auth/permissions";
 import { deleteRole, saveRole } from "../actions/roles";
-import { checkDeletable } from "../rules";
-import type { RoleSummary } from "../types";
+import { checkDeletable } from "../rules/core";
+import type { RoleSummary } from "../types/core";
 
 const RESOURCE_KEYS = Object.keys(RESOURCES) as Resource[];
 const permissionsOf = (resource: Resource) =>

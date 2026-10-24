@@ -37,7 +37,7 @@ import {
   updateStage,
 } from "../actions/pipelines";
 import type { StageFieldChoice } from "../rules/pipelines";
-import type { PipelineView, StageView } from "../types";
+import type { PipelineView, StageView } from "../types/core";
 
 type Values = { name: string; probability: string; exitCriteria: string; requiredFields: string[] };
 

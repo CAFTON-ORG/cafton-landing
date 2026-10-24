@@ -12,9 +12,9 @@ import { Progress } from "@/components/dashboard/ui/progress";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import type { Page } from "@/lib/pagination";
-import { PROJECT_STATUSES, PROJECT_STATUS_LABEL, progressPercent } from "../rules";
-import { PROJECTS_TABLE } from "../table";
-import type { ProjectRow } from "../types";
+import { PROJECT_STATUSES, PROJECT_STATUS_LABEL, progressPercent } from "../rules/core";
+import { PROJECTS_TABLE } from "../rules/table";
+import type { ProjectRow } from "../types/core";
 import { ProjectStatusBadge } from "./badges";
 
 const columns: Column<ProjectRow>[] = [

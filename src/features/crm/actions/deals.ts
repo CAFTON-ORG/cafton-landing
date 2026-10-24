@@ -16,7 +16,7 @@ import {
   checkReopenDeal,
   checkWin,
 } from "../rules/core";
-import { dealSchema, reasonSchema, type DealInput } from "../schemas";
+import { dealSchema, reasonSchema, type DealInput } from "../schemas/core";
 import { guard, refreshCrm } from "./guard";
 import {
   checkDealDelete as checkQuotesBlockDelete,

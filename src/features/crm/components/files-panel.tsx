@@ -35,7 +35,7 @@ import {
   type FileKind,
   type FileSubject,
 } from "../rules/files";
-import type { FileView } from "../types";
+import type { FileView } from "../types/core";
 
 const ICON: Record<FileKind, LucideIcon> = {
   pdf: FileText,

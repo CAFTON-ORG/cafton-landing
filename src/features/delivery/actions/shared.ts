@@ -14,7 +14,7 @@ import {
   type CloseFacts,
   type ProjectStatus,
   type TemplateBody,
-} from "../rules";
+} from "../rules/core";
 
 export { guard };
 export type { Tx };

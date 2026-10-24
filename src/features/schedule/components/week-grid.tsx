@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/dashboard/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { weekDays } from "../rules/calendar";
 import { manilaTime } from "../rules/slots";
-import type { MeetingView } from "../types";
+import type { MeetingView } from "../types/core";
 import { CHIP_TONE } from "./tones";
 
 const FIRST_HOUR = 7;

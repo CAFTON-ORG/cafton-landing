@@ -10,7 +10,7 @@ import {
   organizationSchema,
   type ContactInput,
   type OrganizationInput,
-} from "../schemas";
+} from "../schemas/core";
 import { guard, refreshCrm } from "./guard";
 import { findLiveContactByEmail } from "./shared";
 

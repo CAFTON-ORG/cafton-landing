@@ -10,7 +10,7 @@ import {
   type TaskPriority,
   type TaskStatus,
   type TimeStatus,
-} from "../rules";
+} from "../rules/core";
 
 const PROJECT: Record<ProjectStatus, StatusTone> = {
   planned: "neutral",

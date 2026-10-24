@@ -18,7 +18,7 @@ import { Input } from "@/components/dashboard/ui/input";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { sendRecordEmail } from "../actions/email";
-import type { Subject } from "../types";
+import type { Subject } from "../types/core";
 
 /**
  * Writes and sends an email to the person on a lead, contact or deal. Replies come to the sender's

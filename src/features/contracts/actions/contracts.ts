@@ -25,7 +25,7 @@ import {
   type ContractKind,
   type ContractStatus,
 } from "../rules/core";
-import { contractSchema, type ContractInput } from "../schemas";
+import { contractSchema, type ContractInput } from "../schemas/core";
 import { fingerprintOf, mergeValues, renderContractBody } from "../services/contracts";
 
 function refreshContracts(dealId?: string) {

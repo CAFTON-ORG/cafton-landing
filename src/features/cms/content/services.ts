@@ -1,4 +1,4 @@
-import type { ServiceContent } from "../types";
+import type { ServiceContent } from "../types/core";
 
 /** The service areas and the systems under each, as the site said before they were editable. */
 export const serviceContent: ServiceContent[] = [

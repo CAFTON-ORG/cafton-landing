@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { EventStatusBadge } from "@/components/marketing/events/event-status";
 import { CoverArt } from "@/components/marketing/decor/cover-art";
 import { formatEventDates, getEventStatus } from "@/features/cms/lib/events";
-import type { CaftonEvent } from "@/features/cms/types";
+import type { CaftonEvent } from "@/features/cms/types/core";
 
 /** One ruled line in the events index: poster thumbnail, title, dates, status. */
 export function EventRow({ event }: { event: CaftonEvent }) {

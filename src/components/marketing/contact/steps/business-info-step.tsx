@@ -14,7 +14,7 @@ import {
   positions,
   yearsOperating,
   type ContactFormData,
-} from "@/features/crm/contact";
+} from "@/features/crm/rules/contact";
 import type { FieldErrors } from "@/components/marketing/contact/types";
 
 interface BusinessInfoStepProps {

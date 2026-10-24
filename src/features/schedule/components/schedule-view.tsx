@@ -26,8 +26,8 @@ import {
 } from "@/components/dashboard/ui/select";
 import type { PersonRef } from "@/features/crm/types";
 import { cn } from "@/lib/utils";
-import { shiftMonth, startOfWeek } from "../calendar";
-import { addDays, manilaDate } from "../slots";
+import { shiftMonth, startOfWeek } from "../rules/calendar";
+import { addDays, manilaDate } from "../rules/slots";
 import type { MeetingView } from "../types";
 import { CalendarFeed } from "./calendar-feed";
 import { MeetingCard } from "./meeting-card";

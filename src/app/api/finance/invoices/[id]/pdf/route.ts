@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { renderInvoicePdf } from "@/features/finance/pdf/invoice-pdf";
-import { getInvoice } from "@/features/finance/invoice-repository";
-import { companyDetails } from "@/features/sales/emails";
-import { manilaDate } from "@/features/schedule/slots";
+import { getInvoice } from "@/features/finance/repository/invoices";
+import { companyDetails } from "@/features/sales/services/emails";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { can, getStaff } from "@/lib/auth/dal";
 
 export const runtime = "nodejs";

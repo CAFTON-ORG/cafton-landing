@@ -1,6 +1,6 @@
 import { formatMinor } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { accountingText } from "../display";
+import { accountingText } from "../rules/display";
 
 /**
  * An amount the way every finance screen shows it: tabular figures, and a negative in parentheses

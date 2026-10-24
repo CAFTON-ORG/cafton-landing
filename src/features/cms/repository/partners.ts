@@ -1,8 +1,10 @@
+import "server-only";
+
 import { z } from "zod";
 
 import { partners } from "@/features/cms/content/partners";
-import { parseJson, partnerLinkSchema, partnerLogoSchema } from "@/features/cms/schemas";
-import type { Partner, PartnerLink, PartnerLogo } from "@/features/cms/types";
+import { parseJson, partnerLinkSchema, partnerLogoSchema } from "@/features/cms/schemas/core";
+import type { Partner, PartnerLink, PartnerLogo } from "@/features/cms/types/core";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { opt, publicRows, readContent } from "./source";

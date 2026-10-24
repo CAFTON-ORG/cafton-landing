@@ -6,10 +6,10 @@ import { BackLink } from "@/components/dashboard/shared/back-link";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { ReportControls } from "@/features/finance/components/report-controls";
 import { ReportView } from "@/features/finance/components/report-view";
-import { asOfPresets, periodPresets } from "@/features/finance/report-presets";
-import { getReport, readParams } from "@/features/finance/report-repository";
-import { REPORT_KEYS, REPORT_META, type ReportKey } from "@/features/finance/reports";
-import { manilaDate } from "@/features/schedule/slots";
+import { asOfPresets, periodPresets } from "@/features/finance/rules/report-presets";
+import { getReport, readParams } from "@/features/finance/repository/reports";
+import { REPORT_KEYS, REPORT_META, type ReportKey } from "@/features/finance/rules/reports";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { searchParamsFromRecord } from "@/lib/table-params";
 

@@ -39,8 +39,8 @@ import {
   sendContract,
   withdrawContract,
 } from "../actions/contracts";
-import { contractBlocks } from "../format";
-import { CONTRACT_KIND_LABEL, canEdit } from "../rules";
+import { contractBlocks } from "../rules/format";
+import { CONTRACT_KIND_LABEL, canEdit } from "../rules/core";
 import type { ContractView } from "../types";
 import { ContractStatusBadge } from "./contract-status-badge";
 

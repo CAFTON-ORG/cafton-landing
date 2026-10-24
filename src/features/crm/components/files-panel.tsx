@@ -34,7 +34,7 @@ import {
   kindFromMime,
   type FileKind,
   type FileSubject,
-} from "../files";
+} from "../rules/files";
 import type { FileView } from "../types";
 
 const ICON: Record<FileKind, LucideIcon> = {

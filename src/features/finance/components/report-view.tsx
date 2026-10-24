@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/dashboard/ui/card";
 import { formatMinor } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import type { ReportRow, ReportSpec } from "../reports";
+import type { ReportRow, ReportSpec } from "../rules/reports";
 
 function Row({ row, columns }: { row: ReportRow; columns: number }) {
   if (row.kind === "note")

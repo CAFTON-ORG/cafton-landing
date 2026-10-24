@@ -27,7 +27,7 @@ import { listStaffOptions } from "@/features/crm/repository/pipeline";
 import { listTagOptions } from "@/features/crm/repository/tags";
 import { listTasksFor } from "@/features/crm/repository/tasks";
 import { MeetingsPanel } from "@/features/schedule/components/meetings-panel";
-import { listMeetingsFor } from "@/features/schedule/repository";
+import { listMeetingsFor } from "@/features/schedule/repository/schedule";
 import { actorId } from "@/lib/actions";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";

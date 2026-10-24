@@ -8,10 +8,10 @@ import { ExpenseDialog } from "@/features/finance/components/expense-dialog";
 import { ExpensesTable } from "@/features/finance/components/expenses-table";
 import { StatusTabs } from "@/features/finance/components/status-tabs";
 import { SummaryStrip, plural } from "@/features/finance/components/summary-strip";
-import { expenseSummary, listExpenses } from "@/features/finance/expense-repository";
-import { listPostableAccounts } from "@/features/finance/repository";
+import { expenseSummary, listExpenses } from "@/features/finance/repository/expenses";
+import { listPostableAccounts } from "@/features/finance/repository/ledger";
 import { EXPENSE_TABLE } from "@/features/finance/table";
-import { manilaDate } from "@/features/schedule/slots";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";
 

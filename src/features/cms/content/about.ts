@@ -1,4 +1,4 @@
-import type { AboutContent } from "../types";
+import type { AboutContent } from "../types/core";
 
 /** The About page's wording as the site said it before it was editable. */
 export const about: AboutContent = {

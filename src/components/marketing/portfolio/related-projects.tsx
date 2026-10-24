@@ -1,7 +1,7 @@
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { ProjectCard } from "@/components/marketing/portfolio/project-card";
-import type { Project } from "@/features/cms/types";
+import type { Project } from "@/features/cms/types/core";
 
 interface RelatedProjectsProps {
   projects: Project[];

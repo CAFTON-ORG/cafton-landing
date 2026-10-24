@@ -1,5 +1,5 @@
 import { StatusBadge, type StatusTone } from "@/components/dashboard/shared/status-badge";
-import { INVOICE_STATE_LABEL, type InvoiceState } from "../invoicing";
+import { INVOICE_STATE_LABEL, type InvoiceState } from "../rules/invoicing";
 
 const TONE: Record<InvoiceState, StatusTone> = {
   draft: "neutral",

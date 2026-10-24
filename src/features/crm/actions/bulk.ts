@@ -2,22 +2,22 @@
 
 import { z } from "zod";
 
-import { notify } from "@/features/notifications/server";
+import { notify } from "@/features/notifications/services/notify";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
-import { live } from "../mappers";
+import { live } from "../repository/mappers";
 import {
   checkContactDelete,
   checkDealDelete,
   checkLeadDelete,
   checkOrganizationDelete,
-} from "../rules";
-import { checkDealDelete as checkQuotesBlockDelete } from "@/features/sales/rules";
-import { quoteStatusesFor } from "@/features/sales/server";
-import { checkDealDelete as checkContractsBlockDelete } from "@/features/contracts/rules";
-import { contractStatusesFor } from "@/features/contracts/server";
-import { TAGGABLE, normalizeTags } from "../tags";
+} from "../rules/core";
+import { checkDealDelete as checkQuotesBlockDelete } from "@/features/sales/rules/core";
+import { quoteStatusesFor } from "@/features/sales/services/quotes";
+import { checkDealDelete as checkContractsBlockDelete } from "@/features/contracts/rules/core";
+import { contractStatusesFor } from "@/features/contracts/services/contracts";
+import { TAGGABLE, normalizeTags } from "../rules/tags";
 import { guard, refreshCrm } from "./guard";
 
 /** One click on a list can change at most this many rows. */

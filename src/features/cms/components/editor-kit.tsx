@@ -24,9 +24,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard
 import { cn } from "@/lib/utils";
 import { useServerAction } from "@/hooks/use-server-action";
 import type { ActionResult } from "@/lib/actions";
-import type { PublishIntent } from "../admin/schema";
-import { STATUS_LABEL } from "../admin/types";
-import type { PublishStatus } from "../rules";
+import type { PublishIntent } from "../schemas/admin";
+import { STATUS_LABEL } from "../types/admin";
+import type { PublishStatus } from "../rules/core";
 
 /* ------------------------------------------------------------ editor state */
 

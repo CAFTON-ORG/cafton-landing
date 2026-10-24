@@ -30,8 +30,8 @@ import {
 } from "@/components/dashboard/ui/select";
 import { useServerAction } from "@/hooks/use-server-action";
 import { saveTaxRate } from "../actions/books";
-import { rateText } from "../rules";
-import type { TaxRateView } from "../types";
+import { rateText } from "../rules/core";
+import type { TaxRateView } from "../types/core";
 
 const KIND_LABEL = {
   vat: "VAT",

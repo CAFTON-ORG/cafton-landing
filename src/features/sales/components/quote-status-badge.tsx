@@ -1,5 +1,5 @@
 import { StatusBadge, type StatusTone } from "@/components/dashboard/shared/status-badge";
-import { QUOTE_STATUS_LABEL, type QuoteStatus } from "../rules";
+import { QUOTE_STATUS_LABEL, type QuoteStatus } from "../rules/core";
 
 const TONE: Record<QuoteStatus, StatusTone> = {
   draft: "neutral",

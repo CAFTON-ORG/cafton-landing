@@ -33,9 +33,9 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor, minorToInput, parseMinor } from "@/lib/money";
 import { recordFiling, voidFiling } from "../actions/tax";
-import type { BillAccount } from "../payable-types";
-import { FILING_STATUS_LABEL, type FilingStatus } from "../tax";
-import type { ObligationView } from "../tax-repository";
+import type { BillAccount } from "../types/payables";
+import { FILING_STATUS_LABEL, type FilingStatus } from "../rules/tax";
+import type { ObligationView } from "../repository/tax";
 import { ReasonDialog } from "./reason-dialog";
 
 const TONE: Record<FilingStatus, StatusTone> = {

@@ -12,9 +12,9 @@ import {
 import type { ReactNode } from "react";
 
 import { LOGO_PATH_D } from "@/components/shared/logo";
-import { quantityText } from "@/features/sales/pricing";
-import type { InvoiceDetail } from "../invoice-types";
-import { INVOICE_STATE_LABEL } from "../invoicing";
+import { quantityText } from "@/features/sales/rules/pricing";
+import type { InvoiceDetail } from "../types/invoices";
+import { INVOICE_STATE_LABEL } from "../rules/invoicing";
 
 /**
  * The invoice as a branded A4 document, drawn the way the quote is: the built-in PDF fonts have no

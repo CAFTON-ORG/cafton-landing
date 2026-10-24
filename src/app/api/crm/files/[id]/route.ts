@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { CRM_FILES_BUCKET, filePermission } from "@/features/crm/files";
+import { CRM_FILES_BUCKET, filePermission } from "@/features/crm/rules/files";
 import { can, getStaff } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { createAdminClient, isAdminStorageConfigured } from "@/lib/supabase/admin";

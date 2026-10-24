@@ -3,8 +3,8 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { DEFAULT_CURRENCY, weightedMinor } from "@/lib/money";
-import { fromManila, manilaDate } from "@/features/schedule/slots";
-import { live, toStage } from "../mappers";
+import { fromManila, manilaDate } from "@/features/schedule/rules/slots";
+import { live, toStage } from "./mappers";
 import type { ForecastView, PersonRef, PipelineView, StageView } from "../types";
 
 /** The stages of one pipeline (the default one when none is named), in order. */

@@ -8,7 +8,7 @@ import { Badge } from "@/components/dashboard/ui/badge";
 import { Input } from "@/components/dashboard/ui/input";
 import { useServerAction } from "@/hooks/use-server-action";
 import { setTags } from "../actions/tags";
-import { MAX_TAGS, normalizeTags, type Taggable } from "../tags";
+import { MAX_TAGS, normalizeTags, type Taggable } from "../rules/tags";
 
 const PERMISSION = {
   lead: "leads:update",

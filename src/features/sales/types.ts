@@ -1,4 +1,4 @@
-import type { QuoteStatus } from "./rules";
+import type { QuoteStatus } from "./rules/core";
 
 export type PricingModel = "fixed" | "hourly" | "retainer";
 

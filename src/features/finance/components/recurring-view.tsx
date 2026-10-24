@@ -38,7 +38,7 @@ import {
   saveRecurring,
   setRecurringActive,
 } from "../actions/recurring";
-import type { BillAccount } from "../payable-types";
+import type { BillAccount } from "../types/payables";
 import {
   FREQUENCIES,
   FREQUENCY_LABEL,
@@ -46,8 +46,8 @@ import {
   RECURRING_KIND_LABEL,
   type Frequency,
   type RecurringKind,
-} from "../recurring";
-import type { RecurringItemView } from "../recurring-repository";
+} from "../rules/recurring";
+import type { RecurringItemView } from "../repository/recurring";
 
 interface Draft {
   id?: string;

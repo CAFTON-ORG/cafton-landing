@@ -7,7 +7,7 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
-import { live, namesFor, toContact } from "../mappers";
+import { live, namesFor, toContact } from "./mappers";
 import type { ContactView } from "../types";
 
 const include = {

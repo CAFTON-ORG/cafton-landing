@@ -31,7 +31,7 @@ let db: PGlite;
 let server: PGLiteSocketServer;
 
 type Modules = {
-  intake: typeof import("./intake");
+  intake: typeof import("./services/intake");
   leads: typeof import("./actions/leads");
   deals: typeof import("./actions/deals");
   contacts: typeof import("./actions/contacts");
@@ -98,7 +98,7 @@ beforeAll(async () => {
   );
 
   m = {
-    intake: await import("./intake"),
+    intake: await import("./services/intake"),
     leads: await import("./actions/leads"),
     deals: await import("./actions/deals"),
     contacts: await import("./actions/contacts"),

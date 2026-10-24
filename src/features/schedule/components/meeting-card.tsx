@@ -22,9 +22,9 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import type { PersonRef } from "@/features/crm/types";
 import { useServerAction } from "@/hooks/use-server-action";
 import { cn } from "@/lib/utils";
-import { setMeetingStatus } from "../actions";
-import { isEditable, isOverdue } from "../rules";
-import { formatManila, formatManilaTime } from "../slots";
+import { setMeetingStatus } from "../actions/schedule";
+import { isEditable, isOverdue } from "../rules/core";
+import { formatManila, formatManilaTime } from "../rules/slots";
 import {
   MEETING_MODE_LABEL,
   MEETING_STATUS_LABEL,

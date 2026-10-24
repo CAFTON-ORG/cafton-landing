@@ -8,10 +8,14 @@ import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { Button } from "@/components/dashboard/ui/button";
 import { Card, CardContent } from "@/components/dashboard/ui/card";
 import { TaxTrackerView } from "@/features/finance/components/tax-tracker-view";
-import { listPostableAccounts } from "@/features/finance/repository";
-import { ANNUAL_ALLOWANCE_MINOR, EIGHT_PERCENT_RATE_BP, estimateTax } from "@/features/finance/tax";
-import { getTracker } from "@/features/finance/tax-repository";
-import { manilaDate } from "@/features/schedule/slots";
+import { listPostableAccounts } from "@/features/finance/repository/ledger";
+import {
+  ANNUAL_ALLOWANCE_MINOR,
+  EIGHT_PERCENT_RATE_BP,
+  estimateTax,
+} from "@/features/finance/rules/tax";
+import { getTracker } from "@/features/finance/repository/tax";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { formatMinor } from "@/lib/money";
 import { searchParamsFromRecord } from "@/lib/table-params";

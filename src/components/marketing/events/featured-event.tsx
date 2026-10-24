@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { EventFacts } from "@/components/marketing/events/event-facts";
 import { EventPoster } from "@/components/marketing/events/event-poster";
 import { EventStatusBadge } from "@/components/marketing/events/event-status";
-import type { CaftonEvent, EventStatus } from "@/features/cms/types";
+import type { CaftonEvent, EventStatus } from "@/features/cms/types/core";
 
 /** The lead event on the index: big title, facts, the poster, and the one action that matters for its status. */
 export function FeaturedEvent({ event, status }: { event: CaftonEvent; status: EventStatus }) {

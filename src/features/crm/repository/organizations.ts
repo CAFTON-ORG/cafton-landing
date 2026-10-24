@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
-import { live, toOrganization } from "../mappers";
+import { live, toOrganization } from "./mappers";
 import type { OrganizationView } from "../types";
 
 const include = {

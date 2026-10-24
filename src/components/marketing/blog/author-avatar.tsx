@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Logo } from "@/components/shared/logo";
 import { cn } from "@/lib/utils";
-import type { Author } from "@/features/cms/types";
+import type { Author } from "@/features/cms/types/core";
 
 function initials(name: string) {
   return name

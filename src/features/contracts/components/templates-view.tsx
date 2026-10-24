@@ -33,8 +33,8 @@ import { Switch } from "@/components/dashboard/ui/switch";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { deleteTemplate, saveTemplate } from "../actions/templates";
-import { MERGE_FIELDS } from "../merge";
-import { CONTRACT_KINDS, CONTRACT_KIND_LABEL, type ContractKind } from "../rules";
+import { MERGE_FIELDS } from "../rules/merge";
+import { CONTRACT_KINDS, CONTRACT_KIND_LABEL, type ContractKind } from "../rules/core";
 import type { TemplateView } from "../types";
 
 /** The wording library for contracts and statements of work. */

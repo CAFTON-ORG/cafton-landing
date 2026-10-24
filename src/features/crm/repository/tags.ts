@@ -3,7 +3,7 @@ import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import type { Taggable } from "../tags";
+import type { Taggable } from "../rules/tags";
 
 const TABLE: Record<Taggable, string> = {
   lead: "leads",

@@ -24,8 +24,8 @@ import {
   type CustomEntity,
   type CustomFieldDef,
   type CustomType,
-} from "../custom-fields";
-import { live } from "../mappers";
+} from "../rules/custom-fields";
+import { live } from "../repository/mappers";
 import { guard, refreshCrm } from "./guard";
 
 const definitionSchema = z.object({

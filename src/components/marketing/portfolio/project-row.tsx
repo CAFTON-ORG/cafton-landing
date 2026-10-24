@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import type { Project } from "@/features/cms/types";
+import type { Project } from "@/features/cms/types/core";
 import { ThemedImage } from "@/components/shared/themed-image";
 import { CoverArt } from "@/components/marketing/decor/cover-art";
 import { CornerBrackets } from "@/components/marketing/decor/corner-brackets";

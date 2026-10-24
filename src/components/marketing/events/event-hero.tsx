@@ -7,7 +7,7 @@ import { EventPoster } from "@/components/marketing/events/event-poster";
 import { EventStatusBadge } from "@/components/marketing/events/event-status";
 import { Breadcrumbs } from "@/components/marketing/patterns/breadcrumbs";
 import { Byline } from "@/components/marketing/blog/byline";
-import type { Author, CaftonEvent, EventStatus } from "@/features/cms/types";
+import type { Author, CaftonEvent, EventStatus } from "@/features/cms/types/core";
 
 interface EventHeroProps {
   event: CaftonEvent;

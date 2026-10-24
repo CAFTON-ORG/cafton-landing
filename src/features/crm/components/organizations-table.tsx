@@ -15,7 +15,7 @@ import { BulkBar, TagList, customColumns, customFilters, tagFilter } from "./lis
 import { SavedViews } from "./saved-views";
 import { ORGANIZATIONS_TABLE } from "../table";
 import type { OrganizationView } from "../types";
-import type { CustomFieldDef } from "../custom-fields";
+import type { CustomFieldDef } from "../rules/custom-fields";
 import { OrganizationDialog } from "./organization-dialog";
 
 const baseColumns: Column<OrganizationView>[] = [

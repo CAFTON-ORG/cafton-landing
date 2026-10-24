@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { Button } from "@/components/dashboard/ui/button";
 import { ContractsTable } from "@/features/contracts/components/contracts-table";
-import { contractTotals, listContracts } from "@/features/contracts/repository";
+import { contractTotals, listContracts } from "@/features/contracts/repository/contracts";
 import { CONTRACTS_TABLE } from "@/features/contracts/table";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";

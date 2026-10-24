@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from "@/components/dashboard/ui/card";
 import { checkDeletable } from "../rules";
-import { deleteRole } from "../actions";
+import { deleteRole } from "../actions/roles";
 import type { RoleSummary } from "../types";
 
 export function RolesView({ roles }: { roles: RoleSummary[] }) {

@@ -3,7 +3,7 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import type { FileSubject } from "../files";
+import type { FileSubject } from "../rules/files";
 import type { FileView } from "../types";
 
 /** The database filter for one record's files. */

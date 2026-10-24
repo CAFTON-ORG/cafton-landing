@@ -13,9 +13,9 @@ import {
   listSubmitted,
   listWeek,
   utilisationReport,
-} from "@/features/delivery/repository";
+} from "@/features/delivery/repository/delivery";
 import { reportWeeks, weekStartOf } from "@/features/delivery/rules";
-import { addDays, manilaDate } from "@/features/schedule/slots";
+import { addDays, manilaDate } from "@/features/schedule/rules/slots";
 import { actorId } from "@/lib/actions";
 import { can, verifySession } from "@/lib/auth/dal";
 import { Clock } from "lucide-react";

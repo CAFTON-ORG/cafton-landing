@@ -9,8 +9,8 @@ import { useTableParams } from "@/components/dashboard/data-table/use-table-para
 import { StatusBadge, type StatusTone } from "@/components/dashboard/shared/status-badge";
 import { formatDate } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
-import type { BillRow } from "../payable-types";
-import { BILL_STATE_LABEL, type BillState } from "../payables";
+import type { BillRow } from "../types/payables";
+import { BILL_STATE_LABEL, type BillState } from "../rules/payables";
 import { BILL_TABLE } from "../table";
 import { DueHint } from "./due-hint";
 import { Money } from "./money";

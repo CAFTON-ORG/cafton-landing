@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { buildFeed, calendarForToken } from "@/features/schedule/feed";
+import { buildFeed, calendarForToken } from "@/features/schedule/services/feed";
 import { isDatabaseConfigured } from "@/lib/env";
 
 export const runtime = "nodejs";

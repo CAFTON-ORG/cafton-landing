@@ -5,8 +5,8 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { EmptyState } from "@/components/dashboard/shared/empty-state";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { Card, CardContent } from "@/components/dashboard/ui/card";
-import { receivablesAging } from "@/features/finance/invoice-repository";
-import { manilaDate } from "@/features/schedule/slots";
+import { receivablesAging } from "@/features/finance/repository/invoices";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { formatMinor } from "@/lib/money";
 

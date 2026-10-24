@@ -1,4 +1,4 @@
-import type { PolicyDocument } from "../types";
+import type { PolicyDocument } from "../types/core";
 
 /**
  * The privacy policy as the site said it before it was editable. Section text uses the small

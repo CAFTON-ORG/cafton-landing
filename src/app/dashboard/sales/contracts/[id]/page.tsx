@@ -5,8 +5,8 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { ContractEditor } from "@/features/contracts/components/contract-editor";
 import { ContractStatusBadge } from "@/features/contracts/components/contract-status-badge";
-import { getContract } from "@/features/contracts/repository";
-import { CONTRACT_KIND_LABEL } from "@/features/contracts/rules";
+import { getContract } from "@/features/contracts/repository/contracts";
+import { CONTRACT_KIND_LABEL } from "@/features/contracts/rules/core";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Contract" };

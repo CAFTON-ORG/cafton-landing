@@ -5,7 +5,7 @@ import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { BlogImage } from "@/features/cms/types";
+import type { BlogImage } from "@/features/cms/types/core";
 
 /** Tiles shown before the rest collapse into a "+N" tile. */
 const MAX_TILES = 5;

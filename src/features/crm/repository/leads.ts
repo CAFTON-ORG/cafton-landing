@@ -7,8 +7,8 @@ import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
 import { paginate, type Page } from "@/lib/pagination";
 import type { TableParams } from "@/lib/table-params";
-import { live, namesFor, toLead } from "../mappers";
-import { bandRange, type LeadBand } from "../scoring";
+import { live, namesFor, toLead } from "./mappers";
+import { bandRange, type LeadBand } from "../rules/scoring";
 import type { LeadView } from "../types";
 
 const include = { deal: { select: { id: true } } } as const;

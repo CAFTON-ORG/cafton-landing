@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 const loaded = vi.hoisted(() => ({ count: 0 }));
-vi.mock("@/features/delivery/handlers", () => {
+vi.mock("@/features/delivery/services/handlers", () => {
   loaded.count += 1;
   return {};
 });

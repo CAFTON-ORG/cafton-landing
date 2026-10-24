@@ -1,7 +1,7 @@
 import { Building2, Cog, Rocket, TrendingUp, type LucideIcon } from "lucide-react";
 
 import { serviceContent } from "@/features/cms/content/services";
-import type { ServiceContent } from "@/features/cms/types";
+import type { ServiceContent } from "@/features/cms/types/core";
 
 export interface ServiceSystem {
   title: string;

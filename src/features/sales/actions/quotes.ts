@@ -4,19 +4,19 @@ import { revalidatePath } from "next/cache";
 
 import { guard, refreshCrm } from "@/features/crm/actions/guard";
 import { logActivity } from "@/features/crm/actions/shared";
-import { live } from "@/features/crm/mappers";
-import { notify, staffIdsWith } from "@/features/notifications/server";
-import { addDays, manilaDate } from "@/features/schedule/slots";
+import { live } from "@/features/crm/repository/mappers";
+import { notify, staffIdsWith } from "@/features/notifications/services/notify";
+import { addDays, manilaDate } from "@/features/schedule/rules/slots";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
-import { defaultQuoteTaxPct } from "@/features/finance/settings";
-import { getFinanceSettings } from "@/features/finance/settings-repository";
+import { defaultQuoteTaxPct } from "@/features/finance/rules/settings";
+import { getFinanceSettings } from "@/features/finance/repository/settings";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { formatMinor } from "@/lib/money";
-import { quoteLink, sendQuoteEmail } from "../emails";
-import { generateToken, hashToken } from "../integrity";
-import { lineTotal, quoteTotals } from "../pricing";
-import { getPublicQuote } from "../repository";
+import { quoteLink, sendQuoteEmail } from "../services/emails";
+import { generateToken, hashToken } from "../services/integrity";
+import { lineTotal, quoteTotals } from "../rules/pricing";
+import { getPublicQuote } from "../repository/sales";
 import {
   DEFAULT_DEPOSIT_PCT,
   DEFAULT_VALID_DAYS,
@@ -33,9 +33,9 @@ import {
   checkWithdraw,
   submitTarget,
   type QuoteStatus,
-} from "../rules";
+} from "../rules/core";
 import { quoteSchema, type QuoteInput } from "../schemas";
-import { fingerprintOf, moveDealAfter } from "../server";
+import { fingerprintOf, moveDealAfter } from "../services/quotes";
 
 const DEFAULT_INTRO =
   "Thank you for the chance to work with you. This quote sets out what we will do and what it costs.";

@@ -1,4 +1,4 @@
-import type { CaftonEvent } from "@/features/cms/types";
+import type { CaftonEvent } from "@/features/cms/types/core";
 
 export const events: CaftonEvent[] = [
   {

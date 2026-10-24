@@ -13,7 +13,7 @@ import {
   referralSources,
   timelines,
   type ContactFormData,
-} from "@/features/crm/contact";
+} from "@/features/crm/rules/contact";
 import { Turnstile } from "@/components/shared/turnstile";
 import type { FieldErrors } from "@/components/marketing/contact/types";
 

@@ -1,4 +1,4 @@
-import type { ContactFormData } from "@/features/crm/contact";
+import type { ContactFormData } from "@/features/crm/rules/contact";
 
 export type FieldErrors = Partial<Record<keyof ContactFormData, string>>;
 

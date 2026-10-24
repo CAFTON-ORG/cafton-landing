@@ -37,8 +37,8 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import { createContract } from "../actions/contracts";
-import { needsQuote } from "../merge";
-import { CONTRACT_KIND_LABEL } from "../rules";
+import { needsQuote } from "../rules/merge";
+import { CONTRACT_KIND_LABEL } from "../rules/core";
 import type { ContractRow, QuoteChoice, TemplateView } from "../types";
 import { ContractStatusBadge } from "./contract-status-badge";
 

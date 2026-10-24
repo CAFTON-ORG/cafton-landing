@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/dashboard/ui/card";
-import { REPORT_KEYS, REPORT_META } from "@/features/finance/reports";
+import { REPORT_KEYS, REPORT_META } from "@/features/finance/rules/reports";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Reports" };

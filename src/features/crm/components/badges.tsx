@@ -1,6 +1,6 @@
 import { StatusBadge, type StatusTone } from "@/components/dashboard/shared/status-badge";
-import { taskUrgency, type LeadStatus } from "../rules";
-import { LEAD_BAND_LABEL, type LeadBand } from "../scoring";
+import { taskUrgency, type LeadStatus } from "../rules/core";
+import { LEAD_BAND_LABEL, type LeadBand } from "../rules/scoring";
 import { LEAD_STATUS_LABEL, type DealView } from "../types";
 
 const LEAD_TONE: Record<LeadStatus, StatusTone> = {

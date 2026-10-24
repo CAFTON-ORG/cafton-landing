@@ -1,7 +1,7 @@
 import { Reveal } from "@/components/marketing/motion/reveal";
 import { EventRow } from "@/components/marketing/events/event-row";
 import { LoadMoreList } from "@/components/marketing/patterns/load-more-list";
-import type { CaftonEvent } from "@/features/cms/types";
+import type { CaftonEvent } from "@/features/cms/types/core";
 
 interface EventListProps {
   heading: string;

@@ -7,8 +7,8 @@ import {
   findLeadDuplicates,
   findOrganizationDuplicates,
   type DuplicateGroup,
-} from "../duplicates";
-import { live } from "../mappers";
+} from "../rules/duplicates";
+import { live } from "./mappers";
 
 export interface DuplicateContact {
   id: string;

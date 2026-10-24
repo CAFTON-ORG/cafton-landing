@@ -6,7 +6,7 @@ import { MainScroll } from "@/components/dashboard/layout/main-scroll";
 import { Sidebar } from "@/components/dashboard/layout/sidebar";
 import { SidebarProvider } from "@/components/dashboard/layout/sidebar-context";
 import { NavCountsProvider, StaffProvider } from "@/components/dashboard/layout/staff-context";
-import { navCounts, NO_COUNTS } from "@/features/notifications/counts";
+import { navCounts, NO_COUNTS } from "@/features/notifications/repository/counts";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { actorId } from "@/lib/actions";
 import { verifySession } from "@/lib/auth/dal";

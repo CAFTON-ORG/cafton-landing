@@ -3,7 +3,7 @@ import { Reveal } from "@/components/marketing/motion/reveal";
 import { FollowAlong } from "@/components/marketing/events/follow-along";
 import { GleamWidget } from "@/components/marketing/events/gleam-widget";
 import { formatEventDates } from "@/features/cms/lib/events";
-import type { CaftonEvent, EventStatus } from "@/features/cms/types";
+import type { CaftonEvent, EventStatus } from "@/features/cms/types/core";
 
 interface EventEntryProps {
   event: CaftonEvent;

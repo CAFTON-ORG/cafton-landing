@@ -9,7 +9,7 @@ import { ConfirmDialog } from "@/components/dashboard/shared/confirm-dialog";
 import { Button } from "@/components/dashboard/ui/button";
 import { useServerAction } from "@/hooks/use-server-action";
 import { deleteContact, deleteOrganization } from "../actions/contacts";
-import { checkContactDelete, checkOrganizationDelete } from "../rules";
+import { checkContactDelete, checkOrganizationDelete } from "../rules/core";
 import type { ContactView, OrganizationView, PersonRef } from "../types";
 import { ContactDialog } from "./contact-dialog";
 import { OrganizationDialog } from "./organization-dialog";

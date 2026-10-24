@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { Partner } from "@/features/cms/types";
+import type { Partner } from "@/features/cms/types/core";
 import { cn } from "@/lib/utils";
 
 /**

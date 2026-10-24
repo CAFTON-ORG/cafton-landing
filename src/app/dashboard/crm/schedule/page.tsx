@@ -4,9 +4,9 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { listStaffOptions } from "@/features/crm/repository/pipeline";
 import { ScheduleView } from "@/features/schedule/components/schedule-view";
-import { listMeetings, listRequests } from "@/features/schedule/repository";
-import { monthGrid } from "@/features/schedule/calendar";
-import { fromManila, addDays, manilaDate } from "@/features/schedule/slots";
+import { listMeetings, listRequests } from "@/features/schedule/repository/schedule";
+import { monthGrid } from "@/features/schedule/rules/calendar";
+import { fromManila, addDays, manilaDate } from "@/features/schedule/rules/slots";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Schedule" };

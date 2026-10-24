@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createDatabase } from "../../../scripts/pglite-setup.mjs";
-import { addDays } from "@/features/schedule/slots";
+import { addDays } from "@/features/schedule/rules/slots";
 import { SYSTEM_ROLE_PERMISSIONS, type Permission } from "@/lib/auth/permissions";
 
 /**
@@ -44,7 +44,7 @@ let server: PGLiteSocketServer;
 let prisma: typeof import("@/lib/db").prisma;
 let bank: typeof import("./actions/bank");
 let books: typeof import("./actions/books");
-let repo: typeof import("./bank-repository");
+let repo: typeof import("./repository/bank");
 
 beforeAll(async () => {
   db = (await createDatabase()) as PGlite;
@@ -66,7 +66,7 @@ beforeAll(async () => {
   ({ prisma } = await import("@/lib/db"));
   bank = await import("./actions/bank");
   books = await import("./actions/books");
-  repo = await import("./bank-repository");
+  repo = await import("./repository/bank");
 }, 120_000);
 
 afterAll(async () => {

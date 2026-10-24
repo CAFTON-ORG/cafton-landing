@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { detectFileType, sanitizeFileName } from "@/features/crm/files";
+import { detectFileType, sanitizeFileName } from "@/features/crm/rules/files";
 import { guard } from "@/features/crm/actions/guard";
-import { notify, staffIdsWith } from "@/features/notifications/server";
-import { manilaDate } from "@/features/schedule/slots";
+import { notify, staffIdsWith } from "@/features/notifications/services/notify";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { ActionError, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { can } from "@/lib/auth/dal";
@@ -14,9 +14,9 @@ import { prisma } from "@/lib/db";
 import { parseMinor } from "@/lib/money";
 import { ImageRejected, sanitizeImage } from "@/lib/security/image";
 import { createAdminClient, isAdminStorageConfigured } from "@/lib/supabase/admin";
-import { nextDocumentNumber } from "../documents";
-import { expenseSchema, reasonSchema, type ExpenseInput } from "../expense-schemas";
-import type { ReceiptView } from "../expense-types";
+import { nextDocumentNumber } from "../services/documents";
+import { expenseSchema, reasonSchema, type ExpenseInput } from "../schemas/expenses";
+import type { ReceiptView } from "../types/expenses";
 import {
   checkApproveExpense,
   checkEditExpense,
@@ -28,8 +28,8 @@ import {
   newReceiptPath,
   RECEIPTS_BUCKET,
   type ExpenseStatus,
-} from "../expenses";
-import { postJournal, reverseJournal } from "../ledger";
+} from "../rules/expenses";
+import { postJournal, reverseJournal } from "../services/ledger";
 
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 

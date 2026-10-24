@@ -3,7 +3,7 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { actorId } from "@/lib/actions";
 import { ActionError } from "@/lib/actions";
-import { live } from "../mappers";
+import { live } from "../repository/mappers";
 import type { Subject } from "../types";
 
 export type Tx = Prisma.TransactionClient;

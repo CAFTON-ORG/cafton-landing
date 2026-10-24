@@ -8,9 +8,9 @@ import { BillsTable } from "@/features/finance/components/bills-table";
 import { NewBillDialog } from "@/features/finance/components/new-bill-dialog";
 import { StatusTabs } from "@/features/finance/components/status-tabs";
 import { SummaryStrip, plural } from "@/features/finance/components/summary-strip";
-import { billSummary, listBills, listVendors } from "@/features/finance/payable-repository";
+import { billSummary, listBills, listVendors } from "@/features/finance/repository/payables";
 import { BILL_TABLE } from "@/features/finance/table";
-import { manilaDate } from "@/features/schedule/slots";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";
 

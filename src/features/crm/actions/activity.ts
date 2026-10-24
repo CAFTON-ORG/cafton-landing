@@ -1,10 +1,10 @@
 "use server";
 
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
-import { notify } from "@/features/notifications/server";
+import { notify } from "@/features/notifications/services/notify";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
-import { checkAddTaskToDeal } from "../rules";
+import { checkAddTaskToDeal } from "../rules/core";
 import { activitySchema, taskSchema, type ActivityInput, type TaskInput } from "../schemas";
 import { guard, refreshCrm } from "./guard";
 import { assertSubjectExists, logActivity, subjectPermission } from "./shared";

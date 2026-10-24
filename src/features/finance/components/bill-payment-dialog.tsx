@@ -28,8 +28,8 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatMinor, minorToInput, parseMinor } from "@/lib/money";
 import { payBill } from "../actions/payables";
-import { PAYMENT_METHODS, PAYMENT_METHOD_LABEL, type PaymentMethod } from "../invoicing";
-import type { BillAccount } from "../payable-types";
+import { PAYMENT_METHODS, PAYMENT_METHOD_LABEL, type PaymentMethod } from "../rules/invoicing";
+import type { BillAccount } from "../types/payables";
 
 const minor = (text: string) => (text.trim() ? (parseMinor(text) ?? 0) : 0);
 

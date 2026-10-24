@@ -1,5 +1,5 @@
 import type { ReactNode, SVGProps } from "react";
-import type { SocialLink, SocialPlatform } from "@/features/cms/types";
+import type { SocialLink, SocialPlatform } from "@/features/cms/types/core";
 import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 
 /** No official TikTok mark ships in lucide-react's icon set -- hand-drawn to match its outline weight/style rather than dropping in a mismatched solid glyph. */

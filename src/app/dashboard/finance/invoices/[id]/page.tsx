@@ -20,11 +20,11 @@ import {
   VoidCreditNoteButton,
   VoidPaymentButton,
 } from "@/features/finance/components/void-buttons";
-import { getInvoice } from "@/features/finance/invoice-repository";
-import { PAYMENT_METHOD_LABEL } from "@/features/finance/invoicing";
-import { listPostableAccounts, listTaxRates } from "@/features/finance/repository";
-import { quantityText } from "@/features/sales/pricing";
-import { manilaDate } from "@/features/schedule/slots";
+import { getInvoice } from "@/features/finance/repository/invoices";
+import { PAYMENT_METHOD_LABEL } from "@/features/finance/rules/invoicing";
+import { listPostableAccounts, listTaxRates } from "@/features/finance/repository/ledger";
+import { quantityText } from "@/features/sales/rules/pricing";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";

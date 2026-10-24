@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { readParams, getReport } from "@/features/finance/report-repository";
-import { REPORT_KEYS, reportToCsv, type ReportKey } from "@/features/finance/reports";
+import { readParams, getReport } from "@/features/finance/repository/reports";
+import { REPORT_KEYS, reportToCsv, type ReportKey } from "@/features/finance/rules/reports";
 import { renderReportPdf } from "@/features/finance/pdf/report-pdf";
-import { companyDetails } from "@/features/sales/emails";
+import { companyDetails } from "@/features/sales/services/emails";
 import { can, getStaff } from "@/lib/auth/dal";
 
 export const runtime = "nodejs";

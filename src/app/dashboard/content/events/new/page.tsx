@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
-import { listAuthorOptions } from "@/features/cms/admin/repository";
+import { listAuthorOptions } from "@/features/cms/repository/admin";
 import { EventEditor } from "@/features/cms/components/event-editor";
 import { requirePageAccess } from "@/lib/auth/dal";
 

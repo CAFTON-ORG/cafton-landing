@@ -8,7 +8,7 @@ import { ResourceTable } from "@/components/dashboard/data-table/resource-table"
 import { useTableParams } from "@/components/dashboard/data-table/use-table-params";
 import { formatDate } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
-import type { InvoiceRow } from "../invoice-types";
+import type { InvoiceRow } from "../types/invoices";
 import { INVOICE_TABLE } from "../table";
 import { DueHint } from "./due-hint";
 import { InvoiceStateBadge } from "./invoice-state-badge";

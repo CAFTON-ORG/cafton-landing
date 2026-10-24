@@ -23,8 +23,8 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { SITE_NAME } from "@/config/site";
 import { useServerAction } from "@/hooks/use-server-action";
 import { cn } from "@/lib/utils";
-import { saveSeo } from "../admin/seo-actions";
-import type { SeoDocument, SeoImage } from "../types";
+import { saveSeo } from "../actions/seo";
+import type { SeoDocument, SeoImage } from "../types/core";
 import { ImageField } from "./image-field";
 
 export interface SeoPageView {

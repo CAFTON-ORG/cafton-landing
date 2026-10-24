@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { CatalogView } from "@/features/sales/components/catalog-view";
-import { listCatalog } from "@/features/sales/repository";
+import { listCatalog } from "@/features/sales/repository/sales";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Catalog" };

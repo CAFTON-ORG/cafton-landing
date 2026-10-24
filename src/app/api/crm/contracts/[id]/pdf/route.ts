@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { renderContractPdf } from "@/features/contracts/pdf/contract-pdf";
-import { getPublicContractById } from "@/features/contracts/repository";
-import { companyDetails } from "@/features/sales/emails";
+import { getPublicContractById } from "@/features/contracts/repository/contracts";
+import { companyDetails } from "@/features/sales/services/emails";
 import { can, getStaff } from "@/lib/auth/dal";
 
 export const runtime = "nodejs";

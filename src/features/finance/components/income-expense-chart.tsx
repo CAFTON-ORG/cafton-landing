@@ -1,5 +1,5 @@
 import { formatMinor } from "@/lib/money";
-import type { MonthBar } from "../overview-repository";
+import type { MonthBar } from "../repository/overview";
 
 /**
  * Income against expenses for the last few months, as paired bars. Drawn with plain elements (no

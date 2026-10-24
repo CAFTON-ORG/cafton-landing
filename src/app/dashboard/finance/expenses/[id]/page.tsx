@@ -15,10 +15,10 @@ import {
 import { ExpenseActions, ReceiptsCard } from "@/features/finance/components/expense-actions";
 import { ExpenseDialog } from "@/features/finance/components/expense-dialog";
 import { ExpenseStatusBadge } from "@/features/finance/components/expenses-table";
-import { getExpense } from "@/features/finance/expense-repository";
-import { RECEIPT_REQUIRED_OVER_MINOR } from "@/features/finance/expenses";
-import { listPostableAccounts } from "@/features/finance/repository";
-import { manilaDate } from "@/features/schedule/slots";
+import { getExpense } from "@/features/finance/repository/expenses";
+import { RECEIPT_REQUIRED_OVER_MINOR } from "@/features/finance/rules/expenses";
+import { listPostableAccounts } from "@/features/finance/repository/ledger";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";
 

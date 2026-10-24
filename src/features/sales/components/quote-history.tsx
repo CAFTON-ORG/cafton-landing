@@ -13,7 +13,7 @@ import {
 
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { quoteHistory, type HistoryKind, type HistoryTone } from "../history";
+import { quoteHistory, type HistoryKind, type HistoryTone } from "../rules/history";
 import type { QuoteView } from "../types";
 
 const ICON: Record<HistoryKind, LucideIcon> = {

@@ -17,10 +17,10 @@ import {
   type ActivityItem,
 } from "@/features/finance/components/document-summary";
 import { Money } from "@/features/finance/components/money";
-import { PAYMENT_METHOD_LABEL } from "@/features/finance/invoicing";
-import { getBill, listVendors } from "@/features/finance/payable-repository";
-import { listPostableAccounts } from "@/features/finance/repository";
-import { manilaDate } from "@/features/schedule/slots";
+import { PAYMENT_METHOD_LABEL } from "@/features/finance/rules/invoicing";
+import { getBill, listVendors } from "@/features/finance/repository/payables";
+import { listPostableAccounts } from "@/features/finance/repository/ledger";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";

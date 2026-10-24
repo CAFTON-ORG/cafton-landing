@@ -1,6 +1,6 @@
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal, RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
-import type { EventStep } from "@/features/cms/types";
+import type { EventStep } from "@/features/cms/types/core";
 
 export function EventSteps({ steps }: { steps: EventStep[] }) {
   return (

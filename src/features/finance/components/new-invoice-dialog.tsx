@@ -29,9 +29,9 @@ import {
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatMinor } from "@/lib/money";
 import { createInvoice } from "../actions/invoices";
-import { RATE_SOURCE_LABEL, billableMilli, hoursText } from "../billing";
-import type { BillableTimeProject } from "../invoice-repository-types";
-import type { BillableMilestone } from "../invoice-types";
+import { RATE_SOURCE_LABEL, billableMilli, hoursText } from "../rules/billing";
+import type { BillableTimeProject } from "../types/invoice-repository";
+import type { BillableMilestone } from "../types/invoices";
 
 type Source = "quote" | "milestones" | "time" | "blank";
 

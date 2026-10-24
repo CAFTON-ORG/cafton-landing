@@ -15,7 +15,7 @@ import {
   newFilePath,
   sanitizeFileName,
   type FileSubject,
-} from "../files";
+} from "../rules/files";
 import { fileSubjectSchema } from "../schemas";
 import { filesWhere } from "../repository/files";
 import type { FileView } from "../types";

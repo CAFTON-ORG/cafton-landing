@@ -4,15 +4,15 @@ import { revalidatePath } from "next/cache";
 
 import { guard, refreshCrm } from "@/features/crm/actions/guard";
 import { logActivity } from "@/features/crm/actions/shared";
-import { live } from "@/features/crm/mappers";
-import { addDays, manilaDate } from "@/features/schedule/slots";
-import { generateToken, hashToken } from "@/features/sales/integrity";
+import { live } from "@/features/crm/repository/mappers";
+import { addDays, manilaDate } from "@/features/schedule/rules/slots";
+import { generateToken, hashToken } from "@/features/sales/services/integrity";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
-import { contractLink, sendContractEmail } from "../emails";
-import { needsQuote } from "../merge";
-import { getPublicContract } from "../repository";
+import { contractLink, sendContractEmail } from "../services/emails";
+import { needsQuote } from "../rules/merge";
+import { getPublicContract } from "../repository/contracts";
 import {
   CONTRACT_KIND_LABEL,
   DEFAULT_VALID_DAYS,
@@ -24,9 +24,9 @@ import {
   checkWithdraw,
   type ContractKind,
   type ContractStatus,
-} from "../rules";
+} from "../rules/core";
 import { contractSchema, type ContractInput } from "../schemas";
-import { fingerprintOf, mergeValues, renderContractBody } from "../server";
+import { fingerprintOf, mergeValues, renderContractBody } from "../services/contracts";
 
 function refreshContracts(dealId?: string) {
   refreshCrm();

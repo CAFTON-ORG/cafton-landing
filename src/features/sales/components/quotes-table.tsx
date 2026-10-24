@@ -11,7 +11,7 @@ import { useTableParams } from "@/components/dashboard/data-table/use-table-para
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import type { Page } from "@/lib/pagination";
-import { QUOTE_STATUSES, QUOTE_STATUS_LABEL } from "../rules";
+import { QUOTE_STATUSES, QUOTE_STATUS_LABEL } from "../rules/core";
 import { QUOTES_TABLE } from "../table";
 import type { QuoteRow } from "../types";
 import { QuoteStatusBadge } from "./quote-status-badge";

@@ -1,13 +1,13 @@
 "use server";
 
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
-import { asValues } from "../custom-fields";
-import { checkStageRequirements, missingStageFields, stageFieldChoices } from "../pipelines";
-import { notify } from "@/features/notifications/server";
+import { asValues } from "../rules/custom-fields";
+import { checkStageRequirements, missingStageFields, stageFieldChoices } from "../rules/pipelines";
+import { notify } from "@/features/notifications/services/notify";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { formatMinor, parseMinor } from "@/lib/money";
-import { live } from "../mappers";
+import { live } from "../repository/mappers";
 import {
   checkDealDelete,
   checkEditAmount,
@@ -15,25 +15,28 @@ import {
   checkMoveDeal,
   checkReopenDeal,
   checkWin,
-} from "../rules";
+} from "../rules/core";
 import { dealSchema, reasonSchema, type DealInput } from "../schemas";
 import { guard, refreshCrm } from "./guard";
 import {
   checkDealDelete as checkQuotesBlockDelete,
   checkWinAmount,
   checkWinQuotes,
-} from "@/features/sales/rules";
+} from "@/features/sales/rules/core";
 import {
   checkDealDelete as checkContractsBlockDelete,
   checkReopenSigned,
-} from "@/features/contracts/rules";
-import { contractStatusesFor, withdrawLiveContracts } from "@/features/contracts/server";
+} from "@/features/contracts/rules/core";
+import {
+  contractStatusesFor,
+  withdrawLiveContracts,
+} from "@/features/contracts/services/contracts";
 import {
   acceptedTotal,
   quotesInPlayFor,
   quoteStatusesFor,
   withdrawLiveQuotes,
-} from "@/features/sales/server";
+} from "@/features/sales/services/quotes";
 import { firstOpenStage, lastOpenStage, logActivity, type Tx } from "./shared";
 
 async function loadDeal(tx: Tx, id: string) {

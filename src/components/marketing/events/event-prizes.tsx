@@ -3,7 +3,7 @@ import { Award } from "lucide-react";
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal } from "@/components/marketing/motion/reveal";
 import { cn } from "@/lib/utils";
-import type { EventPrize } from "@/features/cms/types";
+import type { EventPrize } from "@/features/cms/types/core";
 
 /** A prize's picture: its photo, or an award plate when there isn't one. Cut-outs sit on a light studio backdrop. */
 function PrizePlate({ prize }: { prize: EventPrize }) {

@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { createDatabase } from "../../../scripts/pglite-setup.mjs";
-import { addDays } from "@/features/schedule/slots";
+import { addDays } from "@/features/schedule/rules/slots";
 import { SYSTEM_ROLE_PERMISSIONS, type Permission } from "@/lib/auth/permissions";
 
 /**
@@ -40,7 +40,7 @@ let server: PGLiteSocketServer;
 let prisma: typeof import("@/lib/db").prisma;
 let actions: typeof import("./actions/recurring");
 let payables: typeof import("./actions/payables");
-let server_: typeof import("./recurring-server");
+let server_: typeof import("./services/recurring");
 
 beforeAll(async () => {
   db = (await createDatabase()) as PGlite;
@@ -60,7 +60,7 @@ beforeAll(async () => {
   ({ prisma } = await import("@/lib/db"));
   actions = await import("./actions/recurring");
   payables = await import("./actions/payables");
-  server_ = await import("./recurring-server");
+  server_ = await import("./services/recurring");
 }, 120_000);
 
 afterAll(async () => {

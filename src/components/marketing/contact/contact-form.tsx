@@ -10,7 +10,7 @@ import {
   contactSchema,
   buildingForOptions,
   type ContactFormData,
-} from "@/features/crm/contact";
+} from "@/features/crm/rules/contact";
 import { useBooking, useServicePillars } from "@/providers/site-settings";
 import { STEP_FIELDS, STEP_SCHEMAS } from "@/components/marketing/contact/step-config";
 import { buildSteps, type FieldErrors, type StepId } from "@/components/marketing/contact/types";

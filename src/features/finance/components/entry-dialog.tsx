@@ -29,7 +29,7 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatMinor, parseMinor } from "@/lib/money";
 import { postManualEntry } from "../actions/books";
-import { MAX_ENTRY_LINES, entryTotals } from "../rules";
+import { MAX_ENTRY_LINES, entryTotals } from "../rules/core";
 
 interface Line {
   accountId: string;

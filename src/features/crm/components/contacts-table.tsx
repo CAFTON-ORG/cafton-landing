@@ -24,7 +24,7 @@ import {
 import { SavedViews } from "./saved-views";
 import { CONTACTS_TABLE } from "../table";
 import type { ContactView, PersonRef } from "../types";
-import type { CustomFieldDef } from "../custom-fields";
+import type { CustomFieldDef } from "../rules/custom-fields";
 import { ContactDialog } from "./contact-dialog";
 
 const baseColumns: Column<ContactView>[] = [

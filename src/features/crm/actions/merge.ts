@@ -6,11 +6,11 @@ import type { Prisma } from "@/generated/prisma/client";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
-import { mergeCustomValues } from "../custom-fields";
-import { mergeValues } from "../duplicates";
-import { live } from "../mappers";
-import { checkMergeLeads, fullName, mergedLeadStatus, type LeadStatus } from "../rules";
-import { normalizeTags } from "../tags";
+import { mergeCustomValues } from "../rules/custom-fields";
+import { mergeValues } from "../rules/duplicates";
+import { live } from "../repository/mappers";
+import { checkMergeLeads, fullName, mergedLeadStatus, type LeadStatus } from "../rules/core";
+import { normalizeTags } from "../rules/tags";
 import { guard, refreshCrm } from "./guard";
 import { logActivity } from "./shared";
 

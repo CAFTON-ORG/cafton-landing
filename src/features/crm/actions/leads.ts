@@ -1,11 +1,11 @@
 "use server";
 
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
-import { notify } from "@/features/notifications/server";
+import { notify } from "@/features/notifications/services/notify";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { parseMinor } from "@/lib/money";
-import { live } from "../mappers";
+import { live } from "../repository/mappers";
 import {
   checkConvert,
   checkDisqualify,
@@ -13,9 +13,9 @@ import {
   checkQualify,
   checkReopenLead,
   fullName,
-} from "../rules";
+} from "../rules/core";
 import { reasonSchema } from "../schemas";
-import { buildEnquirySummary, type ContactFormData } from "../contact";
+import { buildEnquirySummary, type ContactFormData } from "../rules/contact";
 import { guard, refreshCrm } from "./guard";
 import { findLiveContactByEmail, firstOpenStage, logActivity } from "./shared";
 

@@ -21,7 +21,7 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import { autoMatchLines, signOffPeriod } from "../actions/bank";
-import type { ReconciliationView } from "../bank-types";
+import type { ReconciliationView } from "../types/bank";
 
 /** Matches every line that has exactly one possible posting. */
 export function AutoMatchButton({

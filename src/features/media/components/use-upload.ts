@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 import { MAX_UPLOAD_BYTES } from "@/lib/media";
-import { uploadMedia } from "../actions";
+import { uploadMedia } from "../actions/media";
 import type { MediaItem } from "../types";
 
 /**

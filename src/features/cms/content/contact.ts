@@ -1,4 +1,4 @@
-import type { ContactContent } from "../types";
+import type { ContactContent } from "../types/core";
 
 /** The contact page's wording as the site said it before it was editable. */
 export const contact: ContactContent = {

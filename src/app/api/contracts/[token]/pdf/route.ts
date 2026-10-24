@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { renderContractPdf } from "@/features/contracts/pdf/contract-pdf";
-import { getPublicContract } from "@/features/contracts/repository";
-import { companyDetails } from "@/features/sales/emails";
+import { getPublicContract } from "@/features/contracts/repository/contracts";
+import { companyDetails } from "@/features/sales/services/emails";
 import { checkRateLimit, getClientKey } from "@/lib/security/rate-limit";
 
 export const runtime = "nodejs";

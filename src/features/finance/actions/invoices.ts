@@ -4,19 +4,19 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { guard } from "@/features/crm/actions/guard";
-import { live } from "@/features/crm/mappers";
-import { fullName } from "@/features/crm/rules";
-import { addDays, manilaDate } from "@/features/schedule/slots";
-import { parseQuantity } from "@/features/sales/pricing";
+import { live } from "@/features/crm/repository/mappers";
+import { fullName } from "@/features/crm/rules/core";
+import { addDays, manilaDate } from "@/features/schedule/rules/slots";
+import { parseQuantity } from "@/features/sales/rules/pricing";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { parseMinor } from "@/lib/money";
-import { nextDocumentNumber } from "../documents";
-import { sendInvoiceEmail } from "../emails";
-import { getInvoice } from "../invoice-repository";
-import { buildTimeLines, resolveRate } from "../billing";
-import { getFinanceSettings, rateSourcesFor, type BillingRateView } from "../settings-repository";
+import { nextDocumentNumber } from "../services/documents";
+import { sendInvoiceEmail } from "../services/emails";
+import { getInvoice } from "../repository/invoices";
+import { buildTimeLines, resolveRate } from "../rules/billing";
+import { getFinanceSettings, rateSourcesFor, type BillingRateView } from "../repository/settings";
 import {
   creditNoteSchema,
   invoiceSchema,
@@ -27,7 +27,7 @@ import {
   type InvoiceInput,
   type NewInvoiceInput,
   type PaymentInput,
-} from "../invoice-schemas";
+} from "../schemas/invoices";
 import {
   balanceOf,
   checkCreditNote,
@@ -40,9 +40,9 @@ import {
   invoiceTotals,
   lineAmount,
   type InvoiceStatus,
-} from "../invoicing";
-import { accountForRole, postJournal, reverseJournal } from "../ledger";
-import { taxOf } from "../rules";
+} from "../rules/invoicing";
+import { accountForRole, postJournal, reverseJournal } from "../services/ledger";
+import { taxOf } from "../rules/core";
 
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 

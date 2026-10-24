@@ -12,7 +12,11 @@ import { Skeleton } from "@/components/dashboard/ui/skeleton";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { listMyNotifications, markAllNotificationsRead, markNotificationRead } from "../actions";
+import {
+  listMyNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "../actions/notifications";
 import type { NotificationView } from "../types";
 
 /**

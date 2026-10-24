@@ -1,5 +1,7 @@
+import "server-only";
+
 import { serviceFaqs } from "@/features/cms/content/service-faqs";
-import type { FaqItem } from "@/features/cms/types";
+import type { FaqItem } from "@/features/cms/types/core";
 import { prisma } from "@/lib/db";
 import { readContent } from "./source";
 

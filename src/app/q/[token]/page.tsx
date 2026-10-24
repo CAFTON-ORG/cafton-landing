@@ -5,9 +5,9 @@ import { CircleCheck, CircleX, Clock, Download } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
 import { SITE_NAME } from "@/config/site";
 import { RespondPanel } from "@/components/marketing/quote/respond-panel";
-import { quantityText } from "@/features/sales/pricing";
-import { markQuoteViewed } from "@/features/sales/public";
-import { getPublicQuote } from "@/features/sales/repository";
+import { quantityText } from "@/features/sales/rules/pricing";
+import { markQuoteViewed } from "@/features/sales/actions/public";
+import { getPublicQuote } from "@/features/sales/repository/sales";
 import { formatMinor } from "@/lib/money";
 
 // A private link: never indexed, never cached.

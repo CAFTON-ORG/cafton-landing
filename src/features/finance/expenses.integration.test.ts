@@ -41,8 +41,8 @@ let db: PGlite;
 let server: PGLiteSocketServer;
 let prisma: typeof import("@/lib/db").prisma;
 let actions: typeof import("./actions/expenses");
-let repo: typeof import("./expense-repository");
-let books: typeof import("./repository");
+let repo: typeof import("./repository/expenses");
+let books: typeof import("./repository/ledger");
 
 beforeAll(async () => {
   db = (await createDatabase()) as PGlite;
@@ -63,8 +63,8 @@ beforeAll(async () => {
   }
   ({ prisma } = await import("@/lib/db"));
   actions = await import("./actions/expenses");
-  repo = await import("./expense-repository");
-  books = await import("./repository");
+  repo = await import("./repository/expenses");
+  books = await import("./repository/ledger");
 }, 120_000);
 
 afterAll(async () => {

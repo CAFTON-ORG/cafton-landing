@@ -15,7 +15,7 @@ import { Input } from "@/components/dashboard/ui/input";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatBytes } from "@/lib/media";
 import type { Page } from "@/lib/pagination";
-import { deleteMedia, updateMediaAlt } from "../actions";
+import { deleteMedia, updateMediaAlt } from "../actions/media";
 import { checkDeleteMedia } from "../rules";
 import type { MediaItem } from "../types";
 import { UploadButton } from "./upload-button";

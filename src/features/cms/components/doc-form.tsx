@@ -30,8 +30,8 @@ import {
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import type { Permission } from "@/lib/auth/permissions";
 import { useServerAction } from "@/hooks/use-server-action";
-import { saveSiteDocument } from "../admin/document-actions";
-import { listFromText, textFromList } from "../rules";
+import { saveSiteDocument } from "../actions/documents";
+import { listFromText, textFromList } from "../rules/core";
 import { blankFor, type DocSpec, type FieldSpec } from "../site/spec";
 import { EditorTab, EditorTabs, Repeater } from "./editor-kit";
 import { ImageField } from "./image-field";

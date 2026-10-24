@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { InvoiceDetail } from "../invoice-types";
+import type { InvoiceDetail } from "../types/invoices";
 import { renderInvoicePdf } from "./invoice-pdf";
 
 const company = { name: "Cafton", email: "contact@cafton.com", place: "Baguio City, Philippines" };

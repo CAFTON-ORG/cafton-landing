@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { mergeContacts, mergeLeads, mergeOrganizations } from "../actions/merge";
-import type { DuplicateGroup } from "../duplicates";
+import type { DuplicateGroup } from "../rules/duplicates";
 import type {
   DuplicateContact,
   DuplicateLead,

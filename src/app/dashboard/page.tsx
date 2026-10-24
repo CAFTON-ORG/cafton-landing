@@ -25,7 +25,7 @@ import {
   CardTitle,
 } from "@/components/dashboard/ui/card";
 import { IncomeExpenseChart } from "@/features/finance/components/income-expense-chart";
-import { getOverview } from "@/features/overview/repository";
+import { getOverview } from "@/features/overview/repository/overview";
 import {
   barWidth,
   count,

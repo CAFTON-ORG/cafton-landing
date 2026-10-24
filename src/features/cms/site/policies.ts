@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { legal } from "../content/legal";
 import { privacyPolicy } from "../content/privacy-policy";
-import { isSafeImageSrc } from "../rules";
+import { isSafeImageSrc } from "../rules/core";
 import type { DocSpec, FieldSpec } from "./spec";
 
 const line = (label: string, max: number) =>

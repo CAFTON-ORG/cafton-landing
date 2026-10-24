@@ -24,10 +24,10 @@ import {
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
-import { saveSiteSettings } from "../admin/site-actions";
-import { listFromText, textFromList } from "../rules";
-import { SOCIAL_PLATFORMS } from "../schemas";
-import type { SiteSettings, SocialPlatform } from "../types";
+import { saveSiteSettings } from "../actions/site";
+import { listFromText, textFromList } from "../rules/core";
+import { SOCIAL_PLATFORMS } from "../schemas/core";
+import type { SiteSettings, SocialPlatform } from "../types/core";
 import { Repeater } from "./editor-kit";
 
 const PLATFORM_LABEL: Record<SocialPlatform, string> = {

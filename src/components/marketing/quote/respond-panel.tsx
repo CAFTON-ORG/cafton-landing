@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ActionResult } from "@/lib/actions";
-import { respondToQuote } from "@/features/sales/public";
+import { respondToQuote } from "@/features/sales/actions/public";
 
 /**
  * Where the client answers. Accepting is a deliberate act: they type their full name and tick a box

@@ -1,7 +1,7 @@
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal } from "@/components/marketing/motion/reveal";
 import { FaqList } from "@/components/marketing/patterns/faq";
-import type { FaqItem, ServicesDetail } from "@/features/cms/types";
+import type { FaqItem, ServicesDetail } from "@/features/cms/types/core";
 
 export function ServiceFaq({
   items,

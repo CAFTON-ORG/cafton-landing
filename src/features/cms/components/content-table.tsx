@@ -27,15 +27,15 @@ import { Button } from "@/components/dashboard/ui/button";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate, formatRelative } from "@/lib/format";
 import type { Page } from "@/lib/pagination";
-import { deleteContent, setContentStatus } from "../admin/actions";
-import { CONTENT_TABLE } from "../admin/table";
+import { deleteContent, setContentStatus } from "../actions/content";
+import { CONTENT_TABLE } from "../table";
 import {
   CONTENT_STATUSES,
   STATUS_LABEL,
   type AdminListRow,
   type ContentKind,
-} from "../admin/types";
-import { checkDeleteContent } from "../rules";
+} from "../types/admin";
+import { checkDeleteContent } from "../rules/core";
 
 const KIND_ICON: Record<ContentKind, LucideIcon> = {
   post: FileText,

@@ -1,4 +1,4 @@
-import type { Project } from "@/features/cms/types";
+import type { Project } from "@/features/cms/types/core";
 
 export const projects: Project[] = [
   {

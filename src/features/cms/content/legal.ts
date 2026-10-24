@@ -1,4 +1,4 @@
-import type { LegalDocument } from "../types";
+import type { LegalDocument } from "../types/core";
 
 /** The legal page as the site said it before it was editable. See `privacy-policy.ts` for the text format. */
 export const legal: LegalDocument = {

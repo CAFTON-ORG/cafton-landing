@@ -1,4 +1,4 @@
-import type { SiteSettings } from "../types";
+import type { SiteSettings } from "../types/core";
 
 /** What the site said before settings were editable. The seed copies it into the database. */
 export const siteSettings: SiteSettings = {

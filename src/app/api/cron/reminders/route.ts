@@ -2,13 +2,13 @@ import { timingSafeEqual } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
-import { scoreUnscoredLeads } from "@/features/crm/scoring-jobs";
-import { runReminders } from "@/features/schedule/reminders";
-import { expireDueQuotes } from "@/features/sales/server";
-import { notifyTaxDeadlines } from "@/features/finance/tax-reminders";
-import { generateDueRecurring } from "@/features/finance/recurring-server";
-import { sendDueInvoiceReminders } from "@/features/finance/reminders";
-import { expireDueContracts } from "@/features/contracts/server";
+import { scoreUnscoredLeads } from "@/features/crm/services/scoring-jobs";
+import { runReminders } from "@/features/schedule/services/reminders";
+import { expireDueQuotes } from "@/features/sales/services/quotes";
+import { notifyTaxDeadlines } from "@/features/finance/services/tax-reminders";
+import { generateDueRecurring } from "@/features/finance/services/recurring";
+import { sendDueInvoiceReminders } from "@/features/finance/services/reminders";
+import { expireDueContracts } from "@/features/contracts/services/contracts";
 import { env, isDatabaseConfigured } from "@/lib/env";
 
 export const runtime = "nodejs";

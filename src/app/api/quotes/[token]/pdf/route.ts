@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { companyDetails } from "@/features/sales/emails";
+import { companyDetails } from "@/features/sales/services/emails";
 import { renderQuotePdf } from "@/features/sales/pdf/quote-pdf";
-import { getPublicQuote } from "@/features/sales/repository";
+import { getPublicQuote } from "@/features/sales/repository/sales";
 import { checkRateLimit, getClientKey } from "@/lib/security/rate-limit";
 
 export const runtime = "nodejs";

@@ -7,7 +7,7 @@ import { BackLink } from "@/components/dashboard/shared/back-link";
 import { StatusBadge } from "@/components/dashboard/shared/status-badge";
 import { Card, CardContent } from "@/components/dashboard/ui/card";
 import { ReverseButton } from "@/features/finance/components/reverse-button";
-import { getJournalEntry } from "@/features/finance/repository";
+import { getJournalEntry } from "@/features/finance/repository/ledger";
 import { JOURNAL_SOURCE_LABEL } from "@/features/finance/table";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";

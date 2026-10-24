@@ -37,8 +37,8 @@ vi.mock("@/lib/auth/dal", () => ({
 let db: PGlite;
 let server: PGLiteSocketServer;
 let prisma: typeof import("@/lib/db").prisma;
-let reports: typeof import("./report-repository");
-let model: typeof import("./reports");
+let reports: typeof import("./repository/reports");
+let model: typeof import("./rules/reports");
 let pdf: typeof import("./pdf/report-pdf");
 
 const today = () => new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10);
@@ -62,8 +62,8 @@ beforeAll(async () => {
      SELECT '${OWNER.id}', '${OWNER.email}', '${OWNER.name}', id FROM roles WHERE key = 'owner' ON CONFLICT DO NOTHING`,
   );
   ({ prisma } = await import("@/lib/db"));
-  reports = await import("./report-repository");
-  model = await import("./reports");
+  reports = await import("./repository/reports");
+  model = await import("./rules/reports");
   pdf = await import("./pdf/report-pdf");
 
   const books = await import("./actions/books");

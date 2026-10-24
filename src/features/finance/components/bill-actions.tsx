@@ -6,7 +6,7 @@ import { Ban, Banknote } from "lucide-react";
 
 import { Button } from "@/components/dashboard/ui/button";
 import { voidBill } from "../actions/payables";
-import type { BillAccount } from "../payable-types";
+import type { BillAccount } from "../types/payables";
 import { BillPaymentDialog } from "./bill-payment-dialog";
 import { MoreActions, type MoreItem } from "./more-actions";
 import { ReasonDialog } from "./reason-dialog";

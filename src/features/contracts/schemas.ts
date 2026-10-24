@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { unknownFields } from "./merge";
-import { CONTRACT_KINDS, MAX_BODY_LENGTH } from "./rules";
+import { unknownFields } from "./rules/merge";
+import { CONTRACT_KINDS, MAX_BODY_LENGTH } from "./rules/core";
 
 const text = (max: number) => z.string().trim().max(max);
 

@@ -7,7 +7,7 @@ import { Ban, Banknote, BellRing, Download, ReceiptText } from "lucide-react";
 import { Button } from "@/components/dashboard/ui/button";
 import { useServerAction } from "@/hooks/use-server-action";
 import { remindNow, voidInvoice } from "../actions/invoices";
-import type { OpenInvoice } from "../invoice-types";
+import type { OpenInvoice } from "../types/invoices";
 import { CreditNoteDialog } from "./credit-note-dialog";
 import { SendInvoiceButton } from "./invoice-mail-buttons";
 import { MoreActions, type MoreItem } from "./more-actions";

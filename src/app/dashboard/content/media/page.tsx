@@ -4,7 +4,7 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { MediaLibrary } from "@/features/media/components/media-library";
 import { UploadButton } from "@/features/media/components/upload-button";
-import { listMedia } from "@/features/media/repository";
+import { listMedia } from "@/features/media/repository/media";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Image library" };

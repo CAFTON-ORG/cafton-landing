@@ -22,7 +22,7 @@ import { EnquiryAnswers } from "@/features/crm/components/enquiry-answers";
 import { StageStepper } from "@/features/crm/components/stage-stepper";
 import { TagsEditor } from "@/features/crm/components/tags-editor";
 import { NewTaskForm, TaskRows, TasksEmpty } from "@/features/crm/components/task-list";
-import { parseKeyLines } from "@/features/crm/enquiry-text";
+import { parseKeyLines } from "@/features/crm/rules/enquiry-text";
 import { listActivities } from "@/features/crm/repository/activity";
 import { listContactOptions } from "@/features/crm/repository/contacts";
 import { getDeal } from "@/features/crm/repository/deals";
@@ -31,22 +31,22 @@ import { listOrganizationOptions } from "@/features/crm/repository/organizations
 import { listStages, listStaffOptions } from "@/features/crm/repository/pipeline";
 import { listTagOptions } from "@/features/crm/repository/tags";
 import { listTasksFor } from "@/features/crm/repository/tasks";
-import { checkAddTaskToDeal } from "@/features/crm/rules";
-import { checkReopenSigned } from "@/features/contracts/rules";
+import { checkAddTaskToDeal } from "@/features/crm/rules/core";
+import { checkReopenSigned } from "@/features/contracts/rules/core";
 import { DealProject } from "@/features/delivery/components/deal-project";
-import { getProjectForDeal } from "@/features/delivery/repository";
-import { checkWinQuotes } from "@/features/sales/rules";
+import { getProjectForDeal } from "@/features/delivery/repository/delivery";
+import { checkWinQuotes } from "@/features/sales/rules/core";
 import { DealContractsPanel } from "@/features/contracts/components/deal-contracts-panel";
 import {
   acceptedQuotesForDeal,
   listContractsForDeal,
   listTemplates,
-} from "@/features/contracts/repository";
+} from "@/features/contracts/repository/contracts";
 import { DealQuotesPanel } from "@/features/sales/components/deal-quotes-panel";
-import { listQuotesForDeal } from "@/features/sales/repository";
+import { listQuotesForDeal } from "@/features/sales/repository/sales";
 import { can } from "@/lib/auth/dal";
 import { MeetingsPanel } from "@/features/schedule/components/meetings-panel";
-import { listMeetingsFor } from "@/features/schedule/repository";
+import { listMeetingsFor } from "@/features/schedule/repository/schedule";
 import { actorId } from "@/lib/actions";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";

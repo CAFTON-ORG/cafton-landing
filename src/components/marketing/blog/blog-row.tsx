@@ -4,7 +4,7 @@ import { ThemedImage } from "@/components/shared/themed-image";
 import { CoverArt } from "@/components/marketing/decor/cover-art";
 import { AuthorAvatar } from "@/components/marketing/blog/author-avatar";
 import { readingTime } from "@/features/cms/lib/blog";
-import type { Author, BlogPost } from "@/features/cms/types";
+import type { Author, BlogPost } from "@/features/cms/types/core";
 
 /**
  * Archive entry: a dated margin column, the headline and excerpt, and a small

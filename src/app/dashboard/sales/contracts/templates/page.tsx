@@ -4,7 +4,7 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { TemplatesView } from "@/features/contracts/components/templates-view";
-import { listTemplates } from "@/features/contracts/repository";
+import { listTemplates } from "@/features/contracts/repository/contracts";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Contract templates" };

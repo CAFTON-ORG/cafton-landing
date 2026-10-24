@@ -20,10 +20,10 @@ import {
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatMinor, minorToInput, parseMinor } from "@/lib/money";
-import { addDays } from "@/features/schedule/slots";
+import { addDays } from "@/features/schedule/rules/slots";
 import { approveBill, deleteDraftBill, saveBill } from "../actions/payables";
-import { MAX_LINES } from "../invoicing";
-import type { BillAccount, BillDetail } from "../payable-types";
+import { MAX_LINES } from "../rules/invoicing";
+import type { BillAccount, BillDetail } from "../types/payables";
 
 interface Line {
   description: string;

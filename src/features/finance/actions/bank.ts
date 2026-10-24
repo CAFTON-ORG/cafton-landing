@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { guard } from "@/features/crm/actions/guard";
-import { manilaDate } from "@/features/schedule/slots";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { parseCsv } from "@/lib/csv";
@@ -19,7 +19,7 @@ import {
   mapStatement,
   suggestMatches,
   type LedgerCandidate,
-} from "../bank";
+} from "../rules/bank";
 import {
   bankAccountSchema,
   bookSchema,
@@ -31,10 +31,10 @@ import {
   type BookInput,
   type ImportInput,
   type SignOffInput,
-} from "../bank-schemas";
-import type { ImportReport } from "../bank-types";
-import { isLocked, ledgerCandidates } from "../bank-repository";
-import { postJournal } from "../ledger";
+} from "../schemas/bank";
+import type { ImportReport } from "../types/bank";
+import { isLocked, ledgerCandidates } from "../repository/bank";
+import { postJournal } from "../services/ledger";
 
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 

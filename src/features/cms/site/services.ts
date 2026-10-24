@@ -2,8 +2,8 @@ import { z } from "zod";
 
 import { serviceContent, servicesPage } from "../content/services";
 import { coreValueContent, valuesDocument } from "../content/values";
-import { isSafeImageSrc } from "../rules";
-import { VALUE_ICON_NAMES } from "../types";
+import { isSafeImageSrc } from "../rules/core";
+import { VALUE_ICON_NAMES } from "../types/core";
 import type { DocSpec } from "./spec";
 
 const line = (label: string, max: number) =>

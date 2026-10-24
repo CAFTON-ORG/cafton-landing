@@ -1,7 +1,7 @@
 "use server";
 
-import { notify, staffIdsWith } from "@/features/notifications/server";
-import { manilaDate } from "@/features/schedule/slots";
+import { notify, staffIdsWith } from "@/features/notifications/services/notify";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";

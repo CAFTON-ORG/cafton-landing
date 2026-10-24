@@ -19,10 +19,10 @@ import {
   SelectValue,
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
-import { saveProject } from "../admin/editor-actions";
-import type { AdminProjectDetail } from "../admin/forms";
-import type { AuthorOption } from "../admin/types";
-import { checkPublishProject, slugify } from "../rules";
+import { saveProject } from "../actions/editors";
+import type { AdminProjectDetail } from "../schemas/forms";
+import type { AuthorOption } from "../types/admin";
+import { checkPublishProject, slugify } from "../rules/core";
 import { AuthorField } from "./author-field";
 import { EditorTab, EditorTabs, PublishPanel, Repeater, useContentEditor } from "./editor-kit";
 import { CoverImageFields } from "./cover-image-fields";

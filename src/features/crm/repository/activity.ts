@@ -2,7 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import { namesFor } from "../mappers";
+import { namesFor } from "./mappers";
 import type { ActivityView, Subject } from "../types";
 
 export async function listActivities(subject: Subject, limit = 100): Promise<ActivityView[]> {

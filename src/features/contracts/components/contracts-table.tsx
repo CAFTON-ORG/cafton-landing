@@ -15,7 +15,7 @@ import {
   CONTRACT_KIND_LABEL,
   CONTRACT_STATUSES,
   CONTRACT_STATUS_LABEL,
-} from "../rules";
+} from "../rules/core";
 import { CONTRACTS_TABLE } from "../table";
 import type { ContractRow } from "../types";
 import { ContractStatusBadge } from "./contract-status-badge";

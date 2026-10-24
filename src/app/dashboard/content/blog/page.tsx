@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
-import { listPosts } from "@/features/cms/admin/repository";
-import { CONTENT_TABLE } from "@/features/cms/admin/table";
+import { listPosts } from "@/features/cms/repository/admin";
+import { CONTENT_TABLE } from "@/features/cms/table";
 import { ContentTable } from "@/features/cms/components/content-table";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";

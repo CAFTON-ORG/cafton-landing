@@ -1,6 +1,6 @@
 import { Reveal } from "@/components/marketing/motion/reveal";
 import { PhotoGallery } from "@/components/marketing/blog/photo-gallery";
-import type { BlogPost } from "@/features/cms/types";
+import type { BlogPost } from "@/features/cms/types/core";
 
 /**
  * The article text in a reading-width column, with photos and galleries set

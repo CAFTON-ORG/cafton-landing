@@ -1,8 +1,10 @@
+import "server-only";
+
 import { z } from "zod";
 
 import { projects } from "@/features/cms/content/projects";
-import { blogImageSchema, parseJson } from "@/features/cms/schemas";
-import type { BlogImage, Project } from "@/features/cms/types";
+import { blogImageSchema, parseJson } from "@/features/cms/schemas/core";
+import type { BlogImage, Project } from "@/features/cms/types/core";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { opt, publicRows, readContent } from "./source";

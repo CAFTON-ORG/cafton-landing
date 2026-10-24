@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { resolvePermissions } from "@/lib/auth/permissions";
-import { pickAssignee } from "../assignment";
+import { pickAssignee } from "../rules/assignment";
 
 /** Arbitrary key for the database lock that keeps enquiries from picking the same person. */
 const ASSIGNMENT_LOCK = 710_001;

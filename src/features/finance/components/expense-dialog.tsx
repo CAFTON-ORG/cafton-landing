@@ -29,9 +29,9 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { minorToInput } from "@/lib/money";
 import { saveExpense, uploadReceipt } from "../actions/expenses";
-import { MAX_RECEIPTS, RECEIPT_ACCEPT, RECEIPT_REQUIRED_OVER_MINOR } from "../expenses";
-import type { ExpenseDetail } from "../expense-types";
-import type { BillAccount } from "../payable-types";
+import { MAX_RECEIPTS, RECEIPT_ACCEPT, RECEIPT_REQUIRED_OVER_MINOR } from "../rules/expenses";
+import type { ExpenseDetail } from "../types/expenses";
+import type { BillAccount } from "../types/payables";
 
 const label = (account?: BillAccount) => (account ? `${account.code} ${account.name}` : "");
 

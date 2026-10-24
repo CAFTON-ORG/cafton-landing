@@ -5,4 +5,4 @@
  * the emitter, so the handlers are registered on the same bus. (A separate startup hook such as
  * `instrumentation.ts` is bundled apart from the pages and would register on a bus nobody emits to.)
  */
-import "@/features/delivery/handlers";
+import "@/features/delivery/services/handlers";

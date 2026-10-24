@@ -39,10 +39,10 @@ let server: PGLiteSocketServer;
 let prisma: typeof import("@/lib/db").prisma;
 let quotes: typeof import("./actions/quotes");
 let catalog: typeof import("./actions/catalog");
-let pub: typeof import("./public");
-let repo: typeof import("./repository");
+let pub: typeof import("./actions/public");
+let repo: typeof import("./repository/sales");
 let pdf: typeof import("./pdf/quote-pdf");
-let server_: typeof import("./server");
+let server_: typeof import("./services/quotes");
 let deals: typeof import("@/features/crm/actions/deals");
 
 const tokenOf = (result: { ok: boolean; data?: unknown }) =>
@@ -68,10 +68,10 @@ beforeAll(async () => {
   ({ prisma } = await import("@/lib/db"));
   quotes = await import("./actions/quotes");
   catalog = await import("./actions/catalog");
-  pub = await import("./public");
-  repo = await import("./repository");
+  pub = await import("./actions/public");
+  repo = await import("./repository/sales");
   pdf = await import("./pdf/quote-pdf");
-  server_ = await import("./server");
+  server_ = await import("./services/quotes");
   deals = await import("@/features/crm/actions/deals");
 }, 120_000);
 

@@ -21,7 +21,7 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { minorToInput } from "@/lib/money";
 import { deleteDeal, loseDeal, reopenDeal, winDeal } from "../actions/deals";
-import { checkDealDelete, checkReopenDeal } from "../rules";
+import { checkDealDelete, checkReopenDeal } from "../rules/core";
 import type { DealView, PersonRef } from "../types";
 import { DealDialog } from "./deal-dialog";
 

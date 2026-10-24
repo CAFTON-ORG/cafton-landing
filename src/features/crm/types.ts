@@ -1,6 +1,6 @@
-import type { LeadStatus, StageKind } from "./rules";
-import type { CustomValues } from "./custom-fields";
-import type { LeadBand, ScoreReason } from "./scoring";
+import type { LeadStatus, StageKind } from "./rules/core";
+import type { CustomValues } from "./rules/custom-fields";
+import type { LeadBand, ScoreReason } from "./rules/scoring";
 
 export const LEAD_STATUSES = [
   "new",

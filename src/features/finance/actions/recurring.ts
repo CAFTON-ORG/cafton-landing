@@ -8,9 +8,9 @@ import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { parseMinor } from "@/lib/money";
-import { anchorDayOf, checkRecurring } from "../recurring";
-import { recurringSchema, type RecurringInput } from "../recurring-schemas";
-import { generateDueRecurring, type RecurringRun } from "../recurring-server";
+import { anchorDayOf, checkRecurring } from "../rules/recurring";
+import { recurringSchema, type RecurringInput } from "../schemas/recurring";
+import { generateDueRecurring, type RecurringRun } from "../services/recurring";
 
 function refresh() {
   for (const path of [

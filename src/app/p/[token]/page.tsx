@@ -4,7 +4,7 @@ import { CircleCheck, Circle, CircleDashed } from "lucide-react";
 
 import { Logo } from "@/components/shared/logo";
 import { SITE_NAME } from "@/config/site";
-import { getPublicProgress } from "@/features/delivery/repository";
+import { getPublicProgress } from "@/features/delivery/repository/delivery";
 import {
   MILESTONE_STATUS_LABEL,
   PROJECT_STATUS_LABEL,

@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { CoverArt } from "@/components/marketing/decor/cover-art";
 import { ThemedImage } from "@/components/shared/themed-image";
 import { cn } from "@/lib/utils";
-import type { Project } from "@/features/cms/types";
+import type { Project } from "@/features/cms/types/core";
 
 /** Compact project tile for "related work" strips on other pages. */
 export function ProjectCard({ project }: { project: Project }) {

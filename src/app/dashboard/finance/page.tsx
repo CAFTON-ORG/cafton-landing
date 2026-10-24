@@ -26,17 +26,17 @@ import {
   CardTitle,
 } from "@/components/dashboard/ui/card";
 import { IncomeExpenseChart } from "@/features/finance/components/income-expense-chart";
-import { countAwaitingApproval } from "@/features/finance/expense-repository";
-import { invoiceSummary } from "@/features/finance/invoice-repository";
+import { countAwaitingApproval } from "@/features/finance/repository/expenses";
+import { invoiceSummary } from "@/features/finance/repository/invoices";
 import {
   bankLinesToCheck,
   cashPosition,
   monthlyBars,
   profitBetween,
-} from "@/features/finance/overview-repository";
-import { billSummary } from "@/features/finance/payable-repository";
-import { getTracker, isLiveYear } from "@/features/finance/tax-repository";
-import { manilaDate } from "@/features/schedule/slots";
+} from "@/features/finance/repository/overview";
+import { billSummary } from "@/features/finance/repository/payables";
+import { getTracker, isLiveYear } from "@/features/finance/repository/tax";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";

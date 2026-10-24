@@ -1,4 +1,4 @@
-import type { ContractKind, ContractStatus } from "./rules";
+import type { ContractKind, ContractStatus } from "./rules/core";
 
 export interface TemplateView {
   id: string;

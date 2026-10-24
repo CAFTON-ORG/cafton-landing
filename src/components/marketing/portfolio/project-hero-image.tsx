@@ -1,4 +1,4 @@
-import type { Project } from "@/features/cms/types";
+import type { Project } from "@/features/cms/types/core";
 import { CoverArt } from "@/components/marketing/decor/cover-art";
 import { ThemedImage } from "@/components/shared/themed-image";
 

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { EventStatus } from "@/features/cms/types";
+import type { EventStatus } from "@/features/cms/types/core";
 
 const STATUS: Record<EventStatus, { label: string; dot: string }> = {
   open: { label: "Open", dot: "bg-emerald-500" },

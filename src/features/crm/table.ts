@@ -1,6 +1,6 @@
-import { LEAD_BANDS } from "./scoring";
+import { LEAD_BANDS } from "./rules/scoring";
 import type { TableParamsConfig } from "@/lib/table-params";
-import { CUSTOM_FILTER_PREFIX } from "./custom-fields";
+import { CUSTOM_FILTER_PREFIX } from "./rules/custom-fields";
 import { LEAD_STATUSES } from "./types";
 
 /** URL-driven state for each CRM list. Declared once so the page and the client table parse identically. */

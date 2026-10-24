@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { guard } from "@/features/crm/actions/guard";
 import type { Tx } from "@/features/crm/actions/shared";
-import { live } from "@/features/crm/mappers";
+import { live } from "@/features/crm/repository/mappers";
 import { ActionError } from "@/lib/actions";
 import { parseMinor } from "@/lib/money";
 import {

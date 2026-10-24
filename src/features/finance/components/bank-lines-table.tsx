@@ -16,7 +16,7 @@ import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import type { Page } from "@/lib/pagination";
 import { unmatchLine } from "../actions/bank";
-import type { BankLineRow, BankLineStatus, BookingAccount } from "../bank-types";
+import type { BankLineRow, BankLineStatus, BookingAccount } from "../types/bank";
 import { BANK_LINE_STATUSES, BANK_LINE_TABLE } from "../table";
 import { BookDialog, IgnoreDialog, MatchDialog } from "./bank-line-dialogs";
 

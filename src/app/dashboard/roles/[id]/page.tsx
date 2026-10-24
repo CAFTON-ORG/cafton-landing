@@ -5,7 +5,7 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { RoleForm } from "@/features/roles/components/role-form";
-import { listRoles } from "@/features/roles/repository";
+import { listRoles } from "@/features/roles/repository/roles";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Role" };

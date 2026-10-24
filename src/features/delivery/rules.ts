@@ -4,7 +4,7 @@
  * whole minutes.
  */
 
-import { addDays, weekdayOf } from "@/features/schedule/slots";
+import { addDays, weekdayOf } from "@/features/schedule/rules/slots";
 
 /* ----------------------------------------------------------------- projects */
 

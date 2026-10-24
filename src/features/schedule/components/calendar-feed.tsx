@@ -17,7 +17,7 @@ import {
 } from "@/components/dashboard/ui/dialog";
 import { Input } from "@/components/dashboard/ui/input";
 import { useServerAction } from "@/hooks/use-server-action";
-import { getCalendarLink, resetCalendarLink } from "../feed-actions";
+import { getCalendarLink, resetCalendarLink } from "../actions/feed";
 
 /** "Add to my calendar": a private link Google, Outlook or Apple Calendar can subscribe to. */
 export function CalendarFeed() {

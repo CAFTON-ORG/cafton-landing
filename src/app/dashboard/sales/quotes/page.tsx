@@ -5,7 +5,7 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { StatCard } from "@/components/dashboard/shared/stat-card";
 import { QuotesTable } from "@/features/sales/components/quotes-table";
-import { listQuotes, openQuoteTotals } from "@/features/sales/repository";
+import { listQuotes, openQuoteTotals } from "@/features/sales/repository/sales";
 import { QUOTES_TABLE } from "@/features/sales/table";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { formatMinor } from "@/lib/money";

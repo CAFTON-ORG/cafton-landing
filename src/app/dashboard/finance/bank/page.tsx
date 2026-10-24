@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { BankAccountsView } from "@/features/finance/components/bank-accounts-view";
-import { listBankAccounts } from "@/features/finance/bank-repository";
-import { listPostableAccounts } from "@/features/finance/repository";
+import { listBankAccounts } from "@/features/finance/repository/bank";
+import { listPostableAccounts } from "@/features/finance/repository/ledger";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Bank" };

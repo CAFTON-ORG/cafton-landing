@@ -31,8 +31,8 @@ import {
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { saveAccount, setAccountActive } from "../actions/books";
-import { ACCOUNT_TYPES, ACCOUNT_TYPE_LABEL, type AccountType } from "../rules";
-import type { AccountView } from "../types";
+import { ACCOUNT_TYPES, ACCOUNT_TYPE_LABEL, type AccountType } from "../rules/core";
+import type { AccountView } from "../types/core";
 import { Money } from "./money";
 
 interface Draft {

@@ -14,9 +14,9 @@ import {
 } from "@/components/dashboard/ui/card";
 import { Input } from "@/components/dashboard/ui/input";
 import { Textarea } from "@/components/dashboard/ui/textarea";
-import { savePost } from "../admin/actions";
-import type { AdminPostDetail, AuthorOption } from "../admin/types";
-import { checkPublishPost, paragraphsFromText, slugify } from "../rules";
+import { savePost } from "../actions/content";
+import type { AdminPostDetail, AuthorOption } from "../types/admin";
+import { checkPublishPost, paragraphsFromText, slugify } from "../rules/core";
 import { AuthorField } from "./author-field";
 import { PublishPanel, useContentEditor } from "./editor-kit";
 import { SeoListingCard } from "./seo-listing-card";

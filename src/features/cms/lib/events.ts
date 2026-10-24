@@ -1,4 +1,4 @@
-import type { CaftonEvent, EventStatus } from "@/features/cms/types";
+import type { CaftonEvent, EventStatus } from "@/features/cms/types/core";
 
 export function getEventFacts(event: CaftonEvent): [string, string][] {
   if (event.facts) return event.facts;

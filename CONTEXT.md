@@ -17,10 +17,10 @@ The authenticated internal system for Cafton staff, under `/dashboard`.
 _Avoid_: admin panel, backoffice, CMS (the CMS is one module of it).
 
 **Feature (module)**:
-A business domain folder under `src/features/<domain>/` owning its types, rules, repository, actions and schemas. Dashboard UI for the domain may sit in its `components/`.
+A business domain folder under `src/features/<domain>/` owning its types, schemas, rules, repository, services and actions (one layout for all, ADR 0024). Dashboard UI for the domain may sit in its `components/`.
 
 **Repository**:
-The only code that queries the database (`features/<domain>/repository`). Public pages read through it too.
+The only code that queries the database (`features/<domain>/repository/`). Public pages read through it too.
 _Avoid_: DAO, model, service.
 
 **Server Action**:

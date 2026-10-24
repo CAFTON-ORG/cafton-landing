@@ -1,4 +1,4 @@
-import type { HomeContent } from "../types";
+import type { HomeContent } from "../types/core";
 
 /** The home page's section text as the site said it before it was editable. */
 export const home: HomeContent = {

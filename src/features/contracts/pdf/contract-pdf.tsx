@@ -10,8 +10,8 @@ import {
 } from "@react-pdf/renderer";
 
 import { LOGO_PATH_D } from "@/components/shared/logo";
-import { contractBlocks } from "../format";
-import { CONTRACT_KIND_LABEL, CONTRACT_STATUS_LABEL } from "../rules";
+import { contractBlocks } from "../rules/format";
+import { CONTRACT_KIND_LABEL, CONTRACT_STATUS_LABEL } from "../rules/core";
 import type { PublicContract } from "../types";
 
 /** A contract or statement of work as a branded A4 document, with the same vector logo as quotes. */

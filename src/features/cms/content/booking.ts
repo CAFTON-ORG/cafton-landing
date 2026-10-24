@@ -1,4 +1,4 @@
-import type { BookingSettings } from "../types";
+import type { BookingSettings } from "../types/core";
 
 /** When people can book a call, as it was before it was editable. Times are Philippine time. */
 export const booking: BookingSettings = {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { RECEIPTS_BUCKET } from "@/features/finance/expenses";
+import { RECEIPTS_BUCKET } from "@/features/finance/rules/expenses";
 import { can, getStaff } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { createAdminClient, isAdminStorageConfigured } from "@/lib/supabase/admin";

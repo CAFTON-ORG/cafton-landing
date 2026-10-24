@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { dueHint, type Tone } from "../display";
+import { dueHint, type Tone } from "../rules/display";
 
 const TONE: Record<Tone, string> = {
   neutral: "text-muted-foreground",

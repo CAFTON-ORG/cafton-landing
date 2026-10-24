@@ -1,6 +1,6 @@
 import { getEventFacts } from "@/features/cms/lib/events";
 import { cn } from "@/lib/utils";
-import type { CaftonEvent } from "@/features/cms/types";
+import type { CaftonEvent } from "@/features/cms/types/core";
 
 /** The ticket-stub list of facts (when, prizes, how to enter) with dashed rules between rows. */
 export function EventFacts({ event, className }: { event: CaftonEvent; className?: string }) {

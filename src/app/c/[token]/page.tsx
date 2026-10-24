@@ -5,10 +5,10 @@ import { CircleCheck, CircleX, Clock, Download } from "lucide-react";
 import { SITE_NAME } from "@/config/site";
 import { RespondPanel } from "@/components/marketing/quote/respond-panel";
 import { Logo } from "@/components/shared/logo";
-import { contractBlocks } from "@/features/contracts/format";
-import { markContractViewed, respondToContract } from "@/features/contracts/public";
-import { getPublicContract } from "@/features/contracts/repository";
-import { CONTRACT_KIND_LABEL } from "@/features/contracts/rules";
+import { contractBlocks } from "@/features/contracts/rules/format";
+import { markContractViewed, respondToContract } from "@/features/contracts/actions/public";
+import { getPublicContract } from "@/features/contracts/repository/contracts";
+import { CONTRACT_KIND_LABEL } from "@/features/contracts/rules/core";
 
 // A private link: never indexed, never cached.
 export const metadata: Metadata = {

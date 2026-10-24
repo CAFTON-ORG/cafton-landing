@@ -1,7 +1,7 @@
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal, RevealItem } from "@/components/marketing/motion/reveal";
 import type { ServiceSystem } from "@/config/services";
-import type { ServicesDetail } from "@/features/cms/types";
+import type { ServicesDetail } from "@/features/cms/types/core";
 
 /** The systems under a service: an intro that stays in view beside a numbered list, so a long list never leaves the page's purpose behind. */
 export function ServiceSystems({

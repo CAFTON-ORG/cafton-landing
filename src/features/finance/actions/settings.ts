@@ -8,8 +8,8 @@ import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { parseMinor } from "@/lib/money";
-import { checkRate } from "../billing";
-import { checkSettings } from "../settings";
+import { checkRate } from "../rules/billing";
+import { checkSettings } from "../rules/settings";
 
 const settingsSchema = z.object({
   vatRegistered: z.boolean(),

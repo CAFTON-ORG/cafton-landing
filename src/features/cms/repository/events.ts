@@ -1,3 +1,5 @@
+import "server-only";
+
 import { z } from "zod";
 
 import { events } from "@/features/cms/content/events";
@@ -8,8 +10,8 @@ import {
   eventPromoSchema,
   eventStepSchema,
   parseJson,
-} from "@/features/cms/schemas";
-import type { CaftonEvent, EventPrize } from "@/features/cms/types";
+} from "@/features/cms/schemas/core";
+import type { CaftonEvent, EventPrize } from "@/features/cms/types/core";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { opt, publicRows, readContent } from "./source";

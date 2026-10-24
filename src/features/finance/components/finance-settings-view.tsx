@@ -38,8 +38,8 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatMinor, minorToInput } from "@/lib/money";
 import { deleteBillingRate, saveBillingRate, saveFinanceSettings } from "../actions/settings";
-import type { FinanceSettingsView } from "../settings";
-import type { BillingRateView } from "../settings-repository";
+import type { FinanceSettingsView } from "../rules/settings";
+import type { BillingRateView } from "../repository/settings";
 
 interface Choices {
   people: { id: string; name: string }[];

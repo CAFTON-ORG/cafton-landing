@@ -32,14 +32,14 @@ import {
   listProjectTime,
   listTemplates,
   listTasks,
-} from "@/features/delivery/repository";
+} from "@/features/delivery/repository/delivery";
 import {
   formatMinutes,
   hoursUsage,
   isOpenProject,
   progressPercent,
 } from "@/features/delivery/rules";
-import { manilaDate } from "@/features/schedule/slots";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { actorId } from "@/lib/actions";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";

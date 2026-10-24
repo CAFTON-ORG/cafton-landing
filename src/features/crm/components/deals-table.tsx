@@ -18,7 +18,7 @@ import { BulkBar, NextStep, TagList, customColumns, customFilters, tagFilter } f
 import { SavedViews } from "./saved-views";
 import { dealsTableConfig } from "../table";
 import type { DealView, PersonRef, StageView } from "../types";
-import type { CustomFieldDef } from "../custom-fields";
+import type { CustomFieldDef } from "../rules/custom-fields";
 import { StageBadge } from "./badges";
 
 const baseColumns: Column<DealView>[] = [

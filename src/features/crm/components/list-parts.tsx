@@ -17,7 +17,7 @@ import {
   isFilterable,
   type CustomFieldDef,
   type CustomValues,
-} from "../custom-fields";
+} from "../rules/custom-fields";
 import { UserAvatar } from "@/components/dashboard/shared/user-avatar";
 import { Badge } from "@/components/dashboard/ui/badge";
 import { Button } from "@/components/dashboard/ui/button";
@@ -35,7 +35,7 @@ import { formatDate, formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { bulkAssign, bulkDelete, bulkTag, type BulkResult } from "../actions/bulk";
 import type { PersonRef } from "../types";
-import type { Taggable } from "../tags";
+import type { Taggable } from "../rules/tags";
 
 /** The tags of a row, a few as badges and "+n" for the rest. */
 export function TagList({ tags, max = 3 }: { tags: string[]; max?: number }) {

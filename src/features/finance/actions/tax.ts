@@ -4,14 +4,20 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { guard } from "@/features/crm/actions/guard";
-import { manilaDate } from "@/features/schedule/slots";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { parseMinor } from "@/lib/money";
-import { accountForRole, postJournal, reverseJournal } from "../ledger";
-import { cwtAvailable, grossReceipts } from "../tax-repository";
-import { checkFiling, checkVoidFiling, estimateTax, obligationsFor, type FilingKind } from "../tax";
+import { accountForRole, postJournal, reverseJournal } from "../services/ledger";
+import { cwtAvailable, grossReceipts } from "../repository/tax";
+import {
+  checkFiling,
+  checkVoidFiling,
+  estimateTax,
+  obligationsFor,
+  type FilingKind,
+} from "../rules/tax";
 
 const date = (value: string) => new Date(`${value}T00:00:00Z`);
 

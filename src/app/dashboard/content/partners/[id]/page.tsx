@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
-import { getPartnerForEdit } from "@/features/cms/admin/editor-repository";
+import { getPartnerForEdit } from "@/features/cms/repository/editor";
 
 import { PartnerEditor } from "@/features/cms/components/partner-editor";
 import { can, requirePageAccess } from "@/lib/auth/dal";

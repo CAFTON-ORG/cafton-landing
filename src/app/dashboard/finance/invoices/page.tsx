@@ -14,9 +14,9 @@ import {
   listBillableTime,
   listInvoiceableQuotes,
   listInvoices,
-} from "@/features/finance/invoice-repository";
+} from "@/features/finance/repository/invoices";
 import { INVOICE_TABLE } from "@/features/finance/table";
-import { manilaDate } from "@/features/schedule/slots";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";
 

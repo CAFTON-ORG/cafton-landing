@@ -35,7 +35,7 @@ import {
   type Permission,
   type Resource,
 } from "@/lib/auth/permissions";
-import { deleteRole, saveRole } from "../actions";
+import { deleteRole, saveRole } from "../actions/roles";
 import { checkDeletable } from "../rules";
 import type { RoleSummary } from "../types";
 

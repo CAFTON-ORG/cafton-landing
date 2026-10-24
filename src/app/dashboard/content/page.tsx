@@ -16,7 +16,7 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { Button } from "@/components/dashboard/ui/button";
 import { Card, CardContent } from "@/components/dashboard/ui/card";
-import { getContentOverview, type CollectionCount } from "@/features/cms/admin/overview";
+import { getContentOverview, type CollectionCount } from "@/features/cms/repository/overview";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatRelative } from "@/lib/format";
 

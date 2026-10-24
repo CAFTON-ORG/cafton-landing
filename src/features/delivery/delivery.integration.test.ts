@@ -46,12 +46,12 @@ let db: PGlite;
 let server: PGLiteSocketServer;
 let prisma: typeof import("@/lib/db").prisma;
 let quotes: typeof import("@/features/sales/actions/quotes");
-let quotePublic: typeof import("@/features/sales/public");
+let quotePublic: typeof import("@/features/sales/actions/public");
 let deals: typeof import("@/features/crm/actions/deals");
 let projects: typeof import("./actions/projects");
 let work: typeof import("./actions/work");
-let repo: typeof import("./repository");
-let handlers: typeof import("./handlers");
+let repo: typeof import("./repository/delivery");
+let handlers: typeof import("./services/handlers");
 
 const inDays = (days: number) =>
   new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
@@ -77,13 +77,13 @@ beforeAll(async () => {
   }
   ({ prisma } = await import("@/lib/db"));
   quotes = await import("@/features/sales/actions/quotes");
-  quotePublic = await import("@/features/sales/public");
+  quotePublic = await import("@/features/sales/actions/public");
   deals = await import("@/features/crm/actions/deals");
   projects = await import("./actions/projects");
   work = await import("./actions/work");
-  repo = await import("./repository");
+  repo = await import("./repository/delivery");
   // Connects the project to the "quote accepted" event, as the server does when it starts.
-  handlers = await import("./handlers");
+  handlers = await import("./services/handlers");
 }, 120_000);
 
 afterAll(async () => {

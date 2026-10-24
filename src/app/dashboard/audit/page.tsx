@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { AuditTable } from "@/features/audit/components/audit-table";
-import { listAudit } from "@/features/audit/repository";
+import { listAudit } from "@/features/audit/repository/audit";
 import { AUDIT_TABLE } from "@/features/audit/table";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { parseTableParams, searchParamsFromRecord } from "@/lib/table-params";

@@ -7,7 +7,7 @@ import {
   getFinanceSettings,
   listBillingRates,
   listRateChoices,
-} from "@/features/finance/settings-repository";
+} from "@/features/finance/repository/settings";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Finance settings" };

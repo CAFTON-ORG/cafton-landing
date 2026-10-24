@@ -6,8 +6,8 @@ import { ActionError, parse, runAction, type ActionResult } from "@/lib/actions"
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import type { Permission } from "@/lib/auth/permissions";
-import { live } from "../mappers";
-import { TAGGABLE, normalizeTags } from "../tags";
+import { live } from "../repository/mappers";
+import { TAGGABLE, normalizeTags } from "../rules/tags";
 import { guard, refreshCrm } from "./guard";
 
 const PERMISSION = {

@@ -33,8 +33,8 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import { saveBankAccount, setBankAccountActive } from "../actions/bank";
-import type { BankAccountView } from "../bank-types";
-import type { BillAccount } from "../payable-types";
+import type { BankAccountView } from "../types/bank";
+import type { BillAccount } from "../types/payables";
 
 interface Draft {
   id?: string;

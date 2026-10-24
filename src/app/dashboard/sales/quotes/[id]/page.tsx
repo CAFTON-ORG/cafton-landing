@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { QuoteStatusBadge } from "@/features/sales/components/quote-status-badge";
-import { getFinanceSettings } from "@/features/finance/settings-repository";
+import { getFinanceSettings } from "@/features/finance/repository/settings";
 import { QuoteEditor } from "@/features/sales/components/quote-editor";
-import { getQuote, listCatalog } from "@/features/sales/repository";
+import { getQuote, listCatalog } from "@/features/sales/repository/sales";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Quote" };

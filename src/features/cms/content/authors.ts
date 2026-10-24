@@ -1,4 +1,4 @@
-import type { Author } from "@/features/cms/types";
+import type { Author } from "@/features/cms/types/core";
 
 export const authors: Author[] = [
   {

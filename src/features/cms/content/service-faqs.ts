@@ -1,4 +1,4 @@
-import type { FaqItem } from "@/features/cms/types";
+import type { FaqItem } from "@/features/cms/types/core";
 
 /** Questions people ask before starting, per service pillar slug. Answers stay general: scope decides specifics, so none promises a price or a date. */
 export const serviceFaqs: Record<string, FaqItem[]> = {

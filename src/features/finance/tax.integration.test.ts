@@ -41,7 +41,7 @@ let db: PGlite;
 let server: PGLiteSocketServer;
 let prisma: typeof import("@/lib/db").prisma;
 let tax: typeof import("./actions/tax");
-let repo: typeof import("./tax-repository");
+let repo: typeof import("./repository/tax");
 let books: typeof import("./actions/books");
 
 const today = () => new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10);
@@ -69,7 +69,7 @@ beforeAll(async () => {
   }
   ({ prisma } = await import("@/lib/db"));
   tax = await import("./actions/tax");
-  repo = await import("./tax-repository");
+  repo = await import("./repository/tax");
   books = await import("./actions/books");
 
   // A year of receipts: 100,000 in Q1 (5,000 of it withheld by the client), 200,000 in Q2, 100,000

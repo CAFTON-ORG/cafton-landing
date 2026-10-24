@@ -1,4 +1,4 @@
-import type { BlogPost } from "@/features/cms/types";
+import type { BlogPost } from "@/features/cms/types/core";
 
 export function formatBlogDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {

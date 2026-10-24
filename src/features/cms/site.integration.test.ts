@@ -12,7 +12,7 @@ import { partners } from "./content/partners";
 import { projects } from "./content/projects";
 import { serviceFaqs } from "./content/service-faqs";
 import { siteSettings } from "./content/site-settings";
-import type { SiteSettings } from "./types";
+import type { SiteSettings } from "./types/core";
 
 /**
  * Website settings against a real database: the seed copies what the site said before,
@@ -49,7 +49,7 @@ vi.mock("@/lib/auth/dal", () => ({
 
 let db: PGlite;
 let server: PGLiteSocketServer;
-let act: typeof import("./admin/site-actions");
+let act: typeof import("./actions/site");
 let read: typeof import("./repository/site");
 let docs: typeof import("./repository/documents");
 
@@ -64,7 +64,7 @@ beforeAll(async () => {
   process.env.DATABASE_URL = `postgresql://postgres:postgres@127.0.0.1:${port}/postgres`;
   process.env.DATABASE_POOL_MAX = "1";
   await seedContent(db, { ...bundled, siteContent: { settings: siteSettings } });
-  act = await import("./admin/site-actions");
+  act = await import("./actions/site");
   read = await import("./repository/site");
   docs = await import("./repository/documents");
 }, 120_000);

@@ -8,7 +8,7 @@ import {
   type CustomEntity,
   type CustomFieldDef,
   type CustomType,
-} from "../custom-fields";
+} from "../rules/custom-fields";
 
 const toDef = (row: {
   id: string;

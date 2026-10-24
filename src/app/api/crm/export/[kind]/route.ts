@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { EXPORT_KINDS, canExport, exportCsv, type ExportKind } from "@/features/crm/export";
+import {
+  EXPORT_KINDS,
+  canExport,
+  exportCsv,
+  type ExportKind,
+} from "@/features/crm/services/export";
 import { getStaff } from "@/lib/auth/dal";
 import { isDatabaseConfigured } from "@/lib/env";
 

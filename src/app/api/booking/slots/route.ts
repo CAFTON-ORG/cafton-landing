@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { availableMonth } from "@/features/schedule/website";
+import { availableMonth } from "@/features/schedule/services/website";
 import { checkRateLimit, getClientKey } from "@/lib/security/rate-limit";
 
 /** The calendar fetches a month at a time and again when the visitor turns the page. */

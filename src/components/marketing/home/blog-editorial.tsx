@@ -4,7 +4,7 @@ import { RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { ThemedImage } from "@/components/shared/themed-image";
 import { CoverArt } from "@/components/marketing/decor/cover-art";
 import { formatBlogDate, readingTime } from "@/features/cms/lib/blog";
-import type { Author, BlogPost } from "@/features/cms/types";
+import type { Author, BlogPost } from "@/features/cms/types/core";
 
 /**
  * Cover story + index: the newest post runs as a full-bleed cover with its

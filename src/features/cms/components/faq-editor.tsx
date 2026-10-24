@@ -27,8 +27,8 @@ import {
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
-import { saveServiceFaqs } from "../admin/editor-actions";
-import type { AdminFaq } from "../admin/forms";
+import { saveServiceFaqs } from "../actions/editors";
+import type { AdminFaq } from "../schemas/forms";
 import { Repeater } from "./editor-kit";
 
 /** The questions on one service page. Saved as a set, in order, and live immediately. */

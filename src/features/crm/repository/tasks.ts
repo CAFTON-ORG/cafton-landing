@@ -3,8 +3,8 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { isDatabaseConfigured } from "@/lib/env";
-import { namesFor } from "../mappers";
-import { fullName } from "../rules";
+import { namesFor } from "./mappers";
+import { fullName } from "../rules/core";
 import type { Subject, TaskView } from "../types";
 
 const include = {

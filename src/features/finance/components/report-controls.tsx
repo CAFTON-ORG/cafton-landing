@@ -9,7 +9,7 @@ import { DatePicker } from "@/components/dashboard/shared/date-picker";
 import { Field } from "@/components/dashboard/shared/field";
 import { Button } from "@/components/dashboard/ui/button";
 import { Card, CardContent } from "@/components/dashboard/ui/card";
-import type { Preset } from "../report-presets";
+import type { Preset } from "../rules/report-presets";
 
 /** The dates a report is for, ready-made choices, and the file downloads. */
 export function ReportControls({

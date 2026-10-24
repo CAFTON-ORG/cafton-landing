@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { AuthorAvatar } from "@/components/marketing/blog/author-avatar";
 import { cn } from "@/lib/utils";
-import type { Author } from "@/features/cms/types";
+import type { Author } from "@/features/cms/types/core";
 
 interface BylineProps {
   author: Author;

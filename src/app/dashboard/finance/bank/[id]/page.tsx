@@ -14,10 +14,10 @@ import {
   getBankAccount,
   listBankLines,
   listReconciliations,
-} from "@/features/finance/bank-repository";
-import { listPostableAccounts } from "@/features/finance/repository";
+} from "@/features/finance/repository/bank";
+import { listPostableAccounts } from "@/features/finance/repository/ledger";
 import { BANK_LINE_TABLE } from "@/features/finance/table";
-import { addDays, manilaDate } from "@/features/schedule/slots";
+import { addDays, manilaDate } from "@/features/schedule/rules/slots";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";

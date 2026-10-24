@@ -64,8 +64,8 @@ vi.mock("@/lib/supabase/server", () => ({
 
 let db: PGlite;
 let server: PGLiteSocketServer;
-let actions: typeof import("./actions");
-let repo: typeof import("./repository");
+let actions: typeof import("./actions/media");
+let repo: typeof import("./repository/media");
 
 const file = async (name: string, bytes: Buffer, type: string) => {
   const body = new FormData();
@@ -88,8 +88,8 @@ beforeAll(async () => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://abc.supabase.co";
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "test";
   await seedContent(db, { authors, blogPosts, projects, events, partners, serviceFaqs });
-  actions = await import("./actions");
-  repo = await import("./repository");
+  actions = await import("./actions/media");
+  repo = await import("./repository/media");
 }, 120_000);
 
 afterAll(async () => {

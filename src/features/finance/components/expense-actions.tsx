@@ -25,8 +25,8 @@ import {
   voidExpense,
   withdrawExpense,
 } from "../actions/expenses";
-import type { ReceiptView } from "../expense-types";
-import { MAX_RECEIPTS, RECEIPT_ACCEPT } from "../expenses";
+import type { ReceiptView } from "../types/expenses";
+import { MAX_RECEIPTS, RECEIPT_ACCEPT } from "../rules/expenses";
 import { MoreActions, type MoreItem } from "./more-actions";
 import { ReasonDialog } from "./reason-dialog";
 

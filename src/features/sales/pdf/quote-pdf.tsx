@@ -12,8 +12,8 @@ import {
 import type { ReactNode } from "react";
 
 import { LOGO_PATH_D } from "@/components/shared/logo";
-import { quantityText } from "../pricing";
-import { QUOTE_STATUS_LABEL } from "../rules";
+import { quantityText } from "../rules/pricing";
+import { QUOTE_STATUS_LABEL } from "../rules/core";
 import type { PublicQuote } from "../types";
 
 /**

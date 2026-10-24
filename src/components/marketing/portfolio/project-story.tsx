@@ -2,7 +2,7 @@ import { PageSection, PageShell } from "@/components/marketing/layout/page-shell
 import { Reveal, RevealItem } from "@/components/marketing/motion/reveal";
 import { PhotoGallery } from "@/components/marketing/blog/photo-gallery";
 import { ProjectFacts } from "@/components/marketing/portfolio/project-facts";
-import type { Project } from "@/features/cms/types";
+import type { Project } from "@/features/cms/types/core";
 
 /** The case study body: facts on the left, the problem, solution and recognition as numbered chapters on the right, then any extra screenshots. */
 export function ProjectStory({ project }: { project: Project }) {

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { about } from "../content/about";
 import { contact } from "../content/contact";
 import { home } from "../content/home";
-import { isSafeImageSrc } from "../rules";
+import { isSafeImageSrc } from "../rules/core";
 import type { DocSpec } from "./spec";
 
 const line = (label: string, max: number) =>

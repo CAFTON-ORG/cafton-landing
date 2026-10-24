@@ -26,8 +26,8 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import { importStatement } from "../actions/bank";
-import { DATE_FORMAT_LABEL, type DateFormat } from "../bank";
-import type { ImportReport } from "../bank-types";
+import { DATE_FORMAT_LABEL, type DateFormat } from "../rules/bank";
+import type { ImportReport } from "../types/bank";
 
 const MAX_BYTES = 2_000_000;
 

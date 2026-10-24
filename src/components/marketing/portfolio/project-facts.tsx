@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { getServices } from "@/features/cms/repository/services";
-import type { Project } from "@/features/cms/types";
+import type { Project } from "@/features/cms/types/core";
 
 /** The at-a-glance facts of a case study, set as a ruled list that stays beside the write-up on wide screens. */
 export async function ProjectFacts({ project }: { project: Project }) {

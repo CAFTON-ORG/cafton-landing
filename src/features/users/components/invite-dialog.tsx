@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/dashboard/ui/select";
-import { inviteUser } from "../actions";
+import { inviteUser } from "../actions/users";
 import type { RoleOption } from "../types";
 
 export function InviteDialog({ roles }: { roles: RoleOption[] }) {

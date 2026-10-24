@@ -3,8 +3,8 @@
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
-import { live } from "../mappers";
-import { checkContactDelete, checkOrganizationDelete, fullName } from "../rules";
+import { live } from "../repository/mappers";
+import { checkContactDelete, checkOrganizationDelete, fullName } from "../rules/core";
 import {
   contactRecordSchema,
   organizationSchema,

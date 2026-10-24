@@ -4,7 +4,7 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { PipelinesEditor } from "@/features/crm/components/pipelines-editor";
 import { listCustomFields } from "@/features/crm/repository/custom-fields";
-import { stageFieldChoices } from "@/features/crm/pipelines";
+import { stageFieldChoices } from "@/features/crm/rules/pipelines";
 import { listPipelines } from "@/features/crm/repository/pipeline";
 import { requirePageAccess } from "@/lib/auth/dal";
 

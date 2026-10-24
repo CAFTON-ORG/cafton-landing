@@ -57,10 +57,10 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { manilaDate } from "@/features/schedule/slots";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { loseDeal, moveDeal, winDeal } from "../actions/deals";
-import { pipelineStats } from "../stats";
-import { checkMoveDeal } from "../rules";
+import { pipelineStats } from "../rules/stats";
+import { checkMoveDeal } from "../rules/core";
 import type { DealView, StageView } from "../types";
 
 const DAY = 86_400_000;

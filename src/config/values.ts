@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 import { coreValueContent } from "@/features/cms/content/values";
-import type { CoreValueContent, ValueIcon } from "@/features/cms/types";
+import type { CoreValueContent, ValueIcon } from "@/features/cms/types/core";
 
 export interface CoreValue {
   icon: LucideIcon;

@@ -89,17 +89,17 @@ let summary: typeof import("./repository/summary");
 let tagRepo: typeof import("./repository/tags");
 let duplicates: typeof import("./repository/duplicates");
 let leadRepo: typeof import("./repository/leads");
-let intake: typeof import("./intake");
+let intake: typeof import("./services/intake");
 let emailActions: typeof import("./actions/email");
 let fileActions: typeof import("./actions/files");
 let fieldActions: typeof import("./actions/custom-fields");
 let fieldRepo: typeof import("./repository/custom-fields");
-let exporter: typeof import("./export");
+let exporter: typeof import("./services/export");
 let fileRoute: typeof import("@/app/api/crm/files/[id]/route");
 let dal: typeof import("@/lib/auth/dal");
 let mail: typeof import("@/lib/mail");
-let userActions: typeof import("../users/actions");
-let scoringJobs: typeof import("./scoring-jobs");
+let userActions: typeof import("../users/actions/users");
+let scoringJobs: typeof import("./services/scoring-jobs");
 
 beforeAll(async () => {
   db = (await createDatabase()) as PGlite;
@@ -140,17 +140,17 @@ beforeAll(async () => {
   tagRepo = await import("./repository/tags");
   duplicates = await import("./repository/duplicates");
   leadRepo = await import("./repository/leads");
-  intake = await import("./intake");
+  intake = await import("./services/intake");
   emailActions = await import("./actions/email");
   fileActions = await import("./actions/files");
   fieldActions = await import("./actions/custom-fields");
   fieldRepo = await import("./repository/custom-fields");
-  exporter = await import("./export");
+  exporter = await import("./services/export");
   fileRoute = await import("@/app/api/crm/files/[id]/route");
   dal = await import("@/lib/auth/dal");
   mail = await import("@/lib/mail");
-  userActions = await import("../users/actions");
-  scoringJobs = await import("./scoring-jobs");
+  userActions = await import("../users/actions/users");
+  scoringJobs = await import("./services/scoring-jobs");
 }, 120_000);
 
 afterAll(async () => {

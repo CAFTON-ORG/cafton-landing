@@ -21,7 +21,7 @@ src/
 │   ├── marketing/          public-site UI
 │   ├── dashboard/          dashboard UI: ui/ (Base UI base-nova), layout/, data-table/, shared/
 │   └── shared/             neutral ground: imports neither surface
-├── features/<domain>/      rules.ts, repository, actions.ts, schemas.ts, components/ (ADR 0004)
+├── features/<domain>/      types, schemas, rules, repository/, services/, actions/, components/ (ADR 0024; copy features/_template)
 ├── config/                 site.ts, navigation, dashboard-navigation.ts, services.ts, values.ts
 └── lib/                    framework-level helpers: env, db, auth/, security/, seo
 ```
@@ -35,7 +35,7 @@ src/
 - **Every mutation:** `requirePermission()` → Zod parse → transaction → audit entry →
   `revalidatePath`. The proxy is only an optimistic redirect; authorisation lives in
   `lib/auth/dal.ts` and runs on every page and action.
-- **Business rules** live once in a feature's `rules.ts`, used by UI and server, unit tested.
+- **Business rules** live once in a feature's `rules.ts` (or `rules/`), used by UI and server, unit tested.
 - **Components never touch the database** and never import across surfaces (ESLint enforces
   it). No `dangerouslySetInnerHTML` (ESLint error); user-supplied links and images go through
   the safe validators in `lib/security`.

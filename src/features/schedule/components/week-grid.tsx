@@ -4,8 +4,8 @@ import Link from "next/link";
 
 import { ScrollArea } from "@/components/dashboard/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { weekDays } from "../calendar";
-import { manilaTime } from "../slots";
+import { weekDays } from "../rules/calendar";
+import { manilaTime } from "../rules/slots";
 import type { MeetingView } from "../types";
 import { CHIP_TONE } from "./tones";
 

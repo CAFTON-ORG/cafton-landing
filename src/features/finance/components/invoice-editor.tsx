@@ -21,11 +21,11 @@ import {
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatMinor, minorToInput, parseMinor } from "@/lib/money";
-import { parseQuantity, quantityText } from "@/features/sales/pricing";
+import { parseQuantity, quantityText } from "@/features/sales/rules/pricing";
 import { deleteDraftInvoice, issueInvoice, saveInvoice } from "../actions/invoices";
-import type { InvoiceDetail } from "../invoice-types";
-import { MAX_LINES, invoiceTotals, lineAmount } from "../invoicing";
-import type { TaxRateView } from "../types";
+import type { InvoiceDetail } from "../types/invoices";
+import { MAX_LINES, invoiceTotals, lineAmount } from "../rules/invoicing";
+import type { TaxRateView } from "../types/core";
 
 interface Line {
   /** The id of a line already on the draft; absent for one just added. */

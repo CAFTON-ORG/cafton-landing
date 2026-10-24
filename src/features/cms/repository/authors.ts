@@ -1,5 +1,7 @@
+import "server-only";
+
 import { authors } from "@/features/cms/content/authors";
-import type { Author } from "@/features/cms/types";
+import type { Author } from "@/features/cms/types/core";
 import { prisma } from "@/lib/db";
 import { opt, readContent } from "./source";
 

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { AccountsView } from "@/features/finance/components/accounts-view";
-import { listAccounts } from "@/features/finance/repository";
+import { listAccounts } from "@/features/finance/repository/ledger";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Chart of accounts" };

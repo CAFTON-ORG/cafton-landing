@@ -9,7 +9,7 @@ import { getEventStatus } from "@/features/cms/lib/events";
 import { getDocument } from "@/features/cms/repository/documents";
 import { listEvents } from "@/features/cms/repository/events";
 import { pageSeo } from "@/features/cms/repository/seo";
-import type { EventStatus } from "@/features/cms/types";
+import type { EventStatus } from "@/features/cms/types/core";
 
 export async function generateMetadata(): Promise<Metadata> {
   return pageSeo("events");

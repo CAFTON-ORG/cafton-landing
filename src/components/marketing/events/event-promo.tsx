@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { PageSection, PageShell } from "@/components/marketing/layout/page-shell";
 import { Reveal } from "@/components/marketing/motion/reveal";
 import { Button } from "@/components/ui/button";
-import type { EventPromo as EventPromoData } from "@/features/cms/types";
+import type { EventPromo as EventPromoData } from "@/features/cms/types/core";
 
 /** A product or service the event ties into, set as a wide statement with two actions. */
 export function EventPromo({ promo }: { promo: EventPromoData }) {

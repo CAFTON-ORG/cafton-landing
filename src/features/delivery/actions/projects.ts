@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { logActivity } from "@/features/crm/actions/shared";
-import { live } from "@/features/crm/mappers";
+import { live } from "@/features/crm/repository/mappers";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";

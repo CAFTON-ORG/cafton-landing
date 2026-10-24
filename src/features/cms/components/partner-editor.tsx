@@ -22,9 +22,9 @@ import {
   SelectValue,
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
-import { savePartner } from "../admin/editor-actions";
-import type { AdminPartnerDetail } from "../admin/forms";
-import { checkPublishPartner, slugify } from "../rules";
+import { savePartner } from "../actions/editors";
+import type { AdminPartnerDetail } from "../schemas/forms";
+import { checkPublishPartner, slugify } from "../rules/core";
 import { PublishPanel, Repeater, useContentEditor } from "./editor-kit";
 import { ImageField } from "./image-field";
 

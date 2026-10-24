@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
-import { countFaqsByService, getFaqsForEdit } from "@/features/cms/admin/editor-repository";
+import { countFaqsByService, getFaqsForEdit } from "@/features/cms/repository/editor";
 import { FaqEditor } from "@/features/cms/components/faq-editor";
 import { getServices } from "@/features/cms/repository/services";
 import { requirePageAccess } from "@/lib/auth/dal";

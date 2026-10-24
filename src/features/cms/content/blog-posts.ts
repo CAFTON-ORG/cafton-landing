@@ -1,4 +1,4 @@
-import type { BlogPost } from "@/features/cms/types";
+import type { BlogPost } from "@/features/cms/types/core";
 
 export const blogPosts: BlogPost[] = [
   {

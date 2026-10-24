@@ -37,7 +37,7 @@ import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatMinor, minorToInput } from "@/lib/money";
 import { deleteCatalogItem, saveCatalogItem } from "../actions/catalog";
-import { UNITS } from "../options";
+import { UNITS } from "../rules/options";
 import {
   DEFAULT_UNIT,
   PRICING_MODELS,

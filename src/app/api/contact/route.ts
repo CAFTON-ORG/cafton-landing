@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { contactSchema } from "@/features/crm/contact";
-import { createLeadFromWebsite } from "@/features/crm/intake";
+import { contactSchema } from "@/features/crm/rules/contact";
+import { createLeadFromWebsite } from "@/features/crm/services/intake";
 import { MEETING_MODES } from "@/features/schedule/types";
 import { checkRateLimit, getClientKey } from "@/lib/security/rate-limit";
 import { verifyTurnstileToken } from "@/lib/security/turnstile";

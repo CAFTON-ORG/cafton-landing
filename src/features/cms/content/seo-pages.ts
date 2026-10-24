@@ -1,4 +1,4 @@
-import type { SeoPageDefaults } from "../types";
+import type { SeoPageDefaults } from "../types/core";
 
 /**
  * The fixed pages of the public site and what search engines are told about each by default.

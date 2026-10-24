@@ -51,10 +51,10 @@ import {
 } from "@/components/dashboard/ui/select";
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
-import { quoteTaxChoices } from "@/features/finance/settings";
+import { quoteTaxChoices } from "@/features/finance/rules/settings";
 import { formatDate } from "@/lib/format";
 import { formatMinor, minorToInput, parseMinor } from "@/lib/money";
-import { addDays, manilaDate } from "@/features/schedule/slots";
+import { addDays, manilaDate } from "@/features/schedule/rules/slots";
 import {
   approveQuote,
   deleteQuote,
@@ -74,9 +74,9 @@ import {
   VALID_FOR_DAYS,
   discountLabel,
   type PaymentWording,
-} from "../options";
-import { lineTotal, parseQuantity, quantityText, quoteTotals } from "../pricing";
-import { approvalReasons, canEdit, checkWithdraw } from "../rules";
+} from "../rules/options";
+import { lineTotal, parseQuantity, quantityText, quoteTotals } from "../rules/pricing";
+import { approvalReasons, canEdit, checkWithdraw } from "../rules/core";
 import type { CatalogItemView, QuoteView } from "../types";
 import { QuoteHistory } from "./quote-history";
 import { QuoteStatusBadge } from "./quote-status-badge";

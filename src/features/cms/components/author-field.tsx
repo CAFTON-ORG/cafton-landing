@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/dashboard/ui/select";
-import type { AuthorOption } from "../admin/types";
+import type { AuthorOption } from "../types/admin";
 
 export function AuthorField({
   id,

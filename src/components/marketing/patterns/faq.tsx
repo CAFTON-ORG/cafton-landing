@@ -4,7 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { FaqItem } from "@/features/cms/types";
+import type { FaqItem } from "@/features/cms/types/core";
 
 const faqs: FaqItem[] = [
   {

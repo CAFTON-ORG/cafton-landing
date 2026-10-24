@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { RevealGroup, RevealItem } from "@/components/marketing/motion/reveal";
 import { LogoPlate } from "@/components/marketing/partners/logo-plate";
-import type { Partner } from "@/features/cms/types";
+import type { Partner } from "@/features/cms/types/core";
 
 function RoleTags({ roles }: { roles: string[] }) {
   return (

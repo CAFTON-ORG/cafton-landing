@@ -1,4 +1,4 @@
-import type { CareersContent } from "../types";
+import type { CareersContent } from "../types/core";
 
 export const careers: CareersContent = {
   eyebrow: "Careers",

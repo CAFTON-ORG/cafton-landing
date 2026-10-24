@@ -1,4 +1,4 @@
-import type { Partner } from "@/features/cms/types";
+import type { Partner } from "@/features/cms/types/core";
 
 export const partners: Partner[] = [
   {

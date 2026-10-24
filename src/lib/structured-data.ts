@@ -1,5 +1,5 @@
 import { SITE_NAME, SITE_URL } from "@/config/site";
-import type { Author, SiteSettings } from "@/features/cms/types";
+import type { Author, SiteSettings } from "@/features/cms/types/core";
 
 const ORGANIZATION_ID = `${SITE_URL}/#organization`;
 const WEBSITE_ID = `${SITE_URL}/#website`;

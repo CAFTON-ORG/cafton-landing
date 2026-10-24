@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
-import { getPost, listAuthorOptions, listPostCategories } from "@/features/cms/admin/repository";
+import { getPost, listAuthorOptions, listPostCategories } from "@/features/cms/repository/admin";
 import { PostEditor } from "@/features/cms/components/post-editor";
 import { can, requirePageAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/format";

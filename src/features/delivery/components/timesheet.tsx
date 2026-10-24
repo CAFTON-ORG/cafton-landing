@@ -42,7 +42,7 @@ import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { deleteTime, logTime, submitWeek } from "../actions/time";
 import { canEditEntry, durationInput, formatMinutes, weekDates } from "../rules";
-import type { LoggableProject } from "../repository";
+import type { LoggableProject } from "../repository/delivery";
 import type { TimeEntryView } from "../types";
 import { TimeStatusBadge } from "./badges";
 

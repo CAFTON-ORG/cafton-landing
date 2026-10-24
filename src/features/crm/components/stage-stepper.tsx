@@ -6,7 +6,7 @@ import { useCan } from "@/components/dashboard/layout/staff-context";
 import { useServerAction } from "@/hooks/use-server-action";
 import { cn } from "@/lib/utils";
 import { moveDeal } from "../actions/deals";
-import { checkMoveDeal } from "../rules";
+import { checkMoveDeal } from "../rules/core";
 import type { StageView } from "../types";
 
 /**

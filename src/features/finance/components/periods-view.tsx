@@ -11,8 +11,8 @@ import { Card, CardContent } from "@/components/dashboard/ui/card";
 import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { closePeriod, reopenPeriod } from "../actions/books";
-import { MONTH_NAMES, checkClose, checkReopen } from "../rules";
-import type { PeriodView } from "../types";
+import { MONTH_NAMES, checkClose, checkReopen } from "../rules/core";
+import type { PeriodView } from "../types/core";
 
 /**
  * The twelve months of a fiscal year (January to December). A closed month takes no new postings:

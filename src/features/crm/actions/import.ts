@@ -7,8 +7,8 @@ import { recordAudit } from "@/lib/audit";
 import { can } from "@/lib/auth/dal";
 import { parseCsv } from "@/lib/csv";
 import { prisma } from "@/lib/db";
-import { IMPORT_LIMIT, mapContacts, mapOrganizations, type RowProblem } from "../import";
-import { live } from "../mappers";
+import { IMPORT_LIMIT, mapContacts, mapOrganizations, type RowProblem } from "../rules/import";
+import { live } from "../repository/mappers";
 import { guard, refreshCrm } from "./guard";
 
 export interface ImportReport {

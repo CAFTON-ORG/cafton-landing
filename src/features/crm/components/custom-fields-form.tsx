@@ -25,7 +25,7 @@ import {
   type CustomEntity,
   type CustomFieldDef,
   type CustomValues,
-} from "../custom-fields";
+} from "../rules/custom-fields";
 import { Fact, Facts } from "./detail-parts";
 
 type Draft = Record<string, string | boolean | undefined>;

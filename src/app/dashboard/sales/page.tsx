@@ -17,9 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/dashboard/ui/table";
-import { monthOf, shiftMonth } from "@/features/sales/dashboard";
+import { monthOf, shiftMonth } from "@/features/sales/rules/dashboard";
 import { TargetDialog } from "@/features/sales/components/target-dialog";
-import { getSalesOverview } from "@/features/sales/overview";
+import { getSalesOverview } from "@/features/sales/repository/overview";
 import { requirePageAccess } from "@/lib/auth/dal";
 import { formatMinor } from "@/lib/money";
 

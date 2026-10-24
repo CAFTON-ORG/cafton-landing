@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 
 import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
-import { listVendors } from "@/features/finance/payable-repository";
+import { listVendors } from "@/features/finance/repository/payables";
 import { RecurringView } from "@/features/finance/components/recurring-view";
-import { listRecurring } from "@/features/finance/recurring-repository";
-import { listPostableAccounts } from "@/features/finance/repository";
-import { manilaDate } from "@/features/schedule/slots";
+import { listRecurring } from "@/features/finance/repository/recurring";
+import { listPostableAccounts } from "@/features/finance/repository/ledger";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Recurring" };

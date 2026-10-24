@@ -4,7 +4,7 @@ import { AccessDenied } from "@/components/dashboard/shared/access-denied";
 import { BackLink } from "@/components/dashboard/shared/back-link";
 import { PageHeader } from "@/components/dashboard/shared/page-header";
 import { TemplatesView } from "@/features/delivery/components/templates-view";
-import { listTemplates } from "@/features/delivery/repository";
+import { listTemplates } from "@/features/delivery/repository/delivery";
 import { requirePageAccess } from "@/lib/auth/dal";
 
 export const metadata: Metadata = { title: "Project templates" };

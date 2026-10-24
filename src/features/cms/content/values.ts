@@ -1,4 +1,4 @@
-import type { CoreValueContent, ValuesDocument } from "../types";
+import type { CoreValueContent, ValuesDocument } from "../types/core";
 
 /** Cafton's core values as the site said them before they were editable. */
 export const coreValueContent: CoreValueContent[] = [

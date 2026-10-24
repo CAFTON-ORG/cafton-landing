@@ -4,7 +4,7 @@ import { AuthorAvatar } from "@/components/marketing/blog/author-avatar";
 import { CoverArt } from "@/components/marketing/decor/cover-art";
 import { ThemedImage } from "@/components/shared/themed-image";
 import { formatBlogDate, readingTime } from "@/features/cms/lib/blog";
-import type { Author, BlogPost } from "@/features/cms/types";
+import type { Author, BlogPost } from "@/features/cms/types/core";
 
 /** The newest article, set large above the archive on the first page of the unfiltered list. */
 export function BlogLead({ post, author }: { post: BlogPost; author?: Author }) {

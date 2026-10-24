@@ -4,12 +4,12 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { guard } from "@/features/crm/actions/guard";
-import { manilaDate } from "@/features/schedule/slots";
+import { manilaDate } from "@/features/schedule/rules/slots";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { parseMinor } from "@/lib/money";
-import { ensureFiscalYear, postJournal, reverseJournal } from "../ledger";
+import { ensureFiscalYear, postJournal, reverseJournal } from "../services/ledger";
 import {
   MONTH_NAMES,
   checkAccount,
@@ -20,7 +20,7 @@ import {
   codeFitsType,
   parseRate,
   type PeriodStatus,
-} from "../rules";
+} from "../rules/core";
 import {
   accountSchema,
   entrySchema,
@@ -30,7 +30,7 @@ import {
   type AccountInput,
   type EntryInput,
   type TaxRateInput,
-} from "../schemas";
+} from "../schemas/core";
 
 function refresh() {
   for (const path of [

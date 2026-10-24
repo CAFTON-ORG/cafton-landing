@@ -45,15 +45,15 @@ let db: PGlite;
 let server: PGLiteSocketServer;
 let prisma: typeof import("@/lib/db").prisma;
 let quotes: typeof import("@/features/sales/actions/quotes");
-let quotePublic: typeof import("@/features/sales/public");
+let quotePublic: typeof import("@/features/sales/actions/public");
 let targets: typeof import("@/features/sales/actions/targets");
-let overview: typeof import("@/features/sales/overview");
+let overview: typeof import("@/features/sales/repository/overview");
 let contracts: typeof import("./actions/contracts");
 let templates: typeof import("./actions/templates");
-let pub: typeof import("./public");
-let repo: typeof import("./repository");
+let pub: typeof import("./actions/public");
+let repo: typeof import("./repository/contracts");
 let pdf: typeof import("./pdf/contract-pdf");
-let server_: typeof import("./server");
+let server_: typeof import("./services/contracts");
 let deals: typeof import("@/features/crm/actions/deals");
 
 const tokenOf = (result: unknown) =>
@@ -80,15 +80,15 @@ beforeAll(async () => {
   }
   ({ prisma } = await import("@/lib/db"));
   quotes = await import("@/features/sales/actions/quotes");
-  quotePublic = await import("@/features/sales/public");
+  quotePublic = await import("@/features/sales/actions/public");
   targets = await import("@/features/sales/actions/targets");
-  overview = await import("@/features/sales/overview");
+  overview = await import("@/features/sales/repository/overview");
   contracts = await import("./actions/contracts");
   templates = await import("./actions/templates");
-  pub = await import("./public");
-  repo = await import("./repository");
+  pub = await import("./actions/public");
+  repo = await import("./repository/contracts");
   pdf = await import("./pdf/contract-pdf");
-  server_ = await import("./server");
+  server_ = await import("./services/contracts");
   deals = await import("@/features/crm/actions/deals");
 }, 120_000);
 

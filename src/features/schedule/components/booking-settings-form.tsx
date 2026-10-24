@@ -31,10 +31,10 @@ import {
 import { Switch } from "@/components/dashboard/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/dashboard/ui/tabs";
 import { Textarea } from "@/components/dashboard/ui/textarea";
-import { saveSiteDocument } from "@/features/cms/admin/document-actions";
-import type { BookingSettings } from "@/features/cms/types";
+import { saveSiteDocument } from "@/features/cms/actions/documents";
+import type { BookingSettings } from "@/features/cms/types/core";
 import { useServerAction } from "@/hooks/use-server-action";
-import { addDays, manilaDate, slotsByDate } from "../slots";
+import { addDays, manilaDate, slotsByDate } from "../rules/slots";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 /** Monday first: how a working week reads, even though the data starts on Sunday. */

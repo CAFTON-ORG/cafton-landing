@@ -27,8 +27,8 @@ import { useServerAction } from "@/hooks/use-server-action";
 import { formatDate } from "@/lib/format";
 import { formatMinor } from "@/lib/money";
 import { bookLine, ignoreLine, matchLine, suggestForLine } from "../actions/bank";
-import type { LedgerCandidate } from "../bank";
-import type { BankLineRow, BookingAccount } from "../bank-types";
+import type { LedgerCandidate } from "../rules/bank";
+import type { BankLineRow, BookingAccount } from "../types/bank";
 
 const summary = (line: BankLineRow) =>
   `${formatDate(line.date)} · ${line.description} · ${line.amountMinor > 0 ? "in" : "out"} ${formatMinor(Math.abs(line.amountMinor))}`;

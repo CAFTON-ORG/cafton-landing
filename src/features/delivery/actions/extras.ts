@@ -4,11 +4,11 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { siteOrigin } from "@/lib/mail";
-import { generateToken, hashToken } from "@/features/sales/integrity";
+import { generateToken, hashToken } from "@/features/sales/services/integrity";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
-import { listComments } from "../repository";
+import { listComments } from "../repository/delivery";
 import {
   MAX_COMMENT,
   checkApplyTemplate,

@@ -7,7 +7,7 @@ import { ActionError, actorId, runAction, type ActionResult } from "@/lib/action
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { formatMinor, parseMinor } from "@/lib/money";
-import { isMonth } from "../dashboard";
+import { isMonth } from "../rules/dashboard";
 
 const MAX_TARGET_MINOR = 99_999_999_999;
 

@@ -31,9 +31,9 @@ import {
 import { Textarea } from "@/components/dashboard/ui/textarea";
 import { useServerAction } from "@/hooks/use-server-action";
 import { saveVendor, setVendorActive } from "../actions/payables";
-import type { BillAccount, VendorView } from "../payable-types";
+import type { BillAccount, VendorView } from "../types/payables";
 import { Money } from "./money";
-import { DEFAULT_VENDOR_TERMS_DAYS } from "../payables";
+import { DEFAULT_VENDOR_TERMS_DAYS } from "../rules/payables";
 
 interface Draft {
   id?: string;

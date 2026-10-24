@@ -10,7 +10,7 @@ import type {
   ServiceContent,
   ServicesDetail,
   SiteSettings,
-} from "@/features/cms/types";
+} from "@/features/cms/types/core";
 
 /** What the contact form needs to know about booking: whether to show the step, and its intro. */
 export interface BookingSummary {

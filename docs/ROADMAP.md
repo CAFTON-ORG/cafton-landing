@@ -142,6 +142,8 @@ Confirmed: base currency PHP (₱); fiscal year January to December; registered 
 - Done when: books balance and reports reconcile to the ledger for seeded scenarios.
 - [x] Before Phase 7: a role-aware home overview, one underline tab style across the dashboard, a workspace subtitle in the sidebar header, and a mock-data seed for everything except the website content (ADR 0023)
 
+- [x] One layout for every feature (ADR 0024), a structure test, and a copy-me `_template`
+
 ## Phase 7 - HR and payroll
 
 Prerequisite: confirm jurisdiction (statutory deductions, leave law) and data-retention policy.

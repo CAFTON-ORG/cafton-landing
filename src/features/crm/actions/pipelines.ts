@@ -6,7 +6,7 @@ import { z } from "zod";
 import { ActionError, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
-import { live } from "../mappers";
+import { live } from "../repository/mappers";
 import {
   MAX_PIPELINES,
   STARTER_STAGES,
@@ -19,7 +19,7 @@ import {
   orderedIds,
   slugKey,
   uniqueKey,
-} from "../pipelines";
+} from "../rules/pipelines";
 import { guard, refreshCrm } from "./guard";
 import type { Tx } from "./shared";
 

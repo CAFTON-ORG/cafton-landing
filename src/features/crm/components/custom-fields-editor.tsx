@@ -48,7 +48,7 @@ import {
   type CustomEntity,
   type CustomFieldDef,
   type CustomType,
-} from "../custom-fields";
+} from "../rules/custom-fields";
 
 interface Editing {
   entity: CustomEntity;

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { buildingForOptions, type ContactFormData } from "@/features/crm/contact";
+import { buildingForOptions, type ContactFormData } from "@/features/crm/rules/contact";
 import type { FieldErrors } from "@/components/marketing/contact/types";
 import { cn } from "@/lib/utils";
 

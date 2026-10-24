@@ -2,7 +2,7 @@ import type { ChangeEvent } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { challengeOptions, type ContactFormData } from "@/features/crm/contact";
+import { challengeOptions, type ContactFormData } from "@/features/crm/rules/contact";
 
 interface ChallengesStepProps {
   formData: ContactFormData;

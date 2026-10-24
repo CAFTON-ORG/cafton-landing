@@ -4,14 +4,14 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { guard } from "@/features/crm/actions/guard";
-import { addDays, manilaDate } from "@/features/schedule/slots";
+import { addDays, manilaDate } from "@/features/schedule/rules/slots";
 import { ActionError, actorId, parse, runAction, type ActionResult } from "@/lib/actions";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { parseMinor } from "@/lib/money";
-import { nextDocumentNumber } from "../documents";
-import { checkVoidSettlement } from "../invoicing";
-import { accountForRole, postJournal, reverseJournal } from "../ledger";
+import { nextDocumentNumber } from "../services/documents";
+import { checkVoidSettlement } from "../rules/invoicing";
+import { accountForRole, postJournal, reverseJournal } from "../services/ledger";
 import {
   billPaymentSchema,
   billSchema,
@@ -21,7 +21,7 @@ import {
   type BillPaymentInput,
   type NewBillInput,
   type VendorInput,
-} from "../payable-schemas";
+} from "../schemas/payables";
 import {
   billBalance,
   billTotal,
@@ -31,8 +31,8 @@ import {
   checkVendor,
   checkVoidBill,
   type BillStatus,
-} from "../payables";
-import { voidSchema } from "../invoice-schemas";
+} from "../rules/payables";
+import { voidSchema } from "../schemas/invoices";
 
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 

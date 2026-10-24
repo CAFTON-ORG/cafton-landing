@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { parseMinor } from "@/lib/money";
-import { parseQuantity } from "./pricing";
+import { parseQuantity } from "./rules/pricing";
 import { PRICING_MODELS } from "./types";
 
 const text = (max: number) => z.string().trim().max(max);

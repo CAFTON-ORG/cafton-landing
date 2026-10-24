@@ -3,8 +3,8 @@
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
-import { monthGrid } from "../calendar";
-import { formatManilaTime } from "../slots";
+import { monthGrid } from "../rules/calendar";
+import { formatManilaTime } from "../rules/slots";
 import type { MeetingView } from "../types";
 import { CHIP_TONE } from "./tones";
 

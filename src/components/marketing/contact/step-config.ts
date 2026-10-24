@@ -1,5 +1,5 @@
 import { z, type ZodType } from "zod";
-import { baseContactSchema, businessInfoStepSchema, goalsAreaStepSchema, goalsSystemsStepSchema, type ContactFormData } from "@/features/crm/contact";
+import { baseContactSchema, businessInfoStepSchema, goalsAreaStepSchema, goalsSystemsStepSchema, type ContactFormData } from "@/features/crm/rules/contact";
 import type { StepId } from "@/components/marketing/contact/types";
 
 export const STEP_SCHEMAS: Record<StepId, ZodType> = {

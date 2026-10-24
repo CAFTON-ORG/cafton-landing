@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { companyDetails } from "@/features/sales/emails";
+import { companyDetails } from "@/features/sales/services/emails";
 import { renderQuotePdf } from "@/features/sales/pdf/quote-pdf";
-import { getPublicQuoteById } from "@/features/sales/repository";
+import { getPublicQuoteById } from "@/features/sales/repository/sales";
 import { can, getStaff } from "@/lib/auth/dal";
 
 export const runtime = "nodejs";

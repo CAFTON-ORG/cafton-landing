@@ -12,7 +12,7 @@ import {
 import type { ReactNode } from "react";
 
 import { LOGO_PATH_D } from "@/components/shared/logo";
-import type { ReportRow, ReportSpec } from "../reports";
+import type { ReportRow, ReportSpec } from "../rules/reports";
 
 /**
  * Any report as a branded A4 document, drawn from the same description the screen and the CSV use.

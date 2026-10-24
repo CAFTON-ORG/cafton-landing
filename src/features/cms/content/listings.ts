@@ -1,4 +1,4 @@
-import type { ListingsDocument, PartnerCopy } from "../types";
+import type { ListingsDocument, PartnerCopy } from "../types/core";
 
 /** The heading text of the blog, portfolio and events pages, as the site said it before it was editable. */
 export const listings: ListingsDocument = {

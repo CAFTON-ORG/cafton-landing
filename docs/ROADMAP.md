@@ -136,7 +136,7 @@ Confirmed: base currency PHP (₱); fiscal year January to December; registered 
 - [x] Bank accounts, statement import (CSV with preview), reconciliation: match, book, set aside, sign off a period (ADR 0019)
 - [x] Period close/lock; voids by reversal only (a new entry that swaps the sides, linked to the original); every posting audited
 - [x] Reports from the ledger: profit and loss, balance sheet, cash flow, trial balance, tax summary, with AR and AP aging; CSV and PDF export (ADR 0020)
-- [ ] Tests: ledger always balances, closed periods immutable, rounding rules
+- [x] Tests: ledger always balances, closed periods immutable, rounding rules (finance.integration.test.ts, rules tests)
 - [x] Income tax tracker for the 8% option: the quarterly and annual returns, estimates, filings recorded and posted, deadline reminders (ADR 0021)
 - [x] Invoicing from approved time, at a rate that is set once and overridden where needed (ADR 0022); new quotes start without VAT unless the business is VAT-registered; the finance screens follow accounting-package conventions (ADR 0022)
 - Done when: books balance and reports reconcile to the ledger for seeded scenarios.
